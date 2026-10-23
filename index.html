@@ -512,7 +512,6 @@
 
         let html = "";
         filtered.forEach(t => {
-            // ✅ FIXED LOGIC: Student isPaid true means all tests unlock, regardless of 'No' in sheet
             let isLocked = (String(t.isFree).trim().toLowerCase() !== "yes" && !currentStudent.isPaid);
             
             let btn = isLocked 
@@ -561,7 +560,7 @@
 
     // ✅ FIXED QR & WHATSAPP LOGIC
     function openPaymentModal() {
-        let upi = (appSettings.UPI_ID || "madhupverma8-1@okhdfcbank").toString().trim();
+        let upi = (appSettings.UPI_ID || "8931083955@ptyes").toString().trim();
         let price = (appSettings.Price || "99").toString().trim();
         let mobile = (appSettings.Mobile || "9140281870").toString().trim();
 
@@ -569,12 +568,16 @@
         document.getElementById('modalPrice').innerText = price;
         document.getElementById('modalUpi').innerText = upi;
 
-        const upiString = `upi://pay?pa=${upi}&pn=TaiyariGhar&am=${price}&cu=INR`;
+        // Format amount to 2 decimal places & encode name for URL
+        let formattedAmount = parseFloat(price).toFixed(2);
+        let encodedName = encodeURIComponent("TaiyariGhar");
+
+        const upiString = `upi://pay?pa=${upi}&pn=${encodedName}&am=${formattedAmount}&cu=INR`;
+        
         let qrContainer = document.getElementById("qrcode");
         qrContainer.innerHTML = ""; 
         new QRCode(qrContainer, { text: upiString, width: 180, height: 180 });
 
-        // Clean mobile number for WhatsApp
         let cleanMobile = mobile.replace(/[^0-9]/g, '');
         if(cleanMobile.length === 10) cleanMobile = "91" + cleanMobile; 
 
@@ -584,7 +587,6 @@
 
     function closeModal() { document.getElementById('paymentModal').classList.add('hide'); }
     
-    // ✅ FIXED CHECK STATUS LOGIC (Fetches live status)
     async function checkPaymentStatus() {
         closeModal();
         try {
