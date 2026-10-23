@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TaiyariGhar | Mock Test Platform</title>
     
-    <!-- Browser Tab Logo (Directly embedded SVG for 100% reliability) -->
+    <!-- Browser Tab Logo (Directly embedded SVG) -->
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏠</text></svg>">
     
     <!-- Google Fonts -->
@@ -246,23 +246,31 @@
             </div>
         </div>
 
+        <!-- Dynamic Dashboard Quick View -->
         <div class="section" style="padding-top: 20px;">
             <h2 class="section-title">📊 Dashboard Quick View</h2>
             <div class="quick-view">
+                <!-- Explore Tests -->
                 <div class="qv-card">
-                    <h3>My Active Tests</h3>
-                    <p>Resume where you left off</p>
+                    <h3>Explore Tests</h3>
+                    <p>Browse all available tests</p>
                     <button class="btn btn-outline" style="width:100%;" onclick="scrollToCategories()">View Tests</button>
                 </div>
+                
+                <!-- Recommended Next -->
                 <div class="qv-card" style="border-left-color: var(--accent);">
                     <h3>Recommended Next</h3>
-                    <p>SSC CGL Mock 15</p>
-                    <button class="btn btn-accent" style="width:100%;" onclick="scrollToCategories()">Start Now</button>
+                    <p id="recTestName">Loading...</p>
+                    <p id="recTestDetails" style="font-size: 16px; color: #666; font-weight: 500; margin-top: -15px; margin-bottom: 20px;"></p>
+                    <button class="btn btn-accent" style="width:100%;" onclick="startRecommendedTest()">Start Now</button>
                 </div>
+                
+                <!-- Recent Performance -->
                 <div class="qv-card" style="border-left-color: var(--purple);">
                     <h3>Recent Performance</h3>
-                    <p>Last Mock Score: 85%</p>
-                    <button class="btn" style="background: var(--purple); color: white; width:100%;" onclick="alert('Detailed performance chart coming soon!')">View Analytics</button>
+                    <p id="recentTestName">Not Attempted Yet</p>
+                    <p id="recentTestScore" style="font-size: 16px; color: #666; font-weight: 500; margin-top: -15px; margin-bottom: 20px;">Take a test to see your score</p>
+                    <button class="btn" style="background: var(--purple); color: white; width:100%;" onclick="scrollToCategories()">View Analytics</button>
                 </div>
             </div>
         </div>
@@ -377,11 +385,12 @@
 
 <script>
     // 🔴 आपका नया Apps Script URL
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzNAgYBzamoNBY_tOgliCdQf_Yf3-bRmWG7t_w1jBGHuaojmLcuVB1Fkf4NlsygkT9i/exec"; 
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbye3PqzP5BPJbgtLzO0bLCLBgBb6J8gNnTIlrwAvxPFTtpZl_DVM9jBY-Ahmc9Nxey5/exec"; 
 
     let allTests = [], appSettings = {}, currentCA = [];
     let currentStudent = { name: "", loginId: "", isPaid: false, expiry: "" };
     let isLoggedIn = false;
+    let recommendedTestData = null;
 
     let testQuestions = [], currentQIndex = 0, userAnswers = {}, markedForReview = {}, visitedQuestions = {}, timerInterval;
     let timeLeft = 0, totalTime = 0, currentTestId = "", currentTestName = "";
@@ -420,6 +429,7 @@
         document.getElementById('dashboardScreen').classList.remove('hide');
         document.getElementById('dashName').innerText = currentStudent.name;
         updateHeaderUI();
+        fetchDashboardData();
     }
 
     function showLogin() {
@@ -520,6 +530,43 @@
             if(caData.status === "success") { currentCA = caData.data; }
 
         } catch (e) { console.log("Data load error", e); }
+    }
+
+    // --- FETCH DASHBOARD DATA (Dynamic) ---
+    async function fetchDashboardData() {
+        try {
+            const res = await fetch(`${SCRIPT_URL}?action=getDashboardData&loginId=${currentStudent.loginId}`);
+            const data = await res.json();
+            
+            if(data.status === "success") {
+                // Recent Test Update
+                if(data.lastTest) {
+                    document.getElementById('recentTestName').innerText = data.lastTest.testName;
+                    document.getElementById('recentTestScore').innerText = `Score: ${data.lastTest.score}/${data.lastTest.total} (${data.lastTest.percent}%)`;
+                } else {
+                    document.getElementById('recentTestName').innerText = "Not Attempted Yet";
+                    document.getElementById('recentTestScore').innerText = "Take a test to see your score";
+                }
+
+                // Recommended Test Update
+                if(data.recTest) {
+                    recommendedTestData = data.recTest;
+                    document.getElementById('recTestName').innerText = data.recTest.name;
+                    document.getElementById('recTestDetails').innerText = `⏱️ ${data.recTest.duration} Mins | ${data.recTest.marks} Marks`;
+                } else {
+                    document.getElementById('recTestName').innerText = "No tests available";
+                    document.getElementById('recTestDetails').innerText = "Please check back later.";
+                }
+            }
+        } catch (e) { console.log("Error fetching dashboard data", e); }
+    }
+
+    function startRecommendedTest() {
+        if(recommendedTestData) {
+            startTest(recommendedTestData.id, recommendedTestData.name, recommendedTestData.duration, recommendedTestData.marks);
+        } else {
+            scrollToCategories();
+        }
     }
 
     // --- RENDER CATEGORIES ---
