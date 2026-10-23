@@ -10,8 +10,6 @@
     
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <!-- QR Code Generator -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     
     <style>
         :root { 
@@ -60,7 +58,7 @@
         .section { padding: 50px 5%; }
         .section-title { font-size: 26px; font-weight: 700; margin-bottom: 25px; color: var(--text); }
         
-        /* Category/Subcategory Cards */
+        /* Category Cards */
         .category-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; }
         .cat-card { background: var(--white); padding: 25px 20px; border-radius: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); cursor: pointer; transition: 0.3s; text-align: center; border: 1px solid #E5E7EB; position: relative; overflow: hidden; }
         .cat-card:hover { transform: translateY(-5px); box-shadow: 0 10px 25px rgba(0,0,0,0.1); border-color: var(--primary); }
@@ -107,7 +105,6 @@
         /* Modal */
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(17, 24, 39, 0.7); display: flex; justify-content: center; align-items: center; z-index: 1000; }
         .modal-box { background: white; padding: 35px; border-radius: 20px; max-width: 420px; width: 90%; text-align: center; }
-        #qrcode { margin: 20px auto; display: flex; justify-content: center; padding: 10px; border: 2px dashed #E5E7EB; border-radius: 12px; width: fit-content;}
         
         @media (max-width: 768px) {
             .hero { flex-direction: column; text-align: center; padding: 40px 5%; }
@@ -316,7 +313,12 @@
         <div class="modal-box">
             <h2 style="color: var(--danger); margin-bottom: 15px;">🔒 Test Locked</h2>
             <p style="margin-bottom: 20px;">Unlock all tests with a one-time payment of <b>₹<span id="modalPrice"></span></b>.</p>
-            <div id="qrcode"></div>
+            
+            <!-- QR CODE IMAGE ADDED HERE -->
+            <div style="margin: 20px auto; border: 2px dashed #E5E7EB; border-radius: 12px; width: fit-content; padding: 10px;">
+                <img src="pay-qr.png" alt="Payment QR" style="width: 200px; height: 200px; object-fit: contain;" onerror="this.src='https://via.placeholder.com/200?text=Upload+pay-qr.png'">
+            </div>
+
             <p style="font-size: 15px; margin-bottom: 20px;">UPI ID: <b id="modalUpi"></b></p>
             <a href="#" id="whatsappBtn" target="_blank" class="btn btn-accent" style="width: 100%; margin-bottom: 15px; display:block;">📲 Send Screenshot on WhatsApp</a>
             <button class="btn btn-outline" style="width: 100%; margin-bottom: 15px;" onclick="checkPaymentStatus()">🔄 Check Status</button>
@@ -325,14 +327,12 @@
     </div>
 
 <script>
-    // 🔴 आपका नया Apps Script URL
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyS1ZUj6C1yq9fqew-Xl_Tx8Sy7ERVz2Y2bdu8N_H8cHT03oiHy6Wc6HH5nh7-dwug/exec"; 
 
     let allTests = [], appSettings = {}, currentCA = [];
     let currentStudent = { name: "", loginId: "", isPaid: false, expiry: "" };
     let isLoggedIn = false;
     let recommendedTestData = null;
-
     let nav = { mainCat: "", subCat: "", examName: "" };
 
     let testQuestions = [], currentQIndex = 0, userAnswers = {}, markedForReview = {}, visitedQuestions = {}, timerInterval;
@@ -364,17 +364,8 @@
         }
     }
 
-    function scrollToCategories() {
-        if(!isLoggedIn) { alert("Please login to access exams!"); showLogin(); } 
-        else { document.getElementById('dashCategories').scrollIntoView({behavior: 'smooth'}); }
-    }
-
-    function showPurchases() {
-        if(!isLoggedIn) return;
-        let status = currentStudent.isPaid ? "Paid (All Access Pass)" : "Free User";
-        let exp = currentStudent.expiry ? currentStudent.expiry : "N/A";
-        alert(`--- MY PURCHASES ---\n\nPlan: ${status}\nExpiry Date: ${exp}`);
-    }
+    function scrollToCategories() { if(!isLoggedIn) { alert("Please login first!"); showLogin(); } else { document.getElementById('dashCategories').scrollIntoView({behavior: 'smooth'}); } }
+    function showPurchases() { if(!isLoggedIn) return; let status = currentStudent.isPaid ? "Paid (All Access Pass)" : "Free User"; alert(`--- MY PURCHASES ---\n\nPlan: ${status}\nExpiry Date: ${currentStudent.expiry || "N/A"}`); }
 
     async function doLogin() {
         const id = document.getElementById('loginId').value.trim();
@@ -401,10 +392,8 @@
         try {
             const res = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: "register", name: name, mobile: mobile, password: pass, deviceId: getDeviceId() }) });
             const data = await res.json();
-            if(data.status === "success") {
-                alert("🎉 Registration Successful!\n\nYour Login ID: " + data.loginId);
-                showLogin();
-            } else { alert(data.message); }
+            if(data.status === "success") { alert("🎉 Registration Successful!\n\nYour Login ID: " + data.loginId); showLogin(); } 
+            else { alert(data.message); }
         } catch (e) { alert("Server Error!"); }
     }
 
@@ -460,10 +449,7 @@
             else if(catName.toLowerCase().includes("up")) icon = "🏛️";
             else if(catName.toLowerCase().includes("police")) icon = "👮";
             
-            html += `<div class="cat-card" onclick="openCategory('${catName}')">
-                        <div class="cat-icon">${icon}</div>
-                        <div class="cat-title">${catName}</div>
-                     </div>`;
+            html += `<div class="cat-card" onclick="openCategory('${catName}')"><div class="cat-icon">${icon}</div><div class="cat-title">${catName}</div></div>`;
         });
         document.getElementById('homeCatGrid').innerHTML = html;
         document.getElementById('dashCatGrid').innerHTML = html;
@@ -474,72 +460,36 @@
         nav.mainCat = mainCat;
         const filtered = allTests.filter(t => t.mainCat === mainCat);
         const uniqueSubCats = [...new Set(filtered.map(t => t.subCat))];
-
         let html = "";
-        uniqueSubCats.forEach(subCat => {
-            html += `<div class="cat-card" onclick="openSubCategory('${subCat}')">
-                        <div class="cat-icon">📂</div>
-                        <div class="cat-title">${subCat}</div>
-                     </div>`;
-        });
-        hideAll();
-        document.getElementById('subCatScreen').classList.remove('hide');
-        document.getElementById('subCatTitle').innerText = mainCat + " - Select Type";
-        document.getElementById('subCatGrid').innerHTML = html;
+        uniqueSubCats.forEach(subCat => { html += `<div class="cat-card" onclick="openSubCategory('${subCat}')"><div class="cat-icon">📂</div><div class="cat-title">${subCat}</div></div>`; });
+        hideAll(); document.getElementById('subCatScreen').classList.remove('hide'); document.getElementById('subCatTitle').innerText = mainCat + " - Select Type"; document.getElementById('subCatGrid').innerHTML = html;
     }
 
     function openSubCategory(subCat) {
         nav.subCat = subCat;
         const filtered = allTests.filter(t => t.mainCat === nav.mainCat && t.subCat === subCat);
         const uniqueExams = [...new Set(filtered.map(t => t.examName))];
-
         let html = "";
-        uniqueExams.forEach(exam => {
-            html += `<div class="cat-card" onclick="openExam('${exam}')">
-                        <div class="cat-icon">📚</div>
-                        <div class="cat-title">${exam}</div>
-                     </div>`;
-        });
-        hideAll();
-        document.getElementById('examScreen').classList.remove('hide');
-        document.getElementById('examTitle').innerText = nav.mainCat + " > " + subCat + " - Select Exam";
-        document.getElementById('examGrid').innerHTML = html;
+        uniqueExams.forEach(exam => { html += `<div class="cat-card" onclick="openExam('${exam}')"><div class="cat-icon">📚</div><div class="cat-title">${exam}</div></div>`; });
+        hideAll(); document.getElementById('examScreen').classList.remove('hide'); document.getElementById('examTitle').innerText = nav.mainCat + " > " + subCat + " - Select Exam"; document.getElementById('examGrid').innerHTML = html;
     }
 
     function openExam(examName) {
         nav.examName = examName;
         const filtered = allTests.filter(t => t.mainCat === nav.mainCat && t.subCat === nav.subCat && t.examName === examName);
-
         let html = "";
         filtered.forEach(t => {
             let isLocked = (String(t.isFree).trim().toLowerCase() !== "yes" && !currentStudent.isPaid);
-            
-            let btn = isLocked 
-                ? `<button class="btn" style="background:#F3F4F6; color:#6B7280; border:1px solid #E5E7EB;" onclick="openPaymentModal()">🔒 Unlock</button>`
-                : `<button class="btn btn-accent" onclick="startTest('${t.id}', '${t.testName}', ${t.duration}, ${t.marks})">Start Test</button>`;
-            
-            html += `<div class="test-item ${isLocked ? 'locked' : ''}">
-                        <div>
-                            <h3 style="color: var(--primary); margin-bottom: 5px;">${t.testName}</h3>
-                            <p style="font-size: 14px; color: #666;">⏱️ ${t.duration} Mins | ${t.marks} Marks</p>
-                        </div>
-                        ${btn}
-                     </div>`;
+            let btn = isLocked ? `<button class="btn" style="background:#F3F4F6; color:#6B7280; border:1px solid #E5E7EB;" onclick="openPaymentModal()">🔒 Unlock</button>` : `<button class="btn btn-accent" onclick="startTest('${t.id}', '${t.testName}', ${t.duration}, ${t.marks})">Start Test</button>`;
+            html += `<div class="test-item ${isLocked ? 'locked' : ''}"><div><h3 style="color: var(--primary); margin-bottom: 5px;">${t.testName}</h3><p style="font-size: 14px; color: #666;">⏱️ ${t.duration} Mins | ${t.marks} Marks</p></div>${btn}</div>`;
         });
-        hideAll();
-        document.getElementById('testListScreen').classList.remove('hide');
-        document.getElementById('testListTitle').innerText = examName + " Tests";
-        document.getElementById('testListContainer').innerHTML = html;
+        hideAll(); document.getElementById('testListScreen').classList.remove('hide'); document.getElementById('testListTitle').innerText = examName + " Tests"; document.getElementById('testListContainer').innerHTML = html;
     }
 
     function goBackToSubCat() { hideAll(); document.getElementById('subCatScreen').classList.remove('hide'); }
     function goBackToExam() { hideAll(); document.getElementById('examScreen').classList.remove('hide'); }
 
-    function showCurrentAffairs() {
-        hideAll();
-        document.getElementById('caScreen').classList.remove('hide');
-        filterCA('Daily'); 
-    }
+    function showCurrentAffairs() { hideAll(); document.getElementById('caScreen').classList.remove('hide'); filterCA('Daily'); }
     function filterCA(type) {
         const tabs = document.getElementById('caTabs').children;
         Array.from(tabs).forEach(btn => {
@@ -549,16 +499,11 @@
         const filtered = currentCA.filter(c => c.type.toLowerCase() === type.toLowerCase());
         if(filtered.length === 0) { document.getElementById('caList').innerHTML = "<p>No updates available.</p>"; return; }
         let html = "";
-        filtered.forEach(c => {
-            html += `<div class="test-item">
-                        <div><h3 style="color: var(--primary);">${c.title}</h3><p>📅 ${c.date}</p></div>
-                        <a href="${c.link}" target="_blank" class="btn btn-outline">View PDF</a>
-                     </div>`;
-        });
+        filtered.forEach(c => { html += `<div class="test-item"><div><h3 style="color: var(--primary);">${c.title}</h3><p>📅 ${c.date}</p></div><a href="${c.link}" target="_blank" class="btn btn-outline">View PDF</a></div>`; });
         document.getElementById('caList').innerHTML = html;
     }
 
-    // ✅ FIXED QR & WHATSAPP LOGIC
+    // ✅ FIXED MODAL (Now uses static image instead of generating QR)
     function openPaymentModal() {
         let upi = (appSettings.UPI_ID || "8931083955@ptyes").toString().trim();
         let price = (appSettings.Price || "99").toString().trim();
@@ -568,16 +513,7 @@
         document.getElementById('modalPrice').innerText = price;
         document.getElementById('modalUpi').innerText = upi;
 
-        // Format amount to 2 decimal places & encode name for URL
-        let formattedAmount = parseFloat(price).toFixed(2);
-        let encodedName = encodeURIComponent("TaiyariGhar");
-
-        const upiString = `upi://pay?pa=${upi}&pn=${encodedName}&am=${formattedAmount}&cu=INR`;
-        
-        let qrContainer = document.getElementById("qrcode");
-        qrContainer.innerHTML = ""; 
-        new QRCode(qrContainer, { text: upiString, width: 180, height: 180 });
-
+        // No QR generation here, we just show the image from the HTML
         let cleanMobile = mobile.replace(/[^0-9]/g, '');
         if(cleanMobile.length === 10) cleanMobile = "91" + cleanMobile; 
 
@@ -586,59 +522,41 @@
     }
 
     function closeModal() { document.getElementById('paymentModal').classList.add('hide'); }
-    
     async function checkPaymentStatus() {
         closeModal();
         try {
             const res = await fetch(`${SCRIPT_URL}?action=checkStatus&loginId=${currentStudent.loginId}`);
             const data = await res.json();
-            
             if(data.status === "success" && data.isPaid) {
                 currentStudent.isPaid = true;
                 localStorage.setItem('tg_user', JSON.stringify(currentStudent));
                 alert("✅ Payment Approved! Tests Unlocked.");
                 location.reload();
-            } else {
-                alert("⏳ Payment not approved yet. Please wait 5 mins or contact admin on WhatsApp.");
-            }
-        } catch(e) { 
-            alert("Error checking status. Please check your internet."); 
-        }
+            } else { alert("⏳ Payment not approved yet. Please wait 5 mins or contact admin on WhatsApp."); }
+        } catch(e) { alert("Error checking status. Please check your internet."); }
     }
 
     async function startTest(testId, testName, duration, marks) {
-        hideAll();
-        document.getElementById('testScreen').classList.remove('hide');
-        currentTestId = testId; currentTestName = testName;
+        hideAll(); document.getElementById('testScreen').classList.remove('hide'); currentTestId = testId; currentTestName = testName;
         try {
             const res = await fetch(`${SCRIPT_URL}?action=getQuestions&testId=${testId}`);
             const data = await res.json();
             if(data.status === "success" && data.questions.length > 0) {
-                testQuestions = data.questions;
-                totalTime = duration * 60; timeLeft = totalTime;
-                currentQIndex = 0; userAnswers = {}; markedForReview = {}; visitedQuestions = {};
-                
-                const container = document.getElementById('paletteContainer');
-                container.innerHTML = '';
+                testQuestions = data.questions; totalTime = duration * 60; timeLeft = totalTime; currentQIndex = 0; userAnswers = {}; markedForReview = {}; visitedQuestions = {};
+                const container = document.getElementById('paletteContainer'); container.innerHTML = '';
                 testQuestions.forEach((_, i) => {
-                    const btn = document.createElement('button');
-                    btn.className = 'pallet-btn'; btn.innerText = i + 1;
-                    btn.onclick = () => { currentQIndex = i; loadQuestion(); };
-                    container.appendChild(btn);
+                    const btn = document.createElement('button'); btn.className = 'pallet-btn'; btn.innerText = i + 1;
+                    btn.onclick = () => { currentQIndex = i; loadQuestion(); }; container.appendChild(btn);
                 });
-                loadQuestion();
-                startTimer();
+                loadQuestion(); startTimer();
             } else { alert("No questions found for this test!"); goBackToExam(); }
         } catch (e) { alert("Failed to load test!"); goBackToExam(); }
     }
 
     function startTimer() {
-        clearInterval(timerInterval);
-        const timerEl = document.getElementById('timerDisplay');
-        timerEl.classList.remove('timer-danger');
+        clearInterval(timerInterval); const timerEl = document.getElementById('timerDisplay'); timerEl.classList.remove('timer-danger');
         timerInterval = setInterval(() => {
-            timeLeft--;
-            let m = Math.floor(timeLeft / 60), s = timeLeft % 60;
+            timeLeft--; let m = Math.floor(timeLeft / 60), s = timeLeft % 60;
             timerEl.innerText = `${m < 10 ? '0'+m : m}:${s < 10 ? '0'+s : s}`;
             if(timeLeft <= (totalTime * 0.2) && timeLeft > 0) { timerEl.classList.add('timer-danger'); }
             if(timeLeft <= 0) { clearInterval(timerInterval); submitTest(); }
@@ -646,20 +564,16 @@
     }
 
     function loadQuestion() {
-        const q = testQuestions[currentQIndex];
-        visitedQuestions[currentQIndex] = true;
+        const q = testQuestions[currentQIndex]; visitedQuestions[currentQIndex] = true;
         document.getElementById('qNumberText').innerText = `Question ${currentQIndex + 1} of ${testQuestions.length}`;
         document.getElementById('questionText').innerText = q.q;
-        const optContainer = document.getElementById('optionsContainer');
-        optContainer.innerHTML = '';
+        const optContainer = document.getElementById('optionsContainer'); optContainer.innerHTML = '';
         q.o.forEach((opt, i) => {
-            const label = document.createElement('label');
-            const radio = document.createElement('input');
+            const label = document.createElement('label'); const radio = document.createElement('input');
             radio.type = 'radio'; radio.name = 'option'; radio.value = i;
             if (userAnswers[currentQIndex] === i) radio.checked = true;
             radio.onchange = () => { userAnswers[currentQIndex] = i; updatePalette(); };
-            label.appendChild(radio); label.appendChild(document.createTextNode(opt));
-            optContainer.appendChild(label);
+            label.appendChild(radio); label.appendChild(document.createTextNode(opt)); optContainer.appendChild(label);
         });
         const markBtn = document.getElementById('markBtn');
         if(markedForReview[currentQIndex]) { markBtn.style.background = '#EF4444'; markBtn.innerText = '❌ Remove Mark'; }
@@ -687,32 +601,17 @@
     async function submitTest() {
         if(timeLeft > 0 && !confirm("Are you sure you want to submit?")) return;
         clearInterval(timerInterval);
-        let score = 0;
-        testQuestions.forEach((q, i) => { if(userAnswers[i] === q.a) score++; });
-        
-        hideAll();
-        document.getElementById('resultScreen').classList.remove('hide');
-        document.getElementById('finalScore').innerText = `${score} / ${testQuestions.length}`;
-        document.getElementById('rankText').innerText = "Calculating Rank...";
-        
+        let score = 0; testQuestions.forEach((q, i) => { if(userAnswers[i] === q.a) score++; });
+        hideAll(); document.getElementById('resultScreen').classList.remove('hide'); document.getElementById('finalScore').innerText = `${score} / ${testQuestions.length}`; document.getElementById('rankText').innerText = "Calculating Rank...";
         try {
-            const res = await fetch(SCRIPT_URL, { 
-                method: 'POST', 
-                body: JSON.stringify({ 
-                    action: "submitTest", loginId: currentStudent.loginId, studentName: currentStudent.name,
-                    testId: currentTestId, testName: currentTestName, score: score, total: testQuestions.length 
-                }) 
-            });
+            const res = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: "submitTest", loginId: currentStudent.loginId, studentName: currentStudent.name, testId: currentTestId, testName: currentTestName, score: score, total: testQuestions.length }) });
             const data = await res.json();
             if(data.status === "success") {
                 document.getElementById('rankText').innerText = `Your Rank: ${data.rank} out of ${data.totalStudents}`;
                 let lbHTML = "";
                 data.top5.forEach(student => {
                     let isYou = (student.name === currentStudent.name);
-                    lbHTML += `<div class="lb-row ${isYou ? 'you' : ''}">
-                        <span>Rank ${student.rank}: ${student.name} ${isYou ? '(You)' : ''}</span>
-                        <span>${student.score} (${student.percent}%)</span>
-                    </div>`;
+                    lbHTML += `<div class="lb-row ${isYou ? 'you' : ''}"><span>Rank ${student.rank}: ${student.name} ${isYou ? '(You)' : ''}</span><span>${student.score} (${student.percent}%)</span></div>`;
                 });
                 document.getElementById('lbContainer').innerHTML = lbHTML;
             }
@@ -721,15 +620,8 @@
 
     window.onload = () => {
         let savedUser = localStorage.getItem('tg_user');
-        if(savedUser) {
-            currentStudent = JSON.parse(savedUser);
-            isLoggedIn = true;
-            fetchSettingsAndTests();
-            goDashboard();
-        } else {
-            fetchSettingsAndTests(); 
-            goHome();
-        }
+        if(savedUser) { currentStudent = JSON.parse(savedUser); isLoggedIn = true; fetchSettingsAndTests(); goDashboard(); } 
+        else { fetchSettingsAndTests(); goHome(); }
     }
 </script>
 </body>
