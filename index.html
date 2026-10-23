@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TaiyariGhar | Mock Test Platform</title>
     
-    <!-- Browser Tab Logo (Directly embedded SVG) -->
+    <!-- Browser Tab Logo -->
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏠</text></svg>">
     
     <!-- Google Fonts -->
@@ -15,136 +15,105 @@
     
     <style>
         :root { 
-            --primary: #4F46E5; /* Indigo */
-            --primary-hover: #4338CA;
-            --secondary: #EC4899; /* Pink */
-            --accent: #10B981; /* Emerald Green */
-            --danger: #EF4444; /* Red */
-            --bg: #F3F4F6; /* Light Gray */
-            --text: #1F2937; /* Dark Gray */
-            --white: #FFFFFF;
-            --purple: #8B5CF6;
-            --grey: #9CA3AF;
+            --primary: #4F46E5; --primary-hover: #4338CA; --secondary: #EC4899; 
+            --accent: #10B981; --danger: #EF4444; --bg: #F3F4F6; --text: #1F2937; 
+            --white: #FFFFFF; --purple: #8B5CF6; --grey: #9CA3AF;
         }
         
         * { box-sizing: border-box; font-family: 'Poppins', sans-serif; margin: 0; padding: 0; }
         body { background-color: var(--bg); color: var(--text); min-height: 100vh; display: flex; flex-direction: column; }
-        
         .hide { display: none !important; }
         
-        /* Typography & Buttons */
-        h1, h2, h3 { font-weight: 700; }
-        .btn { 
-            padding: 12px 24px; border: none; border-radius: 8px; cursor: pointer; 
-            font-size: 15px; font-weight: 600; text-decoration: none; display: inline-block; 
-            text-align: center; transition: all 0.3s ease; font-family: 'Poppins', sans-serif;
-        }
+        /* Buttons */
+        .btn { padding: 12px 24px; border: none; border-radius: 8px; cursor: pointer; font-size: 15px; font-weight: 600; text-decoration: none; display: inline-block; text-align: center; transition: all 0.3s ease; font-family: 'Poppins', sans-serif; }
         .btn-primary { background: linear-gradient(135deg, #4F46E5, #7C3AED); color: var(--white); box-shadow: 0 4px 15px rgba(79, 70, 229, 0.3); }
-        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(79, 70, 229, 0.5); }
+        .btn-primary:hover { transform: translateY(-2px); }
         .btn-accent { background: var(--accent); color: var(--white); box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3); }
-        .btn-accent:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(16, 185, 129, 0.5); }
         .btn-outline { border: 2px solid var(--primary); color: var(--primary); background: transparent; }
         .btn-outline:hover { background: var(--primary); color: white; }
 
         /* Header */
         .header { background: var(--white); padding: 15px 5%; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 10px rgba(0,0,0,0.05); position: sticky; top: 0; z-index: 100; }
-        .logo { font-size: 26px; font-weight: 800; color: var(--primary); display: flex; align-items: center; gap: 10px; letter-spacing: -0.5px; }
+        .logo { font-size: 26px; font-weight: 800; color: var(--primary); display: flex; align-items: center; gap: 10px; }
         .nav-links { display: flex; gap: 25px; }
-        .nav-links a { text-decoration: none; color: var(--text); font-weight: 500; font-size: 15px; cursor: pointer; transition: 0.2s; }
+        .nav-links a { text-decoration: none; color: var(--text); font-weight: 500; font-size: 15px; cursor: pointer; }
         .nav-links a:hover { color: var(--primary); }
         .header-right { display: flex; gap: 15px; align-items: center; }
         
-        /* Profile Dropdown */
+        /* Profile */
         .profile-menu { position: relative; cursor: pointer; display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 15px; color: var(--primary); background: #EEF2FF; padding: 8px 16px; border-radius: 20px; }
         .profile-dropdown { position: absolute; top: 120%; right: 0; background: var(--white); box-shadow: 0 10px 25px rgba(0,0,0,0.1); border-radius: 12px; width: 200px; display: none; flex-direction: column; padding: 10px 0; border: 1px solid #E5E7EB; }
         .profile-menu:hover .profile-dropdown { display: flex; }
-        .profile-dropdown a { padding: 12px 20px; text-decoration: none; color: var(--text); font-weight: 500; transition: 0.2s; }
+        .profile-dropdown a { padding: 12px 20px; text-decoration: none; color: var(--text); font-weight: 500; }
         .profile-dropdown a:hover { background: #F3F4F6; color: var(--primary); }
 
-        /* Hero Section */
-        .hero { display: flex; align-items: center; justify-content: space-between; padding: 60px 5%; background: linear-gradient(135deg, #EEF2FF 0%, #E0E7FF 100%); position: relative; overflow: hidden; }
-        .hero-text { flex: 1.2; z-index: 2; }
+        /* Hero */
+        .hero { display: flex; align-items: center; justify-content: space-between; padding: 60px 5%; background: linear-gradient(135deg, #EEF2FF 0%, #E0E7FF 100%); }
+        .hero-text { flex: 1.2; }
         .hero-text h1 { font-size: 46px; font-weight: 800; color: #1E1B4B; line-height: 1.1; margin-bottom: 20px; }
         .hero-text h1 span { background: -webkit-linear-gradient(45deg, #4F46E5, #EC4899); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        .hero-text p { font-size: 17px; color: #4B5563; margin-bottom: 30px; max-width: 600px; line-height: 1.6; }
-        
-        .search-container { position: relative; max-width: 500px; }
-        .search-bar { width: 100%; padding: 16px 20px; border-radius: 12px; border: 2px solid #E5E7EB; outline: none; font-size: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); transition: 0.3s; }
-        .search-bar:focus { border-color: var(--primary); box-shadow: 0 4px 20px rgba(79, 70, 229, 0.2); }
-        
-        .hero-img { flex: 0.8; text-align: right; z-index: 2; }
+        .hero-text p { font-size: 17px; color: #4B5563; margin-bottom: 30px; line-height: 1.6; }
+        .hero-img { flex: 0.8; text-align: right; }
         .hero-img img { max-width: 100%; max-height: 400px; border-radius: 20px; box-shadow: 0 20px 40px rgba(0,0,0,0.15); object-fit: cover; }
 
         /* Sections */
         .section { padding: 50px 5%; }
-        .section-title { font-size: 26px; font-weight: 700; margin-bottom: 25px; color: var(--text); display: flex; align-items: center; gap: 10px; }
+        .section-title { font-size: 26px; font-weight: 700; margin-bottom: 25px; color: var(--text); }
         
-        /* Category Cards */
-        .category-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; }
+        /* Category/Subcategory Cards */
+        .category-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; }
         .cat-card { background: var(--white); padding: 25px 20px; border-radius: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); cursor: pointer; transition: 0.3s; text-align: center; border: 1px solid #E5E7EB; position: relative; overflow: hidden; }
-        .cat-card::before { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 4px; background: var(--primary); transition: 0.3s; }
         .cat-card:hover { transform: translateY(-5px); box-shadow: 0 10px 25px rgba(0,0,0,0.1); border-color: var(--primary); }
-        .cat-card:hover::before { background: var(--secondary); }
         .cat-icon { font-size: 45px; margin-bottom: 15px; }
         .cat-title { font-size: 18px; font-weight: 600; color: var(--text); }
 
-        /* Current Affairs Block */
+        /* Current Affairs */
         .ca-block { background: linear-gradient(135deg, #F59E0B 0%, #EA580C 100%); padding: 40px; border-radius: 20px; color: white; display: flex; justify-content: space-between; align-items: center; margin: 0 5% 50px 5%; box-shadow: 0 15px 30px rgba(234, 88, 12, 0.3); cursor: pointer; }
         .ca-block h2 { font-size: 32px; margin-bottom: 10px; color: white;}
-        .ca-block p { font-size: 17px; opacity: 0.9; }
-
+        
         /* Dashboard Quick Views */
         .quick-view { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 25px; margin-bottom: 20px; }
         .qv-card { background: var(--white); padding: 25px; border-radius: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); border-left: 5px solid var(--secondary); }
-        .qv-card h3 { font-size: 14px; color: var(--grey); margin-bottom: 12px; text-transform: uppercase; letter-spacing: 1px; }
+        .qv-card h3 { font-size: 14px; color: var(--grey); margin-bottom: 12px; text-transform: uppercase; }
         .qv-card p { font-size: 20px; font-weight: 700; margin-bottom: 20px; color: var(--text); }
 
-        /* Test List Page */
+        /* Test List */
         .test-list { display: flex; flex-direction: column; gap: 15px; }
-        .test-item { background: var(--white); padding: 20px 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); display: flex; justify-content: space-between; align-items: center; border: 1px solid #E5E7EB; transition: 0.2s; }
-        .test-item:hover { border-color: var(--primary); box-shadow: 0 6px 20px rgba(79, 70, 229, 0.1); }
+        .test-item { background: var(--white); padding: 20px 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); display: flex; justify-content: space-between; align-items: center; border: 1px solid #E5E7EB; }
         .test-item.locked { border-left: 5px solid var(--grey); opacity: 0.9; }
 
         /* Test Interface */
-        .test-header { background: linear-gradient(90deg, #111827, #1F2937); color: var(--white); padding: 15px 5%; display: flex; justify-content: space-between; align-items: center; position: sticky; top:0; z-index: 100; box-shadow: 0 4px 15px rgba(0,0,0,0.2);}
-        .timer { font-weight: 700; background: rgba(255,255,255,0.15); padding: 8px 18px; border-radius: 8px; font-size: 20px; letter-spacing: 1px; border: 1px solid rgba(255,255,255,0.2);}
-        .timer-danger { background: var(--danger) !important; animation: blink 1s infinite; border-color: var(--danger); }
+        .test-header { background: linear-gradient(90deg, #111827, #1F2937); color: var(--white); padding: 15px 5%; display: flex; justify-content: space-between; position: sticky; top:0; z-index: 100; }
+        .timer { font-weight: 700; background: rgba(255,255,255,0.15); padding: 8px 18px; border-radius: 8px; font-size: 20px; }
+        .timer-danger { background: var(--danger) !important; animation: blink 1s infinite; }
         @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
-        
         .test-layout { display: flex; gap: 25px; margin: 25px auto; max-width: 1200px; padding: 0 15px; width: 100%; }
-        .question-area { flex: 1; background: var(--white); padding: 30px; border-radius: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
-        .sidebar { width: 320px; background: var(--white); padding: 25px; border-radius: 16px; height: fit-content; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
-        
-        .options label { display: block; padding: 15px 20px; border: 2px solid #E5E7EB; margin-bottom: 12px; border-radius: 10px; cursor: pointer; font-size: 16px; transition: 0.2s; background: #F9FAFB;}
-        .options label:hover { background: #EEF2FF; border-color: #A5B4FC; }
-        .options input[type="radio"] { margin-right: 15px; transform: scale(1.3); accent-color: var(--primary); }
-        
+        .question-area { flex: 1; background: var(--white); padding: 30px; border-radius: 16px; }
+        .sidebar { width: 320px; background: var(--white); padding: 25px; border-radius: 16px; height: fit-content; }
+        .options label { display: block; padding: 15px; border: 2px solid #E5E7EB; margin-bottom: 12px; border-radius: 10px; cursor: pointer; }
         .palette-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin-bottom: 25px; }
-        .pallet-btn { padding: 12px 0; border: none; border-radius: 8px; background: var(--grey); color: white; cursor: pointer; font-weight: 600; font-size: 15px; transition: 0.2s;}
-        .pallet-btn:hover { transform: scale(1.05); }
-        .pallet-btn.active { border: 3px solid #111827; transform: scale(1.1); box-shadow: 0 0 10px rgba(0,0,0,0.2);}
+        .pallet-btn { padding: 12px 0; border: none; border-radius: 8px; background: var(--grey); color: white; cursor: pointer; font-weight: 600; }
+        .pallet-btn.active { border: 3px solid #111827; }
         .pallet-btn.answered { background: var(--accent); }
         .pallet-btn.not-answered { background: var(--danger); }
         .pallet-btn.marked { background: var(--purple); }
 
-        /* Result & Leaderboard */
-        .result-card { max-width: 800px; margin: 40px auto; background: var(--white); padding: 40px; border-radius: 20px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
-        .leaderboard { margin-top: 30px; text-align: left; background: #F9FAFB; padding: 20px; border-radius: 12px; border: 1px solid #E5E7EB;}
-        .lb-row { display: flex; justify-content: space-between; padding: 15px 20px; border-bottom: 1px solid #E5E7EB; font-size: 15px;}
-        .lb-row:last-child { border-bottom: none; }
-        .lb-row.you { background: #EEF2FF; border-radius: 8px; font-weight: 700; color: var(--primary); border-left: 4px solid var(--primary); }
+        /* Result */
+        .result-card { max-width: 800px; margin: 40px auto; background: var(--white); padding: 40px; border-radius: 20px; text-align: center; }
+        .leaderboard { margin-top: 30px; text-align: left; background: #F9FAFB; padding: 20px; border-radius: 12px; }
+        .lb-row { display: flex; justify-content: space-between; padding: 15px; border-bottom: 1px solid #E5E7EB; }
+        .lb-row.you { background: #EEF2FF; font-weight: 700; color: var(--primary); }
 
-        /* Modal / Popup */
-        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(17, 24, 39, 0.7); display: flex; justify-content: center; align-items: center; z-index: 1000; backdrop-filter: blur(4px); }
-        .modal-box { background: white; padding: 35px; border-radius: 20px; max-width: 420px; width: 90%; text-align: center; box-shadow: 0 25px 50px rgba(0,0,0,0.25); }
-        #qrcode { margin: 20px auto; display: flex; justify-content: center; padding: 10px; background: white; border: 2px dashed #E5E7EB; border-radius: 12px; width: fit-content;}
+        /* Modal */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(17, 24, 39, 0.7); display: flex; justify-content: center; align-items: center; z-index: 1000; }
+        .modal-box { background: white; padding: 35px; border-radius: 20px; max-width: 420px; width: 90%; text-align: center; }
+        #qrcode { margin: 20px auto; display: flex; justify-content: center; padding: 10px; border: 2px dashed #E5E7EB; border-radius: 12px; width: fit-content;}
         
-        /* Mobile */
         @media (max-width: 768px) {
             .hero { flex-direction: column; text-align: center; padding: 40px 5%; }
             .hero-text h1 { font-size: 32px; }
-            .hero-img { margin-top: 30px; text-align: center; }
-            .ca-block { flex-direction: column; text-align: center; gap: 20px; padding: 30px; }
+            .hero-img { margin-top: 30px; }
+            .ca-block { flex-direction: column; text-align: center; gap: 20px; }
             .test-layout { flex-direction: column-reverse; }
             .sidebar { width: 100%; }
             .nav-links { display: none; } 
@@ -160,7 +129,6 @@
         <div class="nav-links" id="mainNav">
             <a onclick="goHome()">Home</a>
             <a onclick="scrollToCategories()">All Exams</a>
-            <a onclick="scrollToCategories()">Free Tests</a>
             <a onclick="showCurrentAffairs()">Current Affairs</a>
         </div>
         <div class="header-right" id="headerAuth">
@@ -185,91 +153,75 @@
             <div class="hero-text">
                 <h1>CRACK YOUR GOVT EXAM WITH <span>TayariGhar</span> MOCK TEST PLATFORM</h1>
                 <p>Mock Tests for SSC, Banking, Railways, Police, All State Exams, Current affairs & more. Latest Pattern & Syllabus. (One Time Subscription)</p>
-                <div class="search-container">
-                    <input type="text" class="search-bar" placeholder="🔍 Search your exam (e.g., UP Police Constable, SSC CGL)...">
-                </div>
             </div>
             <div class="hero-img">
-                <!-- यहाँ अपनी फोटो का लिंक डालें (वरना डमी फोटो दिखेगी) -->
                 <img src="YOUR_IMAGE_LINK_HERE" alt="Student" onerror="this.src='https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=600&auto=format&fit=crop'">
             </div>
         </div>
-
         <div class="section" id="homeCategories">
             <h2 class="section-title">🎯 Exam Categories</h2>
             <div class="category-grid" id="homeCatGrid"></div>
         </div>
-
         <div class="ca-block" onclick="showCurrentAffairs()">
             <div>
                 <h2>📰 Current Affairs Hub</h2>
-                <p>Stay updated with Daily, Weekly, and Monthly Current Affairs for your exams.</p>
+                <p>Stay updated with Daily, Weekly, and Monthly Current Affairs.</p>
             </div>
-            <button class="btn" style="background: white; color: #EA580C; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">Explore Now</button>
+            <button class="btn" style="background: white; color: #EA580C;">Explore Now</button>
         </div>
     </div>
 
-    <!-- 2. LOGIN / REGISTER SCREENS -->
+    <!-- 2. LOGIN / REGISTER -->
     <div id="loginScreen" class="section hide" style="max-width: 500px; margin: 50px auto;">
-        <div style="background: white; padding: 40px 30px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); text-align: center;">
+        <div style="background: white; padding: 40px 30px; border-radius: 20px; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.05);">
             <h2 style="color: var(--primary); margin-bottom: 25px;">Login to Your Account</h2>
-            <input type="text" id="loginId" placeholder="Login ID (e.g., TG0001)" style="width:100%; padding:15px; margin-bottom: 15px; border:2px solid #E5E7EB; border-radius:10px; font-size:15px;">
-            <input type="password" id="loginPass" placeholder="Password" style="width:100%; padding:15px; margin-bottom: 25px; border:2px solid #E5E7EB; border-radius:10px; font-size:15px;">
-            <button class="btn btn-primary" style="width:100%; padding:15px; font-size:16px;" onclick="doLogin()">Login</button>
-            <p style="margin-top: 20px; color: #6B7280;">New user? <a href="#" onclick="showRegister()" style="color: var(--primary); font-weight:600; text-decoration:none;">Register Here</a></p>
+            <input type="text" id="loginId" placeholder="Login ID (e.g., TG0001)" style="width:100%; padding:15px; margin-bottom: 15px; border:2px solid #E5E7EB; border-radius:10px; outline:none;">
+            <input type="password" id="loginPass" placeholder="Password" style="width:100%; padding:15px; margin-bottom: 25px; border:2px solid #E5E7EB; border-radius:10px; outline:none;">
+            <button class="btn btn-primary" style="width:100%; padding:15px;" onclick="doLogin()">Login</button>
+            <p style="margin-top: 20px;">New user? <a href="#" onclick="showRegister()" style="color: var(--primary);">Register Here</a></p>
         </div>
     </div>
-
     <div id="registerScreen" class="section hide" style="max-width: 500px; margin: 50px auto;">
-        <div style="background: white; padding: 40px 30px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); text-align: center;">
+        <div style="background: white; padding: 40px 30px; border-radius: 20px; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.05);">
             <h2 style="color: var(--accent); margin-bottom: 25px;">Create an Account</h2>
-            <input type="text" id="regName" placeholder="Full Name" style="width:100%; padding:15px; margin-bottom: 15px; border:2px solid #E5E7EB; border-radius:10px; font-size:15px;">
-            <input type="tel" id="regMobile" placeholder="Mobile Number" style="width:100%; padding:15px; margin-bottom: 15px; border:2px solid #E5E7EB; border-radius:10px; font-size:15px;">
-            <input type="password" id="regPass" placeholder="Create Password" style="width:100%; padding:15px; margin-bottom: 25px; border:2px solid #E5E7EB; border-radius:10px; font-size:15px;">
-            <button class="btn btn-accent" style="width:100%; padding:15px; font-size:16px;" onclick="doRegister()">Register Now</button>
+            <input type="text" id="regName" placeholder="Full Name" style="width:100%; padding:15px; margin-bottom: 15px; border:2px solid #E5E7EB; border-radius:10px; outline:none;">
+            <input type="tel" id="regMobile" placeholder="Mobile Number" style="width:100%; padding:15px; margin-bottom: 15px; border:2px solid #E5E7EB; border-radius:10px; outline:none;">
+            <input type="password" id="regPass" placeholder="Create Password" style="width:100%; padding:15px; margin-bottom: 25px; border:2px solid #E5E7EB; border-radius:10px; outline:none;">
+            <button class="btn btn-accent" style="width:100%; padding:15px;" onclick="doRegister()">Register Now</button>
         </div>
     </div>
 
-    <!-- 3. DASHBOARD (Post Login) -->
+    <!-- 3. DASHBOARD -->
     <div id="dashboardScreen" class="hide">
         <div class="hero" style="padding: 40px 5%;">
             <div class="hero-text">
-                <h1 style="font-size: 32px; color: #1E1B4B; margin-bottom: 5px;">WELCOME BACK, <span id="dashName" style="color: var(--primary);"></span>! 🎉</h1>
-                <p style="font-weight: 600; color: var(--accent); margin-bottom: 15px;">CONTINUE YOUR JOURNEY TO SUCCESS.</p>
-                
-                <h2 style="font-size: 24px; color: #1E1B4B; margin-bottom: 10px; line-height: 1.3;">CRACK YOUR GOVT EXAM WITH TayariGhar MOCK TEST PLATFORM</h2>
-                <p style="font-size: 16px; line-height: 1.6;">Mock Tests for SSC, Banking, Railways, Police, All State Exams, Current affairs & more. Latest Pattern & Syllabus.</p>
+                <h1 style="font-size: 32px; color: #1E1B4B;">WELCOME BACK, <span id="dashName" style="color: var(--primary);"></span>! 🎉</h1>
+                <p style="font-weight: 600; color: var(--accent);">CONTINUE YOUR JOURNEY TO SUCCESS.</p>
+                <h2 style="font-size: 24px; color: #1E1B4B; margin-top: 15px;">CRACK YOUR GOVT EXAM WITH TayariGhar MOCK TEST PLATFORM</h2>
             </div>
             <div class="hero-img">
-                <!-- यहाँ अपनी फोटो का लिंक डालें -->
                 <img src="YOUR_IMAGE_LINK_HERE" style="max-width: 60%;" onerror="this.src='https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=600&auto=format&fit=crop'">
             </div>
         </div>
 
-        <!-- Dynamic Dashboard Quick View -->
         <div class="section" style="padding-top: 20px;">
             <h2 class="section-title">📊 Dashboard Quick View</h2>
             <div class="quick-view">
-                <!-- Explore Tests -->
                 <div class="qv-card">
                     <h3>Explore Tests</h3>
                     <p>Browse all available tests</p>
                     <button class="btn btn-outline" style="width:100%;" onclick="scrollToCategories()">View Tests</button>
                 </div>
-                
-                <!-- Recommended Next -->
                 <div class="qv-card" style="border-left-color: var(--accent);">
                     <h3>Recommended Next</h3>
                     <p id="recTestName">Loading...</p>
-                    <p id="recTestDetails" style="font-size: 16px; color: #666; font-weight: 500; margin-top: -15px; margin-bottom: 20px;"></p>
+                    <p id="recTestDetails" style="font-size: 16px; color: #666; margin-top: -15px; margin-bottom: 20px;"></p>
                     <button class="btn btn-accent" style="width:100%;" onclick="startRecommendedTest()">Start Now</button>
                 </div>
-                
-                <!-- Recent Performance -->
                 <div class="qv-card" style="border-left-color: var(--purple);">
                     <h3>Recent Performance</h3>
                     <p id="recentTestName">Not Attempted Yet</p>
-                    <p id="recentTestScore" style="font-size: 16px; color: #666; font-weight: 500; margin-top: -15px; margin-bottom: 20px;">Take a test to see your score</p>
+                    <p id="recentTestScore" style="font-size: 16px; color: #666; margin-top: -15px; margin-bottom: 20px;">Take a test to see your score</p>
                     <button class="btn" style="background: var(--purple); color: white; width:100%;" onclick="scrollToCategories()">View Analytics</button>
                 </div>
             </div>
@@ -279,38 +231,42 @@
             <h2 class="section-title">🎯 Exam Categories</h2>
             <div class="category-grid" id="dashCatGrid"></div>
         </div>
-
-        <div class="ca-block" onclick="showCurrentAffairs()">
-            <div>
-                <h2>📰 Current Affairs Hub</h2>
-                <p>Stay updated with Daily, Weekly, and Monthly Current Affairs.</p>
-            </div>
-            <button class="btn" style="background: white; color: #EA580C; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">Explore Now</button>
-        </div>
     </div>
 
-    <!-- 4. TEST LIST SCREEN -->
-    <div id="testListScreen" class="section hide" style="max-width: 1000px; margin: 0 auto; width: 100%;">
-        <button class="btn btn-outline" style="margin-bottom: 25px;" onclick="goDashboard()">← Back to Dashboard</button>
+    <!-- 4. SUB-CATEGORY -->
+    <div id="subCatScreen" class="section hide">
+        <button class="btn btn-outline" style="margin-bottom: 25px;" onclick="goDashboard()">← Back to Categories</button>
+        <h2 class="section-title" id="subCatTitle"></h2>
+        <div class="category-grid" id="subCatGrid"></div>
+    </div>
+
+    <!-- 5. EXAM NAME -->
+    <div id="examScreen" class="section hide">
+        <button class="btn btn-outline" style="margin-bottom: 25px;" onclick="goBackToSubCat()">← Back to Sub-Categories</button>
+        <h2 class="section-title" id="examTitle"></h2>
+        <div class="category-grid" id="examGrid"></div>
+    </div>
+
+    <!-- 6. TEST LIST -->
+    <div id="testListScreen" class="section hide">
+        <button class="btn btn-outline" style="margin-bottom: 25px;" onclick="goBackToExam()">← Back to Exams</button>
         <h2 class="section-title" id="testListTitle"></h2>
         <div class="test-list" id="testListContainer"></div>
     </div>
 
-    <!-- 5. CURRENT AFFAIRS SCREEN -->
-    <div id="caScreen" class="section hide" style="max-width: 1000px; margin: 0 auto; width: 100%;">
+    <!-- 7. CURRENT AFFAIRS -->
+    <div id="caScreen" class="section hide">
         <button class="btn btn-outline" style="margin-bottom: 25px;" onclick="goHome()">← Back to Home</button>
         <h2 class="section-title">📰 Current Affairs</h2>
-        
         <div style="display: flex; gap: 15px; margin-bottom: 30px;" id="caTabs">
             <button class="btn btn-primary" onclick="filterCA('Daily')">Daily</button>
             <button class="btn" style="background:#E5E7EB; color:#374151;" onclick="filterCA('Weekly')">Weekly</button>
             <button class="btn" style="background:#E5E7EB; color:#374151;" onclick="filterCA('Monthly')">Monthly</button>
         </div>
-        
         <div id="caList" class="test-list"></div>
     </div>
 
-    <!-- 6. TEST INTERFACE -->
+    <!-- 8. TEST INTERFACE -->
     <div id="testScreen" class="hide">
         <div class="test-header">
             <div style="font-weight: 700; font-size: 20px; color: white;">🏠 TaiyariGhar</div>
@@ -318,10 +274,10 @@
         </div>
         <div class="test-layout">
             <div class="question-area">
-                <div id="qNumberText" style="font-weight:600; margin-bottom:20px; color:var(--primary); font-size:18px;"></div>
-                <div id="questionText" style="font-size: 18px; margin-bottom: 30px; line-height: 1.6; font-weight: 500;"></div>
+                <div id="qNumberText" style="font-weight:600; margin-bottom:20px; color:var(--primary);"></div>
+                <div id="questionText" style="font-size: 18px; margin-bottom: 30px; line-height: 1.6;"></div>
                 <div class="options" id="optionsContainer"></div>
-                <div style="display: flex; justify-content: space-between; margin-top: 40px; flex-wrap: wrap; gap: 15px;">
+                <div style="display: flex; justify-content: space-between; margin-top: 40px;">
                     <button class="btn" style="background:#F3F4F6; color:#374151;" onclick="clearResponse()">Clear Response</button>
                     <div style="display: flex; gap: 10px;">
                         <button class="btn" style="background:var(--purple); color:white;" onclick="toggleMark()" id="markBtn">⭐ Mark</button>
@@ -331,116 +287,71 @@
                 </div>
             </div>
             <div class="sidebar">
-                <h3 style="margin-bottom: 20px; text-align:center; color: var(--text);">Question Palette</h3>
+                <h3 style="margin-bottom: 20px; text-align:center;">Question Palette</h3>
                 <div class="palette-grid" id="paletteContainer"></div>
-                <div style="font-size: 13px; display: flex; flex-direction: column; gap: 10px; margin-bottom: 25px; color: #4B5563;">
-                    <div><span style="display:inline-block;width:15px;height:15px;background:var(--accent);border-radius:4px;margin-right:8px;vertical-align:middle;"></span> Answered</div>
-                    <div><span style="display:inline-block;width:15px;height:15px;background:var(--danger);border-radius:4px;margin-right:8px;vertical-align:middle;"></span> Not Answered</div>
-                    <div><span style="display:inline-block;width:15px;height:15px;background:var(--grey);border-radius:4px;margin-right:8px;vertical-align:middle;"></span> Not Visited</div>
-                    <div><span style="display:inline-block;width:15px;height:15px;background:var(--purple);border-radius:4px;margin-right:8px;vertical-align:middle;"></span> Marked for Review</div>
-                </div>
                 <button class="btn btn-accent" style="width:100%; padding: 15px;" onclick="submitTest()">Submit Test</button>
             </div>
         </div>
     </div>
 
-    <!-- 7. RESULT & LEADERBOARD SCREEN -->
+    <!-- 9. RESULT -->
     <div id="resultScreen" class="hide">
         <div class="result-card">
-            <h2 style="color: var(--primary); font-size: 28px;">Test Result</h2>
+            <h2 style="color: var(--primary);">Test Result</h2>
             <div style="background: #F0FDF4; border-radius: 20px; padding: 30px; margin: 20px 0;">
-                <h1 id="finalScore" style="font-size: 56px; color: var(--accent); margin-bottom: 10px;">0 / 0</h1>
-                <h3 id="rankText" style="color: var(--secondary); font-size: 20px;"></h3>
+                <h1 id="finalScore" style="font-size: 56px; color: var(--accent);">0 / 0</h1>
+                <h3 id="rankText" style="color: var(--secondary);"></h3>
             </div>
-            
             <button class="btn btn-primary" onclick="window.print()" style="width: 100%;">📄 Download PDF Result</button>
-            
             <div class="leaderboard">
-                <h3 style="border-bottom: 2px solid #E5E7EB; padding-bottom: 15px; margin-bottom: 15px; color: var(--text);">🏆 Top 5 Leaderboard</h3>
+                <h3 style="border-bottom: 2px solid #E5E7EB; padding-bottom: 15px; margin-bottom: 15px;">🏆 Top 5 Leaderboard</h3>
                 <div id="lbContainer"></div>
             </div>
-            
             <button class="btn btn-outline" style="width: 100%; margin-top: 30px;" onclick="goDashboard()">Back to Dashboard</button>
         </div>
     </div>
 
-    <!-- 8. PAYMENT MODAL -->
+    <!-- 10. PAYMENT MODAL -->
     <div id="paymentModal" class="modal-overlay hide">
         <div class="modal-box">
-            <h2 style="color: var(--danger); margin-bottom: 15px; font-size: 24px;">🔒 Test Locked</h2>
-            <p style="margin-bottom: 20px; font-size: 16px; color: #4B5563;">Unlock all tests with a one-time payment of <b>₹<span id="modalPrice"></span></b>.</p>
-            
+            <h2 style="color: var(--danger); margin-bottom: 15px;">🔒 Test Locked</h2>
+            <p style="margin-bottom: 20px;">Unlock all tests with a one-time payment of <b>₹<span id="modalPrice"></span></b>.</p>
             <div id="qrcode"></div>
-            <p style="font-size: 15px; margin-bottom: 20px; font-weight: 500;">UPI ID: <b id="modalUpi" style="color: var(--primary);"></b></p>
-            
-            <p style="color: var(--danger); font-size: 13px; margin-bottom: 20px; background: #FEF2F2; padding: 12px; border-radius: 10px; border: 1px solid #FECACA;">
-                <b>Note:</b> Pay exact amount to unlock.<br>कृपया सही रकम भेजें, वरना टेस्ट अनलॉक नहीं होगा।
-            </p>
-            
+            <p style="font-size: 15px; margin-bottom: 20px;">UPI ID: <b id="modalUpi"></b></p>
             <a href="#" id="whatsappBtn" target="_blank" class="btn btn-accent" style="width: 100%; margin-bottom: 15px; display:block;">📲 Send Screenshot on WhatsApp</a>
             <button class="btn btn-outline" style="width: 100%; margin-bottom: 15px;" onclick="checkPaymentStatus()">🔄 Check Status</button>
-            <button class="btn" style="width: 100%; background:#F3F4F6; color:#374151;" onclick="closeModal()">Close</button>
+            <button class="btn" style="width: 100%; background:#F3F4F6;" onclick="closeModal()">Close</button>
         </div>
     </div>
 
 <script>
     // 🔴 आपका नया Apps Script URL
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyTFA7VXSPbihZnn5VcxoRFcBqDjMvUCV5-ngbfiGdaGv58_GNJoOlAm83DwdzPVSLk/exec";
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyS1ZUj6C1yq9fqew-Xl_Tx8Sy7ERVz2Y2bdu8N_H8cHT03oiHy6Wc6HH5nh7-dwug/exec"; 
 
     let allTests = [], appSettings = {}, currentCA = [];
     let currentStudent = { name: "", loginId: "", isPaid: false, expiry: "" };
     let isLoggedIn = false;
     let recommendedTestData = null;
 
+    let nav = { mainCat: "", subCat: "", examName: "" };
+
     let testQuestions = [], currentQIndex = 0, userAnswers = {}, markedForReview = {}, visitedQuestions = {}, timerInterval;
     let timeLeft = 0, totalTime = 0, currentTestId = "", currentTestName = "";
 
-    // --- DEVICE ID ---
     function getDeviceId() {
         let devId = localStorage.getItem('tg_device_id');
-        if(!devId) {
-            devId = 'dev_' + Math.random().toString(36).substr(2, 9) + '_' + new Date().getTime();
-            localStorage.setItem('tg_device_id', devId);
-        }
+        if(!devId) { devId = 'dev_' + Math.random().toString(36).substr(2, 9); localStorage.setItem('tg_device_id', devId); }
         return devId;
     }
 
-    // --- VIEW CONTROLS ---
     function hideAll() {
-        document.getElementById('homeScreen').classList.add('hide');
-        document.getElementById('loginScreen').classList.add('hide');
-        document.getElementById('registerScreen').classList.add('hide');
-        document.getElementById('dashboardScreen').classList.add('hide');
-        document.getElementById('testListScreen').classList.add('hide');
-        document.getElementById('caScreen').classList.add('hide');
-        document.getElementById('testScreen').classList.add('hide');
-        document.getElementById('resultScreen').classList.add('hide');
+        ['homeScreen', 'loginScreen', 'registerScreen', 'dashboardScreen', 'subCatScreen', 'examScreen', 'testListScreen', 'caScreen', 'testScreen', 'resultScreen'].forEach(id => document.getElementById(id).classList.add('hide'));
     }
-
-    function goHome() {
-        hideAll();
-        document.getElementById('homeScreen').classList.remove('hide');
-        updateHeaderUI();
-    }
-
-    function goDashboard() {
-        if(!isLoggedIn) return showLogin();
-        hideAll();
-        document.getElementById('dashboardScreen').classList.remove('hide');
-        document.getElementById('dashName').innerText = currentStudent.name;
-        updateHeaderUI();
-        fetchDashboardData();
-    }
-
-    function showLogin() {
-        hideAll();
-        document.getElementById('loginScreen').classList.remove('hide');
-    }
-
-    function showRegister() {
-        hideAll();
-        document.getElementById('registerScreen').classList.remove('hide');
-    }
+    function goHome() { hideAll(); document.getElementById('homeScreen').classList.remove('hide'); updateHeaderUI(); }
+    function goDashboard() { if(!isLoggedIn) return showLogin(); hideAll(); document.getElementById('dashboardScreen').classList.remove('hide'); updateHeaderUI(); fetchDashboardData(); }
+    function showLogin() { hideAll(); document.getElementById('loginScreen').classList.remove('hide'); }
+    function showRegister() { hideAll(); document.getElementById('registerScreen').classList.remove('hide'); }
+    function logout() { isLoggedIn = false; currentStudent = {}; localStorage.removeItem('tg_user'); goHome(); }
 
     function updateHeaderUI() {
         if(isLoggedIn) {
@@ -453,20 +364,9 @@
         }
     }
 
-    function logout() {
-        isLoggedIn = false;
-        currentStudent = {};
-        localStorage.removeItem('tg_user');
-        goHome();
-    }
-
     function scrollToCategories() {
-        if(!isLoggedIn) {
-            alert("Please login to access exams!");
-            showLogin();
-        } else {
-            document.getElementById('dashCategories').scrollIntoView({behavior: 'smooth'});
-        }
+        if(!isLoggedIn) { alert("Please login to access exams!"); showLogin(); } 
+        else { document.getElementById('dashCategories').scrollIntoView({behavior: 'smooth'}); }
     }
 
     function showPurchases() {
@@ -476,12 +376,10 @@
         alert(`--- MY PURCHASES ---\n\nPlan: ${status}\nExpiry Date: ${exp}`);
     }
 
-    // --- LOGIN & REGISTER ---
     async function doLogin() {
         const id = document.getElementById('loginId').value.trim();
         const pass = document.getElementById('loginPass').value.trim();
         if(!id || !pass) return alert("Enter ID and Password!");
-        
         try {
             const res = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: "login", loginId: id, password: pass, deviceId: getDeviceId() }) });
             const data = await res.json();
@@ -500,18 +398,16 @@
         const mobile = document.getElementById('regMobile').value.trim();
         const pass = document.getElementById('regPass').value.trim();
         if(!name || !mobile || !pass) return alert("Fill all fields!");
-
         try {
             const res = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: "register", name: name, mobile: mobile, password: pass, deviceId: getDeviceId() }) });
             const data = await res.json();
             if(data.status === "success") {
-                alert("🎉 Registration Successful!\n\nYour Login ID: " + data.loginId + "\nPassword: (What you set)");
+                alert("🎉 Registration Successful!\n\nYour Login ID: " + data.loginId);
                 showLogin();
             } else { alert(data.message); }
         } catch (e) { alert("Server Error!"); }
     }
 
-    // --- FETCH DATA ---
     async function fetchSettingsAndTests() {
         try {
             const setRes = await fetch(`${SCRIPT_URL}?action=getSettings`);
@@ -520,26 +416,19 @@
 
             const testRes = await fetch(`${SCRIPT_URL}?action=getTests`);
             const testData = await testRes.json();
-            if(testData.status === "success") { 
-                allTests = testData.tests; 
-                renderCategories(); 
-            }
+            if(testData.status === "success") { allTests = testData.tests; renderCategories(); }
             
             const caRes = await fetch(`${SCRIPT_URL}?action=getCurrentAffairs`);
             const caData = await caRes.json();
             if(caData.status === "success") { currentCA = caData.data; }
-
         } catch (e) { console.log("Data load error", e); }
     }
 
-    // --- FETCH DASHBOARD DATA (Dynamic) ---
     async function fetchDashboardData() {
         try {
             const res = await fetch(`${SCRIPT_URL}?action=getDashboardData&loginId=${currentStudent.loginId}`);
             const data = await res.json();
-            
             if(data.status === "success") {
-                // Recent Test Update
                 if(data.lastTest) {
                     document.getElementById('recentTestName').innerText = data.lastTest.testName;
                     document.getElementById('recentTestScore').innerText = `Score: ${data.lastTest.score}/${data.lastTest.total} (${data.lastTest.percent}%)`;
@@ -547,8 +436,6 @@
                     document.getElementById('recentTestName').innerText = "Not Attempted Yet";
                     document.getElementById('recentTestScore').innerText = "Take a test to see your score";
                 }
-
-                // Recommended Test Update
                 if(data.recTest) {
                     recommendedTestData = data.recTest;
                     document.getElementById('recTestName').innerText = data.recTest.name;
@@ -560,56 +447,74 @@
             }
         } catch (e) { console.log("Error fetching dashboard data", e); }
     }
+    function startRecommendedTest() { if(recommendedTestData) startTest(recommendedTestData.id, recommendedTestData.name, recommendedTestData.duration, recommendedTestData.marks); else scrollToCategories(); }
 
-    function startRecommendedTest() {
-        if(recommendedTestData) {
-            startTest(recommendedTestData.id, recommendedTestData.name, recommendedTestData.duration, recommendedTestData.marks);
-        } else {
-            scrollToCategories();
-        }
-    }
-
-    // --- RENDER CATEGORIES ---
     function renderCategories() {
-        const cats = [
-            { name: "SSC", icon: "🏛️" }, { name: "RRB", icon: "🚂" },
-            { name: "Banking", icon: "🏦" }, { name: "UP State", icon: "🏛️" },
-            { name: "Police Exam", icon: "👮" }, { name: "All State", icon: "🌍" },
-            { name: "More Exams", icon: "➕" }
-        ];
-        
+        const uniqueCats = [...new Set(allTests.map(t => t.mainCat))];
         let html = "";
-        cats.forEach(c => {
-            html += `<div class="cat-card" onclick="openCategory('${c.name}')">
-                        <div class="cat-icon">${c.icon}</div>
-                        <div class="cat-title">${c.name}</div>
+        uniqueCats.forEach(catName => {
+            let icon = "📝";
+            if(catName.toLowerCase().includes("ssc")) icon = "🏛️";
+            else if(catName.toLowerCase().includes("bank")) icon = "🏦";
+            else if(catName.toLowerCase().includes("rail") || catName.toLowerCase().includes("rrb")) icon = "🚂";
+            else if(catName.toLowerCase().includes("up")) icon = "🏛️";
+            else if(catName.toLowerCase().includes("police")) icon = "👮";
+            
+            html += `<div class="cat-card" onclick="openCategory('${catName}')">
+                        <div class="cat-icon">${icon}</div>
+                        <div class="cat-title">${catName}</div>
                      </div>`;
         });
-        
         document.getElementById('homeCatGrid').innerHTML = html;
         document.getElementById('dashCatGrid').innerHTML = html;
     }
 
-    function openCategory(catName) {
-        if(!isLoggedIn) {
-            showLogin();
-            return;
-        }
-        
+    function openCategory(mainCat) {
+        if(!isLoggedIn) return showLogin();
+        nav.mainCat = mainCat;
+        const filtered = allTests.filter(t => t.mainCat === mainCat);
+        const uniqueSubCats = [...new Set(filtered.map(t => t.subCat))];
+
+        let html = "";
+        uniqueSubCats.forEach(subCat => {
+            html += `<div class="cat-card" onclick="openSubCategory('${subCat}')">
+                        <div class="cat-icon">📂</div>
+                        <div class="cat-title">${subCat}</div>
+                     </div>`;
+        });
         hideAll();
-        document.getElementById('testListScreen').classList.remove('hide');
-        document.getElementById('testListTitle').innerText = catName + " Tests";
-        
-        let filtered = allTests.filter(t => t.mainCat.toLowerCase().includes(catName.toLowerCase()) || catName === "More Exams" || catName === "All State");
-        
-        if(filtered.length === 0) {
-            document.getElementById('testListContainer').innerHTML = "<p style='color: #666;'>No tests available in this category yet.</p>";
-            return;
-        }
+        document.getElementById('subCatScreen').classList.remove('hide');
+        document.getElementById('subCatTitle').innerText = mainCat + " - Select Type";
+        document.getElementById('subCatGrid').innerHTML = html;
+    }
+
+    function openSubCategory(subCat) {
+        nav.subCat = subCat;
+        const filtered = allTests.filter(t => t.mainCat === nav.mainCat && t.subCat === subCat);
+        const uniqueExams = [...new Set(filtered.map(t => t.examName))];
+
+        let html = "";
+        uniqueExams.forEach(exam => {
+            html += `<div class="cat-card" onclick="openExam('${exam}')">
+                        <div class="cat-icon">📚</div>
+                        <div class="cat-title">${exam}</div>
+                     </div>`;
+        });
+        hideAll();
+        document.getElementById('examScreen').classList.remove('hide');
+        document.getElementById('examTitle').innerText = nav.mainCat + " > " + subCat + " - Select Exam";
+        document.getElementById('examGrid').innerHTML = html;
+    }
+
+    function openExam(examName) {
+        nav.examName = examName;
+        const filtered = allTests.filter(t => t.mainCat === nav.mainCat && t.subCat === nav.subCat && t.examName === examName);
 
         let html = "";
         filtered.forEach(t => {
-            let isLocked = (t.isFree !== "Yes" && !currentStudent.isPaid);
+            // ✅ FIXED LOGIC: Student isPaid true means all tests unlock, regardless of 'No' in sheet
+            let isLocked = (String(t.isFree).trim().toLowerCase() !== "yes" && !currentStudent.isPaid);
+            
             let btn = isLocked 
                 ? `<button class="btn" style="background:#F3F4F6; color:#6B7280; border:1px solid #E5E7EB;" onclick="openPaymentModal()">🔒 Unlock</button>`
                 : `<button class="btn btn-accent" onclick="startTest('${t.id}', '${t.testName}', ${t.duration}, ${t.marks})">Start Test</button>`;
@@ -617,77 +522,92 @@
             html += `<div class="test-item ${isLocked ? 'locked' : ''}">
                         <div>
                             <h3 style="color: var(--primary); margin-bottom: 5px;">${t.testName}</h3>
-                            <p style="font-size: 14px; color: #666;">⏱️ ${t.duration} Mins | ${t.marks} Marks | ${t.examName}</p>
+                            <p style="font-size: 14px; color: #666;">⏱️ ${t.duration} Mins | ${t.marks} Marks</p>
                         </div>
                         ${btn}
                      </div>`;
         });
+        hideAll();
+        document.getElementById('testListScreen').classList.remove('hide');
+        document.getElementById('testListTitle').innerText = examName + " Tests";
         document.getElementById('testListContainer').innerHTML = html;
     }
 
-    // --- CURRENT AFFAIRS ---
+    function goBackToSubCat() { hideAll(); document.getElementById('subCatScreen').classList.remove('hide'); }
+    function goBackToExam() { hideAll(); document.getElementById('examScreen').classList.remove('hide'); }
+
     function showCurrentAffairs() {
         hideAll();
         document.getElementById('caScreen').classList.remove('hide');
         filterCA('Daily'); 
     }
-
     function filterCA(type) {
         const tabs = document.getElementById('caTabs').children;
         Array.from(tabs).forEach(btn => {
-            if(btn.innerText === type) {
-                btn.className = 'btn btn-primary';
-                btn.style.color = 'white';
-                btn.style.background = 'var(--primary)';
-            } else {
-                btn.className = 'btn';
-                btn.style.background = '#E5E7EB';
-                btn.style.color = '#374151';
-            }
+            if(btn.innerText === type) { btn.className = 'btn btn-primary'; btn.style.color='white'; btn.style.background='var(--primary)'; }
+            else { btn.className = 'btn'; btn.style.background='#E5E7EB'; btn.style.color='#374151'; }
         });
-
         const filtered = currentCA.filter(c => c.type.toLowerCase() === type.toLowerCase());
-        
-        if(filtered.length === 0) {
-            document.getElementById('caList').innerHTML = "<p style='color: #666;'>No updates available for this section yet.</p>";
-            return;
-        }
-
+        if(filtered.length === 0) { document.getElementById('caList').innerHTML = "<p>No updates available.</p>"; return; }
         let html = "";
         filtered.forEach(c => {
             html += `<div class="test-item">
-                        <div>
-                            <h3 style="color: var(--primary); margin-bottom: 5px;">${c.title}</h3>
-                            <p style="font-size: 14px; color: #666;">📅 ${c.date}</p>
-                        </div>
+                        <div><h3 style="color: var(--primary);">${c.title}</h3><p>📅 ${c.date}</p></div>
                         <a href="${c.link}" target="_blank" class="btn btn-outline">View PDF</a>
                      </div>`;
         });
         document.getElementById('caList').innerHTML = html;
     }
 
-    // --- PAYMENT MODAL ---
+    // ✅ FIXED QR & WHATSAPP LOGIC
     function openPaymentModal() {
+        let upi = (appSettings.UPI_ID || "madhupverma8-1@okhdfcbank").toString().trim();
+        let price = (appSettings.Price || "99").toString().trim();
+        let mobile = (appSettings.Mobile || "9140281870").toString().trim();
+
         document.getElementById('paymentModal').classList.remove('hide');
-        document.getElementById('modalPrice').innerText = appSettings.Price;
-        document.getElementById('modalUpi').innerText = appSettings.UPI_ID;
+        document.getElementById('modalPrice').innerText = price;
+        document.getElementById('modalUpi').innerText = upi;
 
-        const upiString = `upi://pay?pa=${appSettings.UPI_ID}&pn=TaiyariGhar&am=${appSettings.Price}&cu=INR`;
-        document.getElementById("qrcode").innerHTML = "";
-        new QRCode(document.getElementById("qrcode"), { text: upiString, width: 160, height: 160, colorDark : "#1F2937", colorLight : "#ffffff" });
+        const upiString = `upi://pay?pa=${upi}&pn=TaiyariGhar&am=${price}&cu=INR`;
+        let qrContainer = document.getElementById("qrcode");
+        qrContainer.innerHTML = ""; 
+        new QRCode(qrContainer, { text: upiString, width: 180, height: 180 });
 
-        const waMsg = `Hello Sir, I am ${currentStudent.name} (ID: ${currentStudent.loginId}). I have paid ₹${appSettings.Price}. Please unlock my tests.`;
-        document.getElementById('whatsappBtn').href = `https://wa.me/${appSettings.Mobile}?text=${encodeURIComponent(waMsg)}`;
+        // Clean mobile number for WhatsApp
+        let cleanMobile = mobile.replace(/[^0-9]/g, '');
+        if(cleanMobile.length === 10) cleanMobile = "91" + cleanMobile; 
+
+        const waMsg = `Hello Sir, I am ${currentStudent.name} (ID: ${currentStudent.loginId}). I have paid Rs.${price}. Please unlock my tests.`;
+        document.getElementById('whatsappBtn').href = `https://wa.me/${cleanMobile}?text=${encodeURIComponent(waMsg)}`;
     }
-    function closeModal() { document.getElementById('paymentModal').classList.add('hide'); }
-    function checkPaymentStatus() { closeModal(); alert("Checking status... If approved, page will reload."); location.reload(); }
 
-    // --- TEST INTERFACE LOGIC ---
+    function closeModal() { document.getElementById('paymentModal').classList.add('hide'); }
+    
+    // ✅ FIXED CHECK STATUS LOGIC (Fetches live status)
+    async function checkPaymentStatus() {
+        closeModal();
+        try {
+            const res = await fetch(`${SCRIPT_URL}?action=checkStatus&loginId=${currentStudent.loginId}`);
+            const data = await res.json();
+            
+            if(data.status === "success" && data.isPaid) {
+                currentStudent.isPaid = true;
+                localStorage.setItem('tg_user', JSON.stringify(currentStudent));
+                alert("✅ Payment Approved! Tests Unlocked.");
+                location.reload();
+            } else {
+                alert("⏳ Payment not approved yet. Please wait 5 mins or contact admin on WhatsApp.");
+            }
+        } catch(e) { 
+            alert("Error checking status. Please check your internet."); 
+        }
+    }
+
     async function startTest(testId, testName, duration, marks) {
         hideAll();
         document.getElementById('testScreen').classList.remove('hide');
         currentTestId = testId; currentTestName = testName;
-        
         try {
             const res = await fetch(`${SCRIPT_URL}?action=getQuestions&testId=${testId}`);
             const data = await res.json();
@@ -706,8 +626,8 @@
                 });
                 loadQuestion();
                 startTimer();
-            } else { alert("No questions found!"); goDashboard(); }
-        } catch (e) { alert("Failed to load test!"); goDashboard(); }
+            } else { alert("No questions found for this test!"); goBackToExam(); }
+        } catch (e) { alert("Failed to load test!"); goBackToExam(); }
     }
 
     function startTimer() {
@@ -728,7 +648,6 @@
         visitedQuestions[currentQIndex] = true;
         document.getElementById('qNumberText').innerText = `Question ${currentQIndex + 1} of ${testQuestions.length}`;
         document.getElementById('questionText').innerText = q.q;
-        
         const optContainer = document.getElementById('optionsContainer');
         optContainer.innerHTML = '';
         q.o.forEach((opt, i) => {
@@ -740,7 +659,6 @@
             label.appendChild(radio); label.appendChild(document.createTextNode(opt));
             optContainer.appendChild(label);
         });
-
         const markBtn = document.getElementById('markBtn');
         if(markedForReview[currentQIndex]) { markBtn.style.background = '#EF4444'; markBtn.innerText = '❌ Remove Mark'; }
         else { markBtn.style.background = 'var(--purple)'; markBtn.innerText = '⭐ Mark'; }
@@ -764,11 +682,9 @@
     function toggleMark() { markedForReview[currentQIndex] = !markedForReview[currentQIndex]; loadQuestion(); }
     function clearResponse() { delete userAnswers[currentQIndex]; loadQuestion(); }
 
-    // --- SUBMIT & LEADERBOARD ---
     async function submitTest() {
         if(timeLeft > 0 && !confirm("Are you sure you want to submit?")) return;
         clearInterval(timerInterval);
-        
         let score = 0;
         testQuestions.forEach((q, i) => { if(userAnswers[i] === q.a) score++; });
         
@@ -786,10 +702,8 @@
                 }) 
             });
             const data = await res.json();
-            
             if(data.status === "success") {
                 document.getElementById('rankText').innerText = `Your Rank: ${data.rank} out of ${data.totalStudents}`;
-                
                 let lbHTML = "";
                 data.top5.forEach(student => {
                     let isYou = (student.name === currentStudent.name);
@@ -800,12 +714,9 @@
                 });
                 document.getElementById('lbContainer').innerHTML = lbHTML;
             }
-        } catch(e) {
-            document.getElementById('rankText').innerText = "Rank calculation failed.";
-        }
+        } catch(e) { document.getElementById('rankText').innerText = "Rank calculation failed."; }
     }
 
-    // --- INIT ---
     window.onload = () => {
         let savedUser = localStorage.getItem('tg_user');
         if(savedUser) {
