@@ -314,11 +314,9 @@
             <h2 style="color: var(--danger); margin-bottom: 15px;">🔒 Test Locked</h2>
             <p style="margin-bottom: 20px;">Unlock all tests with a one-time payment of <b>₹<span id="modalPrice"></span></b>.</p>
             
-            <!-- QR CODE IMAGE ADDED HERE -->
-            <div style="margin: 20px auto; border: 2px dashed #E5E7EB; border-radius: 12px; width: fit-content; padding: 10px;">
-                <img src="pay-qr.png" alt="Payment QR" style="width: 200px; height: 200px; object-fit: contain;" onerror="this.src='https://via.placeholder.com/200?text=Upload+pay-qr.png'">
-            </div>
-
+            <!-- QR CODE (Will load automatically via API) -->
+            <div id="qrcode" style="margin: 20px auto; display: flex; justify-content: center;"></div>
+            
             <p style="font-size: 15px; margin-bottom: 20px;">UPI ID: <b id="modalUpi"></b></p>
             <a href="#" id="whatsappBtn" target="_blank" class="btn btn-accent" style="width: 100%; margin-bottom: 15px; display:block;">📲 Send Screenshot on WhatsApp</a>
             <button class="btn btn-outline" style="width: 100%; margin-bottom: 15px;" onclick="checkPaymentStatus()">🔄 Check Status</button>
@@ -327,6 +325,7 @@
     </div>
 
 <script>
+    // 🔴 आपका Apps Script URL
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyS1ZUj6C1yq9fqew-Xl_Tx8Sy7ERVz2Y2bdu8N_H8cHT03oiHy6Wc6HH5nh7-dwug/exec"; 
 
     let allTests = [], appSettings = {}, currentCA = [];
@@ -503,17 +502,31 @@
         document.getElementById('caList').innerHTML = html;
     }
 
-    // ✅ FIXED MODAL (Now uses static image instead of generating QR)
+    // ✅ FIXED PAYMENT MODAL (API QR + Invalid UPI fallback)
     function openPaymentModal() {
         let upi = (appSettings.UPI_ID || "8931083955@ptyes").toString().trim();
         let price = (appSettings.Price || "99").toString().trim();
         let mobile = (appSettings.Mobile || "9140281870").toString().trim();
 
+        // अगर UPI ID गलत है या "Mobile" लिखा है, तो उसे सही करें
+        if(upi.toLowerCase() === "mobile" || upi.toLowerCase() === "price" || !upi.includes("@")) {
+            upi = "8931083955@ptyes"; 
+        }
+        if(isNaN(price) || price === "") price = "99";
+        if(mobile.length < 10) mobile = "9140281870";
+
         document.getElementById('paymentModal').classList.remove('hide');
         document.getElementById('modalPrice').innerText = price;
         document.getElementById('modalUpi').innerText = upi;
 
-        // No QR generation here, we just show the image from the HTML
+        let formattedAmount = parseFloat(price).toFixed(2);
+        let encodedName = encodeURIComponent("TaiyariGhar");
+        const upiString = `upi://pay?pa=${upi}&pn=${encodedName}&am=${formattedAmount}&cu=INR`;
+        
+        // ✅ API का इस्तेमाल करके QR कोड बनाना (बिना किसी इमेज अपलोड के)
+        let qrContainer = document.getElementById("qrcode");
+        qrContainer.innerHTML = `<img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(upiString)}" alt="Payment QR" style="width: 200px; height: 200px; border-radius: 10px; border: 2px solid #E5E7EB; padding: 10px; background: white;">`;
+
         let cleanMobile = mobile.replace(/[^0-9]/g, '');
         if(cleanMobile.length === 10) cleanMobile = "91" + cleanMobile; 
 
@@ -522,6 +535,7 @@
     }
 
     function closeModal() { document.getElementById('paymentModal').classList.add('hide'); }
+    
     async function checkPaymentStatus() {
         closeModal();
         try {
