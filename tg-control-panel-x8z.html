@@ -353,9 +353,9 @@
         document.getElementById('settingsMsg').style.display = 'block'; setTimeout(() => document.getElementById('settingsMsg').style.display = 'none', 3000);
     }
 
-    window.changeAdminPassword = async function() {
-        const newPass = document.getElementById('newAdminPass').value;
-        const confirmPass = document.getElementById('confirmAdminPass').value;
+        window.changeAdminPassword = async function() {
+        const newPass = document.getElementById('newAdminPass').value.trim();
+        const confirmPass = document.getElementById('confirmAdminPass').value.trim();
         const msgEl = document.getElementById('passMsg');
 
         if(!newPass || newPass.length < 5) {
@@ -367,6 +367,7 @@
 
         showLoading(true);
         try {
+            // Naye password ka hash banake database me save karo
             const newHash = CryptoJS.SHA256(newPass).toString();
             await setDoc(doc(db, "settings", "global"), { adminPasswordHash: newHash }, { merge: true });
             
@@ -380,7 +381,7 @@
             alert("Password change ho gaya hai! Agli baar isi naye password se login karna.");
         } catch (error) {
             console.error("Error updating password:", error);
-            alert("Password update fail ho gaya. Internet ya permissions check karo.");
+            alert("Password update fail ho gaya. Internet ya Firebase permissions check karo.");
         }
         showLoading(false);
     }
