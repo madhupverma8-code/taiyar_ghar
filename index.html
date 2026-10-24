@@ -471,6 +471,7 @@
     let testQuestions = [], currentQIndex = 0, userAnswers = {}, markedForReview = {}, visitedQuestions = {}, timerInterval;
     let timeLeft = 0, totalTime = 0, currentTestId = "", currentTestName = "";
 
+    // --- PWA Install Logic ---
     let deferredPrompt;
     window.addEventListener('beforeinstallprompt', (e) => {
         e.preventDefault();
@@ -494,6 +495,7 @@
             alert(currentLang === 'en' ? "To install, tap the share icon and select 'Add to Home Screen'." : "इंस्टॉल करने के लिए, शेयर आइकन पर टैप करें और 'Add to Home Screen' चुनें।");
         }
     }
+    // -------------------------
 
     function getDeviceId() {
         let devId = localStorage.getItem('tg_device_id');
@@ -521,6 +523,7 @@
         }
     }
 
+    // ==== DYNAMIC WELCOME MESSAGE ====
     function updateWelcomeMessage(isFirst) {
         let firstName = currentStudent.name.split(' ')[0];
         let msgEl = document.getElementById('welcomeMessage');
@@ -895,5 +898,19 @@
         else { fetchSettingsAndTests(); goHome(); }
     }
 </script>
+
+<!-- Anti-Copy Protection Script -->
+<script>
+    // राइट-क्लिक ब्लॉक
+    document.addEventListener('contextmenu', event => event.preventDefault());
+    
+    // कीबोर्ड शॉर्टकट ब्लॉक (Ctrl+C, Ctrl+U, F12)
+    document.addEventListener('keydown', function(e) {
+        if ((e.ctrlKey && (e.key === 'c' || e.key === 'C' || e.key === 'u' || e.key === 'U')) || e.key === 'F12') {
+            e.preventDefault();
+        }
+    });
+</script>
+
 </body>
 </html>
