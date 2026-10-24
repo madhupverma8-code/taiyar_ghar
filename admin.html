@@ -7,11 +7,10 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
     <style>
-        :root { --primary: #4F46E5; --bg: #f3f4f6; --text: #1f2937; --white: #ffffff; --danger: #EF4444; --success: #10B981; }
+        :root { --primary: #4F46E5; --bg: #f3f4f6; --text: #1f2937; --white: #ffffff; --danger: #EF4444; --success: #10B981; --warning: #F59E0B; }
         * { box-sizing: border-box; font-family: 'Poppins', sans-serif; margin: 0; padding: 0; }
         body { background-color: var(--bg); color: var(--text); padding-bottom: 50px; }
         
-        /* 🔐 Password Lock Screen */
         #lockScreen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #1a3a6b; display: flex; justify-content: center; align-items: center; z-index: 9999; }
         .lock-box { background: white; padding: 40px; border-radius: 16px; text-align: center; width: 90%; max-width: 400px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
         .lock-box h2 { color: #1a3a6b; margin-bottom: 20px; }
@@ -19,44 +18,41 @@
         .lock-box button { width: 100%; padding: 15px; background: var(--primary); color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: 600; cursor: pointer; }
         .err-msg { color: red; font-size: 14px; display: none; margin-top: 10px; }
 
-        /* Header */
         .header { background: var(--primary); color: white; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
         .header h1 { font-size: 20px; }
         .header button { background: white; color: var(--primary); border: none; padding: 8px 15px; border-radius: 8px; cursor: pointer; font-weight: 600; }
 
-        /* Tabs */
         .tabs { display: flex; overflow-x: auto; background: white; margin: 15px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
         .tab-btn { flex: 1; padding: 15px 20px; border: none; background: none; font-size: 14px; font-weight: 600; cursor: pointer; color: #666; border-bottom: 3px solid transparent; white-space: nowrap; }
         .tab-btn.active { color: var(--primary); border-bottom-color: var(--primary); }
 
-        /* Content Sections */
         .container { padding: 0 15px; max-width: 1200px; margin: 0 auto; }
         .section { display: none; background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 20px; }
         .section.active { display: block; }
         
         h2.title { color: var(--primary); font-size: 18px; margin-bottom: 20px; border-bottom: 2px solid #eee; padding-bottom: 10px; }
         
-        /* Inputs & Buttons */
-        input, select, textarea { width: 100%; padding: 12px; margin-bottom: 15px; border: 1px solid #ccc; border-radius: 8px; font-family: 'Poppins', sans-serif; font-size: 14px; }
-        button.save-btn { background: var(--primary); color: white; border: none; padding: 12px 20px; border-radius: 8px; cursor: pointer; font-size: 15px; font-weight: 600; width: 100%; transition: 0.3s; }
+        input, select, textarea { width: 100%; padding: 10px; margin-bottom: 10px; border: 1px solid #ccc; border-radius: 8px; font-family: 'Poppins', sans-serif; font-size: 13px; }
+        button.save-btn { background: var(--primary); color: white; border: none; padding: 12px 20px; border-radius: 8px; cursor: pointer; font-size: 15px; font-weight: 600; width: 100%; transition: 0.3s; margin-bottom: 15px;}
         button.save-btn:hover { background: #4338CA; }
         
-        .row { display: flex; gap: 15px; }
-        .row > div { flex: 1; }
+        .row { display: flex; gap: 10px; flex-wrap: wrap;}
+        .row > div { flex: 1; min-width: 150px; }
 
-        /* Table */
         .table-wrapper { overflow-x: auto; width: 100%; }
         table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 13px; }
-        th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
         th { background: #f8fafc; color: var(--primary); }
-        .btn-approve { background: var(--success); color: white; border: none; padding: 6px 12px; border-radius: 5px; cursor: pointer; font-weight: 600; }
-        .btn-delete { background: var(--danger); color: white; border: none; padding: 6px 12px; border-radius: 5px; cursor: pointer; font-weight: 600; }
+        
+        .btn-approve { background: var(--success); color: white; border: none; padding: 6px 12px; border-radius: 5px; cursor: pointer; font-weight: 600; font-size:12px;}
+        .btn-unpaid { background: var(--danger); color: white; border: none; padding: 6px 12px; border-radius: 5px; cursor: pointer; font-weight: 600; font-size:12px;}
+        .btn-edit { background: var(--warning); color: white; border: none; padding: 6px 12px; border-radius: 5px; cursor: pointer; font-weight: 600; font-size:12px;}
+        .btn-delete { background: var(--danger); color: white; border: none; padding: 6px 12px; border-radius: 5px; cursor: pointer; font-weight: 600; font-size:12px;}
+        
         .status-paid { color: var(--success); font-weight: bold; }
         .status-free { color: var(--danger); font-weight: bold; }
         
         .msg { color: var(--success); font-weight: bold; margin-top: 10px; text-align: center; }
-        
-        /* Loading Overlay */
         #loading { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.8); display: none; justify-content: center; align-items: center; z-index: 9998; font-size: 20px; font-weight: bold; color: var(--primary); }
     </style>
 </head>
@@ -64,11 +60,10 @@
 
     <div id="loading">Processing... Please wait.</div>
 
-    <!-- 🔐 1. ADMIN LOGIN SCREEN -->
+    <!-- 🔐 LOGIN SCREEN -->
     <div id="lockScreen">
         <div class="lock-box">
             <h2>🔐 Admin Login</h2>
-            <p style="font-size: 13px; color: #666; margin-bottom: 20px;">Only for TaiyariGhar Admin</p>
             <input type="password" id="adminPass" placeholder="Enter Password" onkeypress="if(event.key==='Enter') checkPass()">
             <button onclick="checkPass()">Unlock Panel</button>
             <p id="errMsg" class="err-msg">❌ Incorrect Password!</p>
@@ -95,7 +90,7 @@
 
         <div class="container">
             
-            <!-- ⚙️ SETTINGS -->
+            <!-- SETTINGS -->
             <div id="tabSettings" class="section active">
                 <h2 class="title">Payment & Settings</h2>
                 <div class="row">
@@ -108,14 +103,14 @@
                 <p id="settingsMsg" class="msg" style="display: none;">✅ Settings Saved!</p>
             </div>
 
-            <!-- 👨‍🎓 STUDENTS -->
+            <!-- STUDENTS -->
             <div id="tabStudents" class="section">
                 <h2 class="title">Students & Payments</h2>
                 <div class="table-wrapper">
                     <table id="studentsTable">
                         <thead>
                             <tr>
-                                <th>Name</th><th>ID</th><th>Pass</th><th>Status</th><th>Device1</th><th>Device2</th><th>Action</th>
+                                <th>Name</th><th>ID</th><th>Pass</th><th>Status</th><th>Expiry</th><th>Devices</th><th>Action</th>
                             </tr>
                         </thead>
                         <tbody><tr><td colspan="7" style="text-align:center;">Loading...</td></tr></tbody>
@@ -123,9 +118,10 @@
                 </div>
             </div>
 
-            <!-- 📝 TESTS -->
+            <!-- TESTS -->
             <div id="tabTests" class="section">
                 <h2 class="title">Manage Tests</h2>
+                <input type="hidden" id="editTestId">
                 <div class="row">
                     <div><input type="text" id="tId" placeholder="Test ID (e.g., T1)"></div>
                     <div><input type="text" id="tMain" placeholder="Main Cat (e.g., SSC)"></div>
@@ -137,63 +133,72 @@
                     <div><input type="number" id="tDur" placeholder="Duration (Mins)"></div>
                     <div><input type="number" id="tMarks" placeholder="Total Marks"></div>
                     <div>
+                        <select id="tHasNeg" onchange="toggleTestNeg()">
+                            <option value="No">Negative Marking? No</option>
+                            <option value="Yes">Negative Marking? Yes</option>
+                        </select>
+                    </div>
+                    <div id="tNegBox" style="display:none;">
+                        <input type="number" step="0.01" id="tNegMark" placeholder="Neg Mark (e.g., 0.25)">
+                    </div>
+                    <div>
                         <select id="tFree"><option value="Yes">Is Free? Yes</option><option value="No">Is Free? No</option></select>
                     </div>
                 </div>
-                <button class="save-btn" onclick="addTest()">Add Test</button>
+                <button class="save-btn" id="testBtn" onclick="saveTest()">Add Test</button>
                 <div class="table-wrapper">
                     <table id="testsTable">
-                        <thead><tr><th>ID</th><th>Category</th><th>Exam</th><th>Test Name</th><th>Action</th></tr></thead>
-                        <tbody><tr><td colspan="5" style="text-align:center;">Loading...</td></tr></tbody>
+                        <thead><tr><th>ID</th><th>Category</th><th>Test Name</th><th>Marks</th><th>Neg</th><th>Action</th></tr></thead>
+                        <tbody><tr><td colspan="6" style="text-align:center;">Loading...</td></tr></tbody>
                     </table>
                 </div>
             </div>
 
-            <!-- ❓ QUESTIONS -->
+            <!-- QUESTIONS -->
             <div id="tabQuestions" class="section">
                 <h2 class="title">Manage Questions</h2>
+                <input type="hidden" id="editQId">
                 <div class="row">
                     <div><input type="text" id="qTestId" placeholder="Test ID (e.g., T1)"></div>
-                    <div><input type="text" id="qText" placeholder="Question"></div>
+                    <div style="flex:3;"><input type="text" id="qText" placeholder="Question"></div>
                 </div>
                 <div class="row">
                     <div><input type="text" id="qOptA" placeholder="Option A"></div>
                     <div><input type="text" id="qOptB" placeholder="Option B"></div>
                     <div><input type="text" id="qOptC" placeholder="Option C"></div>
                     <div><input type="text" id="qOptD" placeholder="Option D"></div>
+                    <div><input type="text" id="qOptE" placeholder="Option E (Optional)"></div>
                 </div>
                 <div class="row">
-                    <div>
-                        <select id="qAns">
-                            <option value="0">Correct: A</option><option value="1">Correct: B</option>
-                            <option value="2">Correct: C</option><option value="3">Correct: D</option>
-                        </select>
-                    </div>
-                    <div><input type="text" id="qExp" placeholder="Explanation (Optional)"></div>
+                    <div><select id="qAns"><option value="0">Correct: A</option><option value="1">Correct: B</option><option value="2">Correct: C</option><option value="3">Correct: D</option><option value="4">Correct: E</option></select></div>
+                    <div><input type="number" id="qMarks" placeholder="Marks (e.g., 1)"></div>
+                    <div><input type="number" step="0.01" id="qNeg" placeholder="Neg Marks (e.g., 0.25)"></div>
+                    <div style="flex:2;"><input type="text" id="qExp" placeholder="Explanation (Optional)"></div>
                 </div>
-                <button class="save-btn" onclick="addQuestion()">Add Question</button>
+                <button class="save-btn" id="qBtn" onclick="saveQuestion()">Add Question</button>
                 <div class="table-wrapper">
                     <table id="questionsTable">
-                        <thead><tr><th>Test ID</th><th>Question</th><th>Options</th><th>Action</th></tr></thead>
+                        <thead><tr><th>Test ID</th><th>Question</th><th>Marks</th><th>Action</th></tr></thead>
                         <tbody><tr><td colspan="4" style="text-align:center;">Loading...</td></tr></tbody>
                     </table>
                 </div>
             </div>
 
-            <!-- 📊 RESULTS -->
+            <!-- RESULTS -->
             <div id="tabResults" class="section">
                 <h2 class="title">Student Results</h2>
                 <div class="table-wrapper">
                     <table id="resultsTable">
-                        <thead><tr><th>Date</th><th>Student</th><th>Test</th><th>Score</th><th>Percentage</th></tr></thead>
-                        <tbody><tr><td colspan="5" style="text-align:center;">Loading...</td></tr></tbody>
+                        <thead><tr><th>Date</th><th>Student</th><th>Test</th><th>Correct</th><th>Wrong</th><th>Neg Deducted</th><th>Final Score</th></tr></thead>
+                        <tbody><tr><td colspan="7" style="text-align:center;">Loading...</td></tr></tbody>
                     </table>
                 </div>
             </div>
 
-            <!-- 📰 CURRENT AFFAIRS -->
+            <!-- CURRENT AFFAIRS -->
             <div id="tabCA" class="section">
-                <h2 class="title">Add Current Affairs</h2>
+                <h2 class="title">Manage Current Affairs</h2>
+                <input type="hidden" id="editCaId">
                 <div class="row">
                     <div><select id="caType"><option value="Daily">Daily</option><option value="Monthly">Monthly</option></select></div>
                     <div><input type="date" id="caDate"></div>
@@ -201,17 +206,18 @@
                     <div><input type="url" id="caLink" placeholder="Article/PDF Link"></div>
                 </div>
                 <div class="row">
-                    <div><input type="text" id="caQ" placeholder="Question"></div>
+                    <div style="flex:2;"><input type="text" id="caQ" placeholder="Question"></div>
                     <div><input type="text" id="caOptA" placeholder="Option A"></div>
                     <div><input type="text" id="caOptB" placeholder="Option B"></div>
                     <div><input type="text" id="caOptC" placeholder="Option C"></div>
                     <div><input type="text" id="caOptD" placeholder="Option D"></div>
+                    <div><input type="text" id="caOptE" placeholder="Option E (Optional)"></div>
                 </div>
                 <div class="row">
-                    <div><select id="caAns"><option value="0">Correct: A</option><option value="1">Correct: B</option><option value="2">Correct: C</option><option value="3">Correct: D</option></select></div>
-                    <div><input type="text" id="caExp" placeholder="Explanation (For Monthly only)"></div>
+                    <div><select id="caAns"><option value="0">Correct: A</option><option value="1">Correct: B</option><option value="2">Correct: C</option><option value="3">Correct: D</option><option value="4">Correct: E</option></select></div>
+                    <div style="flex:2;"><input type="text" id="caExp" placeholder="Explanation (For Monthly only)"></div>
                 </div>
-                <button class="save-btn" onclick="addCA()">Add CA Question</button>
+                <button class="save-btn" id="caBtn" onclick="saveCA()">Add Current Affairs</button>
                 <div class="table-wrapper">
                     <table id="caTable">
                         <thead><tr><th>Type</th><th>Date</th><th>Title</th><th>Question</th><th>Action</th></tr></thead>
@@ -220,23 +226,21 @@
                 </div>
             </div>
 
-            <!-- 🚀 BULK UPLOAD -->
+            <!-- BULK UPLOAD -->
             <div id="tabUpload" class="section">
                 <h2 class="title">Bulk Upload (CSV)</h2>
                 <div class="row">
-                    <div style="border: 2px dashed #ccc; padding: 20px; border-radius: 10px; text-align: center;">
+                    <div style="border: 2px dashed #ccc; padding: 15px; border-radius: 10px; text-align: center;">
                         <h3 style="font-size: 14px; margin-bottom: 10px;">1. Upload Tests</h3>
                         <input type="file" id="testsCsvFile" accept=".csv" style="border: none; margin-bottom: 10px;">
                         <button class="save-btn" style="background: #8B5CF6;" onclick="uploadTestsCsv()">Upload Tests</button>
                     </div>
-                    <div style="border: 2px dashed #ccc; padding: 20px; border-radius: 10px; text-align: center;">
+                    <div style="border: 2px dashed #ccc; padding: 15px; border-radius: 10px; text-align: center;">
                         <h3 style="font-size: 14px; margin-bottom: 10px;">2. Upload Questions</h3>
                         <input type="file" id="questionsCsvFile" accept=".csv" style="border: none; margin-bottom: 10px;">
                         <button class="save-btn" style="background: #EC4899;" onclick="uploadQuestionsCsv()">Upload Questions</button>
                     </div>
-                </div>
-                <div class="row" style="margin-top: 15px;">
-                    <div style="border: 2px dashed #ccc; padding: 20px; border-radius: 10px; text-align: center;">
+                    <div style="border: 2px dashed #ccc; padding: 15px; border-radius: 10px; text-align: center;">
                         <h3 style="font-size: 14px; margin-bottom: 10px;">3. Upload Current Affairs</h3>
                         <input type="file" id="caCsvFile" accept=".csv" style="border: none; margin-bottom: 10px;">
                         <button class="save-btn" style="background: #F59E0B;" onclick="uploadCaCsv()">Upload CA</button>
@@ -303,7 +307,7 @@
         loadSettings(); loadStudents(); loadTests(); loadQuestions(); loadResults(); loadCA();
     }
 
-    // ==== 1. SETTINGS ====
+    // ==== SETTINGS ====
     async function loadSettings() {
         const docSnap = await getDoc(doc(db, "settings", "global"));
         if(docSnap.exists()) {
@@ -325,7 +329,7 @@
         setTimeout(() => document.getElementById('settingsMsg').style.display = 'none', 3000);
     }
 
-    // ==== 2. STUDENTS ====
+    // ==== STUDENTS ====
     async function loadStudents() {
         const tbody = document.querySelector('#studentsTable tbody');
         const snap = await getDocs(collection(db, "students"));
@@ -334,57 +338,115 @@
             const data = d.data();
             const isPaid = data.isPaid;
             const status = isPaid ? '<span class="status-paid">PAID</span>' : '<span class="status-free">FREE</span>';
-            const btn = isPaid 
-                ? `<button class="btn-delete" onclick="resetDevice('${d.id}')">Reset Dev</button>` 
-                : `<button class="btn-approve" onclick="approvePayment('${d.id}')">Approve</button>`;
+            let actionBtn = "";
+            if (isPaid) {
+                actionBtn = `<button class="btn-unpaid" onclick="togglePayment('${d.id}', false)">Mark Unpaid</button>`;
+            } else {
+                actionBtn = `<button class="btn-approve" onclick="togglePayment('${d.id}', true)">Approve</button>`;
+            }
             html += `<tr>
                 <td>${data.name}</td><td>${data.loginId}</td><td>${data.password}</td>
-                <td>${status}</td><td>${data.device1 || '-'}</td><td>${data.device2 || '-'}</td><td>${btn}</td>
+                <td>${status}</td><td>${data.expiryDate || '-'}</td><td>${data.device1 ? 'Yes' : '-'}</td><td>${actionBtn}</td>
             </tr>`;
         });
         tbody.innerHTML = html || '<tr><td colspan="7" style="text-align:center;">No students found</td></tr>';
     }
-    window.approvePayment = async function(id) {
-        if(!confirm("Approve payment?")) return;
-        await updateDoc(doc(db, "students", id), { isPaid: true }); loadStudents();
-    }
-    window.resetDevice = async function(id) {
-        if(!confirm("Reset devices for this student?")) return;
-        await updateDoc(doc(db, "students", id), { device1: "", device2: "" }); loadStudents(); alert("Devices Reset!");
+    
+    window.togglePayment = async function(id, makePaid) {
+        if(makePaid) {
+            let expiry = prompt("Enter Expiry Date (YYYY-MM-DD) for this student:", "2024-12-31");
+            if(expiry === null) return; // user cancelled
+            await updateDoc(doc(db, "students", id), { isPaid: true, expiryDate: expiry }); 
+        } else {
+            if(!confirm("Mark this student as Unpaid (Free)?")) return;
+            await updateDoc(doc(db, "students", id), { isPaid: false, expiryDate: "" }); 
+        }
+        loadStudents();
     }
 
-    // ==== 3. TESTS ====
+    // ==== TESTS ====
+    window.toggleTestNeg = function() {
+        const val = document.getElementById('tHasNeg').value;
+        document.getElementById('tNegBox').style.display = val === 'Yes' ? 'block' : 'none';
+    }
+
     async function loadTests() {
         const tbody = document.querySelector('#testsTable tbody');
         const snap = await getDocs(collection(db, "tests"));
         let html = "";
         snap.forEach(d => {
             const t = d.data();
+            let negDisplay = t.hasNegative === "Yes" ? `-${t.negativeMark}` : 'No';
             html += `<tr>
-                <td>${t.id}</td><td>${t.mainCat} > ${t.subCat}</td><td>${t.examName}</td><td>${t.testName}</td>
-                <td><button class="btn-delete" onclick="deleteTest('${d.id}')">Delete</button></td>
+                <td>${t.id}</td><td>${t.mainCat} > ${t.subCat}</td><td>${t.testName}</td><td>${t.marks}</td><td>${negDisplay}</td>
+                <td>
+                    <button class="btn-edit" onclick="editTest('${d.id}')">Edit</button>
+                    <button class="btn-delete" onclick="deleteTest('${d.id}')">Delete</button>
+                </td>
             </tr>`;
         });
-        tbody.innerHTML = html || '<tr><td colspan="5" style="text-align:center;">No tests found</td></tr>';
+        tbody.innerHTML = html || '<tr><td colspan="6" style="text-align:center;">No tests found</td></tr>';
     }
-    window.addTest = async function() {
+
+    window.editTest = async function(docId) {
+        const docSnap = await getDoc(doc(db, "tests", docId));
+        if(docSnap.exists()) {
+            const t = docSnap.data();
+            document.getElementById('editTestId').value = docId;
+            document.getElementById('tId').value = t.id;
+            document.getElementById('tId').disabled = true;
+            document.getElementById('tMain').value = t.mainCat;
+            document.getElementById('tSub').value = t.subCat;
+            document.getElementById('tExam').value = t.examName;
+            document.getElementById('tName').value = t.testName;
+            document.getElementById('tDur').value = t.duration;
+            document.getElementById('tMarks').value = t.marks;
+            document.getElementById('tHasNeg').value = t.hasNegative || "No";
+            document.getElementById('tNegMark').value = t.negativeMark || "";
+            document.getElementById('tFree').value = t.isFree;
+            toggleTestNeg();
+            document.getElementById('testBtn').innerText = "Update Test";
+            document.getElementById('testBtn').style.background = "var(--warning)";
+            window.scrollTo(0,0);
+        }
+    }
+
+    window.saveTest = async function() {
         showLoading(true);
         const id = document.getElementById('tId').value.trim();
+        const editId = document.getElementById('editTestId').value;
         if(!id) { showLoading(false); return alert("Test ID required!"); }
-        await setDoc(doc(db, "tests", id), {
+        
+        const data = {
             id: id, mainCat: document.getElementById('tMain').value, subCat: document.getElementById('tSub').value,
             examName: document.getElementById('tExam').value, testName: document.getElementById('tName').value,
             duration: Number(document.getElementById('tDur').value), marks: Number(document.getElementById('tMarks').value),
+            hasNegative: document.getElementById('tHasNeg').value,
+            negativeMark: Number(document.getElementById('tNegMark').value) || 0,
             isFree: document.getElementById('tFree').value
-        });
-        showLoading(false); loadTests(); alert("Test Added!");
+        };
+
+        if(editId) {
+            await updateDoc(doc(db, "tests", editId), data);
+            document.getElementById('editTestId').value = "";
+            document.getElementById('tId').disabled = false;
+            document.getElementById('testBtn').innerText = "Add Test";
+            document.getElementById('testBtn').style.background = "var(--primary)";
+        } else {
+            await setDoc(doc(db, "tests", id), data);
+        }
+        
+        showLoading(false); 
+        document.getElementById('tId').value = ""; document.getElementById('tName').value = "";
+        loadTests(); alert("Test Saved!");
     }
+
     window.deleteTest = async function(id) {
-        if(!confirm("Delete this test? All its questions will remain but won't be visible.")) return;
+        if(!confirm("Delete this test?")) return;
         await deleteDoc(doc(db, "tests", id)); loadTests();
     }
 
-    // ==== 4. QUESTIONS ====
+    // ==== QUESTIONS ====
     async function loadQuestions() {
         const tbody = document.querySelector('#questionsTable tbody');
         const snap = await getDocs(collection(db, "questions"));
@@ -392,27 +454,79 @@
         snap.forEach(d => {
             const q = d.data();
             html += `<tr>
-                <td>${q.testId}</td><td>${q.question}</td><td>${q.options[0]}, ${q.options[1]}...</td>
-                <td><button class="btn-delete" onclick="deleteQuestion('${d.id}')">Delete</button></td>
+                <td>${q.testId}</td><td>${q.question}</td><td>${q.questionMarks || 1}</td>
+                <td>
+                    <button class="btn-edit" onclick="editQuestion('${d.id}')">Edit</button>
+                    <button class="btn-delete" onclick="deleteQuestion('${d.id}')">Delete</button>
+                </td>
             </tr>`;
         });
         tbody.innerHTML = html || '<tr><td colspan="4" style="text-align:center;">No questions found</td></tr>';
     }
-    window.addQuestion = async function() {
-        showLoading(true);
-        await addDoc(collection(db, "questions"), {
-            testId: document.getElementById('qTestId').value, question: document.getElementById('qText').value,
-            options: [document.getElementById('qOptA').value, document.getElementById('qOptB').value, document.getElementById('qOptC').value, document.getElementById('qOptD').value],
-            correctAnswer: Number(document.getElementById('qAns').value), explanation: document.getElementById('qExp').value
-        });
-        showLoading(false); loadQuestions(); alert("Question Added!");
+
+    window.editQuestion = async function(docId) {
+        const docSnap = await getDoc(doc(db, "questions", docId));
+        if(docSnap.exists()) {
+            const q = docSnap.data();
+            document.getElementById('editQId').value = docId;
+            document.getElementById('qTestId').value = q.testId;
+            document.getElementById('qText').value = q.question;
+            document.getElementById('qOptA').value = q.options[0];
+            document.getElementById('qOptB').value = q.options[1];
+            document.getElementById('qOptC').value = q.options[2];
+            document.getElementById('qOptD').value = q.options[3];
+            document.getElementById('qOptE').value = q.options[4] || "";
+            document.getElementById('qAns').value = q.correctAnswer;
+            document.getElementById('qMarks').value = q.questionMarks || 1;
+            document.getElementById('qNeg').value = q.questionNeg || 0;
+            document.getElementById('qExp').value = q.explanation || "";
+            document.getElementById('qBtn').innerText = "Update Question";
+            document.getElementById('qBtn').style.background = "var(--warning)";
+            window.scrollTo(0,0);
+        }
     }
+
+    window.saveQuestion = async function() {
+        showLoading(true);
+        const editId = document.getElementById('editQId').value;
+        
+        let opts = [
+            document.getElementById('qOptA').value, document.getElementById('qOptB').value,
+            document.getElementById('qOptC').value, document.getElementById('qOptD').value
+        ];
+        let optE = document.getElementById('qOptE').value.trim();
+        if(optE) opts.push(optE);
+
+        const data = {
+            testId: document.getElementById('qTestId').value, 
+            question: document.getElementById('qText').value,
+            options: opts,
+            correctAnswer: Number(document.getElementById('qAns').value), 
+            questionMarks: Number(document.getElementById('qMarks').value) || 1,
+            questionNeg: Number(document.getElementById('qNeg').value) || 0,
+            explanation: document.getElementById('qExp').value
+        };
+
+        if(editId) {
+            await updateDoc(doc(db, "questions", editId), data);
+            document.getElementById('editQId').value = "";
+            document.getElementById('qBtn').innerText = "Add Question";
+            document.getElementById('qBtn').style.background = "var(--primary)";
+        } else {
+            await addDoc(collection(db, "questions"), data);
+        }
+        
+        showLoading(false); 
+        document.getElementById('qText').value = ""; document.getElementById('qOptA').value = ""; document.getElementById('qOptB').value = ""; document.getElementById('qOptC').value = ""; document.getElementById('qOptD').value = ""; document.getElementById('qOptE').value = "";
+        loadQuestions(); alert("Question Saved!");
+    }
+
     window.deleteQuestion = async function(id) {
         if(!confirm("Delete this question?")) return;
         await deleteDoc(doc(db, "questions", id)); loadQuestions();
     }
 
-    // ==== 5. RESULTS ====
+    // ==== RESULTS ====
     async function loadResults() {
         const tbody = document.querySelector('#resultsTable tbody');
         const snap = await getDocs(collection(db, "results"));
@@ -420,14 +534,15 @@
         snap.forEach(d => {
             const r = d.data();
             html += `<tr>
-                <td>${new Date(r.timestamp).toLocaleString()}</td><td>${r.studentName} (${r.loginId})</td>
-                <td>${r.testName}</td><td>${r.score} / ${r.total}</td><td>${r.percent}%</td>
+                <td>${new Date(r.timestamp).toLocaleDateString()}</td><td>${r.studentName} (${r.loginId})</td>
+                <td>${r.testName}</td><td>${r.correctCount || 0}</td><td>${r.wrongCount || 0}</td>
+                <td style="color:red;">-${r.negDeducted || 0}</td><td style="font-weight:bold; color:var(--primary);">${r.finalScore || r.score}</td>
             </tr>`;
         });
-        tbody.innerHTML = html || '<tr><td colspan="5" style="text-align:center;">No results found</td></tr>';
+        tbody.innerHTML = html || '<tr><td colspan="7" style="text-align:center;">No results found</td></tr>';
     }
 
-    // ==== 6. CURRENT AFFAIRS ====
+    // ==== CURRENT AFFAIRS ====
     async function loadCA() {
         const tbody = document.querySelector('#caTable tbody');
         const snap = await getDocs(collection(db, "current_affairs"));
@@ -436,28 +551,77 @@
             const c = d.data();
             html += `<tr>
                 <td>${c.type}</td><td>${c.date}</td><td>${c.title}</td><td>${c.question}</td>
-                <td><button class="btn-delete" onclick="deleteCA('${d.id}')">Delete</button></td>
+                <td>
+                    <button class="btn-edit" onclick="editCA('${d.id}')">Edit</button>
+                    <button class="btn-delete" onclick="deleteCA('${d.id}')">Delete</button>
+                </td>
             </tr>`;
         });
         tbody.innerHTML = html || '<tr><td colspan="5" style="text-align:center;">No CA found</td></tr>';
     }
-    window.addCA = async function() {
+
+    window.editCA = async function(docId) {
+        const docSnap = await getDoc(doc(db, "current_affairs", docId));
+        if(docSnap.exists()) {
+            const c = docSnap.data();
+            document.getElementById('editCaId').value = docId;
+            document.getElementById('caType').value = c.type;
+            document.getElementById('caDate').value = c.date;
+            document.getElementById('caTitle').value = c.title;
+            document.getElementById('caLink').value = c.link;
+            document.getElementById('caQ').value = c.question;
+            document.getElementById('caOptA').value = c.options[0];
+            document.getElementById('caOptB').value = c.options[1];
+            document.getElementById('caOptC').value = c.options[2];
+            document.getElementById('caOptD').value = c.options[3];
+            document.getElementById('caOptE').value = c.options[4] || "";
+            document.getElementById('caAns').value = c.correctAnswer;
+            document.getElementById('caExp').value = c.explanation || "";
+            document.getElementById('caBtn').innerText = "Update CA";
+            document.getElementById('caBtn').style.background = "var(--warning)";
+            window.scrollTo(0,0);
+        }
+    }
+
+    window.saveCA = async function() {
         showLoading(true);
-        await addDoc(collection(db, "current_affairs"), {
+        const editId = document.getElementById('editCaId').value;
+        
+        let opts = [
+            document.getElementById('caOptA').value, document.getElementById('caOptB').value,
+            document.getElementById('caOptC').value, document.getElementById('caOptD').value
+        ];
+        let optE = document.getElementById('caOptE').value.trim();
+        if(optE) opts.push(optE);
+
+        const data = {
             type: document.getElementById('caType').value, date: document.getElementById('caDate').value,
             title: document.getElementById('caTitle').value, link: document.getElementById('caLink').value,
-            question: document.getElementById('caQ').value,
-            options: [document.getElementById('caOptA').value, document.getElementById('caOptB').value, document.getElementById('caOptC').value, document.getElementById('caOptD').value],
-            correctAnswer: Number(document.getElementById('caAns').value), explanation: document.getElementById('caExp').value
-        });
-        showLoading(false); loadCA(); alert("CA Added!");
+            question: document.getElementById('caQ').value, options: opts,
+            correctAnswer: Number(document.getElementById('caAns').value), 
+            explanation: document.getElementById('caExp').value
+        };
+
+        if(editId) {
+            await updateDoc(doc(db, "current_affairs", editId), data);
+            document.getElementById('editCaId').value = "";
+            document.getElementById('caBtn').innerText = "Add Current Affairs";
+            document.getElementById('caBtn').style.background = "var(--primary)";
+        } else {
+            await addDoc(collection(db, "current_affairs"), data);
+        }
+        
+        showLoading(false); 
+        document.getElementById('caQ').value = ""; document.getElementById('caOptA').value = ""; document.getElementById('caOptB').value = ""; document.getElementById('caOptC').value = ""; document.getElementById('caOptD').value = ""; document.getElementById('caOptE').value = "";
+        loadCA(); alert("CA Saved!");
     }
+
     window.deleteCA = async function(id) {
         if(!confirm("Delete this?")) return;
         await deleteDoc(doc(db, "current_affairs", id)); loadCA();
     }
 
-    // ==== 7. BULK UPLOAD ====
+    // ==== BULK UPLOAD ====
     const statusText = document.getElementById('bulkStatus');
     window.uploadTestsCsv = function() {
         const file = document.getElementById('testsCsvFile').files[0];
@@ -471,6 +635,7 @@
                     id: tId, mainCat: row.MainCategory || "Other", subCat: row.SubCategory || "General",
                     examName: row.ExamName || "Exam", testName: row.TestName || "Test",
                     duration: Number(row.Duration) || 60, marks: Number(row.TotalMarks) || 100,
+                    hasNegative: row.HasNegative || "No", negativeMark: Number(row.NegativeMark) || 0,
                     isFree: String(row.IsFree).trim().toLowerCase() === "yes" ? "Yes" : "No"
                 }); count++;
             }
@@ -483,15 +648,23 @@
         if(!file) return alert("Select file!");
         statusText.innerText = "Uploading Questions...";
         Papa.parse(file, { header: true, skipEmptyLines: true, complete: async function(res) {
-            let count = 0; const ansMap = { 'A':0, 'B':1, 'C':2, 'D':3, 'a':0, 'b':1, 'c':2, 'd':3 };
+            let count = 0; const ansMap = { 'A':0, 'B':1, 'C':2, 'D':3, 'E':4, 'a':0, 'b':1, 'c':2, 'd':3, 'e':4 };
             for (let row of res.data) {
                 let tId = row.TestID || row.testId; let qText = row.Question || row.question;
                 if(!tId || !qText) continue;
+                
+                let opts = [row.OptionA || "", row.OptionB || "", row.OptionC || "", row.OptionD || ""];
+                if(row.OptionE) opts.push(row.OptionE);
+
                 let ansStr = String(row.CorrectAnswer || row.correctAnswer || "A").trim().toUpperCase();
                 let ansIndex = ansMap[ansStr] !== undefined ? ansMap[ansStr] : 0;
+
                 await addDoc(collection(db, "questions"), {
-                    testId: tId, question: qText, options: [row.OptionA || "", row.OptionB || "", row.OptionC || "", row.OptionD || ""],
-                    correctAnswer: ansIndex, explanation: row.Explanation || ""
+                    testId: tId, question: qText, options: opts,
+                    correctAnswer: ansIndex, 
+                    questionMarks: Number(row.QuestionMarks) || 1,
+                    questionNeg: Number(row.QuestionNegativeMark) || 0,
+                    explanation: row.Explanation || ""
                 }); count++;
                 if(count % 10 === 0) statusText.innerText = `Uploading: ${count}/${res.data.length}`;
             }
@@ -504,14 +677,19 @@
         if(!file) return alert("Select file!");
         statusText.innerText = "Uploading CA...";
         Papa.parse(file, { header: true, skipEmptyLines: true, complete: async function(res) {
-            let count = 0; const ansMap = { 'A':0, 'B':1, 'C':2, 'D':3, 'a':0, 'b':1, 'c':2, 'd':3 };
+            let count = 0; const ansMap = { 'A':0, 'B':1, 'C':2, 'D':3, 'E':4, 'a':0, 'b':1, 'c':2, 'd':3, 'e':4 };
             for (let row of res.data) {
                 if(!row.Question || !row.Title) continue;
+                
+                let opts = [row.OptionA || "", row.OptionB || "", row.OptionC || "", row.OptionD || ""];
+                if(row.OptionE) opts.push(row.OptionE);
+
                 let ansStr = String(row.CorrectAnswer || "A").trim().toUpperCase();
                 let ansIndex = ansMap[ansStr] !== undefined ? ansMap[ansStr] : 0;
+                
                 await addDoc(collection(db, "current_affairs"), {
                     type: row.Type || "Daily", date: row.Date || "", title: row.Title || "", link: row.Article_Link || "",
-                    question: row.Question, options: [row.OptionA || "", row.OptionB || "", row.OptionC || "", row.OptionD || ""],
+                    question: row.Question, options: opts,
                     correctAnswer: ansIndex, explanation: row.Explanation || ""
                 }); count++;
             }
