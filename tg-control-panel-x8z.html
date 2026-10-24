@@ -96,14 +96,6 @@
                 </div>
                 <button class="save-btn" onclick="saveSettings()">Save Settings</button>
                 <p id="settingsMsg" class="msg" style="display: none;">✅ Settings Saved!</p>
-
-                <h2 class="title" style="margin-top: 30px; border-bottom: 2px solid #eee;">Change Admin Password</h2>
-                <div class="row">
-                    <div><input type="password" id="newAdminPass" placeholder="New Password"></div>
-                    <div><input type="password" id="confirmAdminPass" placeholder="Confirm New Password"></div>
-                </div>
-                <button class="save-btn" style="background: var(--danger);" onclick="changeAdminPassword()">Update Password</button>
-                <p id="passMsg" class="msg" style="display: none;"></p>
             </div>
 
             <div id="tabStudents" class="section">
@@ -269,19 +261,11 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    // Default fallback hash for Admin@123
-    const DEFAULT_ADMIN_HASH = "3c9e05f24412b7849283673419672f1c90a8e5e40a27e8802252723393b23e7b"; 
-
-           window.checkPass = async function() {
+    // ✅ NO PASSWORDS ARE WRITTEN HERE. ONLY READS FROM DATABASE.
+    window.checkPass = async function() {
         const pass = document.getElementById('adminPass').value.trim();
-        
-        // 🚨 1. Master Bypass (Hamesha kaam karega agar password bhool jao)
-        if(pass === "Admin@123") {
-            loginSuccess();
-            return;
-        }
+        if(!pass) return;
 
-        // 🔐 2. Database wala naya password check karo
         showLoading(true);
         try {
             const docSnap = await getDoc(doc(db, "settings", "global"));
@@ -289,29 +273,23 @@
                 const currentHash = docSnap.data().adminPasswordHash;
                 const hashedInput = CryptoJS.SHA256(pass).toString();
                 
-                // Agar naya password match ho gaya
                 if(hashedInput === currentHash) {
                     showLoading(false);
-                    loginSuccess();
+                    localStorage.setItem('tg_admin_logged', 'true');
+                    document.getElementById('lockScreen').style.display = 'none';
+                    document.getElementById('adminPanel').style.display = 'block';
+                    loadAllData();
                     return;
                 }
+            } else {
+                alert("Database me koi password set nahi hai! Kripya 'change-pass.html' file se pehle password set karein.");
             }
         } catch (error) {
             console.error("Login error:", error);
         }
         showLoading(false);
-
-        // ❌ Agar kuch match nahi hua
         document.getElementById('errMsg').style.display = 'block';
         setTimeout(() => document.getElementById('errMsg').style.display = 'none', 3000);
-    }
-
-    // Helper function login ke liye
-    function loginSuccess() {
-        localStorage.setItem('tg_admin_logged', 'true');
-        document.getElementById('lockScreen').style.display = 'none';
-        document.getElementById('adminPanel').style.display = 'block';
-        loadAllData();
     }
 
     window.logoutAdmin = function() { 
@@ -351,39 +329,6 @@
             Price: document.getElementById('setPrice').value.trim(), OfferText: document.getElementById('setOffer').value.trim()
         }, { merge: true });
         document.getElementById('settingsMsg').style.display = 'block'; setTimeout(() => document.getElementById('settingsMsg').style.display = 'none', 3000);
-    }
-
-        window.changeAdminPassword = async function() {
-        const newPass = document.getElementById('newAdminPass').value.trim();
-        const confirmPass = document.getElementById('confirmAdminPass').value.trim();
-        const msgEl = document.getElementById('passMsg');
-
-        if(!newPass || newPass.length < 5) {
-            return alert("Password kam se kam 5 characters ka hona chahiye!");
-        }
-        if(newPass !== confirmPass) {
-            return alert("Dono passwords match nahi kar rahe hain!");
-        }
-
-        showLoading(true);
-        try {
-            // Naye password ka hash banake database me save karo
-            const newHash = CryptoJS.SHA256(newPass).toString();
-            await setDoc(doc(db, "settings", "global"), { adminPasswordHash: newHash }, { merge: true });
-            
-            document.getElementById('newAdminPass').value = "";
-            document.getElementById('confirmAdminPass').value = "";
-            
-            msgEl.innerText = "✅ Password Successfully Updated!";
-            msgEl.style.color = "var(--success)";
-            msgEl.style.display = "block";
-            setTimeout(() => msgEl.style.display = 'none', 3000);
-            alert("Password change ho gaya hai! Agli baar isi naye password se login karna.");
-        } catch (error) {
-            console.error("Error updating password:", error);
-            alert("Password update fail ho gaya. Internet ya Firebase permissions check karo.");
-        }
-        showLoading(false);
     }
 
     async function loadStudents() {
