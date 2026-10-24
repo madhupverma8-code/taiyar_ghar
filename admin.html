@@ -3,113 +3,178 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TaiyariGhar | Master Admin Panel</title>
+    <title>TaiyariGhar | Admin Panel</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
     <style>
+        :root { --primary: #4F46E5; --bg: #f3f4f6; --text: #1f2937; --white: #ffffff; }
         * { box-sizing: border-box; font-family: 'Poppins', sans-serif; margin: 0; padding: 0; }
-        body { background-color: #f3f4f6; color: #1f2937; padding: 20px; }
-        .container { max-width: 900px; margin: 0 auto; }
-        .card { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 20px; }
-        h2 { color: #4F46E5; margin-bottom: 15px; font-size: 20px; border-bottom: 2px solid #eee; padding-bottom: 10px; }
-        input, textarea, select { width: 100%; padding: 12px; margin-bottom: 12px; border: 1px solid #ccc; border-radius: 8px; font-family: 'Poppins', sans-serif; font-size: 14px; }
-        button { background: #4F46E5; color: white; border: none; padding: 12px 20px; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 600; transition: 0.3s; }
-        button:hover { background: #4338CA; }
-        .row { display: flex; gap: 10px; }
-        .row > div { flex: 1; }
+        body { background-color: var(--bg); color: var(--text); padding-bottom: 50px; }
         
-        /* Table Styles */
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 14px; }
+        /* 🔐 Password Lock Screen */
+        #lockScreen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #1a3a6b; display: flex; justify-content: center; align-items: center; z-index: 9999; }
+        .lock-box { background: white; padding: 40px; border-radius: 16px; text-align: center; width: 90%; max-width: 400px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
+        .lock-box h2 { color: #1a3a6b; margin-bottom: 20px; }
+        .lock-box input { width: 100%; padding: 15px; margin-bottom: 15px; border: 2px solid #ccc; border-radius: 8px; font-size: 16px; }
+        .lock-box button { width: 100%; padding: 15px; background: var(--primary); color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: 600; cursor: pointer; }
+        .err-msg { color: red; font-size: 14px; display: none; margin-top: 10px; }
+
+        /* Header */
+        .header { background: var(--primary); color: white; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        .header h1 { font-size: 20px; }
+        .header button { background: white; color: var(--primary); border: none; padding: 8px 15px; border-radius: 8px; cursor: pointer; font-weight: 600; }
+
+        /* Tabs */
+        .tabs { display: flex; overflow-x: auto; background: white; margin: 15px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+        .tab-btn { flex: 1; padding: 15px 20px; border: none; background: none; font-size: 15px; font-weight: 600; cursor: pointer; color: #666; border-bottom: 3px solid transparent; white-space: nowrap; }
+        .tab-btn.active { color: var(--primary); border-bottom-color: var(--primary); }
+
+        /* Content Sections */
+        .container { padding: 0 15px; max-width: 1000px; margin: 0 auto; }
+        .section { display: none; background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 20px; }
+        .section.active { display: block; }
+        
+        h2.title { color: var(--primary); font-size: 18px; margin-bottom: 20px; border-bottom: 2px solid #eee; padding-bottom: 10px; }
+        
+        /* Inputs & Buttons */
+        input, select, textarea { width: 100%; padding: 12px; margin-bottom: 15px; border: 1px solid #ccc; border-radius: 8px; font-family: 'Poppins', sans-serif; font-size: 14px; }
+        button.save-btn { background: var(--primary); color: white; border: none; padding: 12px 20px; border-radius: 8px; cursor: pointer; font-size: 15px; font-weight: 600; width: 100%; transition: 0.3s; }
+        button.save-btn:hover { background: #4338CA; }
+        
+        .row { display: flex; gap: 15px; }
+        .row > div { flex: 1; }
+
+        /* Table */
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 13px; }
         th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
-        th { background: #f8fafc; color: #4F46E5; }
-        .btn-paid { background: #10B981; padding: 6px 12px; font-size: 12px; }
-        .btn-paid:hover { background: #059669; }
+        th { background: #f8fafc; color: var(--primary); }
+        .btn-approve { background: #10B981; color: white; border: none; padding: 6px 12px; border-radius: 5px; cursor: pointer; font-weight: 600; }
         .status-paid { color: #10B981; font-weight: bold; }
         .status-free { color: #EF4444; font-weight: bold; }
         
-        .msg { font-weight: bold; margin-top: 10px; color: #10B981; }
+        .msg { color: #10B981; font-weight: bold; margin-top: 10px; text-align: center; }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <div style="text-align: center; margin-bottom: 20px;">
-        <h1 style="color: #1a3a6b;">TaiyariGhar Master Admin</h1>
-        <p>यहाँ से अपनी पूरी वेबसाइट को कंट्रोल करें</p>
-    </div>
-
-    <!-- 1. SETTINGS SECTION -->
-    <div class="card">
-        <h2>⚙️ Settings (सेटिंग्स)</h2>
-        <div class="row">
-            <div><input type="text" id="setUpi" placeholder="UPI ID (e.g., taiyarighar@ptyes)"></div>
-            <div><input type="text" id="setMobile" placeholder="WhatsApp Number (e.g., 9140281870)"></div>
-            <div><input type="number" id="setPrice" placeholder="Price (e.g., 99)"></div>
-        </div>
-        <button onclick="saveSettings()" style="background: #F59E0B;">Save Settings</button>
-        <p id="settingsMsg" class="msg" style="display:none;">सेटिंग्स सेव हो गईं!</p>
-    </div>
-
-    <!-- 2. STUDENTS & PAYMENTS SECTION -->
-    <div class="card">
-        <h2>👨‍🎓 Students & Payments (स्टूडेंट्स और पेमेंट)</h2>
-        <p style="font-size: 13px; color: #666; margin-bottom: 10px;">जब स्टूडेंट पैसे भेजे, तो उसका स्टेटस यहाँ से 'Paid' कर दें।</p>
-        <div style="max-height: 300px; overflow-y: auto;">
-            <table id="studentsTable">
-                <thead>
-                    <tr>
-                        <th>Name</th>
-                        <th>Login ID</th>
-                        <th>Mobile</th>
-                        <th>Status</th>
-                        <th>Action</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <!-- Data will load here -->
-                </tbody>
-            </table>
+    <!-- 🔐 1. ADMIN LOGIN SCREEN -->
+    <div id="lockScreen">
+        <div class="lock-box">
+            <h2>🔐 Admin Login</h2>
+            <p style="font-size: 13px; color: #666; margin-bottom: 20px;">Only for TaiyariGhar Admin</p>
+            <input type="password" id="adminPass" placeholder="Enter Password" onkeypress="if(event.key==='Enter') checkPass()">
+            <button onclick="checkPass()">Unlock Panel</button>
+            <p id="errMsg" class="err-msg">❌ Incorrect Password!</p>
         </div>
     </div>
 
-    <!-- 3. CURRENT AFFAIRS SECTION -->
-    <div class="card">
-        <h2>📰 Current Affairs (करंट अफेयर्स)</h2>
-        <div class="row">
-            <div>
-                <select id="caType">
-                    <option value="Daily">Daily (दैनिक)</option>
-                    <option value="Weekly">Weekly (साप्ताहिक)</option>
-                    <option value="Monthly">Monthly (मासिक)</option>
-                </select>
+    <!-- MAIN ADMIN PANEL (Hidden by default) -->
+    <div id="adminPanel" style="display: none;">
+        
+        <!-- Header -->
+        <div class="header">
+            <h1>TaiyariGhar Admin</h1>
+            <button onclick="logoutAdmin()">Logout</button>
+        </div>
+
+        <!-- Tabs Navigation -->
+        <div class="tabs">
+            <button class="tab-btn active" onclick="openTab('tabSettings', this)">⚙️ Settings</button>
+            <button class="tab-btn" onclick="openTab('tabStudents', this)">👨‍🎓 Students</button>
+            <button class="tab-btn" onclick="openTab('tabCA', this)">📰 Current Affairs</button>
+            <button class="tab-btn" onclick="openTab('tabUpload', this)">🚀 Bulk Upload</button>
+        </div>
+
+        <div class="container">
+            
+            <!-- ⚙️ SETTINGS TAB -->
+            <div id="tabSettings" class="section active">
+                <h2 class="title">Payment & Settings</h2>
+                <div class="row">
+                    <div>
+                        <label>UPI ID</label>
+                        <input type="text" id="setUpi" placeholder="taiyarighar@ptyes">
+                    </div>
+                    <div>
+                        <label>WhatsApp Number</label>
+                        <input type="text" id="setMobile" placeholder="9140281870">
+                    </div>
+                    <div>
+                        <label>Price (₹)</label>
+                        <input type="number" id="setPrice" placeholder="99">
+                    </div>
+                </div>
+                <button class="save-btn" onclick="saveSettings()">Save Settings</button>
+                <p id="settingsMsg" class="msg" style="display: none;">✅ Settings Saved Successfully!</p>
             </div>
-            <div><input type="date" id="caDate"></div>
-        </div>
-        <input type="text" id="caTitle" placeholder="Title (e.g., Daily Current Affairs 24 Oct)">
-        <input type="url" id="caLink" placeholder="PDF/Link URL">
-        <button onclick="addCA()" style="background: #8B5CF6;">Add Current Affairs</button>
-        <p id="caMsg" class="msg" style="display:none;">करंट अफेयर्स जुड़ गया!</p>
-    </div>
 
-    <!-- 4. BULK UPLOAD SECTION -->
-    <div class="card" style="border: 2px dashed #4F46E5;">
-        <h2>🚀 Bulk Upload (CSV से टेस्ट और सवाल जोड़ें)</h2>
-        <div class="row">
-            <div>
-                <label style="font-weight: 600; font-size: 14px;">Tests CSV</label>
-                <input type="file" id="testsCsvFile" accept=".csv" style="border: none;">
-                <button onclick="uploadTestsCsv()" style="background: #8B5CF6; width: 100%;">Upload Tests</button>
+            <!-- 👨‍🎓 STUDENTS TAB -->
+            <div id="tabStudents" class="section">
+                <h2 class="title">Students & Payment Approval</h2>
+                <p style="font-size: 13px; color: #666; margin-bottom: 15px;">Click 'Approve' to unlock all tests for a student.</p>
+                <div style="overflow-x: auto;">
+                    <table id="studentsTable">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Login ID</th>
+                                <th>Mobile</th>
+                                <th>Status</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><td colspan="5" style="text-align:center;">Loading...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
             </div>
-            <div>
-                <label style="font-weight: 600; font-size: 14px;">Questions CSV</label>
-                <input type="file" id="questionsCsvFile" accept=".csv" style="border: none;">
-                <button onclick="uploadQuestionsCsv()" style="background: #EC4899; width: 100%;">Upload Questions</button>
-            </div>
-        </div>
-        <p id="bulkStatus" style="text-align: center; font-weight: bold; margin-top: 15px;"></p>
-    </div>
 
-</div>
+            <!-- 📰 CURRENT AFFAIRS TAB -->
+            <div id="tabCA" class="section">
+                <h2 class="title">Add Current Affairs</h2>
+                <div class="row">
+                    <div>
+                        <label>Type</label>
+                        <select id="caType">
+                            <option value="Daily">Daily (दैनिक)</option>
+                            <option value="Weekly">Weekly (साप्ताहिक)</option>
+                            <option value="Monthly">Monthly (मासिक)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label>Date</label>
+                        <input type="date" id="caDate">
+                    </div>
+                </div>
+                <label>Title (शीर्षक)</label>
+                <input type="text" id="caTitle" placeholder="e.g., Daily Current Affairs 25 Oct">
+                <label>PDF/Link URL</label>
+                <input type="url" id="caLink" placeholder="https://...">
+                <button class="save-btn" onclick="addCA()">Add Current Affairs</button>
+                <p id="caMsg" class="msg" style="display: none;">✅ Current Affairs Added!</p>
+            </div>
+
+            <!-- 🚀 BULK UPLOAD TAB -->
+            <div id="tabUpload" class="section">
+                <h2 class="title">Bulk Upload (CSV)</h2>
+                <div class="row">
+                    <div style="border: 2px dashed #ccc; padding: 20px; border-radius: 10px; text-align: center;">
+                        <h3 style="font-size: 16px; margin-bottom: 10px;">1. Upload Tests</h3>
+                        <input type="file" id="testsCsvFile" accept=".csv" style="border: none; margin-bottom: 10px;">
+                        <button class="save-btn" style="background: #8B5CF6;" onclick="uploadTestsCsv()">Upload Tests CSV</button>
+                    </div>
+                    <div style="border: 2px dashed #ccc; padding: 20px; border-radius: 10px; text-align: center;">
+                        <h3 style="font-size: 16px; margin-bottom: 10px;">2. Upload Questions</h3>
+                        <input type="file" id="questionsCsvFile" accept=".csv" style="border: none; margin-bottom: 10px;">
+                        <button class="save-btn" style="background: #EC4899;" onclick="uploadQuestionsCsv()">Upload Questions CSV</button>
+                    </div>
+                </div>
+                <p id="bulkStatus" style="text-align: center; font-weight: bold; margin-top: 20px; color: var(--primary);"></p>
+            </div>
+
+        </div>
+    </div>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
@@ -127,7 +192,46 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    // ================= 1. SETTINGS =================
+    // 🔐 SECURITY (PASSWORD LOCK)
+    // यहाँ अपना पासवर्ड बदल सकते हैं
+    const ADMIN_PASSWORD = "Admin@123"; 
+
+    window.checkPass = function() {
+        const pass = document.getElementById('adminPass').value;
+        if(pass === ADMIN_PASSWORD) {
+            localStorage.setItem('tg_admin_logged', 'true');
+            document.getElementById('lockScreen').style.display = 'none';
+            document.getElementById('adminPanel').style.display = 'block';
+            loadSettings();
+            loadStudents();
+        } else {
+            document.getElementById('errMsg').style.display = 'block';
+            setTimeout(() => document.getElementById('errMsg').style.display = 'none', 3000);
+        }
+    }
+
+    window.logoutAdmin = function() {
+        localStorage.removeItem('tg_admin_logged');
+        location.reload();
+    }
+
+    // अगर पहले से लॉगिन है तो सीधे खोलें
+    if(localStorage.getItem('tg_admin_logged') === 'true') {
+        document.getElementById('lockScreen').style.display = 'none';
+        document.getElementById('adminPanel').style.display = 'block';
+        loadSettings();
+        loadStudents();
+    }
+
+    // ==== TAB NAVIGATION ====
+    window.openTab = function(tabId, btn) {
+        document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById(tabId).classList.add('active');
+        btn.classList.add('active');
+    }
+
+    // ==== 1. SETTINGS ====
     async function loadSettings() {
         const docSnap = await getDoc(doc(db, "settings", "global"));
         if(docSnap.exists()) {
@@ -147,7 +251,7 @@
         setTimeout(() => document.getElementById('settingsMsg').style.display = 'none', 3000);
     }
 
-    // ================= 2. STUDENTS & PAYMENTS =================
+    // ==== 2. STUDENTS & PAYMENTS ====
     async function loadStudents() {
         const tbody = document.querySelector('#studentsTable tbody');
         tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Loading...</td></tr>';
@@ -158,7 +262,7 @@
             const data = doc.data();
             const isPaid = data.isPaid;
             const statusText = isPaid ? '<span class="status-paid">PAID</span>' : '<span class="status-free">FREE</span>';
-            const actionBtn = isPaid ? `<button style="background:#ccc;" disabled>Approved</button>` : `<button class="btn-paid" onclick="approvePayment('${doc.id}')">Approve</button>`;
+            const actionBtn = isPaid ? `<button style="background:#ccc; cursor:not-allowed; border:none; padding:6px 12px; border-radius:5px;" disabled>Approved</button>` : `<button class="btn-approve" onclick="approvePayment('${doc.id}')">Approve</button>`;
             
             html += `<tr>
                 <td>${data.name}</td>
@@ -168,26 +272,26 @@
                 <td>${actionBtn}</td>
             </tr>`;
         });
-        tbody.innerHTML = html || '<tr><td colspan="5" style="text-align:center;">कोई स्टूडेंट नहीं मिला</td></tr>';
+        tbody.innerHTML = html || '<tr><td colspan="5" style="text-align:center;">No students found</td></tr>';
     }
 
     window.approvePayment = async function(docId) {
-        if(!confirm("क्या आप वाकई इस स्टूडेंट का पेमेंट अप्रूव करना चाहते हैं?")) return;
+        if(!confirm("Approve payment for this student?")) return;
         try {
             await updateDoc(doc(db, "students", docId), { isPaid: true });
-            alert("पेमेंट अप्रूव हो गया!");
-            loadStudents(); // Reload table
+            alert("Payment Approved!");
+            loadStudents();
         } catch(e) { alert("Error: " + e.message); }
     }
 
-    // ================= 3. CURRENT AFFAIRS =================
+    // ==== 3. CURRENT AFFAIRS ====
     window.addCA = async function() {
         const type = document.getElementById('caType').value;
         const date = document.getElementById('caDate').value;
         const title = document.getElementById('caTitle').value.trim();
         const link = document.getElementById('caLink').value.trim();
 
-        if(!title || !link || !date) return alert("कृपया सभी फील्ड भरें!");
+        if(!title || !link || !date) return alert("Please fill all fields!");
         try {
             await addDoc(collection(db, "current_affairs"), { type, date, title, link });
             document.getElementById('caMsg').style.display = 'block';
@@ -197,12 +301,12 @@
         } catch(e) { alert("Error: " + e.message); }
     }
 
-    // ================= 4. BULK UPLOAD =================
+    // ==== 4. BULK UPLOAD ====
     window.uploadTestsCsv = function() {
         const file = document.getElementById('testsCsvFile').files[0];
-        if(!file) return alert("कृपया CSV फाइल चुनें!");
+        if(!file) return alert("Please select a CSV file!");
         const status = document.getElementById('bulkStatus');
-        status.innerText = "टेस्ट अपलोड हो रहे हैं...";
+        status.innerText = "Uploading Tests...";
         
         Papa.parse(file, {
             header: true, skipEmptyLines: true,
@@ -226,7 +330,7 @@
                 }
                 try {
                     await batch.commit();
-                    status.innerText = `✅ सफलतापूर्वक ${count} टेस्ट अपलोड हो गए!`;
+                    status.innerText = `✅ Successfully uploaded ${count} tests!`;
                 } catch(e) { status.innerText = "❌ Error: " + e.message; }
             }
         });
@@ -234,9 +338,9 @@
 
     window.uploadQuestionsCsv = function() {
         const file = document.getElementById('questionsCsvFile').files[0];
-        if(!file) return alert("कृपया CSV फाइल चुनें!");
+        if(!file) return alert("Please select a CSV file!");
         const status = document.getElementById('bulkStatus');
-        status.innerText = "सवाल अपलोड हो रहे हैं... इसमें 1-2 मिनट लग सकते हैं।";
+        status.innerText = "Uploading Questions... Please wait 1-2 mins.";
         
         Papa.parse(file, {
             header: true, skipEmptyLines: true,
@@ -261,18 +365,12 @@
                             explanation: row.Explanation || ""
                         });
                         count++;
-                        if(count % 10 === 0) status.innerText = `अपलोड हो रहे हैं: ${count} / ${total}`;
+                        if(count % 10 === 0) status.innerText = `Uploading: ${count} / ${total}`;
                     } catch (e) { console.error("Failed", e); }
                 }
-                status.innerText = `✅ सफलतापूर्वक ${count} सवाल अपलोड हो गए!`;
+                status.innerText = `✅ Successfully uploaded ${count} questions!`;
             }
         });
-    }
-
-    // Init
-    window.onload = () => {
-        loadSettings();
-        loadStudents();
     }
 </script>
 </body>
