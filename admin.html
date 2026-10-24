@@ -48,6 +48,7 @@
         .btn-unpaid { background: var(--danger); color: white; border: none; padding: 6px 12px; border-radius: 5px; cursor: pointer; font-weight: 600; font-size:12px;}
         .btn-edit { background: var(--warning); color: white; border: none; padding: 6px 12px; border-radius: 5px; cursor: pointer; font-weight: 600; font-size:12px;}
         .btn-delete { background: var(--danger); color: white; border: none; padding: 6px 12px; border-radius: 5px; cursor: pointer; font-weight: 600; font-size:12px;}
+        .btn-reset { background: #6366f1; color: white; border: none; padding: 6px 12px; border-radius: 5px; cursor: pointer; font-weight: 600; font-size:12px;}
         
         .status-paid { color: var(--success); font-weight: bold; }
         .status-free { color: var(--danger); font-weight: bold; }
@@ -60,7 +61,7 @@
 
     <div id="loading">Processing... Please wait.</div>
 
-    <!-- 🔐 LOGIN SCREEN -->
+    <!-- LOGIN SCREEN -->
     <div id="lockScreen">
         <div class="lock-box">
             <h2>🔐 Admin Login</h2>
@@ -171,7 +172,7 @@
                 </div>
                 <div class="row">
                     <div><select id="qAns"><option value="0">Correct: A</option><option value="1">Correct: B</option><option value="2">Correct: C</option><option value="3">Correct: D</option><option value="4">Correct: E</option></select></div>
-                    <div><input type="number" id="qMarks" placeholder="Marks (e.g., 1)"></div>
+                    <div><input type="number" step="0.01" id="qMarks" placeholder="Marks (e.g., 1)"></div>
                     <div><input type="number" step="0.01" id="qNeg" placeholder="Neg Marks (e.g., 0.25)"></div>
                     <div style="flex:2;"><input type="text" id="qExp" placeholder="Explanation (Optional)"></div>
                 </div>
@@ -338,15 +339,25 @@
             const data = d.data();
             const isPaid = data.isPaid;
             const status = isPaid ? '<span class="status-paid">PAID</span>' : '<span class="status-free">FREE</span>';
+            
             let actionBtn = "";
+            let resetBtn = `<button class="btn-reset" onclick="resetDevices('${d.id}')">Reset Dev</button>`;
+            
             if (isPaid) {
                 actionBtn = `<button class="btn-unpaid" onclick="togglePayment('${d.id}', false)">Mark Unpaid</button>`;
             } else {
                 actionBtn = `<button class="btn-approve" onclick="togglePayment('${d.id}', true)">Approve</button>`;
             }
+            
+            let devs = [];
+            if(data.device1) devs.push('D1');
+            if(data.device2) devs.push('D2');
+            let devStr = devs.length > 0 ? devs.join(', ') : '-';
+
             html += `<tr>
                 <td>${data.name}</td><td>${data.loginId}</td><td>${data.password}</td>
-                <td>${status}</td><td>${data.expiryDate || '-'}</td><td>${data.device1 ? 'Yes' : '-'}</td><td>${actionBtn}</td>
+                <td>${status}</td><td>${data.expiryDate || '-'}</td><td>${devStr}</td>
+                <td>${actionBtn} ${resetBtn}</td>
             </tr>`;
         });
         tbody.innerHTML = html || '<tr><td colspan="7" style="text-align:center;">No students found</td></tr>';
@@ -355,13 +366,19 @@
     window.togglePayment = async function(id, makePaid) {
         if(makePaid) {
             let expiry = prompt("Enter Expiry Date (YYYY-MM-DD) for this student:", "2024-12-31");
-            if(expiry === null) return; // user cancelled
+            if(expiry === null) return;
             await updateDoc(doc(db, "students", id), { isPaid: true, expiryDate: expiry }); 
         } else {
             if(!confirm("Mark this student as Unpaid (Free)?")) return;
             await updateDoc(doc(db, "students", id), { isPaid: false, expiryDate: "" }); 
         }
         loadStudents();
+    }
+
+    window.resetDevices = async function(id) {
+        if(!confirm("Reset devices for this student?")) return;
+        await updateDoc(doc(db, "students", id), { device1: "", device2: "" });
+        loadStudents(); alert("Devices Reset!");
     }
 
     // ==== TESTS ====
