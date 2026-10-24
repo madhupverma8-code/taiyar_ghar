@@ -178,7 +178,6 @@
                 <p data-translate="hero_p">All-in-one mock test platform for SSC, Railway, Police & All State Exams. Latest syllabus, real-time rankings, and unlimited tests in one subscription.</p>
             </div>
             <div class="hero-img">
-                <!-- यहाँ अपनी फोटो का लिंक डालें -->
                 <img src="YOUR_IMAGE_LINK_HERE" alt="Student" onerror="this.src='https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=600&auto=format&fit=crop'">
             </div>
         </div>
@@ -366,101 +365,27 @@
         </div>
     </div>
 
-<script>
-    // 🔴 आपका Apps Script URL
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwfANo6gC5tLm5E728XEvD1BAkD7nb46DN5tMBoCmKH08YVeCHmRRDQhthSxr2q7olS/exec"; 
+<!-- 🔥 FIREBASE SDK START 🔥 -->
+<script type="module">
+    // Firebase Imports
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getFirestore, collection, getDocs, getDoc, setDoc, addDoc, query, where, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-    // ==== LANGUAGE TRANSLATION DICTIONARY ====
-    const translations = {
-        "en": {
-            "nav_home": "Home", "nav_exams": "All Exams", "nav_ca": "Current Affairs",
-            "nav_login": "Login", "nav_register": "Register", "nav_dash": "Dashboard",
-            "nav_purchase": "My Purchases", "nav_logout": "Logout",
-            "hero_h1": "Crack Your Dream Govt Job with Confidence.",
-            "hero_p": "All-in-one mock test platform for SSC, Railway, Police & All State Exams. Latest syllabus, real-time rankings, and unlimited tests in one subscription.",
-            "sec_cats": "🎯 Exam Categories", "ca_h2": "📰 Current Affairs Hub", "ca_p": "Stay updated with Daily, Weekly, and Monthly Current Affairs.",
-            "btn_explore": "Explore Now", "login_h2": "Login to Your Account", "login_btn": "Login", 
-            "login_new": "New user?", "login_reg": "Register Here", "reg_h2": "Create an Account", 
-            "reg_btn": "Register Now", "dash_welcome": "WELCOME BACK", "dash_cont": "CONTINUE YOUR JOURNEY TO SUCCESS.", 
-            "dash_h2": "Crack Your Dream Govt Job with Confidence.", "dash_qv": "📊 Dashboard Quick View", 
-            "qv_explore": "Explore Tests", "qv_browse": "Browse all available tests", "qv_view": "View Tests",
-            "qv_rec": "Recommended Next", "qv_loading": "Loading...", "qv_start": "Start Now",
-            "qv_recent": "Recent Performance", "qv_not_att": "Not Attempted Yet", "qv_take": "Take a test to see your score", 
-            "qv_analytics": "View Analytics", "btn_back_cat": "← Back to Categories", "btn_back_sub": "← Back to Sub-Categories", 
-            "btn_back_exam": "← Back to Exams", "btn_back_home": "← Back to Home", "tab_daily": "Daily", 
-            "tab_weekly": "Weekly", "tab_monthly": "Monthly", "test_clear": "Clear Response", 
-            "test_mark": "⭐ Mark", "test_prev": "← Prev", "test_next": "Save & Next →", 
-            "test_palette": "Question Palette", "test_submit": "Submit Test", "res_h2": "Test Result", 
-            "res_pdf": "📄 Download PDF Result", "res_lb": "🏆 Top 5 Leaderboard", "res_back": "Back to Dashboard",
-            "pay_lock": "🔒 Test Locked", "pay_unlock": "Unlock all tests with a one-time payment of", 
-            "pay_upi": "UPI ID:", "pay_wa": "📲 Send Screenshot on WhatsApp", "pay_check": "🔄 Check Status", "pay_close": "Close"
-        },
-        "hi": {
-            "nav_home": "होम", "nav_exams": "सभी परीक्षाएं", "nav_ca": "करंट अफेयर्स",
-            "nav_login": "लॉगिन", "nav_register": "रजिस्टर", "nav_dash": "डैशबोर्ड",
-            "nav_purchase": "मेरी खरीदारी", "nav_logout": "लॉगआउट",
-            "hero_h1": "TayariGhar के साथ पाएं अपनी ड्रीम गवर्नमेंट जॉब।",
-            "hero_p": "SSC, रेलवे, पुलिस और सभी राज्य परीक्षाओं के लिए ऑल-इन-वन मॉक टेस्ट प्लेटफॉर्म। नवीनतम सिलेबस, रियल-टाइम रैंकिंग और वन सब्सक्रिप्शन में अनलिमिटेड टेस्ट।",
-            "sec_cats": "🎯 परीक्षा श्रेणियाँ", "ca_h2": "📰 करंट अफेयर्स हब", "ca_p": "दैनिक, साप्ताहिक और मासिक करंट अफेयर्स के साथ अपडेट रहें।",
-            "btn_explore": "अभी देखें", "login_h2": "अपने खाते में लॉगिन करें", "login_btn": "लॉगिन", 
-            "login_new": "नए उपयोगकर्ता हैं?", "login_reg": "यहाँ रजिस्टर करें", "reg_h2": "खाता बनाएँ", 
-            "reg_btn": "अभी रजिस्टर करें", "dash_welcome": "वापसी पर स्वागत है", "dash_cont": "सफलता की अपनी यात्रा जारी रखें।", 
-            "dash_h2": "TayariGhar के साथ पाएं अपनी ड्रीम गवर्नमेंट जॉब।", "dash_qv": "📊 डैशबोर्ड त्वरित दृश्य", 
-            "qv_explore": "टेस्ट खोजें", "qv_browse": "सभी उपलब्ध टेस्ट ब्राउज़ करें", "qv_view": "टेस्ट देखें",
-            "qv_rec": "अगला सुझाव", "qv_loading": "लोड हो रहा है...", "qv_start": "अभी शुरू करें",
-            "qv_recent": "हालिया प्रदर्शन", "qv_not_att": "अभी तक प्रयास नहीं किया", "qv_take": "अपना स्कोर देखने के लिए टेस्ट दें", 
-            "qv_analytics": "विश्लेषण देखें", "btn_back_cat": "← श्रेणियों पर वापस जाएँ", "btn_back_sub": "← उप-श्रेणियों पर वापस जाएँ", 
-            "btn_back_exam": "← परीक्षाओं पर वापस जाएँ", "btn_back_home": "← होम पर वापस जाएँ", "tab_daily": "दैनिक", 
-            "tab_weekly": "साप्ताहिक", "tab_monthly": "मासिक", "test_clear": "उत्तर साफ़ करें", 
-            "test_mark": "⭐ मार्क करें", "test_prev": "← पिछला", "test_next": "सेव और अगला →", 
-            "test_palette": "प्रश्न पैलेट", "test_submit": "टेस्ट सबमिट करें", "res_h2": "टेस्ट परिणाम", 
-            "res_pdf": "📄 पीडीएफ परिणाम डाउनलोड करें", "res_lb": "🏆 टॉप 5 लीडरबोर्ड", "res_back": "डैशबोर्ड पर वापस जाएँ",
-            "pay_lock": "🔒 टेस्ट लॉक है", "pay_unlock": "एकमुश्त भुगतान के साथ सभी टेस्ट अनलॉक करें", 
-            "pay_upi": "UPI आईडी:", "pay_wa": "📲 व्हाट्सएप पर स्क्रीनशॉट भेजें", "pay_check": "🔄 स्थिति जांचें", "pay_close": "बंद करें"
-        }
+    // आपका Firebase Config (जो आपने कॉपी किया था)
+    const firebaseConfig = {
+        apiKey: "AIzaSyA7x6gQziPYLxrXnyVJJ80mvJkh3VCm24",
+        authDomain: "taiyarighar.firebaseapp.com",
+        projectId: "taiyarighar",
+        storageBucket: "taiyarighar.firebasestorage.app",
+        messagingSenderId: "329150812714",
+        appId: "1:329150812714:web:1f292d05aaba0cb918e953"
     };
 
-    let currentLang = localStorage.getItem('tg_lang') || 'en';
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
 
-    function toggleLanguage() {
-        currentLang = currentLang === 'en' ? 'hi' : 'en';
-        localStorage.setItem('tg_lang', currentLang);
-        applyLanguage();
-        
-        if(isLoggedIn && !document.getElementById('dashboardScreen').classList.contains('hide')) {
-            updateWelcomeMessage(isFirstLoginSession);
-        }
-    }
-
-    function applyLanguage() {
-        const btnText = currentLang === 'en' ? 'हिंदी' : 'English';
-        if(document.getElementById('langBtn')) document.getElementById('langBtn').innerText = btnText;
-        if(document.getElementById('langBtnProfile')) document.getElementById('langBtnProfile').innerText = btnText;
-
-        document.querySelectorAll('[data-translate]').forEach(el => {
-            const key = el.getAttribute('data-translate');
-            if(translations[currentLang][key]) {
-                if(el.tagName === 'INPUT') {
-                    el.placeholder = translations[currentLang][key];
-                } else {
-                    el.innerText = translations[currentLang][key];
-                }
-            }
-        });
-
-        const placeholders = {
-            "loginId": currentLang === 'en' ? "Login ID (e.g., TG0001)" : "लॉगिन आईडी (जैसे TG0001)",
-            "loginPass": currentLang === 'en' ? "Password" : "पासवर्ड",
-            "regName": currentLang === 'en' ? "Full Name" : "पूरा नाम",
-            "regMobile": currentLang === 'en' ? "Mobile Number" : "मोबाइल नंबर",
-            "regPass": currentLang === 'en' ? "Create Password" : "पासवर्ड बनाएँ",
-            "regPassConfirm": currentLang === 'en' ? "Confirm Password" : "पासवर्ड की पुष्टि करें"
-        };
-        for(let id in placeholders) {
-            if(document.getElementById(id)) document.getElementById(id).placeholder = placeholders[id];
-        }
-    }
-
+    // ग्लोबल वेरिएबल्स (ताकि UI काम कर सके)
     let allTests = [], appSettings = {}, currentCA = [];
     let currentStudent = { name: "", loginId: "", isPaid: false, expiry: "" };
     let isLoggedIn = false;
@@ -471,31 +396,55 @@
     let testQuestions = [], currentQIndex = 0, userAnswers = {}, markedForReview = {}, visitedQuestions = {}, timerInterval;
     let timeLeft = 0, totalTime = 0, currentTestId = "", currentTestName = "";
 
-    // --- PWA Install Logic ---
+    // ==== LANGUAGE DICTIONARY ====
+    const translations = {
+        "en": { "nav_home": "Home", "nav_exams": "All Exams", "nav_ca": "Current Affairs", "nav_login": "Login", "nav_register": "Register", "nav_dash": "Dashboard", "nav_purchase": "My Purchases", "nav_logout": "Logout", "hero_h1": "Crack Your Dream Govt Job with Confidence.", "hero_p": "All-in-one mock test platform for SSC, Railway, Police & All State Exams. Latest syllabus, real-time rankings, and unlimited tests in one subscription.", "sec_cats": "🎯 Exam Categories", "ca_h2": "📰 Current Affairs Hub", "ca_p": "Stay updated with Daily, Weekly, and Monthly Current Affairs.", "btn_explore": "Explore Now", "login_h2": "Login to Your Account", "login_btn": "Login", "login_new": "New user?", "login_reg": "Register Here", "reg_h2": "Create an Account", "reg_btn": "Register Now", "dash_h2": "Crack Your Dream Govt Job with Confidence.", "dash_qv": "📊 Dashboard Quick View", "qv_explore": "Explore Tests", "qv_browse": "Browse all available tests", "qv_view": "View Tests", "qv_rec": "Recommended Next", "qv_loading": "Loading...", "qv_start": "Start Now", "qv_recent": "Recent Performance", "qv_not_att": "Not Attempted Yet", "qv_take": "Take a test to see your score", "qv_analytics": "View Analytics", "btn_back_cat": "← Back to Categories", "btn_back_sub": "← Back to Sub-Categories", "btn_back_exam": "← Back to Exams", "btn_back_home": "← Back to Home", "tab_daily": "Daily", "tab_weekly": "Weekly", "tab_monthly": "Monthly", "test_clear": "Clear Response", "test_mark": "⭐ Mark", "test_prev": "← Prev", "test_next": "Save & Next →", "test_palette": "Question Palette", "test_submit": "Submit Test", "res_h2": "Test Result", "res_pdf": "📄 Download PDF Result", "res_lb": "🏆 Top 5 Leaderboard", "res_back": "Back to Dashboard", "pay_lock": "🔒 Test Locked", "pay_unlock": "Unlock all tests with a one-time payment of", "pay_upi": "UPI ID:", "pay_wa": "📲 Send Screenshot on WhatsApp", "pay_check": "🔄 Check Status", "pay_close": "Close" },
+        "hi": { "nav_home": "होम", "nav_exams": "सभी परीक्षाएं", "nav_ca": "करंट अफेयर्स", "nav_login": "लॉगिन", "nav_register": "रजिस्टर", "nav_dash": "डैशबोर्ड", "nav_purchase": "मेरी खरीदारी", "nav_logout": "लॉगआउट", "hero_h1": "TayariGhar के साथ पाएं अपनी ड्रीम गवर्नमेंट जॉब।", "hero_p": "SSC, रेलवे, पुलिस और सभी राज्य परीक्षाओं के लिए ऑल-इन-वन मॉक टेस्ट प्लेटफॉर्म। नवीनतम सिलेबस, रियल-टाइम रैंकिंग और वन सब्सक्रिप्शन में अनलिमिटेड टेस्ट।", "sec_cats": "🎯 परीक्षा श्रेणियाँ", "ca_h2": "📰 करंट अफेयर्स हब", "ca_p": "दैनिक, साप्ताहिक और मासिक करंट अफेयर्स के साथ अपडेट रहें।", "btn_explore": "अभी देखें", "login_h2": "अपने खाते में लॉगिन करें", "login_btn": "लॉगिन", "login_new": "नए उपयोगकर्ता हैं?", "login_reg": "यहाँ रजिस्टर करें", "reg_h2": "खाता बनाएँ", "reg_btn": "अभी रजिस्टर करें", "dash_h2": "TayariGhar के साथ पाएं अपनी ड्रीम गवर्नमेंट जॉब।", "dash_qv": "📊 डैशबोर्ड त्वरित दृश्य", "qv_explore": "टेस्ट खोजें", "qv_browse": "सभी उपलब्ध टेस्ट ब्राउज़ करें", "qv_view": "टेस्ट देखें", "qv_rec": "अगला सुझाव", "qv_loading": "लोड हो रहा है...", "qv_start": "अभी शुरू करें", "qv_recent": "हालिया प्रदर्शन", "qv_not_att": "अभी तक प्रयास नहीं किया", "qv_take": "अपना स्कोर देखने के लिए टेस्ट दें", "qv_analytics": "विश्लेषण देखें", "btn_back_cat": "← श्रेणियों पर वापस जाएँ", "btn_back_sub": "← उप-श्रेणियों पर वापस जाएँ", "btn_back_exam": "← परीक्षाओं पर वापस जाएँ", "btn_back_home": "← होम पर वापस जाएँ", "tab_daily": "दैनिक", "tab_weekly": "साप्ताहिक", "tab_monthly": "मासिक", "test_clear": "उत्तर साफ़ करें", "test_mark": "⭐ मार्क करें", "test_prev": "← पिछला", "test_next": "सेव और अगला →", "test_palette": "प्रश्न पैलेट", "test_submit": "टेस्ट सबमिट करें", "res_h2": "टेस्ट परिणाम", "res_pdf": "📄 पीडीएफ परिणाम डाउनलोड करें", "res_lb": "🏆 टॉप 5 लीडरबोर्ड", "res_back": "डैशबोर्ड पर वापस जाएँ", "pay_lock": "🔒 टेस्ट लॉक है", "pay_unlock": "एकमुश्त भुगतान के साथ सभी टेस्ट अनलॉक करें", "pay_upi": "UPI आईडी:", "pay_wa": "📲 व्हाट्सएप पर स्क्रीनशॉट भेजें", "pay_check": "🔄 स्थिति जांचें", "pay_close": "बंद करें" }
+    };
+
+    let currentLang = localStorage.getItem('tg_lang') || 'en';
+
+    // ==== UI FUNCTIONS ====
+    window.toggleLanguage = function() {
+        currentLang = currentLang === 'en' ? 'hi' : 'en';
+        localStorage.setItem('tg_lang', currentLang);
+        applyLanguage();
+        if(isLoggedIn && !document.getElementById('dashboardScreen').classList.contains('hide')) { updateWelcomeMessage(isFirstLoginSession); }
+    }
+
+    function applyLanguage() {
+        const btnText = currentLang === 'en' ? 'हिंदी' : 'English';
+        if(document.getElementById('langBtn')) document.getElementById('langBtn').innerText = btnText;
+        if(document.getElementById('langBtnProfile')) document.getElementById('langBtnProfile').innerText = btnText;
+        document.querySelectorAll('[data-translate]').forEach(el => {
+            const key = el.getAttribute('data-translate');
+            if(translations[currentLang][key]) {
+                if(el.tagName === 'INPUT') { el.placeholder = translations[currentLang][key]; } 
+                else { el.innerText = translations[currentLang][key]; }
+            }
+        });
+        const placeholders = { "loginId": currentLang === 'en' ? "Login ID (e.g., TG0001)" : "लॉगिन आईडी (जैसे TG0001)", "loginPass": currentLang === 'en' ? "Password" : "पासवर्ड", "regName": currentLang === 'en' ? "Full Name" : "पूरा नाम", "regMobile": currentLang === 'en' ? "Mobile Number" : "मोबाइल नंबर", "regPass": currentLang === 'en' ? "Create Password" : "पासवर्ड बनाएँ", "regPassConfirm": currentLang === 'en' ? "Confirm Password" : "पासवर्ड की पुष्टि करें" };
+        for(let id in placeholders) { if(document.getElementById(id)) document.getElementById(id).placeholder = placeholders[id]; }
+    }
+
+    // PWA Install
     let deferredPrompt;
     window.addEventListener('beforeinstallprompt', (e) => {
-        e.preventDefault();
-        deferredPrompt = e;
+        e.preventDefault(); deferredPrompt = e;
         document.getElementById('installBtn').classList.remove('hide');
         document.getElementById('installBtnProfile').classList.remove('hide');
     });
-
-    function installPWA() {
+    window.installPWA = function() {
         if (deferredPrompt) {
             deferredPrompt.prompt();
             deferredPrompt.userChoice.then((choiceResult) => {
-                if (choiceResult.outcome === 'accepted') {
-                    console.log('User accepted the install prompt');
-                }
+                if (choiceResult.outcome === 'accepted') { console.log('User accepted the install prompt'); }
                 deferredPrompt = null;
                 document.getElementById('installBtn').classList.add('hide');
                 document.getElementById('installBtnProfile').classList.add('hide');
             });
-        } else {
-            alert(currentLang === 'en' ? "To install, tap the share icon and select 'Add to Home Screen'." : "इंस्टॉल करने के लिए, शेयर आइकन पर टैप करें और 'Add to Home Screen' चुनें।");
-        }
+        } else { alert(currentLang === 'en' ? "To install, tap the share icon and select 'Add to Home Screen'." : "इंस्टॉल करने के लिए, शेयर आइकन पर टैप करें और 'Add to Home Screen' चुनें।"); }
     }
-    // -------------------------
 
     function getDeviceId() {
         let devId = localStorage.getItem('tg_device_id');
@@ -503,14 +452,12 @@
         return devId;
     }
 
-    function hideAll() {
-        ['homeScreen', 'loginScreen', 'registerScreen', 'dashboardScreen', 'subCatScreen', 'examScreen', 'testListScreen', 'caScreen', 'testScreen', 'resultScreen'].forEach(id => document.getElementById(id).classList.add('hide'));
-    }
-    function goHome() { hideAll(); document.getElementById('homeScreen').classList.remove('hide'); updateHeaderUI(); }
-    function goDashboard() { if(!isLoggedIn) return showLogin(); hideAll(); document.getElementById('dashboardScreen').classList.remove('hide'); updateHeaderUI(); fetchDashboardData(); updateWelcomeMessage(isFirstLoginSession); }
-    function showLogin() { hideAll(); document.getElementById('loginScreen').classList.remove('hide'); }
-    function showRegister() { hideAll(); document.getElementById('registerScreen').classList.remove('hide'); }
-    function logout() { isLoggedIn = false; currentStudent = {}; localStorage.removeItem('tg_user'); goHome(); }
+    function hideAll() { ['homeScreen', 'loginScreen', 'registerScreen', 'dashboardScreen', 'subCatScreen', 'examScreen', 'testListScreen', 'caScreen', 'testScreen', 'resultScreen'].forEach(id => document.getElementById(id).classList.add('hide')); }
+    window.goHome = function() { hideAll(); document.getElementById('homeScreen').classList.remove('hide'); updateHeaderUI(); }
+    window.goDashboard = function() { if(!isLoggedIn) return showLogin(); hideAll(); document.getElementById('dashboardScreen').classList.remove('hide'); updateHeaderUI(); fetchDashboardData(); updateWelcomeMessage(isFirstLoginSession); }
+    window.showLogin = function() { hideAll(); document.getElementById('loginScreen').classList.remove('hide'); }
+    window.showRegister = function() { hideAll(); document.getElementById('registerScreen').classList.remove('hide'); }
+    window.logout = function() { isLoggedIn = false; currentStudent = {}; localStorage.removeItem('tg_user'); goHome(); }
 
     function updateHeaderUI() {
         if(isLoggedIn) {
@@ -523,184 +470,194 @@
         }
     }
 
-    // ==== DYNAMIC WELCOME MESSAGE ====
     function updateWelcomeMessage(isFirst) {
         let firstName = currentStudent.name.split(' ')[0];
         let msgEl = document.getElementById('welcomeMessage');
-        
         if(isFirst) {
-            if(currentLang === 'en') {
-                msgEl.innerHTML = `🎉 Welcome, ${firstName}! Your journey to a Govt Job starts here.`;
-            } else {
-                msgEl.innerHTML = `🎉 स्वागत है, ${firstName}! आपकी सरकारी नौकरी की तैयारी का सफर यहीं से शुरू होता है।`;
-            }
+            msgEl.innerHTML = currentLang === 'en' ? `🎉 Welcome, ${firstName}! Your journey to a Govt Job starts here.` : `🎉 स्वागत है, ${firstName}! आपकी सरकारी नौकरी की तैयारी का सफर यहीं से शुरू होता है।`;
         } else {
-            if(currentLang === 'en') {
-                msgEl.innerHTML = `💪 Welcome back, ${firstName}! Consistency is the key to success. Let's keep going.`;
-            } else {
-                msgEl.innerHTML = `💪 वापसी पर स्वागत है, ${firstName}! सफलता उन्हीं को मिलती है जो रोज़ मेहनत करते हैं। चलिए आगे बढ़ते हैं।`;
-            }
+            msgEl.innerHTML = currentLang === 'en' ? `💪 Welcome back, ${firstName}! Consistency is the key to success. Let's keep going.` : `💪 वापसी पर स्वागत है, ${firstName}! सफलता उन्हीं को मिलती है जो रोज़ मेहनत करते हैं। चलिए आगे बढ़ते हैं।`;
         }
     }
 
-    function scrollToCategories() { if(!isLoggedIn) { alert(currentLang === 'en' ? "Please login first!" : "कृपया पहले लॉगिन करें!"); showLogin(); } else { document.getElementById('dashCategories').scrollIntoView({behavior: 'smooth'}); } }
-    function showPurchases() { if(!isLoggedIn) return; let status = currentStudent.isPaid ? (currentLang === 'en' ? "Paid (All Access Pass)" : "पेड (ऑल एक्सेस)") : (currentLang === 'en' ? "Free User" : "फ्री यूजर"); alert(`--- MY PURCHASES ---\n\nPlan: ${status}\nExpiry Date: ${currentStudent.expiry || "N/A"}`); }
+    window.scrollToCategories = function() { if(!isLoggedIn) { alert(currentLang === 'en' ? "Please login first!" : "कृपया पहले लॉगिन करें!"); showLogin(); } else { document.getElementById('dashCategories').scrollIntoView({behavior: 'smooth'}); } }
+    window.showPurchases = function() { if(!isLoggedIn) return; let status = currentStudent.isPaid ? (currentLang === 'en' ? "Paid (All Access Pass)" : "पेड (ऑल एक्सेस)") : (currentLang === 'en' ? "Free User" : "फ्री यूजर"); alert(`--- MY PURCHASES ---\n\nPlan: ${status}\nExpiry Date: ${currentStudent.expiry || "N/A"}`); }
 
-    async function doLogin() {
+    // ==== FIREBASE AUTH & LOGIN ====
+    window.doLogin = async function() {
         const id = document.getElementById('loginId').value.trim();
         const pass = document.getElementById('loginPass').value.trim();
         if(!id || !pass) return alert(currentLang === 'en' ? "Enter ID and Password!" : "आईडी और पासवर्ड दर्ज करें!");
+        
         try {
-            const res = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: "login", loginId: id, password: pass, deviceId: getDeviceId() }) });
-            const data = await res.json();
-            if(data.status === "success") {
-                currentStudent = { name: data.name, loginId: data.loginId, isPaid: data.isPaid, expiry: data.expiry };
+            const q = query(collection(db, "students"), where("loginId", "==", id), where("password", "==", pass));
+            const snapshot = await getDocs(q);
+            
+            if(!snapshot.empty) {
+                const studentDoc = snapshot.docs[0];
+                const studentData = studentDoc.data();
+                const docRef = doc(db, "students", studentDoc.id);
+
+                // Device Lock Logic
+                let dev1 = studentData.device1 || "";
+                let dev2 = studentData.device2 || "";
+                let myDev = getDeviceId();
+
+                if(dev1 && dev2 && dev1 !== myDev && dev2 !== myDev) {
+                    // Replace oldest device (dev1) with new device
+                    await updateDoc(docRef, { device1: dev2, device2: myDev });
+                } else if(!dev1) {
+                    await updateDoc(docRef, { device1: myDev });
+                } else if(!dev2 && dev1 !== myDev) {
+                    await updateDoc(docRef, { device2: myDev });
+                }
+
+                currentStudent = { name: studentData.name, loginId: studentData.loginId, isPaid: studentData.isPaid, expiry: studentData.expiry };
                 isLoggedIn = true;
                 
                 let hasLoggedInBefore = localStorage.getItem('tg_has_logged_in');
-                if(!hasLoggedInBefore) {
-                    isFirstLoginSession = true;
-                    localStorage.setItem('tg_has_logged_in', 'true');
-                } else {
-                    isFirstLoginSession = false;
-                }
+                if(!hasLoggedInBefore) { isFirstLoginSession = true; localStorage.setItem('tg_has_logged_in', 'true'); } 
+                else { isFirstLoginSession = false; }
 
                 localStorage.setItem('tg_user', JSON.stringify(currentStudent));
                 fetchSettingsAndTests();
                 goDashboard();
-            } else { alert(data.message); }
-        } catch (e) { alert("Server Error!"); }
+            } else { alert(currentLang === 'en' ? "Invalid Login ID or Password!" : "गलत लॉगिन आईडी या पासवर्ड!"); }
+        } catch (e) { console.error(e); alert("Database Error: " + e.message); }
     }
 
-    async function doRegister() {
+    window.doRegister = async function() {
         const name = document.getElementById('regName').value.trim();
         const mobile = document.getElementById('regMobile').value.trim();
         const pass = document.getElementById('regPass').value.trim();
         const passConfirm = document.getElementById('regPassConfirm').value.trim();
         
         if(!name || !mobile || !pass || !passConfirm) return alert(currentLang === 'en' ? "Fill all fields!" : "सभी फ़ील्ड भरें!");
-        
-        if(pass !== passConfirm) {
-            return alert(currentLang === 'en' ? "Passwords do not match! Please try again." : "पासवर्ड मेल नहीं खा रहे हैं! कृपया दोबारा प्रयास करें।");
-        }
+        if(pass !== passConfirm) return alert(currentLang === 'en' ? "Passwords do not match!" : "पासवर्ड मेल नहीं खा रहे हैं!");
 
         try {
-            const res = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: "register", name: name, mobile: mobile, password: pass, deviceId: getDeviceId() }) });
-            const data = await res.json();
-            if(data.status === "success") { 
-                document.getElementById('newLoginId').innerText = data.loginId;
-                document.getElementById('newLoginPass').innerText = pass;
-                
-                const waMsg = `Hello! I have registered on TaiyariGhar.\n\nName: ${name}\nLogin ID: ${data.loginId}\nPassword: ${pass}\n\nLink: https://taiyarighar.in`;
-                document.getElementById('regWhatsappBtn').href = `https://wa.me/?text=${encodeURIComponent(waMsg)}`;
-                
-                document.getElementById('registerSuccessModal').classList.remove('hide');
-            } 
-            else { alert(data.message); }
-        } catch (e) { alert("Server Error!"); }
+            // Check if name or mobile exists
+            const qCheck = query(collection(db, "students"), where("name", "==", name));
+            const qCheck2 = query(collection(db, "students"), where("mobile", "==", mobile));
+            const snapCheck = await getDocs(qCheck);
+            const snapCheck2 = await getDocs(qCheck2);
+
+            if(!snapCheck.empty || !snapCheck2.empty) {
+                return alert(currentLang === 'en' ? "Name or Mobile already registered!" : "नाम या मोबाइल पहले से रजिस्टर्ड है!");
+            }
+
+            // Get total students to generate ID
+            const allStudentsSnap = await getDocs(collection(db, "students"));
+            const newId = "TG" + String(allStudentsSnap.size + 1).padStart(4, '0');
+
+            // Add new student
+            await addDoc(collection(db, "students"), {
+                name: name, mobile: mobile, loginId: newId, password: pass, 
+                isPaid: false, expiry: "", device1: getDeviceId(), device2: ""
+            });
+
+            document.getElementById('newLoginId').innerText = newId;
+            document.getElementById('newLoginPass').innerText = pass;
+            
+            const waMsg = `Hello! I have registered on TaiyariGhar.\n\nName: ${name}\nLogin ID: ${newId}\nPassword: ${pass}\n\nLink: https://taiyarighar.in`;
+            document.getElementById('regWhatsappBtn').href = `https://wa.me/?text=${encodeURIComponent(waMsg)}`;
+            
+            document.getElementById('registerSuccessModal').classList.remove('hide');
+        } catch (e) { console.error(e); alert("Database Error: " + e.message); }
     }
 
-    function closeRegModal() {
+    window.closeRegModal = function() {
         document.getElementById('registerSuccessModal').classList.add('hide');
-        document.getElementById('regName').value = '';
-        document.getElementById('regMobile').value = '';
-        document.getElementById('regPass').value = '';
-        document.getElementById('regPassConfirm').value = '';
+        document.getElementById('regName').value = ''; document.getElementById('regMobile').value = ''; document.getElementById('regPass').value = ''; document.getElementById('regPassConfirm').value = '';
         showLogin();
     }
 
+    // ==== FETCH DATA FROM FIREBASE ====
     async function fetchSettingsAndTests() {
         try {
-            const setRes = await fetch(`${SCRIPT_URL}?action=getSettings`);
-            const setData = await setRes.json();
-            if(setData.status === "success") appSettings = setData.settings;
+            // Settings
+            const setSnap = await getDoc(doc(db, "settings", "global"));
+            if(setSnap.exists()) appSettings = setSnap.data();
+            else appSettings = { UPI_ID: "8931083955@ptyes", Price: "99", Mobile: "9140281870" };
 
-            const testRes = await fetch(`${SCRIPT_URL}?action=getTests`);
-            const testData = await testRes.json();
-            if(testData.status === "success") { allTests = testData.tests; renderCategories(); }
-            
-            const caRes = await fetch(`${SCRIPT_URL}?action=getCurrentAffairs`);
-            const caData = await caRes.json();
-            if(caData.status === "success") { currentCA = caData.data; }
+            // Tests
+            const testSnap = await getDocs(collection(db, "tests"));
+            allTests = testSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+            renderCategories();
+
+            // Current Affairs
+            const caSnap = await getDocs(collection(db, "current_affairs"));
+            currentCA = caSnap.docs.map(d => ({ id: d.id, ...d.data() }));
         } catch (e) { console.log("Data load error", e); }
     }
 
     async function fetchDashboardData() {
         try {
-            const res = await fetch(`${SCRIPT_URL}?action=getDashboardData&loginId=${currentStudent.loginId}`);
-            const data = await res.json();
-            if(data.status === "success") {
-                if(data.lastTest) {
-                    document.getElementById('recentTestName').innerText = data.lastTest.testName;
-                    document.getElementById('recentTestScore').innerText = `Score: ${data.lastTest.score}/${data.lastTest.total} (${data.lastTest.percent}%)`;
-                } else {
-                    document.getElementById('recentTestName').innerText = currentLang === 'en' ? "Not Attempted Yet" : "अभी तक प्रयास नहीं किया";
-                    document.getElementById('recentTestScore').innerText = currentLang === 'en' ? "Take a test to see your score" : "अपना स्कोर देखने के लिए टेस्ट दें";
-                }
-                if(data.recTest) {
-                    recommendedTestData = data.recTest;
-                    document.getElementById('recTestName').innerText = data.recTest.name;
-                    document.getElementById('recTestDetails').innerText = `⏱️ ${data.recTest.duration} Mins | ${data.recTest.marks} Marks`;
-                } else {
-                    document.getElementById('recTestName').innerText = currentLang === 'en' ? "No tests available" : "कोई टेस्ट उपलब्ध नहीं है";
-                    document.getElementById('recTestDetails').innerText = currentLang === 'en' ? "Please check back later." : "कृपया बाद में जांचें।";
-                }
+            const qRes = query(collection(db, "results"), where("loginId", "==", currentStudent.loginId));
+            const resSnap = await getDocs(qRes);
+            let lastTest = null;
+            let attemptedTestIds = [];
+
+            if(!resSnap.empty) {
+                // Find the latest by timestamp
+                let results = resSnap.docs.map(d => d.data()).sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp));
+                lastTest = results[0];
+                attemptedTestIds = results.map(r => r.testId);
+            }
+
+            if(lastTest) {
+                document.getElementById('recentTestName').innerText = lastTest.testName;
+                document.getElementById('recentTestScore').innerText = `Score: ${lastTest.score}/${lastTest.total} (${lastTest.percent}%)`;
+            } else {
+                document.getElementById('recentTestName').innerText = currentLang === 'en' ? "Not Attempted Yet" : "अभी तक प्रयास नहीं किया";
+                document.getElementById('recentTestScore').innerText = currentLang === 'en' ? "Take a test to see your score" : "अपना स्कोर देखने के लिए टेस्ट दें";
+            }
+
+            // Recommended
+            let recTest = allTests.find(t => !attemptedTestIds.includes(t.id));
+            if(!recTest && allTests.length > 0) recTest = allTests[0];
+
+            if(recTest) {
+                recommendedTestData = recTest;
+                document.getElementById('recTestName').innerText = recTest.testName;
+                document.getElementById('recTestDetails').innerText = `⏱️ ${recTest.duration} Mins | ${recTest.marks} Marks`;
+            } else {
+                document.getElementById('recTestName').innerText = currentLang === 'en' ? "No tests available" : "कोई टेस्ट उपलब्ध नहीं है";
             }
         } catch (e) { console.log("Error fetching dashboard data", e); }
     }
-    function startRecommendedTest() { if(recommendedTestData) startTest(recommendedTestData.id, recommendedTestData.name, recommendedTestData.duration, recommendedTestData.marks); else scrollToCategories(); }
 
-    // ==== FIXED UNIQUE COLOR CATEGORIES ====
+    window.startRecommendedTest = function() { if(recommendedTestData) startTest(recommendedTestData.id, recommendedTestData.testName, recommendedTestData.duration, recommendedTestData.marks); else scrollToCategories(); }
+
+    // ==== RENDER CATEGORIES ====
     function renderCategories() {
         const uniqueCats = [...new Set(allTests.map(t => t.mainCat))];
-        
-        let gridHtml = "";
-        let bannerHtml = "";
+        let gridHtml = ""; let bannerHtml = "";
 
         uniqueCats.forEach(catName => {
             let n = catName.toLowerCase();
-            let style = { bg: "linear-gradient(135deg, #8E2DE2 0%, #4A00E0 100%)", icon: "📝" }; // Default Deep Purple
-
-            // Assign completely distinct colors based on keywords
-            if(n.includes("ssc")) {
-                style = { bg: "linear-gradient(135deg, #FF9A9E 0%, #FECFEF 100%)", icon: "🏛️" }; // Pink
-            } else if(n.includes("bank")) {
-                style = { bg: "linear-gradient(135deg, #4FACFE 0%, #00F2FE 100%)", icon: "🏦" }; // Cyan
-            } else if(n.includes("rail") || n.includes("rrb")) {
-                style = { bg: "linear-gradient(135deg, #43E97B 0%, #38F9D7 100%)", icon: "🚂" }; // Green
-            } else if(n.includes("police")) {
-                style = { bg: "linear-gradient(135deg, #FF416C 0%, #FF4B2B 100%)", icon: "👮" }; // Red
-            } else if(n.includes("up state")) {
-                style = { bg: "linear-gradient(135deg, #F6D365 0%, #FDA085 100%)", icon: "🏛️" }; // Orange/Gold
-            } else if(n.includes("up")) {
-                style = { bg: "linear-gradient(135deg, #FFD700 0%, #FF8C00 100%)", icon: "📝" }; // Dark Orange
-            } else if(n.includes("all state")) {
-                style = { bg: "linear-gradient(135deg, #00b4db 0%, #0083b0 100%)", icon: "🌍" }; // Teal
-            }
+            let style = { bg: "linear-gradient(135deg, #8E2DE2 0%, #4A00E0 100%)", icon: "📝" };
+            if(n.includes("ssc")) style = { bg: "linear-gradient(135deg, #FF9A9E 0%, #FECFEF 100%)", icon: "🏛️" };
+            else if(n.includes("bank")) style = { bg: "linear-gradient(135deg, #4FACFE 0%, #00F2FE 100%)", icon: "🏦" };
+            else if(n.includes("rail") || n.includes("rrb")) style = { bg: "linear-gradient(135deg, #43E97B 0%, #38F9D7 100%)", icon: "🚂" };
+            else if(n.includes("police")) style = { bg: "linear-gradient(135deg, #FF416C 0%, #FF4B2B 100%)", icon: "👮" };
+            else if(n.includes("up state")) style = { bg: "linear-gradient(135deg, #F6D365 0%, #FDA085 100%)", icon: "🏛️" };
+            else if(n.includes("up")) style = { bg: "linear-gradient(135deg, #FFD700 0%, #FF8C00 100%)", icon: "📝" };
+            else if(n.includes("all state")) style = { bg: "linear-gradient(135deg, #00b4db 0%, #0083b0 100%)", icon: "🌍" };
 
             if(n.includes("more") || n.includes("other")) {
-                bannerHtml = `<div class="wide-cat-banner" style="background: ${style.bg};" onclick="openCategory('${catName}')">
-                        <div>
-                            <h2>🌍 ${catName}</h2>
-                            <p>Explore all other miscellaneous exams here.</p>
-                        </div>
-                        <button class="btn" style="background: white; color: #4A00E0; font-weight: bold;">View Now</button>
-                     </div>`;
+                bannerHtml = `<div class="wide-cat-banner" style="background: ${style.bg};" onclick="openCategory('${catName}')"><div><h2>🌍 ${catName}</h2><p>Explore all other miscellaneous exams here.</p></div><button class="btn" style="background: white; color: #4A00E0; font-weight: bold;">View Now</button></div>`;
             } else {
-                gridHtml += `<div class="cat-card" style="background: ${style.bg};" onclick="openCategory('${catName}')">
-                            <div class="cat-icon">${style.icon}</div>
-                            <div class="cat-title">${catName}</div>
-                         </div>`;
+                gridHtml += `<div class="cat-card" style="background: ${style.bg};" onclick="openCategory('${catName}')"><div class="cat-icon">${style.icon}</div><div class="cat-title">${catName}</div></div>`;
             }
         });
 
         const finalHtml = `<div class="category-grid">${gridHtml}</div>${bannerHtml}`;
-        
         document.getElementById('homeCatContainer').innerHTML = finalHtml;
         document.getElementById('dashCatContainer').innerHTML = finalHtml;
     }
 
-    function openCategory(mainCat) {
+    window.openCategory = function(mainCat) {
         if(!isLoggedIn) return showLogin();
         nav.mainCat = mainCat;
         const filtered = allTests.filter(t => t.mainCat === mainCat);
@@ -710,7 +667,7 @@
         hideAll(); document.getElementById('subCatScreen').classList.remove('hide'); document.getElementById('subCatTitle').innerText = mainCat + (currentLang === 'en' ? " - Select Type" : " - प्रकार चुनें"); document.getElementById('subCatGrid').innerHTML = html;
     }
 
-    function openSubCategory(subCat) {
+    window.openSubCategory = function(subCat) {
         nav.subCat = subCat;
         const filtered = allTests.filter(t => t.mainCat === nav.mainCat && t.subCat === subCat);
         const uniqueExams = [...new Set(filtered.map(t => t.examName))];
@@ -719,7 +676,7 @@
         hideAll(); document.getElementById('examScreen').classList.remove('hide'); document.getElementById('examTitle').innerText = nav.mainCat + " > " + subCat + (currentLang === 'en' ? " - Select Exam" : " - परीक्षा चुनें"); document.getElementById('examGrid').innerHTML = html;
     }
 
-    function openExam(examName) {
+    window.openExam = function(examName) {
         nav.examName = examName;
         const filtered = allTests.filter(t => t.mainCat === nav.mainCat && t.subCat === nav.subCat && t.examName === examName);
         let html = "";
@@ -731,32 +688,30 @@
         hideAll(); document.getElementById('testListScreen').classList.remove('hide'); document.getElementById('testListTitle').innerText = examName + (currentLang === 'en' ? " Tests" : " टेस्ट"); document.getElementById('testListContainer').innerHTML = html;
     }
 
-    function goBackToSubCat() { hideAll(); document.getElementById('subCatScreen').classList.remove('hide'); }
-    function goBackToExam() { hideAll(); document.getElementById('examScreen').classList.remove('hide'); }
+    window.goBackToSubCat = function() { hideAll(); document.getElementById('subCatScreen').classList.remove('hide'); }
+    window.goBackToExam = function() { hideAll(); document.getElementById('examScreen').classList.remove('hide'); }
 
-    function showCurrentAffairs() { hideAll(); document.getElementById('caScreen').classList.remove('hide'); filterCA('Daily'); }
-    function filterCA(type) {
+    window.showCurrentAffairs = function() { hideAll(); document.getElementById('caScreen').classList.remove('hide'); filterCA('Daily'); }
+    window.filterCA = function(type) {
         const tabs = document.getElementById('caTabs').children;
         Array.from(tabs).forEach(btn => {
-            if(btn.innerText === type || (currentLang === 'hi' && type === 'Daily' && btn.innerText === 'दैनिक') || (currentLang === 'hi' && type === 'Weekly' && btn.innerText === 'साप्ताहिक') || (currentLang === 'hi' && type === 'Monthly' && btn.innerText === 'मासिक')) { 
-                btn.className = 'btn btn-primary'; btn.style.color='white'; btn.style.background='var(--primary)'; 
-            }
+            if(btn.innerText === type || (currentLang === 'hi' && type === 'Daily' && btn.innerText === 'दैनिक') || (currentLang === 'hi' && type === 'Weekly' && btn.innerText === 'साप्ताहिक') || (currentLang === 'hi' && type === 'Monthly' && btn.innerText === 'मासिक')) { btn.className = 'btn btn-primary'; btn.style.color='white'; btn.style.background='var(--primary)'; }
             else { btn.className = 'btn'; btn.style.background='#E5E7EB'; btn.style.color='#374151'; }
         });
-        const filtered = currentCA.filter(c => c.type.toLowerCase() === type.toLowerCase());
+        const filtered = currentCA.filter(c => c.type && c.type.toLowerCase() === type.toLowerCase());
         if(filtered.length === 0) { document.getElementById('caList').innerHTML = `<p>${currentLang === 'en' ? "No updates available." : "कोई अपडेट उपलब्ध नहीं है।"}</p>`; return; }
         let html = "";
         filtered.forEach(c => { html += `<div class="test-item"><div><h3 style="color: var(--primary); font-size:16px; margin-bottom:5px;">${c.title}</h3><p style="font-size:13px; color:#666;">📅 ${c.date}</p></div><a href="${c.link}" target="_blank" class="btn btn-outline">${currentLang === 'en' ? 'View PDF' : 'पीडीएफ देखें'}</a></div>`; });
         document.getElementById('caList').innerHTML = html;
     }
 
-    // PAYMENT MODAL
-    function openPaymentModal() {
+    // ==== PAYMENT MODAL ====
+    window.openPaymentModal = function() {
         let upi = (appSettings.UPI_ID || "8931083955@ptyes").toString().trim();
         let price = (appSettings.Price || "99").toString().trim();
         let mobile = (appSettings.Mobile || "9140281870").toString().trim();
 
-        if(upi.toLowerCase() === "mobile" || upi.toLowerCase() === "price" || !upi.includes("@")) { upi = "8931083955@ptyes"; }
+        if(upi.toLowerCase() === "mobile" || upi.toLowerCase() === "price" || !upi.includes("@")) upi = "8931083955@ptyes";
         if(isNaN(price) || price === "") price = "99";
         if(mobile.length < 10) mobile = "9140281870";
 
@@ -778,29 +733,54 @@
         document.getElementById('whatsappBtn').href = `https://wa.me/${cleanMobile}?text=${encodeURIComponent(waMsg)}`;
     }
 
-    function closeModal() { document.getElementById('paymentModal').classList.add('hide'); }
+    window.closeModal = function() { document.getElementById('paymentModal').classList.add('hide'); }
     
-    async function checkPaymentStatus() {
+    window.checkPaymentStatus = async function() {
         closeModal();
         try {
-            const res = await fetch(`${SCRIPT_URL}?action=checkStatus&loginId=${currentStudent.loginId}`);
-            const data = await res.json();
-            if(data.status === "success" && data.isPaid) {
-                currentStudent.isPaid = true;
-                localStorage.setItem('tg_user', JSON.stringify(currentStudent));
-                alert(currentLang === 'en' ? "✅ Payment Approved! Tests Unlocked." : "✅ भुगतान स्वीकृत! टेस्ट अनलॉक हो गए।");
-                location.reload();
-            } else { alert(currentLang === 'en' ? "⏳ Payment not approved yet. Please wait 5 mins or contact admin on WhatsApp." : "⏳ भुगतान अभी स्वीकृत नहीं हुआ है। कृपया 5 मिनट प्रतीक्षा करें या व्हाट्सएप पर संपर्क करें।"); }
-        } catch(e) { alert("Error checking status. Please check your internet."); }
+            const docRef = doc(db, "students", currentStudent.loginId); // Note: In Firestore, doc ID must match. Wait, we generated doc IDs automatically in addDoc.
+            // Better way: Query by loginId
+            const q = query(collection(db, "students"), where("loginId", "==", currentStudent.loginId));
+            const snap = await getDocs(q);
+            
+            if(!snap.empty) {
+                const studentData = snap.docs[0].data();
+                if(studentData.isPaid) {
+                    currentStudent.isPaid = true;
+                    localStorage.setItem('tg_user', JSON.stringify(currentStudent));
+                    alert(currentLang === 'en' ? "✅ Payment Approved! Tests Unlocked." : "✅ भुगतान स्वीकृत! टेस्ट अनलॉक हो गए।");
+                    location.reload();
+                } else {
+                    alert(currentLang === 'en' ? "⏳ Payment not approved yet. Please wait 5 mins or contact admin on WhatsApp." : "⏳ भुगतान अभी स्वीकृत नहीं हुआ है। कृपया 5 मिनट प्रतीक्षा करें या व्हाट्सएप पर संपर्क करें।");
+                }
+            }
+        } catch(e) { console.error(e); alert("Error checking status."); }
     }
 
-    async function startTest(testId, testName, duration, marks) {
+    // ==== TEST INTERFACE ====
+    window.startTest = async function(testId, testName, duration, marks) {
         hideAll(); document.getElementById('testScreen').classList.remove('hide'); currentTestId = testId; currentTestName = testName;
+        document.getElementById('questionText').innerText = "Loading Questions..."; // Loading State
+        
         try {
-            const res = await fetch(`${SCRIPT_URL}?action=getQuestions&testId=${testId}`);
-            const data = await res.json();
-            if(data.status === "success" && data.questions.length > 0) {
-                testQuestions = data.questions; totalTime = duration * 60; timeLeft = totalTime; currentQIndex = 0; userAnswers = {}; markedForReview = {}; visitedQuestions = {};
+            const q = query(collection(db, "questions"), where("testId", "==", testId));
+            const qSnap = await getDocs(q);
+            
+            if(!qSnap.empty) {
+                // Shuffle options and track correct answer
+                testQuestions = qSnap.docs.map(d => {
+                    let qData = d.data();
+                    let originalCorrectText = qData.options[qData.correctAnswer]; // correctAnswer is index (0-3)
+                    // Shuffle options
+                    let shuffled = [...qData.options].sort(() => Math.random() - 0.5);
+                    let newAnswerIndex = shuffled.indexOf(originalCorrectText);
+                    return { q: qData.question, o: shuffled, a: newAnswerIndex, s: qData.explanation };
+                });
+
+                // Shuffle Questions
+                testQuestions = testQuestions.sort(() => Math.random() - 0.5);
+
+                totalTime = duration * 60; timeLeft = totalTime; currentQIndex = 0; userAnswers = {}; markedForReview = {}; visitedQuestions = {};
                 const container = document.getElementById('paletteContainer'); container.innerHTML = '';
                 testQuestions.forEach((_, i) => {
                     const btn = document.createElement('button'); btn.className = 'pallet-btn'; btn.innerText = i + 1;
@@ -808,7 +788,7 @@
                 });
                 loadQuestion(); startTimer();
             } else { alert("No questions found!"); goBackToExam(); }
-        } catch (e) { alert("Failed to load test!"); goBackToExam(); }
+        } catch (e) { console.error(e); alert("Failed to load test!"); goBackToExam(); }
     }
 
     function startTimer() {
@@ -851,40 +831,59 @@
         }
     }
 
-    function nextQuestion() { if (currentQIndex < testQuestions.length - 1) { currentQIndex++; loadQuestion(); } }
-    function prevQuestion() { if (currentQIndex > 0) { currentQIndex--; loadQuestion(); } }
-    function toggleMark() { markedForReview[currentQIndex] = !markedForReview[currentQIndex]; loadQuestion(); }
-    function clearResponse() { delete userAnswers[currentQIndex]; loadQuestion(); }
+    window.nextQuestion = function() { if (currentQIndex < testQuestions.length - 1) { currentQIndex++; loadQuestion(); } }
+    window.prevQuestion = function() { if (currentQIndex > 0) { currentQIndex--; loadQuestion(); } }
+    window.toggleMark = function() { markedForReview[currentQIndex] = !markedForReview[currentQIndex]; loadQuestion(); }
+    window.clearResponse = function() { delete userAnswers[currentQIndex]; loadQuestion(); }
 
-    async function submitTest() {
+    window.submitTest = async function() {
         if(timeLeft > 0 && !confirm(currentLang === 'en' ? "Are you sure you want to submit?" : "क्या आप वाकई सबमिट करना चाहते हैं?")) return;
         clearInterval(timerInterval);
         let score = 0; testQuestions.forEach((q, i) => { if(userAnswers[i] === q.a) score++; });
         hideAll(); document.getElementById('resultScreen').classList.remove('hide'); document.getElementById('finalScore').innerText = `${score} / ${testQuestions.length}`; document.getElementById('rankText').innerText = currentLang === 'en' ? "Calculating Rank..." : "रैंक की गणना हो रही है...";
+        
         try {
-            const res = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: "submitTest", loginId: currentStudent.loginId, studentName: currentStudent.name, testId: currentTestId, testName: currentTestName, score: score, total: testQuestions.length }) });
-            const data = await res.json();
-            if(data.status === "success") {
-                document.getElementById('rankText').innerText = (currentLang === 'en' ? "Your Rank: " : "आपकी रैंक: ") + data.rank + (currentLang === 'en' ? " out of " : " / ") + data.totalStudents;
-                let lbHTML = "";
-                data.top5.forEach(student => {
-                    let isYou = (student.name === currentStudent.name);
-                    lbHTML += `<div class="lb-row ${isYou ? 'you' : ''}"><span>${currentLang === 'en' ? 'Rank' : 'रैंक'} ${student.rank}: ${student.name} ${isYou ? '(You)' : ''}</span><span>${student.score} (${student.percent}%)</span></div>`;
-                });
-                document.getElementById('lbContainer').innerHTML = lbHTML;
-            }
-        } catch(e) { document.getElementById('rankText').innerText = "Rank calculation failed."; }
+            const percent = ((score / testQuestions.length) * 100).toFixed(1);
+            const now = new Date().toISOString();
+            
+            // Save Result to Firebase
+            await addDoc(collection(db, "results"), {
+                timestamp: now, loginId: currentStudent.loginId, studentName: currentStudent.name,
+                testId: currentTestId, testName: currentTestName, score: score, total: testQuestions.length, percent: percent
+            });
+
+            // Calculate Rank (Fetch all results for this test)
+            const qRank = query(collection(db, "results"), where("testId", "==", currentTestId));
+            const rankSnap = await getDocs(qRank);
+            let allResults = rankSnap.docs.map(d => d.data());
+            
+            // Sort by score descending
+            allResults.sort((a, b) => b.score - a.score);
+
+            let userRank = 1;
+            allResults.forEach((r, index) => { if(r.loginId === currentStudent.loginId) userRank = index + 1; });
+
+            document.getElementById('rankText').innerText = (currentLang === 'en' ? "Your Rank: " : "आपकी रैंक: ") + userRank + (currentLang === 'en' ? " out of " : " / ") + allResults.length;
+
+            // Render Leaderboard (Top 5)
+            let lbHTML = "";
+            allResults.slice(0, 5).forEach((r, index) => {
+                let isYou = (r.loginId === currentStudent.loginId);
+                lbHTML += `<div class="lb-row ${isYou ? 'you' : ''}"><span>${currentLang === 'en' ? 'Rank' : 'रैंक'} ${index+1}: ${r.studentName} ${isYou ? '(You)' : ''}</span><span>${r.score} (${r.percent}%)</span></div>`;
+            });
+            document.getElementById('lbContainer').innerHTML = lbHTML;
+
+        } catch(e) { console.error(e); document.getElementById('rankText').innerText = "Rank calculation failed."; }
     }
 
     // PWA Service Worker Registration
     if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
-            navigator.serviceWorker.register('sw.js')
-                .then(registration => console.log('SW registered'))
-                .catch(err => console.log('SW registration failed: ', err));
+            navigator.serviceWorker.register('sw.js').then(reg => console.log('SW registered')).catch(err => console.log('SW error', err));
         });
     }
 
+    // Init App
     window.onload = () => {
         applyLanguage(); 
         let savedUser = localStorage.getItem('tg_user');
@@ -901,10 +900,7 @@
 
 <!-- Anti-Copy Protection Script -->
 <script>
-    // राइट-क्लिक ब्लॉक
     document.addEventListener('contextmenu', event => event.preventDefault());
-    
-    // कीबोर्ड शॉर्टकट ब्लॉक (Ctrl+C, Ctrl+U, F12)
     document.addEventListener('keydown', function(e) {
         if ((e.ctrlKey && (e.key === 'c' || e.key === 'C' || e.key === 'u' || e.key === 'U')) || e.key === 'F12') {
             e.preventDefault();
