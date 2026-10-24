@@ -65,14 +65,14 @@
         .section { padding: 25px 5%; }
         .section-title { font-size: 22px; font-weight: 700; margin-bottom: 15px; color: var(--text); }
         
-        /* Colorful Category Cards (3 Columns) */
+        /* Colorful Category Cards */
         .category-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; }
         .cat-card { padding: 20px 15px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); cursor: pointer; transition: 0.3s; text-align: center; color: white; position: relative; overflow: hidden; display: flex; flex-direction: column; justify-content: center; align-items: center;}
         .cat-card:hover { transform: translateY(-3px) scale(1.02); box-shadow: 0 8px 20px rgba(0,0,0,0.15); }
         .cat-icon { font-size: 40px; margin-bottom: 10px; text-shadow: 0 3px 5px rgba(0,0,0,0.1);}
         .cat-title { font-size: 18px; font-weight: 700; text-shadow: 1px 1px 2px rgba(0,0,0,0.3); }
 
-        /* Wide Banner (More Exams / Current Affairs) */
+        /* Wide Banner */
         .wide-cat-banner { padding: 25px 30px; border-radius: 15px; color: white; display: flex; justify-content: space-between; align-items: center; margin-top: 15px; box-shadow: 0 8px 20px rgba(0,0,0,0.15); cursor: pointer; transition: 0.3s;}
         .wide-cat-banner:hover { transform: translateY(-2px); box-shadow: 0 12px 25px rgba(0,0,0,0.25);}
         .wide-cat-banner h2 { font-size: 24px; margin-bottom: 5px; color: white;}
@@ -112,7 +112,7 @@
         .lb-row.you { background: #EEF2FF; font-weight: 700; color: var(--primary); }
 
         /* Current Affairs UI */
-        .ca-tabs { display: flex; gap: 10px; margin-bottom: 20px; }
+        .ca-tabs { display: flex; gap: 10px; margin-bottom: 20px; justify-content: center;}
         .ca-tab { padding: 10px 20px; border-radius: 20px; background: white; border: 1px solid #ddd; cursor: pointer; font-weight: 600; }
         .ca-tab.active { background: var(--primary); color: white; border-color: var(--primary); }
         .ca-article { background: #F8FAFC; padding: 20px; border-radius: 10px; border-left: 5px solid var(--primary); margin-bottom: 20px; }
@@ -307,7 +307,7 @@
         
         <h2 class="section-title" style="text-align: center;">📰 Current Affairs</h2>
         
-        <div class="ca-tabs" style="justify-content: center;">
+        <div class="ca-tabs">
             <div class="ca-tab active" onclick="filterCA('Daily', this)">Daily</div>
             <div class="ca-tab" onclick="filterCA('Monthly', this)">Monthly</div>
         </div>
@@ -547,7 +547,7 @@
                     await updateDoc(docRef, { device2: myDev });
                 }
 
-                currentStudent = { name: studentData.name, loginId: studentData.loginId, isPaid: studentData.isPaid, expiry: studentData.expiry };
+                currentStudent = { name: studentData.name, loginId: studentData.loginId, isPaid: studentData.isPaid, expiry: studentData.expiryDate || "" };
                 isLoggedIn = true;
                 
                 let hasLoggedInBefore = localStorage.getItem('tg_has_logged_in');
@@ -585,7 +585,7 @@
 
             await addDoc(collection(db, "students"), {
                 name: name, mobile: mobile, loginId: newId, password: pass, 
-                isPaid: false, expiry: "", device1: getDeviceId(), device2: ""
+                isPaid: false, expiryDate: "", device1: getDeviceId(), device2: ""
             });
 
             document.getElementById('newLoginId').innerText = newId;
@@ -636,7 +636,7 @@
 
             if(lastTest) {
                 document.getElementById('recentTestName').innerText = lastTest.testName;
-                document.getElementById('recentTestScore').innerText = `Score: ${lastTest.score}/${lastTest.total} (${lastTest.percent}%)`;
+                document.getElementById('recentTestScore').innerText = `Score: ${lastTest.finalScore}/${lastTest.totalMarks} (${lastTest.percent}%)`;
             } else {
                 document.getElementById('recentTestName').innerText = currentLang === 'en' ? "Not Attempted Yet" : "अभी तक प्रयास नहीं किया";
                 document.getElementById('recentTestScore').innerText = currentLang === 'en' ? "Take a test to see your score" : "अपना स्कोर देखने के लिए टेस्ट दें";
@@ -744,7 +744,6 @@
         const filtered = allCA.filter(c => c.type.toLowerCase() === type.toLowerCase());
         if(filtered.length === 0) { container.innerHTML = '<p style="text-align:center;">No current affairs available.</p>'; return; }
 
-        // Group by Title (Article)
         const grouped = {};
         filtered.forEach(c => {
             if(!grouped[c.title]) grouped[c.title] = { date: c.date, link: c.link, questions: [] };
@@ -767,7 +766,9 @@
                     <p style="font-weight:600; margin-bottom:15px;">Q${idx+1}. ${q.question}</p>
                     <div class="ca-options">`;
                 q.options.forEach((opt, i) => {
-                    qHtml += `<label class="ca-option" onclick="checkCAAnswer('${q.id}', ${i}, ${q.correctAnswer}, '${type}', '${q.explanation}')">${String.fromCharCode(65+i)}) ${opt}</label>`;
+                    if(opt && opt.trim() !== "") {
+                        qHtml += `<label class="ca-option" onclick="checkCAAnswer('${q.id}', ${i}, ${q.correctAnswer}, '${type}', '${q.explanation}')">${String.fromCharCode(65+i)}) ${opt}</label>`;
+                    }
                 });
                 qHtml += `</div>
                     <div class="ca-explanation" id="caExp_${q.id}"><b>Explanation:</b> ${q.explanation || 'N/A'}</div>
@@ -888,7 +889,10 @@
                     let originalCorrectText = qData.options[qData.correctAnswer];
                     let shuffled = [...qData.options].sort(() => Math.random() - 0.5);
                     let newAnswerIndex = shuffled.indexOf(originalCorrectText);
-                    return { q: qData.question, o: shuffled, a: newAnswerIndex, s: qData.explanation };
+                    return { 
+                        q: qData.question, o: shuffled, a: newAnswerIndex, s: qData.explanation,
+                        qMarks: qData.questionMarks || 1, qNeg: qData.questionNeg || 0
+                    };
                 }).sort(() => Math.random() - 0.5);
 
                 totalTime = duration * 60; timeLeft = totalTime; currentQIndex = 0; userAnswers = {}; markedForReview = {}; visitedQuestions = {};
@@ -917,12 +921,15 @@
         document.getElementById('qNumberText').innerText = (currentLang === 'en' ? "Question " : "प्रश्न ") + (currentQIndex + 1) + " / " + testQuestions.length;
         document.getElementById('questionText').innerText = q.q;
         const optContainer = document.getElementById('optionsContainer'); optContainer.innerHTML = '';
+        
         q.o.forEach((opt, i) => {
-            const label = document.createElement('label'); const radio = document.createElement('input');
-            radio.type = 'radio'; radio.name = 'option'; radio.value = i;
-            if (userAnswers[currentQIndex] === i) radio.checked = true;
-            radio.onchange = () => { userAnswers[currentQIndex] = i; updatePalette(); };
-            label.appendChild(radio); label.appendChild(document.createTextNode(opt)); optContainer.appendChild(label);
+            if(opt && opt.trim() !== "") {
+                const label = document.createElement('label'); const radio = document.createElement('input');
+                radio.type = 'radio'; radio.name = 'option'; radio.value = i;
+                if (userAnswers[currentQIndex] === i) radio.checked = true;
+                radio.onchange = () => { userAnswers[currentQIndex] = i; updatePalette(); };
+                label.appendChild(radio); label.appendChild(document.createTextNode(opt)); optContainer.appendChild(label);
+            }
         });
         const markBtn = document.getElementById('markBtn');
         if(markedForReview[currentQIndex]) { markBtn.style.background = '#EF4444'; markBtn.innerText = currentLang === 'en' ? '❌ Remove Mark' : '❌ मार्क हटाएं'; }
@@ -950,35 +957,50 @@
     window.submitTest = async function() {
         if(timeLeft > 0 && !confirm(currentLang === 'en' ? "Are you sure you want to submit?" : "क्या आप वाकई सबमिट करना चाहते हैं?")) return;
         clearInterval(timerInterval);
-        let score = 0; testQuestions.forEach((q, i) => { if(userAnswers[i] === q.a) score++; });
-        hideAll(); document.getElementById('resultScreen').classList.remove('hide'); document.getElementById('finalScore').innerText = `${score} / ${testQuestions.length}`; document.getElementById('rankText').innerText = currentLang === 'en' ? "Calculating Rank..." : "रैंक की गणना हो रही है...";
+        
+        let score = 0, correctCount = 0, wrongCount = 0, negDeducted = 0;
+        testQuestions.forEach((q, i) => {
+            if(userAnswers[i] === q.a) {
+                correctCount++;
+                score += q.qMarks;
+            } else if(userAnswers[i] !== undefined) {
+                wrongCount++;
+                negDeducted += q.qNeg;
+            }
+        });
+        score = score - negDeducted;
+
+        hideAll(); document.getElementById('resultScreen').classList.remove('hide'); 
+        document.getElementById('finalScore').innerText = `${score.toFixed(2)} / ${currentTestMarks}`; 
+        document.getElementById('rankText').innerText = currentLang === 'en' ? "Calculating Rank..." : "रैंक की गणना हो रही है...";
         
         try {
-            const percent = ((score / testQuestions.length) * 100).toFixed(1);
+            const percent = ((score / currentTestMarks) * 100).toFixed(1);
             const now = new Date().toISOString();
             
             await addDoc(collection(db, "results"), {
                 timestamp: now, loginId: currentStudent.loginId, studentName: currentStudent.name,
-                testId: currentTestId, testName: currentTestName, score: score, total: testQuestions.length, percent: percent
+                testId: currentTestId, testName: currentTestName, correctCount: correctCount, wrongCount: wrongCount,
+                negDeducted: negDeducted.toFixed(2), finalScore: score.toFixed(2), totalMarks: currentTestMarks, percent: percent
             });
 
             const qRank = query(collection(db, "results"), where("testId", "==", currentTestId));
             const rankSnap = await getDocs(qRank);
-            let allResults = rankSnap.docs.map(d => d.data()).sort((a, b) => b.score - a.score);
+            let allResults = rankSnap.docs.map(d => d.data()).sort((a, b) => b.finalScore - a.finalScore);
 
             let userRank = 1;
-            allResults.forEach((r, index) => { if(r.loginId === currentStudent.loginId && r.score === score) userRank = index + 1; });
+            allResults.forEach((r, index) => { if(r.loginId === currentStudent.loginId && r.finalScore === score.toFixed(2)) userRank = index + 1; });
 
             document.getElementById('rankText').innerText = (currentLang === 'en' ? "Your Rank: " : "आपकी रैंक: ") + userRank + (currentLang === 'en' ? " out of " : " / ") + allResults.length;
 
             let lbHTML = "";
             allResults.slice(0, 5).forEach((r, index) => {
                 let isYou = (r.loginId === currentStudent.loginId);
-                lbHTML += `<div class="lb-row ${isYou ? 'you' : ''}"><span>${currentLang === 'en' ? 'Rank' : 'रैंक'} ${index+1}: ${r.studentName} ${isYou ? '(You)' : ''}</span><span>${r.score} (${r.percent}%)</span></div>`;
+                lbHTML += `<div class="lb-row ${isYou ? 'you' : ''}"><span>${currentLang === 'en' ? 'Rank' : 'रैंक'} ${index+1}: ${r.studentName} ${isYou ? '(You)' : ''}</span><span>${r.finalScore} / ${r.totalMarks}</span></div>`;
             });
             document.getElementById('lbContainer').innerHTML = lbHTML;
             
-            window.currentResult = { score, total: testQuestions.length, percent, rank: userRank, totalStudents: allResults.length };
+            window.currentResult = { score: score.toFixed(2), total: currentTestMarks, percent, rank: userRank, totalStudents: allResults.length, correct: correctCount, wrong: wrongCount, neg: negDeducted.toFixed(2) };
             document.getElementById('waShareBtn').onclick = shareResultOnWhatsApp;
 
         } catch(e) { console.error(e); document.getElementById('rankText').innerText = "Rank calculation failed."; }
@@ -993,7 +1015,11 @@
                 <tr><th>Name</th><td>${currentStudent.name}</td></tr>
                 <tr><th>Login ID</th><td>${currentStudent.loginId}</td></tr>
                 <tr><th>Test Name</th><td>${currentTestName}</td></tr>
-                <tr><th>Score</th><td>${window.currentResult.score} / ${window.currentResult.total}</td></tr>
+                <tr><th>Total Questions</th><td>${testQuestions.length}</td></tr>
+                <tr><th>Correct Answers</th><td style="color:green; font-weight:bold;">${window.currentResult.correct}</td></tr>
+                <tr><th>Wrong Answers</th><td style="color:red; font-weight:bold;">${window.currentResult.wrong}</td></tr>
+                <tr><th>Negative Deducted</th><td style="color:red;">-${window.currentResult.neg}</td></tr>
+                <tr><th>Final Score</th><td>${window.currentResult.score} / ${window.currentResult.total}</td></tr>
                 <tr><th>Percentage</th><td>${window.currentResult.percent}%</td></tr>
                 <tr><th>Rank</th><td>${window.currentResult.rank} (out of ${window.currentResult.totalStudents})</td></tr>
             </table>
@@ -1014,10 +1040,12 @@
             let userAns = userAnswers[i];
             html += `<div class="q"><p><b>Q${i+1}. ${q.q}</b></p>`;
             q.o.forEach((opt, j) => {
-                let style = "";
-                if(j === q.a) style = 'class="correct"';
-                else if(j === userAns) style = 'class="wrong"';
-                html += `<p ${style}>${String.fromCharCode(65+j)}) ${opt}</p>`;
+                if(opt && opt.trim() !== "") {
+                    let style = "";
+                    if(j === q.a) style = 'class="correct"';
+                    else if(j === userAns) style = 'class="wrong"';
+                    html += `<p ${style}>${String.fromCharCode(65+j)}) ${opt}</p>`;
+                }
             });
             html += `<p style="margin-top:10px;">Your Answer: ${userAns !== undefined ? String.fromCharCode(65+userAns) : 'Not Attempted'}</p>`;
             html += `<p>Correct Answer: ${String.fromCharCode(65+q.a)}</p>`;
@@ -1032,7 +1060,7 @@
     }
 
     window.shareResultOnWhatsApp = function() {
-        let msg = `🏆 *TaiyariGhar Result* 🏆\n\n👤 *Name:* ${currentStudent.name}\n📚 *Test:* ${currentTestName}\n📊 *Score:* ${window.currentResult.score} / ${window.currentResult.total}\n📈 *Percentage:* ${window.currentResult.percent}%\n🥇 *Rank:* ${window.currentResult.rank} (out of ${window.currentResult.totalStudents})\n\nमेहनत आपकी, साथ हमारा! 💪\nhttps://taiyarighar.in`;
+        let msg = `🏆 *TaiyariGhar Result* 🏆\n\n👤 *Name:* ${currentStudent.name}\n📚 *Test:* ${currentTestName}\n📊 *Score:* ${window.currentResult.score} / ${window.currentResult.total}\n✅ *Correct:* ${window.currentResult.correct}\n❌ *Wrong:* ${window.currentResult.wrong}\n➖ *Negative:* -${window.currentResult.neg}\n📈 *Percentage:* ${window.currentResult.percent}%\n🥇 *Rank:* ${window.currentResult.rank} (out of ${window.currentResult.totalStudents})\n\nमेहनत आपकी, साथ हमारा! 💪\nhttps://taiyarighar.in`;
         window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
     }
 
