@@ -57,10 +57,17 @@
 </head>
 <body>
 
+    <!-- ✅ FIX 1: URL key ko sessionStorage me save karo, taaki refresh pe bhi kaam kare -->
     <script>
-        const urlParams = new URLSearchParams(window.location.search);
-        if (urlParams.get('key') !== 'Admin123') { window.location.href = "index.html"; } 
-        else { window.history.replaceState({}, document.title, window.location.pathname); }
+        (function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('key') === 'Admin123') {
+                sessionStorage.setItem('tg_admin_key', 'Admin123');
+                window.history.replaceState({}, document.title, window.location.pathname);
+            } else if (sessionStorage.getItem('tg_admin_key') !== 'Admin123') {
+                window.location.href = "index.html";
+            }
+        })();
     </script>
 
     <div id="loading">Processing... Please wait.</div>
@@ -280,7 +287,11 @@
         }
     }
 
-    window.logoutAdmin = function() { localStorage.removeItem('tg_admin_logged'); location.reload(); }
+    window.logoutAdmin = function() { 
+        localStorage.removeItem('tg_admin_logged'); 
+        sessionStorage.removeItem('tg_admin_key');
+        location.href = "index.html"; 
+    }
 
     if(localStorage.getItem('tg_admin_logged') === 'true') {
         document.getElementById('lockScreen').style.display = 'none';
@@ -347,14 +358,28 @@
     }
 
     window.toggleTestNeg = function() { document.getElementById('tNegBox').style.display = document.getElementById('tHasNeg').value === 'Yes' ? 'block' : 'none'; }
+
+    // ✅ FIX 2: loadTests me questions ka live count dikhao (auto sync)
     async function loadTests() {
         const tbody = document.querySelector('#testsTable tbody');
-        const snap = await getDocs(collection(db, "tests"));
+        const [testsSnap, qSnap] = await Promise.all([
+            getDocs(collection(db, "tests")),
+            getDocs(collection(db, "questions"))
+        ]);
+
+        // Har test ke actual questions ka count
+        const qCount = {};
+        qSnap.forEach(d => {
+            const tid = d.data().testId;
+            if (tid) qCount[tid] = (qCount[tid] || 0) + 1;
+        });
+
         let html = "";
-        snap.forEach(d => {
+        testsSnap.forEach(d => {
             const t = d.data();
             let negDisplay = t.hasNegative === "Yes" ? `-${t.negativeMark}` : 'No';
-            html += `<tr><td>${t.id}</td><td>${t.mainCat} > ${t.subCat}</td><td>${t.testName}</td><td>${t.marks}</td><td>${t.totalQuestions || '-'}</td><td>${negDisplay}</td><td><button class="btn-edit" onclick="editTest('${d.id}')">Edit</button> <button class="btn-delete" onclick="deleteTest('${d.id}')">Del</button></td></tr>`;
+            const actualQs = qCount[t.id] !== undefined ? qCount[t.id] : (t.totalQuestions || 0);
+            html += `<tr><td>${t.id}</td><td>${t.mainCat} > ${t.subCat}</td><td>${t.testName}</td><td>${t.marks}</td><td><b>${actualQs}</b></td><td>${negDisplay}</td><td><button class="btn-edit" onclick="editTest('${d.id}')">Edit</button> <button class="btn-delete" onclick="deleteTest('${d.id}')">Del</button></td></tr>`;
         });
         tbody.innerHTML = html || '<tr><td colspan="7" style="text-align:center;">No tests found</td></tr>';
     }
@@ -395,10 +420,19 @@
             document.getElementById('testBtn').innerText = "Add Test"; document.getElementById('testBtn').style.background = "var(--primary)";
         } else { await setDoc(doc(db, "tests", id), data); }
         
-        showLoading(false); document.getElementById('tId').value = ""; document.getElementById('tName').value = ""; document.getElementById('tTotalQs').value = "";
+        // ✅ FIX 3: saare fields clear karo
+        showLoading(false); 
+        ['tId','tMain','tSub','tExam','tName','tDur','tMarks','tTotalQs','tNegMark'].forEach(fid => document.getElementById(fid).value = "");
+        document.getElementById('tHasNeg').value = "No";
+        document.getElementById('tFree').value = "Yes";
+        toggleTestNeg();
         loadTests(); alert("Test Saved!");
     }
-    window.deleteTest = async function(id) { if(!confirm("Delete this test?")) return; await deleteDoc(doc(db, "tests", id)); loadTests(); }
+    window.deleteTest = async function(id) { 
+        if(!confirm("Delete this test?")) return; 
+        await deleteDoc(doc(db, "tests", id)); 
+        loadTests(); 
+    }
 
     async function loadQuestions() {
         const tbody = document.querySelector('#questionsTable tbody');
@@ -446,9 +480,16 @@
         
         showLoading(false); 
         ['qText','qOptA','qOptB','qOptC','qOptD','qOptE'].forEach(id => document.getElementById(id).value = "");
-        loadQuestions(); alert("Question Saved!");
+        loadQuestions(); 
+        loadTests();  // ✅ Qs count refresh
+        alert("Question Saved!");
     }
-    window.deleteQuestion = async function(id) { if(!confirm("Delete?")) return; await deleteDoc(doc(db, "questions", id)); loadQuestions(); }
+    window.deleteQuestion = async function(id) { 
+        if(!confirm("Delete?")) return; 
+        await deleteDoc(doc(db, "questions", id)); 
+        loadQuestions(); 
+        loadTests();  // ✅ Qs count refresh
+    }
 
     async function loadResults() {
         const tbody = document.querySelector('#resultsTable tbody');
@@ -553,7 +594,9 @@
                 }); count++;
                 if(count % 10 === 0) statusText.innerText = `Uploading: ${count}/${res.data.length}`;
             }
-            statusText.innerText = `✅ Uploaded ${count} questions!`; loadQuestions();
+            statusText.innerText = `✅ Uploaded ${count} questions!`; 
+            loadQuestions(); 
+            loadTests(); // ✅ Qs count refresh
         }});
     }
 
