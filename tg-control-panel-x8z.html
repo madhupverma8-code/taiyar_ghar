@@ -60,6 +60,15 @@
     </style>
 </head>
 <body>
+        <!-- 🔐 SECRET KEY SECURITY -->
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const secretKey = urlParams.get('key');
+        // यहाँ 'Admin123' आपकी गुप्त चाबी है, आप इसे बदल सकते हैं
+        if (secretKey !== 'Admin123') {
+            window.location.href = "index.html"; // गलत लिंक पर होम पेज पर भेज देगा
+        }
+    </script>
 
     <div id="loading">Processing... Please wait.</div>
 
