@@ -271,7 +271,7 @@
     // (Login karne ke baad Settings me jaakar apna naya password set karein)
     const DEFAULT_ADMIN_HASH = "3c9e05f24412b7849283673419672f1c90a8e5e40a27e8802252723393b23e7b"; 
 
-    window.checkPass = async function() {
+       window.checkPass = async function() {
         const pass = document.getElementById('adminPass').value;
         const hashedInput = CryptoJS.SHA256(pass).toString();
         
@@ -289,7 +289,8 @@
         }
         showLoading(false);
 
-        if(hashedInput === currentHash) {
+        // 🚨 EMERGENCY BYPASS: Agar aap seedha Vivek@2026 daloge toh ye direct andar kar dega
+        if(pass === "Vivek@2026" || hashedInput === currentHash) {
             localStorage.setItem('tg_admin_logged', 'true');
             document.getElementById('lockScreen').style.display = 'none';
             document.getElementById('adminPanel').style.display = 'block';
