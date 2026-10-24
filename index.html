@@ -538,9 +538,9 @@
                 let dev2 = studentData.device2 || "";
                 let myDev = getDeviceId();
 
-                // Device Lock Logic (Auto-Replace Oldest)
+                // Device Lock Logic
                 if(dev1 && dev2 && dev1 !== myDev && dev2 !== myDev) {
-                    await updateDoc(docRef, { device1: dev2, device2: myDev }); // Replace dev1 with new dev
+                    await updateDoc(docRef, { device1: dev2, device2: myDev }); 
                 } else if(!dev1) {
                     await updateDoc(docRef, { device1: myDev });
                 } else if(!dev2 && dev1 !== myDev) {
@@ -614,7 +614,6 @@
             const testSnap = await getDocs(collection(db, "tests"));
             allTests = testSnap.docs.map(d => ({ id: d.id, ...d.data() }));
             
-            // Render Categories
             renderCategories();
 
             const caSnap = await getDocs(collection(db, "current_affairs"));
@@ -783,32 +782,29 @@
         const qDiv = document.getElementById(`caQ_${qId}`);
         const options = qDiv.querySelectorAll('.ca-option');
         
-        // Prevent multiple clicks
         if(qDiv.getAttribute('data-answered') === 'true') return;
         qDiv.setAttribute('data-answered', 'true');
 
         options.forEach((opt, i) => {
-            opt.style.pointerEvents = 'none'; // Disable all clicks
-            if(i === correctIndex) opt.classList.add('correct'); // Show correct in green
-            if(i === selectedIndex && i !== correctIndex) opt.classList.add('wrong'); // Show wrong in red
+            opt.style.pointerEvents = 'none'; 
+            if(i === correctIndex) opt.classList.add('correct'); 
+            if(i === selectedIndex && i !== correctIndex) opt.classList.add('wrong'); 
         });
 
-        // Show Explanation (Only for Monthly)
         if(type === 'Monthly' && explanation) {
             document.getElementById(`caExp_${qId}`).style.display = 'block';
         }
 
-        // Update Score & Streak
         if(selectedIndex === correctIndex) {
             caCorrectCount++;
-            caStreak = caStreak > 0 ? caStreak + 1 : 1; // If it was negative, reset to 1
+            caStreak = caStreak > 0 ? caStreak + 1 : 1; 
             if(caStreak >= 3) {
                 showPopup('popupSuccess');
                 caStreak = 0;
             }
         } else {
             caWrongCount++;
-            caStreak = caStreak < 0 ? caStreak - 1 : -1; // If it was positive, reset to -1
+            caStreak = caStreak < 0 ? caStreak - 1 : -1;
             if(caStreak <= -3) {
                 showPopup('popupWarning');
                 caStreak = 0;
@@ -887,7 +883,6 @@
             const qSnap = await getDocs(q);
             
             if(!qSnap.empty) {
-                // Shuffle Questions and Options
                 let rawQuestions = qSnap.docs.map(d => d.data());
                 testQuestions = rawQuestions.map(qData => {
                     let originalCorrectText = qData.options[qData.correctAnswer];
@@ -983,7 +978,6 @@
             });
             document.getElementById('lbContainer').innerHTML = lbHTML;
             
-            // Save data globally for PDF generation
             window.currentResult = { score, total: testQuestions.length, percent, rank: userRank, totalStudents: allResults.length };
             document.getElementById('waShareBtn').onclick = shareResultOnWhatsApp;
 
@@ -1004,9 +998,11 @@
                 <tr><th>Rank</th><td>${window.currentResult.rank} (out of ${window.currentResult.totalStudents})</td></tr>
             </table>
             <p style="margin-top:30px;">मेहनत आपकी, साथ हमारा!</p>
-            <script>window.print();</script>
         </body></html>`;
-        let w = window.open('', '_blank'); w.document.write(html); w.document.close();
+        let w = window.open('', '_blank'); 
+        w.document.write(html); 
+        w.document.close(); 
+        setTimeout(() => w.print(), 500);
     }
 
     window.downloadQuestionPaper = function() {
@@ -1028,8 +1024,11 @@
             if(q.s) html += `<div class="exp"><b>Explanation:</b> ${q.s}</div>`;
             html += `</div>`;
         });
-        html += `<script>window.print();</script></body></html>`;
-        let w = window.open('', '_blank'); w.document.write(html); w.document.close();
+        html += `</body></html>`;
+        let w = window.open('', '_blank'); 
+        w.document.write(html); 
+        w.document.close(); 
+        setTimeout(() => w.print(), 500);
     }
 
     window.shareResultOnWhatsApp = function() {
