@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TaiyariGhar | Admin Panel</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; font-family: 'Poppins', sans-serif; margin: 0; padding: 0; }
+        body { background-color: #f3f4f6; color: #1f2937; padding: 20px; }
+        .container { max-width: 800px; margin: 0 auto; }
+        .card { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 20px; }
+        h2 { color: #4F46E5; margin-bottom: 15px; font-size: 20px; border-bottom: 2px solid #eee; padding-bottom: 10px; }
+        input, textarea, select { width: 100%; padding: 12px; margin-bottom: 12px; border: 1px solid #ccc; border-radius: 8px; font-family: 'Poppins', sans-serif; font-size: 14px; }
+        button { background: #4F46E5; color: white; border: none; padding: 12px 20px; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: 600; width: 100%; transition: 0.3s; }
+        button:hover { background: #4338CA; }
+        .row { display: flex; gap: 10px; }
+        .row > div { flex: 1; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div style="text-align: center; margin-bottom: 20px;">
+        <h1 style="color: #1a3a6b;">TaiyariGhar Admin</h1>
+        <p>यहाँ से टेस्ट और सवाल जोड़ें (डेटा सीधे Firebase में सेव होगा)</p>
+    </div>
+
+    <!-- Add Test -->
+    <div class="card">
+        <h2>1. नया टेस्ट जोड़ें (Add New Test)</h2>
+        <div class="row">
+            <div>
+                <input type="text" id="testId" placeholder="Test ID (e.g., T1)">
+                <input type="text" id="mainCat" placeholder="Main Category (e.g., SSC)">
+            </div>
+            <div>
+                <input type="text" id="subCat" placeholder="Sub Category (e.g., Mock Test)">
+                <input type="text" id="examName" placeholder="Exam Name (e.g., SSC CGL)">
+            </div>
+        </div>
+        <input type="text" id="testName" placeholder="Test Name (e.g., SSC CGL Mock 1)">
+        <div class="row">
+            <div>
+                <input type="number" id="duration" placeholder="Duration (Mins) e.g., 60">
+            </div>
+            <div>
+                <input type="number" id="marks" placeholder="Total Marks e.g., 100">
+            </div>
+            <div>
+                <select id="isFree">
+                    <option value="Yes">Is Free? Yes</option>
+                    <option value="No">Is Free? No</option>
+                </select>
+            </div>
+        </div>
+        <button onclick="addTest()">Save Test</button>
+    </div>
+
+    <!-- Add Question -->
+    <div class="card">
+        <h2>2. नया सवाल जोड़ें (Add New Question)</h2>
+        <input type="text" id="qTestId" placeholder="Test ID (e.g., T1) - वही ID जो ऊपर बनाई है">
+        <textarea id="qText" rows="2" placeholder="Question Text (सवाल)"></textarea>
+        <div class="row">
+            <div><input type="text" id="optA" placeholder="Option A"></div>
+            <div><input type="text" id="optB" placeholder="Option B"></div>
+        </div>
+        <div class="row">
+            <div><input type="text" id="optC" placeholder="Option C"></div>
+            <div><input type="text" id="optD" placeholder="Option D"></div>
+        </div>
+        <div class="row">
+            <div>
+                <select id="correctAns">
+                    <option value="0">Correct Option: A</option>
+                    <option value="1">Correct Option: B</option>
+                    <option value="2">Correct Option: C</option>
+                    <option value="3">Correct Option: D</option>
+                </select>
+            </div>
+        </div>
+        <textarea id="qExp" rows="2" placeholder="Explanation (व्याख्या - Optional)"></textarea>
+        <button onclick="addQuestion()" style="background: #10B981;">Save Question</button>
+    </div>
+</div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getFirestore, collection, addDoc, setDoc, doc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+    // आपका Firebase Config
+    const firebaseConfig = {
+        apiKey: "AIzaSyA7x6gQziPYLxrXnyVJJ80mvJkh3VCm24",
+        authDomain: "taiyarighar.firebaseapp.com",
+        projectId: "taiyarighar",
+        storageBucket: "taiyarighar.firebasestorage.app",
+        messagingSenderId: "329150812714",
+        appId: "1:329150812714:web:1f292d05aaba0cb918e953"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    // Add Test Function
+    window.addTest = async function() {
+        const tId = document.getElementById('testId').value.trim();
+        const tMain = document.getElementById('mainCat').value.trim();
+        const tSub = document.getElementById('subCat').value.trim();
+        const tExam = document.getElementById('examName').value.trim();
+        const tName = document.getElementById('testName').value.trim();
+        const tDur = document.getElementById('duration').value;
+        const tMarks = document.getElementById('marks').value;
+        const tFree = document.getElementById('isFree').value;
+
+        if(!tId || !tMain || !tSub || !tExam || !tName) return alert("कृपया सभी जानकारी भरें!");
+
+        try {
+            await setDoc(doc(db, "tests", tId), {
+                id: tId, mainCat: tMain, subCat: tSub, examName: tExam, 
+                testName: tName, duration: Number(tDur), marks: Number(tMarks), isFree: tFree
+            });
+            alert("टेस्ट सफलतापूर्वक जुड़ गया!");
+            document.getElementById('testId').value = ''; document.getElementById('testName').value = '';
+        } catch (e) { alert("Error: " + e.message); }
+    }
+
+    // Add Question Function
+    window.addQuestion = async function() {
+        const qTestId = document.getElementById('qTestId').value.trim();
+        const qText = document.getElementById('qText').value.trim();
+        const oA = document.getElementById('optA').value.trim();
+        const oB = document.getElementById('optB').value.trim();
+        const oC = document.getElementById('optC').value.trim();
+        const oD = document.getElementById('optD').value.trim();
+        const cAns = Number(document.getElementById('correctAns').value);
+        const qExp = document.getElementById('qExp').value.trim();
+
+        if(!qTestId || !qText || !oA || !oB || !oC || !oD) return alert("कृपया सभी फील्ड भरें!");
+
+        try {
+            await addDoc(collection(db, "questions"), {
+                testId: qTestId, question: qText, options: [oA, oB, oC, oD], 
+                correctAnswer: cAns, explanation: qExp
+            });
+            alert("सवाल सफलतापूर्वक जुड़ गया!");
+            document.getElementById('qText').value = ''; document.getElementById('optA').value = '';
+            document.getElementById('optB').value = ''; document.getElementById('optC').value = '';
+            document.getElementById('optD').value = ''; document.getElementById('qExp').value = '';
+        } catch (e) { alert("Error: " + e.message); }
+    }
+</script>
+</body>
+</html>
