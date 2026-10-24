@@ -7,7 +7,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
     <style>
-        :root { --primary: #4F46E5; --bg: #f3f4f6; --text: #1f2937; --white: #ffffff; }
+        :root { --primary: #4F46E5; --bg: #f3f4f6; --text: #1f2937; --white: #ffffff; --danger: #EF4444; --success: #10B981; }
         * { box-sizing: border-box; font-family: 'Poppins', sans-serif; margin: 0; padding: 0; }
         body { background-color: var(--bg); color: var(--text); padding-bottom: 50px; }
         
@@ -26,11 +26,11 @@
 
         /* Tabs */
         .tabs { display: flex; overflow-x: auto; background: white; margin: 15px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
-        .tab-btn { flex: 1; padding: 15px 20px; border: none; background: none; font-size: 15px; font-weight: 600; cursor: pointer; color: #666; border-bottom: 3px solid transparent; white-space: nowrap; }
+        .tab-btn { flex: 1; padding: 15px 20px; border: none; background: none; font-size: 14px; font-weight: 600; cursor: pointer; color: #666; border-bottom: 3px solid transparent; white-space: nowrap; }
         .tab-btn.active { color: var(--primary); border-bottom-color: var(--primary); }
 
         /* Content Sections */
-        .container { padding: 0 15px; max-width: 1000px; margin: 0 auto; }
+        .container { padding: 0 15px; max-width: 1200px; margin: 0 auto; }
         .section { display: none; background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 20px; }
         .section.active { display: block; }
         
@@ -45,17 +45,24 @@
         .row > div { flex: 1; }
 
         /* Table */
+        .table-wrapper { overflow-x: auto; width: 100%; }
         table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 13px; }
         th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
         th { background: #f8fafc; color: var(--primary); }
-        .btn-approve { background: #10B981; color: white; border: none; padding: 6px 12px; border-radius: 5px; cursor: pointer; font-weight: 600; }
-        .status-paid { color: #10B981; font-weight: bold; }
-        .status-free { color: #EF4444; font-weight: bold; }
+        .btn-approve { background: var(--success); color: white; border: none; padding: 6px 12px; border-radius: 5px; cursor: pointer; font-weight: 600; }
+        .btn-delete { background: var(--danger); color: white; border: none; padding: 6px 12px; border-radius: 5px; cursor: pointer; font-weight: 600; }
+        .status-paid { color: var(--success); font-weight: bold; }
+        .status-free { color: var(--danger); font-weight: bold; }
         
-        .msg { color: #10B981; font-weight: bold; margin-top: 10px; text-align: center; }
+        .msg { color: var(--success); font-weight: bold; margin-top: 10px; text-align: center; }
+        
+        /* Loading Overlay */
+        #loading { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.8); display: none; justify-content: center; align-items: center; z-index: 9998; font-size: 20px; font-weight: bold; color: var(--primary); }
     </style>
 </head>
 <body>
+
+    <div id="loading">Processing... Please wait.</div>
 
     <!-- 🔐 1. ADMIN LOGIN SCREEN -->
     <div id="lockScreen">
@@ -68,106 +75,171 @@
         </div>
     </div>
 
-    <!-- MAIN ADMIN PANEL (Hidden by default) -->
+    <!-- MAIN ADMIN PANEL -->
     <div id="adminPanel" style="display: none;">
         
-        <!-- Header -->
         <div class="header">
             <h1>TaiyariGhar Admin</h1>
             <button onclick="logoutAdmin()">Logout</button>
         </div>
 
-        <!-- Tabs Navigation -->
         <div class="tabs">
             <button class="tab-btn active" onclick="openTab('tabSettings', this)">⚙️ Settings</button>
             <button class="tab-btn" onclick="openTab('tabStudents', this)">👨‍🎓 Students</button>
+            <button class="tab-btn" onclick="openTab('tabTests', this)">📝 Tests</button>
+            <button class="tab-btn" onclick="openTab('tabQuestions', this)">❓ Questions</button>
+            <button class="tab-btn" onclick="openTab('tabResults', this)">📊 Results</button>
             <button class="tab-btn" onclick="openTab('tabCA', this)">📰 Current Affairs</button>
             <button class="tab-btn" onclick="openTab('tabUpload', this)">🚀 Bulk Upload</button>
         </div>
 
         <div class="container">
             
-            <!-- ⚙️ SETTINGS TAB -->
+            <!-- ⚙️ SETTINGS -->
             <div id="tabSettings" class="section active">
                 <h2 class="title">Payment & Settings</h2>
                 <div class="row">
-                    <div>
-                        <label>UPI ID</label>
-                        <input type="text" id="setUpi" placeholder="taiyarighar@ptyes">
-                    </div>
-                    <div>
-                        <label>WhatsApp Number</label>
-                        <input type="text" id="setMobile" placeholder="9140281870">
-                    </div>
-                    <div>
-                        <label>Price (₹)</label>
-                        <input type="number" id="setPrice" placeholder="99">
-                    </div>
+                    <div><label>UPI ID</label><input type="text" id="setUpi"></div>
+                    <div><label>WhatsApp Number</label><input type="text" id="setMobile"></div>
+                    <div><label>Price (₹)</label><input type="number" id="setPrice"></div>
+                    <div><label>Offer Text</label><input type="text" id="setOffer" placeholder="e.g., 50% OFF"></div>
                 </div>
                 <button class="save-btn" onclick="saveSettings()">Save Settings</button>
-                <p id="settingsMsg" class="msg" style="display: none;">✅ Settings Saved Successfully!</p>
+                <p id="settingsMsg" class="msg" style="display: none;">✅ Settings Saved!</p>
             </div>
 
-            <!-- 👨‍🎓 STUDENTS TAB -->
+            <!-- 👨‍🎓 STUDENTS -->
             <div id="tabStudents" class="section">
-                <h2 class="title">Students & Payment Approval</h2>
-                <p style="font-size: 13px; color: #666; margin-bottom: 15px;">Click 'Approve' to unlock all tests for a student.</p>
-                <div style="overflow-x: auto;">
+                <h2 class="title">Students & Payments</h2>
+                <div class="table-wrapper">
                     <table id="studentsTable">
                         <thead>
                             <tr>
-                                <th>Name</th>
-                                <th>Login ID</th>
-                                <th>Mobile</th>
-                                <th>Status</th>
-                                <th>Action</th>
+                                <th>Name</th><th>ID</th><th>Pass</th><th>Status</th><th>Device1</th><th>Device2</th><th>Action</th>
                             </tr>
                         </thead>
-                        <tbody>
-                            <tr><td colspan="5" style="text-align:center;">Loading...</td></tr>
-                        </tbody>
+                        <tbody><tr><td colspan="7" style="text-align:center;">Loading...</td></tr></tbody>
                     </table>
                 </div>
             </div>
 
-            <!-- 📰 CURRENT AFFAIRS TAB -->
+            <!-- 📝 TESTS -->
+            <div id="tabTests" class="section">
+                <h2 class="title">Manage Tests</h2>
+                <div class="row">
+                    <div><input type="text" id="tId" placeholder="Test ID (e.g., T1)"></div>
+                    <div><input type="text" id="tMain" placeholder="Main Cat (e.g., SSC)"></div>
+                    <div><input type="text" id="tSub" placeholder="Sub Cat (e.g., Mock)"></div>
+                    <div><input type="text" id="tExam" placeholder="Exam Name"></div>
+                </div>
+                <div class="row">
+                    <div><input type="text" id="tName" placeholder="Test Name"></div>
+                    <div><input type="number" id="tDur" placeholder="Duration (Mins)"></div>
+                    <div><input type="number" id="tMarks" placeholder="Total Marks"></div>
+                    <div>
+                        <select id="tFree"><option value="Yes">Is Free? Yes</option><option value="No">Is Free? No</option></select>
+                    </div>
+                </div>
+                <button class="save-btn" onclick="addTest()">Add Test</button>
+                <div class="table-wrapper">
+                    <table id="testsTable">
+                        <thead><tr><th>ID</th><th>Category</th><th>Exam</th><th>Test Name</th><th>Action</th></tr></thead>
+                        <tbody><tr><td colspan="5" style="text-align:center;">Loading...</td></tr></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- ❓ QUESTIONS -->
+            <div id="tabQuestions" class="section">
+                <h2 class="title">Manage Questions</h2>
+                <div class="row">
+                    <div><input type="text" id="qTestId" placeholder="Test ID (e.g., T1)"></div>
+                    <div><input type="text" id="qText" placeholder="Question"></div>
+                </div>
+                <div class="row">
+                    <div><input type="text" id="qOptA" placeholder="Option A"></div>
+                    <div><input type="text" id="qOptB" placeholder="Option B"></div>
+                    <div><input type="text" id="qOptC" placeholder="Option C"></div>
+                    <div><input type="text" id="qOptD" placeholder="Option D"></div>
+                </div>
+                <div class="row">
+                    <div>
+                        <select id="qAns">
+                            <option value="0">Correct: A</option><option value="1">Correct: B</option>
+                            <option value="2">Correct: C</option><option value="3">Correct: D</option>
+                        </select>
+                    </div>
+                    <div><input type="text" id="qExp" placeholder="Explanation (Optional)"></div>
+                </div>
+                <button class="save-btn" onclick="addQuestion()">Add Question</button>
+                <div class="table-wrapper">
+                    <table id="questionsTable">
+                        <thead><tr><th>Test ID</th><th>Question</th><th>Options</th><th>Action</th></tr></thead>
+                        <tbody><tr><td colspan="4" style="text-align:center;">Loading...</td></tr></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- 📊 RESULTS -->
+            <div id="tabResults" class="section">
+                <h2 class="title">Student Results</h2>
+                <div class="table-wrapper">
+                    <table id="resultsTable">
+                        <thead><tr><th>Date</th><th>Student</th><th>Test</th><th>Score</th><th>Percentage</th></tr></thead>
+                        <tbody><tr><td colspan="5" style="text-align:center;">Loading...</td></tr></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- 📰 CURRENT AFFAIRS -->
             <div id="tabCA" class="section">
                 <h2 class="title">Add Current Affairs</h2>
                 <div class="row">
-                    <div>
-                        <label>Type</label>
-                        <select id="caType">
-                            <option value="Daily">Daily (दैनिक)</option>
-                            <option value="Weekly">Weekly (साप्ताहिक)</option>
-                            <option value="Monthly">Monthly (मासिक)</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label>Date</label>
-                        <input type="date" id="caDate">
-                    </div>
+                    <div><select id="caType"><option value="Daily">Daily</option><option value="Monthly">Monthly</option></select></div>
+                    <div><input type="date" id="caDate"></div>
+                    <div><input type="text" id="caTitle" placeholder="Title"></div>
+                    <div><input type="url" id="caLink" placeholder="Article/PDF Link"></div>
                 </div>
-                <label>Title (शीर्षक)</label>
-                <input type="text" id="caTitle" placeholder="e.g., Daily Current Affairs 25 Oct">
-                <label>PDF/Link URL</label>
-                <input type="url" id="caLink" placeholder="https://...">
-                <button class="save-btn" onclick="addCA()">Add Current Affairs</button>
-                <p id="caMsg" class="msg" style="display: none;">✅ Current Affairs Added!</p>
+                <div class="row">
+                    <div><input type="text" id="caQ" placeholder="Question"></div>
+                    <div><input type="text" id="caOptA" placeholder="Option A"></div>
+                    <div><input type="text" id="caOptB" placeholder="Option B"></div>
+                    <div><input type="text" id="caOptC" placeholder="Option C"></div>
+                    <div><input type="text" id="caOptD" placeholder="Option D"></div>
+                </div>
+                <div class="row">
+                    <div><select id="caAns"><option value="0">Correct: A</option><option value="1">Correct: B</option><option value="2">Correct: C</option><option value="3">Correct: D</option></select></div>
+                    <div><input type="text" id="caExp" placeholder="Explanation (For Monthly only)"></div>
+                </div>
+                <button class="save-btn" onclick="addCA()">Add CA Question</button>
+                <div class="table-wrapper">
+                    <table id="caTable">
+                        <thead><tr><th>Type</th><th>Date</th><th>Title</th><th>Question</th><th>Action</th></tr></thead>
+                        <tbody><tr><td colspan="5" style="text-align:center;">Loading...</td></tr></tbody>
+                    </table>
+                </div>
             </div>
 
-            <!-- 🚀 BULK UPLOAD TAB -->
+            <!-- 🚀 BULK UPLOAD -->
             <div id="tabUpload" class="section">
                 <h2 class="title">Bulk Upload (CSV)</h2>
                 <div class="row">
                     <div style="border: 2px dashed #ccc; padding: 20px; border-radius: 10px; text-align: center;">
-                        <h3 style="font-size: 16px; margin-bottom: 10px;">1. Upload Tests</h3>
+                        <h3 style="font-size: 14px; margin-bottom: 10px;">1. Upload Tests</h3>
                         <input type="file" id="testsCsvFile" accept=".csv" style="border: none; margin-bottom: 10px;">
-                        <button class="save-btn" style="background: #8B5CF6;" onclick="uploadTestsCsv()">Upload Tests CSV</button>
+                        <button class="save-btn" style="background: #8B5CF6;" onclick="uploadTestsCsv()">Upload Tests</button>
                     </div>
                     <div style="border: 2px dashed #ccc; padding: 20px; border-radius: 10px; text-align: center;">
-                        <h3 style="font-size: 16px; margin-bottom: 10px;">2. Upload Questions</h3>
+                        <h3 style="font-size: 14px; margin-bottom: 10px;">2. Upload Questions</h3>
                         <input type="file" id="questionsCsvFile" accept=".csv" style="border: none; margin-bottom: 10px;">
-                        <button class="save-btn" style="background: #EC4899;" onclick="uploadQuestionsCsv()">Upload Questions CSV</button>
+                        <button class="save-btn" style="background: #EC4899;" onclick="uploadQuestionsCsv()">Upload Questions</button>
+                    </div>
+                </div>
+                <div class="row" style="margin-top: 15px;">
+                    <div style="border: 2px dashed #ccc; padding: 20px; border-radius: 10px; text-align: center;">
+                        <h3 style="font-size: 14px; margin-bottom: 10px;">3. Upload Current Affairs</h3>
+                        <input type="file" id="caCsvFile" accept=".csv" style="border: none; margin-bottom: 10px;">
+                        <button class="save-btn" style="background: #F59E0B;" onclick="uploadCaCsv()">Upload CA</button>
                     </div>
                 </div>
                 <p id="bulkStatus" style="text-align: center; font-weight: bold; margin-top: 20px; color: var(--primary);"></p>
@@ -178,7 +250,7 @@
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getFirestore, collection, getDocs, doc, getDoc, setDoc, updateDoc, addDoc, writeBatch } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    import { getFirestore, collection, getDocs, doc, getDoc, setDoc, updateDoc, deleteDoc, addDoc, writeBatch } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyA7x6gQziPYLxrXnyVJJ80mvJkh3VCm24",
@@ -192,8 +264,6 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    // 🔐 SECURITY (PASSWORD LOCK)
-    // यहाँ अपना पासवर्ड बदल सकते हैं
     const ADMIN_PASSWORD = "Admin@123"; 
 
     window.checkPass = function() {
@@ -202,8 +272,7 @@
             localStorage.setItem('tg_admin_logged', 'true');
             document.getElementById('lockScreen').style.display = 'none';
             document.getElementById('adminPanel').style.display = 'block';
-            loadSettings();
-            loadStudents();
+            loadAllData();
         } else {
             document.getElementById('errMsg').style.display = 'block';
             setTimeout(() => document.getElementById('errMsg').style.display = 'none', 3000);
@@ -215,20 +284,23 @@
         location.reload();
     }
 
-    // अगर पहले से लॉगिन है तो सीधे खोलें
     if(localStorage.getItem('tg_admin_logged') === 'true') {
         document.getElementById('lockScreen').style.display = 'none';
         document.getElementById('adminPanel').style.display = 'block';
-        loadSettings();
-        loadStudents();
+        loadAllData();
     }
 
-    // ==== TAB NAVIGATION ====
     window.openTab = function(tabId, btn) {
         document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
         document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
         document.getElementById(tabId).classList.add('active');
         btn.classList.add('active');
+    }
+
+    function showLoading(show) { document.getElementById('loading').style.display = show ? 'flex' : 'none'; }
+
+    function loadAllData() {
+        loadSettings(); loadStudents(); loadTests(); loadQuestions(); loadResults(); loadCA();
     }
 
     // ==== 1. SETTINGS ====
@@ -239,138 +311,212 @@
             document.getElementById('setUpi').value = data.UPI_ID || "";
             document.getElementById('setMobile').value = data.Mobile || "";
             document.getElementById('setPrice').value = data.Price || "";
+            document.getElementById('setOffer').value = data.OfferText || "";
         }
     }
     window.saveSettings = async function() {
         await setDoc(doc(db, "settings", "global"), {
             UPI_ID: document.getElementById('setUpi').value.trim(),
             Mobile: document.getElementById('setMobile').value.trim(),
-            Price: document.getElementById('setPrice').value.trim()
+            Price: document.getElementById('setPrice').value.trim(),
+            OfferText: document.getElementById('setOffer').value.trim()
         });
         document.getElementById('settingsMsg').style.display = 'block';
         setTimeout(() => document.getElementById('settingsMsg').style.display = 'none', 3000);
     }
 
-    // ==== 2. STUDENTS & PAYMENTS ====
+    // ==== 2. STUDENTS ====
     async function loadStudents() {
         const tbody = document.querySelector('#studentsTable tbody');
-        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Loading...</td></tr>';
-        
-        const querySnapshot = await getDocs(collection(db, "students"));
+        const snap = await getDocs(collection(db, "students"));
         let html = "";
-        querySnapshot.forEach((doc) => {
-            const data = doc.data();
+        snap.forEach(d => {
+            const data = d.data();
             const isPaid = data.isPaid;
-            const statusText = isPaid ? '<span class="status-paid">PAID</span>' : '<span class="status-free">FREE</span>';
-            const actionBtn = isPaid ? `<button style="background:#ccc; cursor:not-allowed; border:none; padding:6px 12px; border-radius:5px;" disabled>Approved</button>` : `<button class="btn-approve" onclick="approvePayment('${doc.id}')">Approve</button>`;
-            
+            const status = isPaid ? '<span class="status-paid">PAID</span>' : '<span class="status-free">FREE</span>';
+            const btn = isPaid 
+                ? `<button class="btn-delete" onclick="resetDevice('${d.id}')">Reset Dev</button>` 
+                : `<button class="btn-approve" onclick="approvePayment('${d.id}')">Approve</button>`;
             html += `<tr>
-                <td>${data.name}</td>
-                <td>${data.loginId}</td>
-                <td>${data.mobile}</td>
-                <td>${statusText}</td>
-                <td>${actionBtn}</td>
+                <td>${data.name}</td><td>${data.loginId}</td><td>${data.password}</td>
+                <td>${status}</td><td>${data.device1 || '-'}</td><td>${data.device2 || '-'}</td><td>${btn}</td>
             </tr>`;
         });
-        tbody.innerHTML = html || '<tr><td colspan="5" style="text-align:center;">No students found</td></tr>';
+        tbody.innerHTML = html || '<tr><td colspan="7" style="text-align:center;">No students found</td></tr>';
+    }
+    window.approvePayment = async function(id) {
+        if(!confirm("Approve payment?")) return;
+        await updateDoc(doc(db, "students", id), { isPaid: true }); loadStudents();
+    }
+    window.resetDevice = async function(id) {
+        if(!confirm("Reset devices for this student?")) return;
+        await updateDoc(doc(db, "students", id), { device1: "", device2: "" }); loadStudents(); alert("Devices Reset!");
     }
 
-    window.approvePayment = async function(docId) {
-        if(!confirm("Approve payment for this student?")) return;
-        try {
-            await updateDoc(doc(db, "students", docId), { isPaid: true });
-            alert("Payment Approved!");
-            loadStudents();
-        } catch(e) { alert("Error: " + e.message); }
+    // ==== 3. TESTS ====
+    async function loadTests() {
+        const tbody = document.querySelector('#testsTable tbody');
+        const snap = await getDocs(collection(db, "tests"));
+        let html = "";
+        snap.forEach(d => {
+            const t = d.data();
+            html += `<tr>
+                <td>${t.id}</td><td>${t.mainCat} > ${t.subCat}</td><td>${t.examName}</td><td>${t.testName}</td>
+                <td><button class="btn-delete" onclick="deleteTest('${d.id}')">Delete</button></td>
+            </tr>`;
+        });
+        tbody.innerHTML = html || '<tr><td colspan="5" style="text-align:center;">No tests found</td></tr>';
+    }
+    window.addTest = async function() {
+        showLoading(true);
+        const id = document.getElementById('tId').value.trim();
+        if(!id) { showLoading(false); return alert("Test ID required!"); }
+        await setDoc(doc(db, "tests", id), {
+            id: id, mainCat: document.getElementById('tMain').value, subCat: document.getElementById('tSub').value,
+            examName: document.getElementById('tExam').value, testName: document.getElementById('tName').value,
+            duration: Number(document.getElementById('tDur').value), marks: Number(document.getElementById('tMarks').value),
+            isFree: document.getElementById('tFree').value
+        });
+        showLoading(false); loadTests(); alert("Test Added!");
+    }
+    window.deleteTest = async function(id) {
+        if(!confirm("Delete this test? All its questions will remain but won't be visible.")) return;
+        await deleteDoc(doc(db, "tests", id)); loadTests();
     }
 
-    // ==== 3. CURRENT AFFAIRS ====
+    // ==== 4. QUESTIONS ====
+    async function loadQuestions() {
+        const tbody = document.querySelector('#questionsTable tbody');
+        const snap = await getDocs(collection(db, "questions"));
+        let html = "";
+        snap.forEach(d => {
+            const q = d.data();
+            html += `<tr>
+                <td>${q.testId}</td><td>${q.question}</td><td>${q.options[0]}, ${q.options[1]}...</td>
+                <td><button class="btn-delete" onclick="deleteQuestion('${d.id}')">Delete</button></td>
+            </tr>`;
+        });
+        tbody.innerHTML = html || '<tr><td colspan="4" style="text-align:center;">No questions found</td></tr>';
+    }
+    window.addQuestion = async function() {
+        showLoading(true);
+        await addDoc(collection(db, "questions"), {
+            testId: document.getElementById('qTestId').value, question: document.getElementById('qText').value,
+            options: [document.getElementById('qOptA').value, document.getElementById('qOptB').value, document.getElementById('qOptC').value, document.getElementById('qOptD').value],
+            correctAnswer: Number(document.getElementById('qAns').value), explanation: document.getElementById('qExp').value
+        });
+        showLoading(false); loadQuestions(); alert("Question Added!");
+    }
+    window.deleteQuestion = async function(id) {
+        if(!confirm("Delete this question?")) return;
+        await deleteDoc(doc(db, "questions", id)); loadQuestions();
+    }
+
+    // ==== 5. RESULTS ====
+    async function loadResults() {
+        const tbody = document.querySelector('#resultsTable tbody');
+        const snap = await getDocs(collection(db, "results"));
+        let html = "";
+        snap.forEach(d => {
+            const r = d.data();
+            html += `<tr>
+                <td>${new Date(r.timestamp).toLocaleString()}</td><td>${r.studentName} (${r.loginId})</td>
+                <td>${r.testName}</td><td>${r.score} / ${r.total}</td><td>${r.percent}%</td>
+            </tr>`;
+        });
+        tbody.innerHTML = html || '<tr><td colspan="5" style="text-align:center;">No results found</td></tr>';
+    }
+
+    // ==== 6. CURRENT AFFAIRS ====
+    async function loadCA() {
+        const tbody = document.querySelector('#caTable tbody');
+        const snap = await getDocs(collection(db, "current_affairs"));
+        let html = "";
+        snap.forEach(d => {
+            const c = d.data();
+            html += `<tr>
+                <td>${c.type}</td><td>${c.date}</td><td>${c.title}</td><td>${c.question}</td>
+                <td><button class="btn-delete" onclick="deleteCA('${d.id}')">Delete</button></td>
+            </tr>`;
+        });
+        tbody.innerHTML = html || '<tr><td colspan="5" style="text-align:center;">No CA found</td></tr>';
+    }
     window.addCA = async function() {
-        const type = document.getElementById('caType').value;
-        const date = document.getElementById('caDate').value;
-        const title = document.getElementById('caTitle').value.trim();
-        const link = document.getElementById('caLink').value.trim();
-
-        if(!title || !link || !date) return alert("Please fill all fields!");
-        try {
-            await addDoc(collection(db, "current_affairs"), { type, date, title, link });
-            document.getElementById('caMsg').style.display = 'block';
-            document.getElementById('caTitle').value = '';
-            document.getElementById('caLink').value = '';
-            setTimeout(() => document.getElementById('caMsg').style.display = 'none', 3000);
-        } catch(e) { alert("Error: " + e.message); }
+        showLoading(true);
+        await addDoc(collection(db, "current_affairs"), {
+            type: document.getElementById('caType').value, date: document.getElementById('caDate').value,
+            title: document.getElementById('caTitle').value, link: document.getElementById('caLink').value,
+            question: document.getElementById('caQ').value,
+            options: [document.getElementById('caOptA').value, document.getElementById('caOptB').value, document.getElementById('caOptC').value, document.getElementById('caOptD').value],
+            correctAnswer: Number(document.getElementById('caAns').value), explanation: document.getElementById('caExp').value
+        });
+        showLoading(false); loadCA(); alert("CA Added!");
+    }
+    window.deleteCA = async function(id) {
+        if(!confirm("Delete this?")) return;
+        await deleteDoc(doc(db, "current_affairs", id)); loadCA();
     }
 
-    // ==== 4. BULK UPLOAD ====
+    // ==== 7. BULK UPLOAD ====
+    const statusText = document.getElementById('bulkStatus');
     window.uploadTestsCsv = function() {
         const file = document.getElementById('testsCsvFile').files[0];
-        if(!file) return alert("Please select a CSV file!");
-        const status = document.getElementById('bulkStatus');
-        status.innerText = "Uploading Tests...";
-        
-        Papa.parse(file, {
-            header: true, skipEmptyLines: true,
-            complete: async function(results) {
-                let count = 0; const batch = writeBatch(db);
-                for (let row of results.data) {
-                    let tId = row.TestID || row.testId;
-                    if(!tId) continue;
-                    const testRef = doc(db, "tests", tId);
-                    batch.set(testRef, {
-                        id: tId,
-                        mainCat: row.MainCategory || "Other",
-                        subCat: row.SubCategory || "General",
-                        examName: row.ExamName || "Exam",
-                        testName: row.TestName || "Test",
-                        duration: Number(row.Duration) || 60,
-                        marks: Number(row.TotalMarks) || 100,
-                        isFree: String(row.IsFree).trim().toLowerCase() === "yes" ? "Yes" : "No"
-                    });
-                    count++;
-                }
-                try {
-                    await batch.commit();
-                    status.innerText = `✅ Successfully uploaded ${count} tests!`;
-                } catch(e) { status.innerText = "❌ Error: " + e.message; }
+        if(!file) return alert("Select file!");
+        statusText.innerText = "Uploading Tests...";
+        Papa.parse(file, { header: true, skipEmptyLines: true, complete: async function(res) {
+            let count = 0; const batch = writeBatch(db);
+            for (let row of res.data) {
+                let tId = row.TestID || row.testId; if(!tId) continue;
+                batch.set(doc(db, "tests", tId), {
+                    id: tId, mainCat: row.MainCategory || "Other", subCat: row.SubCategory || "General",
+                    examName: row.ExamName || "Exam", testName: row.TestName || "Test",
+                    duration: Number(row.Duration) || 60, marks: Number(row.TotalMarks) || 100,
+                    isFree: String(row.IsFree).trim().toLowerCase() === "yes" ? "Yes" : "No"
+                }); count++;
             }
-        });
+            await batch.commit(); statusText.innerText = `✅ Uploaded ${count} tests!`; loadTests();
+        }});
     }
 
     window.uploadQuestionsCsv = function() {
         const file = document.getElementById('questionsCsvFile').files[0];
-        if(!file) return alert("Please select a CSV file!");
-        const status = document.getElementById('bulkStatus');
-        status.innerText = "Uploading Questions... Please wait 1-2 mins.";
-        
-        Papa.parse(file, {
-            header: true, skipEmptyLines: true,
-            complete: async function(results) {
-                let count = 0; let total = results.data.length;
-                const ansMap = { 'A': 0, 'B': 1, 'C': 2, 'D': 3, 'a': 0, 'b': 1, 'c': 2, 'd': 3 };
-                
-                for (let row of results.data) {
-                    let tId = row.TestID || row.testId;
-                    let qText = row.Question || row.question;
-                    if(!tId || !qText) continue;
-
-                    let ansStr = String(row.CorrectAnswer || row.correctAnswer || "A").trim().toUpperCase();
-                    let ansIndex = ansMap[ansStr] !== undefined ? ansMap[ansStr] : 0;
-
-                    try {
-                        await addDoc(collection(db, "questions"), {
-                            testId: tId,
-                            question: qText,
-                            options: [row.OptionA || "", row.OptionB || "", row.OptionC || "", row.OptionD || ""],
-                            correctAnswer: ansIndex,
-                            explanation: row.Explanation || ""
-                        });
-                        count++;
-                        if(count % 10 === 0) status.innerText = `Uploading: ${count} / ${total}`;
-                    } catch (e) { console.error("Failed", e); }
-                }
-                status.innerText = `✅ Successfully uploaded ${count} questions!`;
+        if(!file) return alert("Select file!");
+        statusText.innerText = "Uploading Questions...";
+        Papa.parse(file, { header: true, skipEmptyLines: true, complete: async function(res) {
+            let count = 0; const ansMap = { 'A':0, 'B':1, 'C':2, 'D':3, 'a':0, 'b':1, 'c':2, 'd':3 };
+            for (let row of res.data) {
+                let tId = row.TestID || row.testId; let qText = row.Question || row.question;
+                if(!tId || !qText) continue;
+                let ansStr = String(row.CorrectAnswer || row.correctAnswer || "A").trim().toUpperCase();
+                let ansIndex = ansMap[ansStr] !== undefined ? ansMap[ansStr] : 0;
+                await addDoc(collection(db, "questions"), {
+                    testId: tId, question: qText, options: [row.OptionA || "", row.OptionB || "", row.OptionC || "", row.OptionD || ""],
+                    correctAnswer: ansIndex, explanation: row.Explanation || ""
+                }); count++;
+                if(count % 10 === 0) statusText.innerText = `Uploading: ${count}/${res.data.length}`;
             }
-        });
+            statusText.innerText = `✅ Uploaded ${count} questions!`; loadQuestions();
+        }});
+    }
+
+    window.uploadCaCsv = function() {
+        const file = document.getElementById('caCsvFile').files[0];
+        if(!file) return alert("Select file!");
+        statusText.innerText = "Uploading CA...";
+        Papa.parse(file, { header: true, skipEmptyLines: true, complete: async function(res) {
+            let count = 0; const ansMap = { 'A':0, 'B':1, 'C':2, 'D':3, 'a':0, 'b':1, 'c':2, 'd':3 };
+            for (let row of res.data) {
+                if(!row.Question || !row.Title) continue;
+                let ansStr = String(row.CorrectAnswer || "A").trim().toUpperCase();
+                let ansIndex = ansMap[ansStr] !== undefined ? ansMap[ansStr] : 0;
+                await addDoc(collection(db, "current_affairs"), {
+                    type: row.Type || "Daily", date: row.Date || "", title: row.Title || "", link: row.Article_Link || "",
+                    question: row.Question, options: [row.OptionA || "", row.OptionB || "", row.OptionC || "", row.OptionD || ""],
+                    correctAnswer: ansIndex, explanation: row.Explanation || ""
+                }); count++;
+            }
+            statusText.innerText = `✅ Uploaded ${count} CA records!`; loadCA();
+        }});
     }
 </script>
 </body>
