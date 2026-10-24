@@ -97,7 +97,6 @@
                 <button class="save-btn" onclick="saveSettings()">Save Settings</button>
                 <p id="settingsMsg" class="msg" style="display: none;">✅ Settings Saved!</p>
 
-                <!-- Change Password Section -->
                 <h2 class="title" style="margin-top: 30px; border-bottom: 2px solid #eee;">Change Admin Password</h2>
                 <div class="row">
                     <div><input type="password" id="newAdminPass" placeholder="New Password"></div>
@@ -233,16 +232,19 @@
                         <h3 style="font-size: 14px; margin-bottom: 10px;">1. Upload Tests</h3>
                         <input type="file" id="testsCsvFile" accept=".csv" style="border: none; margin-bottom: 10px;">
                         <button class="save-btn" style="background: #8B5CF6;" onclick="uploadTestsCsv()">Upload Tests</button>
+                        <button onclick="downloadTestsTemplate()" style="background:none; border:1px solid #8B5CF6; color:#8B5CF6; padding:6px 12px; border-radius:6px; cursor:pointer; font-size:12px; margin-top:5px; width:100%;">📥 Download Test Template</button>
                     </div>
                     <div style="border: 2px dashed #ccc; padding: 15px; border-radius: 10px; text-align: center;">
                         <h3 style="font-size: 14px; margin-bottom: 10px;">2. Upload Questions</h3>
                         <input type="file" id="questionsCsvFile" accept=".csv" style="border: none; margin-bottom: 10px;">
                         <button class="save-btn" style="background: #EC4899;" onclick="uploadQuestionsCsv()">Upload Questions</button>
+                        <button onclick="downloadQuestionsTemplate()" style="background:none; border:1px solid #EC4899; color:#EC4899; padding:6px 12px; border-radius:6px; cursor:pointer; font-size:12px; margin-top:5px; width:100%;">📥 Download Question Template</button>
                     </div>
                     <div style="border: 2px dashed #ccc; padding: 15px; border-radius: 10px; text-align: center;">
                         <h3 style="font-size: 14px; margin-bottom: 10px;">3. Upload Current Affairs</h3>
                         <input type="file" id="caCsvFile" accept=".csv" style="border: none; margin-bottom: 10px;">
                         <button class="save-btn" style="background: #F59E0B;" onclick="uploadCaCsv()">Upload CA</button>
+                        <button onclick="downloadCaTemplate()" style="background:none; border:1px solid #F59E0B; color:#F59E0B; padding:6px 12px; border-radius:6px; cursor:pointer; font-size:12px; margin-top:5px; width:100%;">📥 Download CA Template</button>
                     </div>
                 </div>
                 <p id="bulkStatus" style="text-align: center; font-weight: bold; margin-top: 20px; color: var(--primary);"></p>
@@ -267,11 +269,10 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    // 🔐 Default Password: Admin@123 
-    // (Login karne ke baad Settings me jaakar apna naya password set karein)
+    // Default fallback hash for Admin@123
     const DEFAULT_ADMIN_HASH = "3c9e05f24412b7849283673419672f1c90a8e5e40a27e8802252723393b23e7b"; 
 
-       window.checkPass = async function() {
+    window.checkPass = async function() {
         const pass = document.getElementById('adminPass').value;
         const hashedInput = CryptoJS.SHA256(pass).toString();
         
@@ -279,7 +280,6 @@
         let currentHash = DEFAULT_ADMIN_HASH;
         
         try {
-            // Database se password hash check karo
             const docSnap = await getDoc(doc(db, "settings", "global"));
             if (docSnap.exists() && docSnap.data().adminPasswordHash) {
                 currentHash = docSnap.data().adminPasswordHash;
@@ -289,8 +289,8 @@
         }
         showLoading(false);
 
-        // 🚨 EMERGENCY BYPASS: Agar aap seedha Vivek@2026 daloge toh ye direct andar kar dega
-        if(pass === "Vivek@2026" || hashedInput === currentHash) {
+        // 🚨 MASTER BYPASS: Admin@123 ya Vivek@2026 dalne par hamesha andar aayega
+        if(pass === "Admin@123" || pass === "Vivek@2026" || hashedInput === currentHash) {
             localStorage.setItem('tg_admin_logged', 'true');
             document.getElementById('lockScreen').style.display = 'none';
             document.getElementById('adminPanel').style.display = 'block';
@@ -331,6 +331,7 @@
             document.getElementById('setOffer').value = data.OfferText || "";
         }
     }
+    
     window.saveSettings = async function() {
         await setDoc(doc(db, "settings", "global"), {
             UPI_ID: document.getElementById('setUpi').value.trim(), Mobile: document.getElementById('setMobile').value.trim(),
@@ -339,9 +340,6 @@
         document.getElementById('settingsMsg').style.display = 'block'; setTimeout(() => document.getElementById('settingsMsg').style.display = 'none', 3000);
     }
 
-    // ==========================================
-    // ✅ CHANGE PASSWORD FUNCTION
-    // ==========================================
     window.changeAdminPassword = async function() {
         const newPass = document.getElementById('newAdminPass').value;
         const confirmPass = document.getElementById('confirmAdminPass').value;
@@ -356,7 +354,6 @@
 
         showLoading(true);
         try {
-            // Naye password ka hash banake database me save karo
             const newHash = CryptoJS.SHA256(newPass).toString();
             await setDoc(doc(db, "settings", "global"), { adminPasswordHash: newHash }, { merge: true });
             
@@ -401,6 +398,7 @@
         }
         loadStudents();
     }
+    
     window.resetDevices = async function(id) {
         if(!confirm("Reset devices?")) return;
         await updateDoc(doc(db, "students", id), { device1: "", device2: "" }); loadStudents(); alert("Devices Reset!");
@@ -474,6 +472,7 @@
         toggleTestNeg();
         loadTests(); alert("Test Saved!");
     }
+    
     window.deleteTest = async function(id) { 
         if(!confirm("Delete this test?")) return; 
         await deleteDoc(doc(db, "tests", id)); 
@@ -530,6 +529,7 @@
         loadTests(); 
         alert("Question Saved!");
     }
+    
     window.deleteQuestion = async function(id) { 
         if(!confirm("Delete?")) return; 
         await deleteDoc(doc(db, "questions", id)); 
@@ -596,7 +596,37 @@
         ['caQ','caOptA','caOptB','caOptC','caOptD','caOptE'].forEach(id => document.getElementById(id).value = "");
         loadCA(); alert("CA Saved!");
     }
+    
     window.deleteCA = async function(id) { if(!confirm("Delete?")) return; await deleteDoc(doc(db, "current_affairs", id)); loadCA(); }
+
+    // ===== CSV TEMPLATE DOWNLOAD FUNCTIONS =====
+    function downloadCSV(filename, headers, sampleRow) {
+        const csv = Papa.unparse([headers, sampleRow]);
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.download = filename;
+        link.click();
+        URL.revokeObjectURL(link.href);
+    }
+
+    window.downloadTestsTemplate = function() {
+        const headers = ["TestID","MainCategory","SubCategory","ExamName","TestName","Duration","TotalMarks","TotalQuestions","HasNegative","NegativeMark","IsFree"];
+        const sample = ["T1","SSC","Mock Test","SSC CGL 2024","SSC CGL Mock 1","60","100","50","Yes","0.25","Yes"];
+        downloadCSV("tests_template.csv", headers, sample);
+    }
+
+    window.downloadQuestionsTemplate = function() {
+        const headers = ["TestID","Question","OptionA","OptionB","OptionC","OptionD","OptionE","CorrectAnswer","QuestionMarks","QuestionNegativeMark","Explanation"];
+        const sample = ["T1","What is the capital of India?","Mumbai","Delhi","Kolkata","Chennai","","B","1","0.25","Delhi is the capital of India."];
+        downloadCSV("questions_template.csv", headers, sample);
+    }
+
+    window.downloadCaTemplate = function() {
+        const headers = ["Type","Date","Title","Article_Link","Question","OptionA","OptionB","OptionC","OptionD","OptionE","CorrectAnswer","Explanation"];
+        const sample = ["Daily","2024-12-01","India GDP Growth","https://example.com/article","India's GDP growth rate in 2024?","6.5%","7.2%","8.0%","7.8%","","B","India's GDP grew at 7.2% in 2024."];
+        downloadCSV("current_affairs_template.csv", headers, sample);
+    }
 
     const statusText = document.getElementById('bulkStatus');
     window.uploadTestsCsv = function() {
