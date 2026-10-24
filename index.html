@@ -53,7 +53,7 @@
         .profile-dropdown a { padding: 10px 20px; text-decoration: none; color: var(--text); font-weight: 500; font-size: 14px;}
         .profile-dropdown a:hover { background: #F3F4F6; color: var(--primary); }
 
-        /* Hero (Compact) */
+        /* Hero */
         .hero { display: flex; align-items: center; justify-content: space-between; padding: 25px 5%; background: linear-gradient(135deg, #EEF2FF 0%, #E0E7FF 100%); gap: 20px;}
         .hero-text { flex: 1.2; }
         .hero-text h1 { font-size: 32px; font-weight: 800; color: #1E1B4B; line-height: 1.2; margin-bottom: 10px; }
@@ -72,17 +72,12 @@
         .cat-icon { font-size: 40px; margin-bottom: 10px; text-shadow: 0 3px 5px rgba(0,0,0,0.1);}
         .cat-title { font-size: 18px; font-weight: 700; text-shadow: 1px 1px 2px rgba(0,0,0,0.3); }
 
-        /* Wide Banner (More Exams) */
+        /* Wide Banner (More Exams / Current Affairs) */
         .wide-cat-banner { padding: 25px 30px; border-radius: 15px; color: white; display: flex; justify-content: space-between; align-items: center; margin-top: 15px; box-shadow: 0 8px 20px rgba(0,0,0,0.15); cursor: pointer; transition: 0.3s;}
         .wide-cat-banner:hover { transform: translateY(-2px); box-shadow: 0 12px 25px rgba(0,0,0,0.25);}
         .wide-cat-banner h2 { font-size: 24px; margin-bottom: 5px; color: white;}
         .wide-cat-banner p { font-size: 14px; opacity: 0.9;}
 
-        /* Current Affairs */
-        .ca-block { background: linear-gradient(135deg, #F59E0B 0%, #EA580C 100%); padding: 25px 30px; border-radius: 15px; color: white; display: flex; justify-content: space-between; align-items: center; margin: 0 5% 30px 5%; box-shadow: 0 10px 20px rgba(234, 88, 12, 0.25); cursor: pointer; }
-        .ca-block h2 { font-size: 24px; margin-bottom: 5px; color: white;}
-        .ca-block p { font-size: 14px; opacity: 0.9;}
-        
         /* Dashboard Quick Views */
         .quick-view { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px; margin-bottom: 15px; }
         .qv-card { background: var(--white); padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); border-left: 5px solid var(--secondary); }
@@ -116,6 +111,25 @@
         .lb-row { display: flex; justify-content: space-between; padding: 12px; border-bottom: 1px solid #E5E7EB; font-size: 14px;}
         .lb-row.you { background: #EEF2FF; font-weight: 700; color: var(--primary); }
 
+        /* Current Affairs UI */
+        .ca-tabs { display: flex; gap: 10px; margin-bottom: 20px; }
+        .ca-tab { padding: 10px 20px; border-radius: 20px; background: white; border: 1px solid #ddd; cursor: pointer; font-weight: 600; }
+        .ca-tab.active { background: var(--primary); color: white; border-color: var(--primary); }
+        .ca-article { background: #F8FAFC; padding: 20px; border-radius: 10px; border-left: 5px solid var(--primary); margin-bottom: 20px; }
+        .ca-question { background: white; padding: 20px; border-radius: 10px; margin-bottom: 15px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+        .ca-option { display: block; padding: 12px; border: 2px solid #E5E7EB; border-radius: 8px; margin-bottom: 8px; cursor: pointer; transition: 0.2s; }
+        .ca-option:hover { background: #F3F4F6; }
+        .ca-option.correct { background: #D1FAE5; border-color: #10B981; color: #065F46; font-weight: 600; }
+        .ca-option.wrong { background: #FEE2E2; border-color: #EF4444; color: #991B1B; font-weight: 600; }
+        .ca-explanation { display: none; background: #EFF6FF; padding: 12px; border-radius: 8px; color: #1E3A8A; font-size: 14px; margin-top: 10px; border-left: 4px solid #3B82F6; }
+        
+        /* Popups */
+        .game-popup { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0.8); background: white; padding: 30px; border-radius: 16px; box-shadow: 0 10px 40px rgba(0,0,0,0.2); text-align: center; z-index: 2000; opacity: 0; transition: 0.3s; pointer-events: none; }
+        .game-popup.show { opacity: 1; transform: translate(-50%, -50%) scale(1); pointer-events: auto; }
+        .game-popup h2 { font-size: 24px; margin-bottom: 10px; }
+        .game-popup.success { border-top: 5px solid var(--accent); }
+        .game-popup.warning { border-top: 5px solid var(--danger); }
+
         /* Modal */
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(17, 24, 39, 0.7); display: flex; justify-content: center; align-items: center; z-index: 1000; }
         .modal-box { background: white; padding: 30px; border-radius: 16px; max-width: 420px; width: 90%; text-align: center; }
@@ -125,7 +139,6 @@
             .hero-text h1 { font-size: 26px; }
             .hero-img { margin-top: 15px; }
             .hero-img img { max-height: 180px; }
-            .ca-block { flex-direction: column; text-align: center; gap: 15px; }
             .wide-cat-banner { flex-direction: column; text-align: center; gap: 10px;}
             .category-grid { grid-template-columns: repeat(2, 1fr); }
             .test-layout { flex-direction: column-reverse; }
@@ -181,16 +194,21 @@
                 <img src="YOUR_IMAGE_LINK_HERE" alt="Student" onerror="this.src='https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=600&auto=format&fit=crop'">
             </div>
         </div>
+        
         <div class="section" id="homeCategories">
             <h2 class="section-title" data-translate="sec_cats">🎯 Exam Categories</h2>
             <div id="homeCatContainer"></div>
         </div>
-        <div class="ca-block" onclick="showCurrentAffairs()">
-            <div>
-                <h2 data-translate="ca_h2">📰 Current Affairs Hub</h2>
-                <p data-translate="ca_p">Stay updated with Daily, Weekly, and Monthly Current Affairs.</p>
+
+        <!-- Current Affairs Banner -->
+        <div class="section" style="padding-top: 0;">
+            <div class="wide-cat-banner" style="background: linear-gradient(135deg, #F59E0B 0%, #EA580C 100%);" onclick="showCurrentAffairs()">
+                <div>
+                    <h2>📰 Current Affairs Hub</h2>
+                    <p>Daily Article & Instant Quiz. Stay updated!</p>
+                </div>
+                <button class="btn" style="background: white; color: #EA580C; font-weight: bold;">Explore Now</button>
             </div>
-            <button class="btn" style="background: white; color: #EA580C;" data-translate="btn_explore">Explore Now</button>
         </div>
     </div>
 
@@ -222,7 +240,7 @@
             <div class="hero-text">
                 <h1 style="font-size: 24px; color: #1E1B4B; margin-bottom: 5px;" id="welcomeMessage"></h1>
                 <h2 style="font-size: 18px; color: #1E1B4B; margin-top: 10px;" data-translate="dash_h2">Crack Your Dream Govt Job with Confidence.</h2>
-                <p style="font-size: 14px; color: #4B5563; margin-top: 5px;">All-in-one mock test platform for SSC, Railway, Police & All State Exams. Latest syllabus, real-time rankings, and unlimited tests in one subscription.</p>
+                <p style="font-size: 14px; color: #4B5563; margin-top: 5px;">All-in-one mock test platform for SSC, Railway, Police & All State Exams.</p>
             </div>
             <div class="hero-img">
                 <img src="YOUR_IMAGE_LINK_HERE" style="max-width: 100%; max-height: 160px;" onerror="this.src='https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=600&auto=format&fit=crop'">
@@ -247,7 +265,6 @@
                     <h3 data-translate="qv_recent">Recent Performance</h3>
                     <p id="recentTestName" data-translate="qv_not_att">Not Attempted Yet</p>
                     <p id="recentTestScore" style="font-size: 13px; color: #666; margin-top: -10px; margin-bottom: 15px;" data-translate="qv_take">Take a test to see your score</p>
-                    <button class="btn" style="background: var(--purple); color: white; width:100%;" onclick="scrollToCategories()" data-translate="qv_analytics">View Analytics</button>
                 </div>
             </div>
         </div>
@@ -279,16 +296,23 @@
         <div class="test-list" id="testListContainer"></div>
     </div>
 
-    <!-- 7. CURRENT AFFAIRS -->
-    <div id="caScreen" class="section hide">
-        <button class="btn btn-outline" style="margin-bottom: 20px;" onclick="goHome()" data-translate="btn_back_home">← Back to Home</button>
-        <h2 class="section-title" data-translate="ca_h2">📰 Current Affairs</h2>
-        <div style="display: flex; gap: 10px; margin-bottom: 20px;" id="caTabs">
-            <button class="btn btn-primary" onclick="filterCA('Daily')" data-translate="tab_daily">Daily</button>
-            <button class="btn" style="background:#E5E7EB; color:#374151;" onclick="filterCA('Weekly')" data-translate="tab_weekly">Weekly</button>
-            <button class="btn" style="background:#E5E7EB; color:#374151;" onclick="filterCA('Monthly')" data-translate="tab_monthly">Monthly</button>
+    <!-- 7. CURRENT AFFAIRS PAGE (INSTANT QUIZ) -->
+    <div id="caScreen" class="section hide" style="max-width: 900px; margin: 0 auto;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <button class="btn btn-outline" onclick="goHome()" data-translate="btn_back_home">← Back</button>
+            <div style="background: #EEF2FF; padding: 8px 16px; border-radius: 20px; font-weight: 700; color: var(--primary);">
+                Score: <span id="caLiveScoreCorrect">0</span> ✅ / <span id="caLiveScoreWrong">0</span> ❌
+            </div>
         </div>
-        <div id="caList" class="test-list"></div>
+        
+        <h2 class="section-title" style="text-align: center;">📰 Current Affairs</h2>
+        
+        <div class="ca-tabs" style="justify-content: center;">
+            <div class="ca-tab active" onclick="filterCA('Daily', this)">Daily</div>
+            <div class="ca-tab" onclick="filterCA('Monthly', this)">Monthly</div>
+        </div>
+
+        <div id="caContentContainer"></div>
     </div>
 
     <!-- 8. TEST INTERFACE -->
@@ -327,7 +351,13 @@
                 <h1 id="finalScore" style="font-size: 46px; color: var(--accent);">0 / 0</h1>
                 <h3 id="rankText" style="color: var(--secondary); font-size: 18px;"></h3>
             </div>
-            <button class="btn btn-primary" onclick="window.print()" style="width: 100%;" data-translate="res_pdf">📄 Download PDF Result</button>
+            
+            <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+                <button class="btn btn-primary" onclick="downloadScorecard()" style="flex: 1;">📄 Scorecard PDF</button>
+                <button class="btn btn-primary" onclick="downloadQuestionPaper()" style="flex: 1; background: #F59E0B; box-shadow: none;">📝 Question Paper</button>
+            </div>
+            <button class="btn btn-accent" id="waShareBtn" style="width: 100%; margin-bottom: 15px;" onclick="shareResultOnWhatsApp()">📲 Share on WhatsApp</button>
+
             <div class="leaderboard">
                 <h3 style="border-bottom: 2px solid #E5E7EB; padding-bottom: 10px; margin-bottom: 10px; font-size: 16px;" data-translate="res_lb">🏆 Top 5 Leaderboard</h3>
                 <div id="lbContainer"></div>
@@ -340,7 +370,7 @@
     <div id="paymentModal" class="modal-overlay hide">
         <div class="modal-box">
             <h2 style="color: var(--danger); margin-bottom: 10px; font-size: 20px;" data-translate="pay_lock">🔒 Test Locked</h2>
-            <p style="margin-bottom: 15px; font-size: 14px;"><span data-translate="pay_unlock">Unlock all tests with a one-time payment of</span> <b>₹<span id="modalPrice"></span></b>.</p>
+            <p style="margin-bottom: 15px; font-size: 14px;"><span data-translate="pay_unlock">Unlock all tests with a one-time payment of</span> <b>₹<span id="modalPrice"></span></b>. <span id="modalOffer" style="color: var(--success); font-weight: bold;"></span></p>
             <div id="qrcode" style="margin: 15px auto; display: flex; justify-content: center;"></div>
             <p style="font-size: 14px; margin-bottom: 15px;"><span data-translate="pay_upi">UPI ID:</span> <b id="modalUpi"></b></p>
             <a href="#" id="whatsappBtn" target="_blank" class="btn btn-accent" style="width: 100%; margin-bottom: 10px; display:block;" data-translate="pay_wa">📲 Send Screenshot on WhatsApp</a>
@@ -365,13 +395,20 @@
         </div>
     </div>
 
-<!-- 🔥 FIREBASE SDK START 🔥 -->
+    <!-- GAME POPUPS -->
+    <div id="popupSuccess" class="game-popup success">
+        <h2 style="color: var(--success);">🎉 शानदार!</h2>
+        <p>आपने लगातार 3 सही जवाब दिए हैं। आप तो कमाल कर रहे हैं!</p>
+    </div>
+    <div id="popupWarning" class="game-popup warning">
+        <h2 style="color: var(--danger);">⚠️ ध्यान दें!</h2>
+        <p>आप लगातार 3 सवालों के गलत जवाब दे रहे हैं। कृपया आर्टिकल ध्यान से पढ़ें और फिर उत्तर दें।</p>
+    </div>
+
 <script type="module">
-    // Firebase Imports
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getFirestore, collection, getDocs, getDoc, setDoc, addDoc, query, where, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-    // आपका Firebase Config (जो आपने कॉपी किया था)
     const firebaseConfig = {
         apiKey: "AIzaSyA7x6gQziPYLxrXnyVJJ80mvJkh3VCm24",
         authDomain: "taiyarighar.firebaseapp.com",
@@ -381,12 +418,11 @@
         appId: "1:329150812714:web:1f292d05aaba0cb918e953"
     };
 
-    // Initialize Firebase
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    // ग्लोबल वेरिएबल्स (ताकि UI काम कर सके)
-    let allTests = [], appSettings = {}, currentCA = [];
+    // ==== GLOBAL STATE ====
+    let allTests = [], appSettings = {}, allCA = [];
     let currentStudent = { name: "", loginId: "", isPaid: false, expiry: "" };
     let isLoggedIn = false;
     let isFirstLoginSession = false;
@@ -394,17 +430,16 @@
     let nav = { mainCat: "", subCat: "", examName: "" };
 
     let testQuestions = [], currentQIndex = 0, userAnswers = {}, markedForReview = {}, visitedQuestions = {}, timerInterval;
-    let timeLeft = 0, totalTime = 0, currentTestId = "", currentTestName = "";
+    let timeLeft = 0, totalTime = 0, currentTestId = "", currentTestName = "", currentTestMarks = 0;
 
     // ==== LANGUAGE DICTIONARY ====
     const translations = {
-        "en": { "nav_home": "Home", "nav_exams": "All Exams", "nav_ca": "Current Affairs", "nav_login": "Login", "nav_register": "Register", "nav_dash": "Dashboard", "nav_purchase": "My Purchases", "nav_logout": "Logout", "hero_h1": "Crack Your Dream Govt Job with Confidence.", "hero_p": "All-in-one mock test platform for SSC, Railway, Police & All State Exams. Latest syllabus, real-time rankings, and unlimited tests in one subscription.", "sec_cats": "🎯 Exam Categories", "ca_h2": "📰 Current Affairs Hub", "ca_p": "Stay updated with Daily, Weekly, and Monthly Current Affairs.", "btn_explore": "Explore Now", "login_h2": "Login to Your Account", "login_btn": "Login", "login_new": "New user?", "login_reg": "Register Here", "reg_h2": "Create an Account", "reg_btn": "Register Now", "dash_h2": "Crack Your Dream Govt Job with Confidence.", "dash_qv": "📊 Dashboard Quick View", "qv_explore": "Explore Tests", "qv_browse": "Browse all available tests", "qv_view": "View Tests", "qv_rec": "Recommended Next", "qv_loading": "Loading...", "qv_start": "Start Now", "qv_recent": "Recent Performance", "qv_not_att": "Not Attempted Yet", "qv_take": "Take a test to see your score", "qv_analytics": "View Analytics", "btn_back_cat": "← Back to Categories", "btn_back_sub": "← Back to Sub-Categories", "btn_back_exam": "← Back to Exams", "btn_back_home": "← Back to Home", "tab_daily": "Daily", "tab_weekly": "Weekly", "tab_monthly": "Monthly", "test_clear": "Clear Response", "test_mark": "⭐ Mark", "test_prev": "← Prev", "test_next": "Save & Next →", "test_palette": "Question Palette", "test_submit": "Submit Test", "res_h2": "Test Result", "res_pdf": "📄 Download PDF Result", "res_lb": "🏆 Top 5 Leaderboard", "res_back": "Back to Dashboard", "pay_lock": "🔒 Test Locked", "pay_unlock": "Unlock all tests with a one-time payment of", "pay_upi": "UPI ID:", "pay_wa": "📲 Send Screenshot on WhatsApp", "pay_check": "🔄 Check Status", "pay_close": "Close" },
-        "hi": { "nav_home": "होम", "nav_exams": "सभी परीक्षाएं", "nav_ca": "करंट अफेयर्स", "nav_login": "लॉगिन", "nav_register": "रजिस्टर", "nav_dash": "डैशबोर्ड", "nav_purchase": "मेरी खरीदारी", "nav_logout": "लॉगआउट", "hero_h1": "TayariGhar के साथ पाएं अपनी ड्रीम गवर्नमेंट जॉब।", "hero_p": "SSC, रेलवे, पुलिस और सभी राज्य परीक्षाओं के लिए ऑल-इन-वन मॉक टेस्ट प्लेटफॉर्म। नवीनतम सिलेबस, रियल-टाइम रैंकिंग और वन सब्सक्रिप्शन में अनलिमिटेड टेस्ट।", "sec_cats": "🎯 परीक्षा श्रेणियाँ", "ca_h2": "📰 करंट अफेयर्स हब", "ca_p": "दैनिक, साप्ताहिक और मासिक करंट अफेयर्स के साथ अपडेट रहें।", "btn_explore": "अभी देखें", "login_h2": "अपने खाते में लॉगिन करें", "login_btn": "लॉगिन", "login_new": "नए उपयोगकर्ता हैं?", "login_reg": "यहाँ रजिस्टर करें", "reg_h2": "खाता बनाएँ", "reg_btn": "अभी रजिस्टर करें", "dash_h2": "TayariGhar के साथ पाएं अपनी ड्रीम गवर्नमेंट जॉब।", "dash_qv": "📊 डैशबोर्ड त्वरित दृश्य", "qv_explore": "टेस्ट खोजें", "qv_browse": "सभी उपलब्ध टेस्ट ब्राउज़ करें", "qv_view": "टेस्ट देखें", "qv_rec": "अगला सुझाव", "qv_loading": "लोड हो रहा है...", "qv_start": "अभी शुरू करें", "qv_recent": "हालिया प्रदर्शन", "qv_not_att": "अभी तक प्रयास नहीं किया", "qv_take": "अपना स्कोर देखने के लिए टेस्ट दें", "qv_analytics": "विश्लेषण देखें", "btn_back_cat": "← श्रेणियों पर वापस जाएँ", "btn_back_sub": "← उप-श्रेणियों पर वापस जाएँ", "btn_back_exam": "← परीक्षाओं पर वापस जाएँ", "btn_back_home": "← होम पर वापस जाएँ", "tab_daily": "दैनिक", "tab_weekly": "साप्ताहिक", "tab_monthly": "मासिक", "test_clear": "उत्तर साफ़ करें", "test_mark": "⭐ मार्क करें", "test_prev": "← पिछला", "test_next": "सेव और अगला →", "test_palette": "प्रश्न पैलेट", "test_submit": "टेस्ट सबमिट करें", "res_h2": "टेस्ट परिणाम", "res_pdf": "📄 पीडीएफ परिणाम डाउनलोड करें", "res_lb": "🏆 टॉप 5 लीडरबोर्ड", "res_back": "डैशबोर्ड पर वापस जाएँ", "pay_lock": "🔒 टेस्ट लॉक है", "pay_unlock": "एकमुश्त भुगतान के साथ सभी टेस्ट अनलॉक करें", "pay_upi": "UPI आईडी:", "pay_wa": "📲 व्हाट्सएप पर स्क्रीनशॉट भेजें", "pay_check": "🔄 स्थिति जांचें", "pay_close": "बंद करें" }
+        "en": { "nav_home": "Home", "nav_exams": "All Exams", "nav_ca": "Current Affairs", "nav_login": "Login", "nav_register": "Register", "nav_dash": "Dashboard", "nav_purchase": "My Purchases", "nav_logout": "Logout", "hero_h1": "Crack Your Dream Govt Job with Confidence.", "hero_p": "All-in-one mock test platform for SSC, Railway, Police & All State Exams. Latest syllabus, real-time rankings, and unlimited tests in one subscription.", "sec_cats": "🎯 Exam Categories", "ca_h2": "📰 Current Affairs Hub", "ca_p": "Stay updated with Daily, Weekly, and Monthly Current Affairs.", "btn_explore": "Explore Now", "login_h2": "Login to Your Account", "login_btn": "Login", "login_new": "New user?", "login_reg": "Register Here", "reg_h2": "Create an Account", "reg_btn": "Register Now", "dash_h2": "Crack Your Dream Govt Job with Confidence.", "dash_qv": "📊 Dashboard Quick View", "qv_explore": "Explore Tests", "qv_browse": "Browse all available tests", "qv_view": "View Tests", "qv_rec": "Recommended Next", "qv_loading": "Loading...", "qv_start": "Start Now", "qv_recent": "Recent Performance", "qv_not_att": "Not Attempted Yet", "qv_take": "Take a test to see your score", "btn_back_cat": "← Back to Categories", "btn_back_sub": "← Back to Sub-Categories", "btn_back_exam": "← Back to Exams", "btn_back_home": "← Back to Home", "test_clear": "Clear Response", "test_mark": "⭐ Mark", "test_prev": "← Prev", "test_next": "Save & Next →", "test_palette": "Question Palette", "test_submit": "Submit Test", "res_h2": "Test Result", "res_lb": "🏆 Top 5 Leaderboard", "res_back": "Back to Dashboard", "pay_lock": "🔒 Test Locked", "pay_unlock": "Unlock all tests with a one-time payment of", "pay_upi": "UPI ID:", "pay_wa": "📲 Send Screenshot on WhatsApp", "pay_check": "🔄 Check Status", "pay_close": "Close" },
+        "hi": { "nav_home": "होम", "nav_exams": "सभी परीक्षाएं", "nav_ca": "करंट अफेयर्स", "nav_login": "लॉगिन", "nav_register": "रजिस्टर", "nav_dash": "डैशबोर्ड", "nav_purchase": "मेरी खरीदारी", "nav_logout": "लॉगआउट", "hero_h1": "TayariGhar के साथ पाएं अपनी ड्रीम गवर्नमेंट जॉब।", "hero_p": "SSC, रेलवे, पुलिस और सभी राज्य परीक्षाओं के लिए ऑल-इन-वन मॉक टेस्ट प्लेटफॉर्म। नवीनतम सिलेबस, रियल-टाइम रैंकिंग और वन सब्सक्रिप्शन में अनलिमिटेड टेस्ट।", "sec_cats": "🎯 परीक्षा श्रेणियाँ", "ca_h2": "📰 करंट अफेयर्स हब", "ca_p": "दैनिक, साप्ताहिक और मासिक करंट अफेयर्स के साथ अपडेट रहें।", "btn_explore": "अभी देखें", "login_h2": "अपने खाते में लॉगिन करें", "login_btn": "लॉगिन", "login_new": "नए उपयोगकर्ता हैं?", "login_reg": "यहाँ रजिस्टर करें", "reg_h2": "खाता बनाएँ", "reg_btn": "अभी रजिस्टर करें", "dash_h2": "TayariGhar के साथ पाएं अपनी ड्रीम गवर्नमेंट जॉब।", "dash_qv": "📊 डैशबोर्ड त्वरित दृश्य", "qv_explore": "टेस्ट खोजें", "qv_browse": "सभी उपलब्ध टेस्ट ब्राउज़ करें", "qv_view": "टेस्ट देखें", "qv_rec": "अगला सुझाव", "qv_loading": "लोड हो रहा है...", "qv_start": "अभी शुरू करें", "qv_recent": "हालिया प्रदर्शन", "qv_not_att": "अभी तक प्रयास नहीं किया", "qv_take": "अपना स्कोर देखने के लिए टेस्ट दें", "btn_back_cat": "← श्रेणियों पर वापस जाएँ", "btn_back_sub": "← उप-श्रेणियों पर वापस जाएँ", "btn_back_exam": "← परीक्षाओं पर वापस जाएँ", "btn_back_home": "← होम पर वापस जाएँ", "test_clear": "उत्तर साफ़ करें", "test_mark": "⭐ मार्क करें", "test_prev": "← पिछला", "test_next": "सेव और अगला →", "test_palette": "प्रश्न पैलेट", "test_submit": "टेस्ट सबमिट करें", "res_h2": "टेस्ट परिणाम", "res_lb": "🏆 टॉप 5 लीडरबोर्ड", "res_back": "डैशबोर्ड पर वापस जाएँ", "pay_lock": "🔒 टेस्ट लॉक है", "pay_unlock": "एकमुश्त भुगतान के साथ सभी टेस्ट अनलॉक करें", "pay_upi": "UPI आईडी:", "pay_wa": "📲 व्हाट्सएप पर स्क्रीनशॉट भेजें", "pay_check": "🔄 स्थिति जांचें", "pay_close": "बंद करें" }
     };
 
     let currentLang = localStorage.getItem('tg_lang') || 'en';
 
-    // ==== UI FUNCTIONS ====
     window.toggleLanguage = function() {
         currentLang = currentLang === 'en' ? 'hi' : 'en';
         localStorage.setItem('tg_lang', currentLang);
@@ -427,7 +462,7 @@
         for(let id in placeholders) { if(document.getElementById(id)) document.getElementById(id).placeholder = placeholders[id]; }
     }
 
-    // PWA Install
+    // ==== PWA INSTALL ====
     let deferredPrompt;
     window.addEventListener('beforeinstallprompt', (e) => {
         e.preventDefault(); deferredPrompt = e;
@@ -452,6 +487,7 @@
         return devId;
     }
 
+    // ==== NAVIGATION ====
     function hideAll() { ['homeScreen', 'loginScreen', 'registerScreen', 'dashboardScreen', 'subCatScreen', 'examScreen', 'testListScreen', 'caScreen', 'testScreen', 'resultScreen'].forEach(id => document.getElementById(id).classList.add('hide')); }
     window.goHome = function() { hideAll(); document.getElementById('homeScreen').classList.remove('hide'); updateHeaderUI(); }
     window.goDashboard = function() { if(!isLoggedIn) return showLogin(); hideAll(); document.getElementById('dashboardScreen').classList.remove('hide'); updateHeaderUI(); fetchDashboardData(); updateWelcomeMessage(isFirstLoginSession); }
@@ -483,7 +519,7 @@
     window.scrollToCategories = function() { if(!isLoggedIn) { alert(currentLang === 'en' ? "Please login first!" : "कृपया पहले लॉगिन करें!"); showLogin(); } else { document.getElementById('dashCategories').scrollIntoView({behavior: 'smooth'}); } }
     window.showPurchases = function() { if(!isLoggedIn) return; let status = currentStudent.isPaid ? (currentLang === 'en' ? "Paid (All Access Pass)" : "पेड (ऑल एक्सेस)") : (currentLang === 'en' ? "Free User" : "फ्री यूजर"); alert(`--- MY PURCHASES ---\n\nPlan: ${status}\nExpiry Date: ${currentStudent.expiry || "N/A"}`); }
 
-    // ==== FIREBASE AUTH & LOGIN ====
+    // ==== AUTH ====
     window.doLogin = async function() {
         const id = document.getElementById('loginId').value.trim();
         const pass = document.getElementById('loginPass').value.trim();
@@ -498,14 +534,13 @@
                 const studentData = studentDoc.data();
                 const docRef = doc(db, "students", studentDoc.id);
 
-                // Device Lock Logic
                 let dev1 = studentData.device1 || "";
                 let dev2 = studentData.device2 || "";
                 let myDev = getDeviceId();
 
+                // Device Lock Logic (Auto-Replace Oldest)
                 if(dev1 && dev2 && dev1 !== myDev && dev2 !== myDev) {
-                    // Replace oldest device (dev1) with new device
-                    await updateDoc(docRef, { device1: dev2, device2: myDev });
+                    await updateDoc(docRef, { device1: dev2, device2: myDev }); // Replace dev1 with new dev
                 } else if(!dev1) {
                     await updateDoc(docRef, { device1: myDev });
                 } else if(!dev2 && dev1 !== myDev) {
@@ -536,7 +571,6 @@
         if(pass !== passConfirm) return alert(currentLang === 'en' ? "Passwords do not match!" : "पासवर्ड मेल नहीं खा रहे हैं!");
 
         try {
-            // Check if name or mobile exists
             const qCheck = query(collection(db, "students"), where("name", "==", name));
             const qCheck2 = query(collection(db, "students"), where("mobile", "==", mobile));
             const snapCheck = await getDocs(qCheck);
@@ -546,11 +580,9 @@
                 return alert(currentLang === 'en' ? "Name or Mobile already registered!" : "नाम या मोबाइल पहले से रजिस्टर्ड है!");
             }
 
-            // Get total students to generate ID
             const allStudentsSnap = await getDocs(collection(db, "students"));
             const newId = "TG" + String(allStudentsSnap.size + 1).padStart(4, '0');
 
-            // Add new student
             await addDoc(collection(db, "students"), {
                 name: name, mobile: mobile, loginId: newId, password: pass, 
                 isPaid: false, expiry: "", device1: getDeviceId(), device2: ""
@@ -572,22 +604,21 @@
         showLogin();
     }
 
-    // ==== FETCH DATA FROM FIREBASE ====
+    // ==== DATA FETCHING ====
     async function fetchSettingsAndTests() {
         try {
-            // Settings
             const setSnap = await getDoc(doc(db, "settings", "global"));
             if(setSnap.exists()) appSettings = setSnap.data();
-            else appSettings = { UPI_ID: "8931083955@ptyes", Price: "99", Mobile: "9140281870" };
+            else appSettings = { UPI_ID: "taiyarighar@ptyes", Price: "99", Mobile: "9140281870", OfferText: "" };
 
-            // Tests
             const testSnap = await getDocs(collection(db, "tests"));
             allTests = testSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+            
+            // Render Categories
             renderCategories();
 
-            // Current Affairs
             const caSnap = await getDocs(collection(db, "current_affairs"));
-            currentCA = caSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+            allCA = caSnap.docs.map(d => ({ id: d.id, ...d.data() }));
         } catch (e) { console.log("Data load error", e); }
     }
 
@@ -599,7 +630,6 @@
             let attemptedTestIds = [];
 
             if(!resSnap.empty) {
-                // Find the latest by timestamp
                 let results = resSnap.docs.map(d => d.data()).sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp));
                 lastTest = results[0];
                 attemptedTestIds = results.map(r => r.testId);
@@ -613,7 +643,6 @@
                 document.getElementById('recentTestScore').innerText = currentLang === 'en' ? "Take a test to see your score" : "अपना स्कोर देखने के लिए टेस्ट दें";
             }
 
-            // Recommended
             let recTest = allTests.find(t => !attemptedTestIds.includes(t.id));
             if(!recTest && allTests.length > 0) recTest = allTests[0];
 
@@ -657,6 +686,7 @@
         document.getElementById('dashCatContainer').innerHTML = finalHtml;
     }
 
+    // ==== NAVIGATION LOGIC ====
     window.openCategory = function(mainCat) {
         if(!isLoggedIn) return showLogin();
         nav.mainCat = mainCat;
@@ -691,32 +721,124 @@
     window.goBackToSubCat = function() { hideAll(); document.getElementById('subCatScreen').classList.remove('hide'); }
     window.goBackToExam = function() { hideAll(); document.getElementById('examScreen').classList.remove('hide'); }
 
-    window.showCurrentAffairs = function() { hideAll(); document.getElementById('caScreen').classList.remove('hide'); filterCA('Daily'); }
-    window.filterCA = function(type) {
-        const tabs = document.getElementById('caTabs').children;
-        Array.from(tabs).forEach(btn => {
-            if(btn.innerText === type || (currentLang === 'hi' && type === 'Daily' && btn.innerText === 'दैनिक') || (currentLang === 'hi' && type === 'Weekly' && btn.innerText === 'साप्ताहिक') || (currentLang === 'hi' && type === 'Monthly' && btn.innerText === 'मासिक')) { btn.className = 'btn btn-primary'; btn.style.color='white'; btn.style.background='var(--primary)'; }
-            else { btn.className = 'btn'; btn.style.background='#E5E7EB'; btn.style.color='#374151'; }
+    // ==== CURRENT AFFAIRS (INSTANT QUIZ) ====
+    let caStreak = 0;
+    let caCorrectCount = 0;
+    let caWrongCount = 0;
+
+    window.showCurrentAffairs = function() {
+        hideAll();
+        document.getElementById('caScreen').classList.remove('hide');
+        document.getElementById('caLiveScoreCorrect').innerText = "0";
+        document.getElementById('caLiveScoreWrong').innerText = "0";
+        caCorrectCount = 0; caWrongCount = 0; caStreak = 0;
+        filterCA('Daily', document.querySelector('.ca-tab'));
+    }
+
+    window.filterCA = function(type, btn) {
+        document.querySelectorAll('.ca-tab').forEach(b => b.classList.remove('active'));
+        if(btn) btn.classList.add('active');
+        
+        const container = document.getElementById('caContentContainer');
+        container.innerHTML = '';
+        
+        const filtered = allCA.filter(c => c.type.toLowerCase() === type.toLowerCase());
+        if(filtered.length === 0) { container.innerHTML = '<p style="text-align:center;">No current affairs available.</p>'; return; }
+
+        // Group by Title (Article)
+        const grouped = {};
+        filtered.forEach(c => {
+            if(!grouped[c.title]) grouped[c.title] = { date: c.date, link: c.link, questions: [] };
+            grouped[c.title].questions.push(c);
         });
-        const filtered = currentCA.filter(c => c.type && c.type.toLowerCase() === type.toLowerCase());
-        if(filtered.length === 0) { document.getElementById('caList').innerHTML = `<p>${currentLang === 'en' ? "No updates available." : "कोई अपडेट उपलब्ध नहीं है।"}</p>`; return; }
-        let html = "";
-        filtered.forEach(c => { html += `<div class="test-item"><div><h3 style="color: var(--primary); font-size:16px; margin-bottom:5px;">${c.title}</h3><p style="font-size:13px; color:#666;">📅 ${c.date}</p></div><a href="${c.link}" target="_blank" class="btn btn-outline">${currentLang === 'en' ? 'View PDF' : 'पीडीएफ देखें'}</a></div>`; });
-        document.getElementById('caList').innerHTML = html;
+
+        for(let title in grouped) {
+            const article = grouped[title];
+            let articleHtml = `<div class="ca-article">
+                <h3 style="color:var(--primary); margin-bottom:5px;">${title}</h3>
+                <p style="font-size:13px; color:#666; margin-bottom:10px;">📅 ${article.date}</p>`;
+            if(type === 'Daily' && article.link) {
+                articleHtml += `<a href="${article.link}" target="_blank" class="btn btn-outline" style="padding:6px 12px; font-size:12px;">📄 Read Full Article / PDF</a>`;
+            }
+            articleHtml += `</div>`;
+
+            let qHtml = '';
+            article.questions.forEach((q, idx) => {
+                qHtml += `<div class="ca-question" id="caQ_${q.id}">
+                    <p style="font-weight:600; margin-bottom:15px;">Q${idx+1}. ${q.question}</p>
+                    <div class="ca-options">`;
+                q.options.forEach((opt, i) => {
+                    qHtml += `<label class="ca-option" onclick="checkCAAnswer('${q.id}', ${i}, ${q.correctAnswer}, '${type}', '${q.explanation}')">${String.fromCharCode(65+i)}) ${opt}</label>`;
+                });
+                qHtml += `</div>
+                    <div class="ca-explanation" id="caExp_${q.id}"><b>Explanation:</b> ${q.explanation || 'N/A'}</div>
+                </div>`;
+            });
+
+            container.innerHTML += articleHtml + qHtml;
+        }
+    }
+
+    window.checkCAAnswer = function(qId, selectedIndex, correctIndex, type, explanation) {
+        const qDiv = document.getElementById(`caQ_${qId}`);
+        const options = qDiv.querySelectorAll('.ca-option');
+        
+        // Prevent multiple clicks
+        if(qDiv.getAttribute('data-answered') === 'true') return;
+        qDiv.setAttribute('data-answered', 'true');
+
+        options.forEach((opt, i) => {
+            opt.style.pointerEvents = 'none'; // Disable all clicks
+            if(i === correctIndex) opt.classList.add('correct'); // Show correct in green
+            if(i === selectedIndex && i !== correctIndex) opt.classList.add('wrong'); // Show wrong in red
+        });
+
+        // Show Explanation (Only for Monthly)
+        if(type === 'Monthly' && explanation) {
+            document.getElementById(`caExp_${qId}`).style.display = 'block';
+        }
+
+        // Update Score & Streak
+        if(selectedIndex === correctIndex) {
+            caCorrectCount++;
+            caStreak = caStreak > 0 ? caStreak + 1 : 1; // If it was negative, reset to 1
+            if(caStreak >= 3) {
+                showPopup('popupSuccess');
+                caStreak = 0;
+            }
+        } else {
+            caWrongCount++;
+            caStreak = caStreak < 0 ? caStreak - 1 : -1; // If it was positive, reset to -1
+            if(caStreak <= -3) {
+                showPopup('popupWarning');
+                caStreak = 0;
+            }
+        }
+
+        document.getElementById('caLiveScoreCorrect').innerText = caCorrectCount;
+        document.getElementById('caLiveScoreWrong').innerText = caWrongCount;
+    }
+
+    function showPopup(id) {
+        const popup = document.getElementById(id);
+        popup.classList.add('show');
+        setTimeout(() => { popup.classList.remove('show'); }, 3000);
     }
 
     // ==== PAYMENT MODAL ====
     window.openPaymentModal = function() {
-        let upi = (appSettings.UPI_ID || "8931083955@ptyes").toString().trim();
+        let upi = (appSettings.UPI_ID || "taiyarighar@ptyes").toString().trim();
         let price = (appSettings.Price || "99").toString().trim();
         let mobile = (appSettings.Mobile || "9140281870").toString().trim();
+        let offer = (appSettings.OfferText || "").toString().trim();
 
-        if(upi.toLowerCase() === "mobile" || upi.toLowerCase() === "price" || !upi.includes("@")) upi = "8931083955@ptyes";
+        if(upi.toLowerCase() === "mobile" || upi.toLowerCase() === "price" || !upi.includes("@")) upi = "taiyarighar@ptyes";
         if(isNaN(price) || price === "") price = "99";
         if(mobile.length < 10) mobile = "9140281870";
 
         document.getElementById('paymentModal').classList.remove('hide');
         document.getElementById('modalPrice').innerText = price;
+        document.getElementById('modalOffer').innerText = offer ? `(${offer})` : "";
         document.getElementById('modalUpi').innerText = upi;
 
         let formattedAmount = parseFloat(price).toFixed(2);
@@ -738,8 +860,6 @@
     window.checkPaymentStatus = async function() {
         closeModal();
         try {
-            const docRef = doc(db, "students", currentStudent.loginId); // Note: In Firestore, doc ID must match. Wait, we generated doc IDs automatically in addDoc.
-            // Better way: Query by loginId
             const q = query(collection(db, "students"), where("loginId", "==", currentStudent.loginId));
             const snap = await getDocs(q);
             
@@ -751,34 +871,30 @@
                     alert(currentLang === 'en' ? "✅ Payment Approved! Tests Unlocked." : "✅ भुगतान स्वीकृत! टेस्ट अनलॉक हो गए।");
                     location.reload();
                 } else {
-                    alert(currentLang === 'en' ? "⏳ Payment not approved yet. Please wait 5 mins or contact admin on WhatsApp." : "⏳ भुगतान अभी स्वीकृत नहीं हुआ है। कृपया 5 मिनट प्रतीक्षा करें या व्हाट्सएप पर संपर्क करें।");
+                    alert(currentLang === 'en' ? "⏳ Payment not approved yet. Please wait 5 mins." : "⏳ भुगतान अभी स्वीकृत नहीं हुआ है। कृपया 5 मिनट प्रतीक्षा करें।");
                 }
             }
-        } catch(e) { console.error(e); alert("Error checking status."); }
+        } catch(e) { console.error(e); }
     }
 
     // ==== TEST INTERFACE ====
     window.startTest = async function(testId, testName, duration, marks) {
-        hideAll(); document.getElementById('testScreen').classList.remove('hide'); currentTestId = testId; currentTestName = testName;
-        document.getElementById('questionText').innerText = "Loading Questions..."; // Loading State
+        hideAll(); document.getElementById('testScreen').classList.remove('hide'); currentTestId = testId; currentTestName = testName; currentTestMarks = marks;
+        document.getElementById('questionText').innerText = "Loading Questions...";
         
         try {
             const q = query(collection(db, "questions"), where("testId", "==", testId));
             const qSnap = await getDocs(q);
             
             if(!qSnap.empty) {
-                // Shuffle options and track correct answer
-                testQuestions = qSnap.docs.map(d => {
-                    let qData = d.data();
-                    let originalCorrectText = qData.options[qData.correctAnswer]; // correctAnswer is index (0-3)
-                    // Shuffle options
+                // Shuffle Questions and Options
+                let rawQuestions = qSnap.docs.map(d => d.data());
+                testQuestions = rawQuestions.map(qData => {
+                    let originalCorrectText = qData.options[qData.correctAnswer];
                     let shuffled = [...qData.options].sort(() => Math.random() - 0.5);
                     let newAnswerIndex = shuffled.indexOf(originalCorrectText);
                     return { q: qData.question, o: shuffled, a: newAnswerIndex, s: qData.explanation };
-                });
-
-                // Shuffle Questions
-                testQuestions = testQuestions.sort(() => Math.random() - 0.5);
+                }).sort(() => Math.random() - 0.5);
 
                 totalTime = duration * 60; timeLeft = totalTime; currentQIndex = 0; userAnswers = {}; markedForReview = {}; visitedQuestions = {};
                 const container = document.getElementById('paletteContainer'); container.innerHTML = '';
@@ -846,41 +962,84 @@
             const percent = ((score / testQuestions.length) * 100).toFixed(1);
             const now = new Date().toISOString();
             
-            // Save Result to Firebase
             await addDoc(collection(db, "results"), {
                 timestamp: now, loginId: currentStudent.loginId, studentName: currentStudent.name,
                 testId: currentTestId, testName: currentTestName, score: score, total: testQuestions.length, percent: percent
             });
 
-            // Calculate Rank (Fetch all results for this test)
             const qRank = query(collection(db, "results"), where("testId", "==", currentTestId));
             const rankSnap = await getDocs(qRank);
-            let allResults = rankSnap.docs.map(d => d.data());
-            
-            // Sort by score descending
-            allResults.sort((a, b) => b.score - a.score);
+            let allResults = rankSnap.docs.map(d => d.data()).sort((a, b) => b.score - a.score);
 
             let userRank = 1;
-            allResults.forEach((r, index) => { if(r.loginId === currentStudent.loginId) userRank = index + 1; });
+            allResults.forEach((r, index) => { if(r.loginId === currentStudent.loginId && r.score === score) userRank = index + 1; });
 
             document.getElementById('rankText').innerText = (currentLang === 'en' ? "Your Rank: " : "आपकी रैंक: ") + userRank + (currentLang === 'en' ? " out of " : " / ") + allResults.length;
 
-            // Render Leaderboard (Top 5)
             let lbHTML = "";
             allResults.slice(0, 5).forEach((r, index) => {
                 let isYou = (r.loginId === currentStudent.loginId);
                 lbHTML += `<div class="lb-row ${isYou ? 'you' : ''}"><span>${currentLang === 'en' ? 'Rank' : 'रैंक'} ${index+1}: ${r.studentName} ${isYou ? '(You)' : ''}</span><span>${r.score} (${r.percent}%)</span></div>`;
             });
             document.getElementById('lbContainer').innerHTML = lbHTML;
+            
+            // Save data globally for PDF generation
+            window.currentResult = { score, total: testQuestions.length, percent, rank: userRank, totalStudents: allResults.length };
+            document.getElementById('waShareBtn').onclick = shareResultOnWhatsApp;
 
         } catch(e) { console.error(e); document.getElementById('rankText').innerText = "Rank calculation failed."; }
     }
 
-    // PWA Service Worker Registration
-    if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-            navigator.serviceWorker.register('sw.js').then(reg => console.log('SW registered')).catch(err => console.log('SW error', err));
+    // ==== PDF & WHATSAPP SHARE ====
+    window.downloadScorecard = function() {
+        let html = `<html><head><title>Scorecard</title><style>body{font-family:sans-serif; text-align:center; padding:50px;} h1{color:#4F46E5;} table{margin:20px auto; border-collapse:collapse; width:60%;} th,td{border:1px solid #ddd; padding:12px;}</style></head><body>
+            <h1>🏠 TaiyariGhar</h1>
+            <h2>Test Scorecard</h2>
+            <table>
+                <tr><th>Name</th><td>${currentStudent.name}</td></tr>
+                <tr><th>Login ID</th><td>${currentStudent.loginId}</td></tr>
+                <tr><th>Test Name</th><td>${currentTestName}</td></tr>
+                <tr><th>Score</th><td>${window.currentResult.score} / ${window.currentResult.total}</td></tr>
+                <tr><th>Percentage</th><td>${window.currentResult.percent}%</td></tr>
+                <tr><th>Rank</th><td>${window.currentResult.rank} (out of ${window.currentResult.totalStudents})</td></tr>
+            </table>
+            <p style="margin-top:30px;">मेहनत आपकी, साथ हमारा!</p>
+            <script>window.print();</script>
+        </body></html>`;
+        let w = window.open('', '_blank'); w.document.write(html); w.document.close();
+    }
+
+    window.downloadQuestionPaper = function() {
+        let html = `<html><head><title>Question Paper</title><style>body{font-family:sans-serif; padding:30px;} .q{margin-bottom:20px; border-bottom:1px solid #eee; padding-bottom:15px;} .correct{color:green; font-weight:bold;} .wrong{color:red; font-weight:bold;} .exp{background:#f0fdf4; padding:10px; border-radius:5px; font-size:14px;}</style></head><body>
+            <h1 style="text-align:center;">🏠 TaiyariGhar - Question Paper</h1>
+            <h3>Test: ${currentTestName} | Student: ${currentStudent.name}</h3><hr>`;
+        
+        testQuestions.forEach((q, i) => {
+            let userAns = userAnswers[i];
+            html += `<div class="q"><p><b>Q${i+1}. ${q.q}</b></p>`;
+            q.o.forEach((opt, j) => {
+                let style = "";
+                if(j === q.a) style = 'class="correct"';
+                else if(j === userAns) style = 'class="wrong"';
+                html += `<p ${style}>${String.fromCharCode(65+j)}) ${opt}</p>`;
+            });
+            html += `<p style="margin-top:10px;">Your Answer: ${userAns !== undefined ? String.fromCharCode(65+userAns) : 'Not Attempted'}</p>`;
+            html += `<p>Correct Answer: ${String.fromCharCode(65+q.a)}</p>`;
+            if(q.s) html += `<div class="exp"><b>Explanation:</b> ${q.s}</div>`;
+            html += `</div>`;
         });
+        html += `<script>window.print();</script></body></html>`;
+        let w = window.open('', '_blank'); w.document.write(html); w.document.close();
+    }
+
+    window.shareResultOnWhatsApp = function() {
+        let msg = `🏆 *TaiyariGhar Result* 🏆\n\n👤 *Name:* ${currentStudent.name}\n📚 *Test:* ${currentTestName}\n📊 *Score:* ${window.currentResult.score} / ${window.currentResult.total}\n📈 *Percentage:* ${window.currentResult.percent}%\n🥇 *Rank:* ${window.currentResult.rank} (out of ${window.currentResult.totalStudents})\n\nमेहनत आपकी, साथ हमारा! 💪\nhttps://taiyarighar.in`;
+        window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
+    }
+
+    // PWA Service Worker
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => { navigator.serviceWorker.register('sw.js').then(reg => console.log('SW')).catch(err => console.log('SW err', err)); });
     }
 
     // Init App
