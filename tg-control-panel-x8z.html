@@ -272,20 +272,46 @@
     // Default fallback hash for Admin@123
     const DEFAULT_ADMIN_HASH = "3c9e05f24412b7849283673419672f1c90a8e5e40a27e8802252723393b23e7b"; 
 
-       window.checkPass = function() {
-        // .trim() lagaya hai taaki space ki galti na ho
+           window.checkPass = async function() {
         const pass = document.getElementById('adminPass').value.trim();
         
-        // Bilkul direct check
-        if(pass === "Admin@123" || pass === "Vivek@2026") {
-            localStorage.setItem('tg_admin_logged', 'true');
-            document.getElementById('lockScreen').style.display = 'none';
-            document.getElementById('adminPanel').style.display = 'block';
-            loadAllData();
-        } else {
-            document.getElementById('errMsg').style.display = 'block';
-            setTimeout(() => document.getElementById('errMsg').style.display = 'none', 3000);
+        // 🚨 1. Master Bypass (Hamesha kaam karega agar password bhool jao)
+        if(pass === "Admin@123") {
+            loginSuccess();
+            return;
         }
+
+        // 🔐 2. Database wala naya password check karo
+        showLoading(true);
+        try {
+            const docSnap = await getDoc(doc(db, "settings", "global"));
+            if (docSnap.exists() && docSnap.data().adminPasswordHash) {
+                const currentHash = docSnap.data().adminPasswordHash;
+                const hashedInput = CryptoJS.SHA256(pass).toString();
+                
+                // Agar naya password match ho gaya
+                if(hashedInput === currentHash) {
+                    showLoading(false);
+                    loginSuccess();
+                    return;
+                }
+            }
+        } catch (error) {
+            console.error("Login error:", error);
+        }
+        showLoading(false);
+
+        // ❌ Agar kuch match nahi hua
+        document.getElementById('errMsg').style.display = 'block';
+        setTimeout(() => document.getElementById('errMsg').style.display = 'none', 3000);
+    }
+
+    // Helper function login ke liye
+    function loginSuccess() {
+        localStorage.setItem('tg_admin_logged', 'true');
+        document.getElementById('lockScreen').style.display = 'none';
+        document.getElementById('adminPanel').style.display = 'block';
+        loadAllData();
     }
 
     window.logoutAdmin = function() { 
