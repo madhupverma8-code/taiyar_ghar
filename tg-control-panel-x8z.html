@@ -272,25 +272,12 @@
     // Default fallback hash for Admin@123
     const DEFAULT_ADMIN_HASH = "3c9e05f24412b7849283673419672f1c90a8e5e40a27e8802252723393b23e7b"; 
 
-    window.checkPass = async function() {
-        const pass = document.getElementById('adminPass').value;
-        const hashedInput = CryptoJS.SHA256(pass).toString();
+       window.checkPass = function() {
+        // .trim() lagaya hai taaki space ki galti na ho
+        const pass = document.getElementById('adminPass').value.trim();
         
-        showLoading(true);
-        let currentHash = DEFAULT_ADMIN_HASH;
-        
-        try {
-            const docSnap = await getDoc(doc(db, "settings", "global"));
-            if (docSnap.exists() && docSnap.data().adminPasswordHash) {
-                currentHash = docSnap.data().adminPasswordHash;
-            }
-        } catch (error) {
-            console.error("Error fetching password:", error);
-        }
-        showLoading(false);
-
-        // 🚨 MASTER BYPASS: Admin@123 ya Vivek@2026 dalne par hamesha andar aayega
-        if(pass === "Admin@123" || pass === "Vivek@2026" || hashedInput === currentHash) {
+        // Bilkul direct check
+        if(pass === "Admin@123" || pass === "Vivek@2026") {
             localStorage.setItem('tg_admin_logged', 'true');
             document.getElementById('lockScreen').style.display = 'none';
             document.getElementById('adminPanel').style.display = 'block';
