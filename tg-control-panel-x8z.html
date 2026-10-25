@@ -331,7 +331,7 @@
     // 🔐 यह सीक्रेट की है जो Firebase Rules से मैच करती है
     const ADMIN_KEY = "TG_Admin_999"; 
 
-    window.checkPass = async function() {
+       window.checkPass = async function() {
         const pass = document.getElementById('adminPass').value.trim();
         if(!pass) return;
 
@@ -342,6 +342,9 @@
                 const currentHash = docSnap.data().adminPasswordHash;
                 const hashedInput = CryptoJS.SHA256(pass).toString();
                 
+                // 👇 यह अलर्ट हमें बताएगा कि डेटाबेस में क्या सेव है और आपने क्या टाइप किया है
+                alert("Database me saved Hash: " + currentHash + "\n\nAapke password ka Hash: " + hashedInput);
+
                 if(hashedInput === currentHash) {
                     showLoading(false);
                     localStorage.setItem('tg_admin_logged', 'true');
@@ -351,10 +354,11 @@
                     return;
                 }
             } else {
-                alert("Database me koi password set nahi hai! Kripya 'change-pass.html' file se pehle password set karein.");
+                alert("Database me koi password (adminPasswordHash) set nahi hai!");
             }
         } catch (error) {
             console.error("Login error:", error);
+            alert("Firebase Error: " + error.message); // 👇 यह असली एरर बताएगा
         }
         showLoading(false);
         document.getElementById('errMsg').style.display = 'block';
