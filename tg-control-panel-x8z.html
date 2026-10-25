@@ -8,7 +8,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
     <style>
-        :root { --primary: #4F46E5; --bg: #f3f4f6; --text: #1f2937; --white: #ffffff; --danger: #EF4444; --success: #10B981; --warning: #F59E0B; }
+        :root { --primary: #4F46E5; --bg: #f3f4f6; --text: #1f2937; --white: #ffffff; --danger: #EF4444; --success: #10B981; --warning: #F59E0B; --purple: #8B5CF6; }
         * { box-sizing: border-box; font-family: 'Poppins', sans-serif; margin: 0; padding: 0; }
         body { background-color: var(--bg); color: var(--text); padding-bottom: 50px; }
         
@@ -30,7 +30,7 @@
         .container { padding: 0 15px; max-width: 1200px; margin: 0 auto; }
         .section { display: none; background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 20px; }
         .section.active { display: block; }
-        h2.title { color: var(--primary); font-size: 18px; margin-bottom: 20px; border-bottom: 2px solid #eee; padding-bottom: 10px; }
+        h2.title { color: var(--primary); font-size: 18px; margin-bottom: 20px; border-bottom: 2px solid #eee; padding-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
         h3.sub-title { font-size: 14px; color: #555; margin-bottom: 10px; background: #f8fafc; padding: 5px 10px; border-radius: 5px; display: inline-block;}
         
         input, select, textarea { width: 100%; padding: 10px; margin-bottom: 10px; border: 1px solid #ccc; border-radius: 8px; font-family: 'Poppins', sans-serif; font-size: 13px; }
@@ -44,12 +44,16 @@
         th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
         th { background: #f8fafc; color: var(--primary); }
         
-        .btn-approve { background: var(--success); color: white; border: none; padding: 6px 12px; border-radius: 5px; cursor: pointer; font-weight: 600; font-size:12px;}
-        .btn-unpaid { background: var(--danger); color: white; border: none; padding: 6px 12px; border-radius: 5px; cursor: pointer; font-weight: 600; font-size:12px;}
+        .btn-approve { background: var(--success); color: white; border: none; padding: 6px 10px; border-radius: 5px; cursor: pointer; font-weight: 600; font-size:11px; margin-bottom: 3px;}
+        .btn-unpaid { background: var(--danger); color: white; border: none; padding: 6px 10px; border-radius: 5px; cursor: pointer; font-weight: 600; font-size:11px; margin-bottom: 3px;}
         .btn-edit { background: var(--warning); color: white; border: none; padding: 6px 12px; border-radius: 5px; cursor: pointer; font-weight: 600; font-size:12px;}
         .btn-delete { background: var(--danger); color: white; border: none; padding: 6px 12px; border-radius: 5px; cursor: pointer; font-weight: 600; font-size:12px;}
-        .btn-reset { background: #6366f1; color: white; border: none; padding: 6px 12px; border-radius: 5px; cursor: pointer; font-weight: 600; font-size:12px;}
+        .btn-reset { background: #6366f1; color: white; border: none; padding: 6px 10px; border-radius: 5px; cursor: pointer; font-weight: 600; font-size:11px; margin-bottom: 3px;}
+        .btn-reset-pass { background: var(--purple); color: white; border: none; padding: 6px 10px; border-radius: 5px; cursor: pointer; font-weight: 600; font-size:11px; margin-bottom: 3px;}
         
+        /* NEW: Export Button Style */
+        .btn-export { background: #10B981; color: white; border: none; padding: 8px 15px; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 12px; display: flex; align-items: center; gap: 5px; }
+
         .status-paid { color: var(--success); font-weight: bold; }
         .status-free { color: var(--danger); font-weight: bold; }
         .msg { color: var(--success); font-weight: bold; margin-top: 10px; text-align: center; }
@@ -99,22 +103,32 @@
                 <p id="settingsMsg" class="msg" style="display: none;">✅ Settings Saved!</p>
             </div>
 
+            <!-- UPDATED: STUDENTS TAB WITH EXPORT BUTTON -->
             <div id="tabStudents" class="section">
-                <h2 class="title">Students & Payments</h2>
+                <h2 class="title">Students & Payments <button class="btn-export" onclick="exportStudents()">📥 Export to Excel</button></h2>
                 <div class="table-wrapper">
                     <table id="studentsTable">
                         <thead>
                             <tr>
-                                <th>Name</th><th>ID</th><th>Pass</th><th>Status</th><th>Expiry</th><th>Device 1</th><th>Device 2</th><th>Action</th>
+                                <th>Name</th>
+                                <th>Mobile (Login)</th>
+                                <th>ID</th>
+                                <th>Pass</th>
+                                <th>Recovery Code</th>
+                                <th>Status</th>
+                                <th>Expiry</th>
+                                <th>Devices</th>
+                                <th>Action</th>
                             </tr>
                         </thead>
-                        <tbody><tr><td colspan="8" style="text-align:center;">Loading...</td></tr></tbody>
+                        <tbody><tr><td colspan="9" style="text-align:center;">Loading...</td></tr></tbody>
                     </table>
                 </div>
             </div>
 
+            <!-- UPDATED: TESTS TAB WITH EXPORT BUTTON -->
             <div id="tabTests" class="section">
-                <h2 class="title">Manage Tests</h2>
+                <h2 class="title">Manage Tests <button class="btn-export" onclick="exportTests()">📥 Export to Excel</button></h2>
                 <input type="hidden" id="editTestId">
                 <div class="row">
                     <div><input type="text" id="tId" placeholder="Test ID (e.g., T1)"></div>
@@ -212,8 +226,9 @@
                 </div>
             </div>
 
+            <!-- UPDATED: RESULTS TAB WITH EXPORT BUTTON -->
             <div id="tabResults" class="section">
-                <h2 class="title">Student Results</h2>
+                <h2 class="title">Student Results <button class="btn-export" onclick="exportResults()">📥 Export to Excel</button></h2>
                 <div class="table-wrapper">
                     <table id="resultsTable">
                         <thead><tr><th>Date</th><th>Student</th><th>Test</th><th>Correct</th><th>Wrong</th><th>Neg</th><th>Score</th></tr></thead>
@@ -252,7 +267,6 @@
                 </div>
             </div>
 
-            <!-- UPDATED BULK UPLOAD TAB WITH 3 SECTIONS -->
             <div id="tabUpload" class="section">
                 <h2 class="title">Bulk Upload (CSV)</h2>
                 <div class="row">
@@ -270,7 +284,6 @@
                         <button onclick="downloadQuestionsTemplate()" style="background:none; border:1px solid #EC4899; color:#EC4899; padding:6px 12px; border-radius:6px; cursor:pointer; font-size:12px; margin-top:5px; width:100%;">📥 Download Question Template</button>
                     </div>
 
-                    <!-- RESTORED CURRENT AFFAIRS UPLOAD SECTION -->
                     <div style="border: 2px dashed #ccc; padding: 15px; border-radius: 10px; text-align: center;">
                         <h3 style="font-size: 14px; margin-bottom: 10px;">3. Upload Current Affairs</h3>
                         <input type="file" id="caCsvFile" accept=".csv" style="border: none; margin-bottom: 10px;">
@@ -377,11 +390,28 @@
             const data = d.data();
             const status = data.isPaid ? '<span class="status-paid">PAID</span>' : '<span class="status-free">FREE</span>';
             let actionBtn = data.isPaid ? `<button class="btn-unpaid" onclick="togglePayment('${d.id}', false)">Mark Unpaid</button>` : `<button class="btn-approve" onclick="togglePayment('${d.id}', true)">Approve</button>`;
-            let d1 = data.device1 ? `<span style="font-size:11px; color:var(--success);">${data.device1.substring(0,10)}...</span>` : '<span style="color:#999;">-</span>';
-            let d2 = data.device2 ? `<span style="font-size:11px; color:var(--warning);">${data.device2.substring(0,10)}...</span>` : '<span style="color:#999;">-</span>';
-            html += `<tr><td>${data.name}</td><td>${data.loginId}</td><td>${data.password}</td><td>${status}</td><td>${data.expiryDate || '-'}</td><td>${d1}</td><td>${d2}</td><td>${actionBtn} <button class="btn-reset" onclick="resetDevices('${d.id}')">Reset</button></td></tr>`;
+            
+            let d1 = data.device1 ? `<span style="font-size:11px; color:var(--success);">${data.device1.substring(0,8)}...</span>` : '-';
+            let d2 = data.device2 ? `<span style="font-size:11px; color:var(--warning);">${data.device2.substring(0,8)}...</span>` : '-';
+            let devices = `${d1} <br> ${d2}`;
+            
+            let mobile = data.mobile || '-';
+            let recoveryCode = data.recoveryCode || '-';
+            let passResetBtn = `<button class="btn-reset-pass" onclick="resetStudentPassword('${d.id}')">Pass Reset</button>`;
+
+            html += `<tr>
+                <td>${data.name}</td>
+                <td>${mobile}</td>
+                <td>${data.loginId}</td>
+                <td>${data.password}</td>
+                <td style="color:var(--purple); font-weight:bold;">${recoveryCode}</td>
+                <td>${status}</td>
+                <td>${data.expiryDate || '-'}</td>
+                <td>${devices}</td>
+                <td>${actionBtn} <br> <button class="btn-reset" onclick="resetDevices('${d.id}')">Devices</button> <br> ${passResetBtn}</td>
+            </tr>`;
         });
-        tbody.innerHTML = html || '<tr><td colspan="8" style="text-align:center;">No students found</td></tr>';
+        tbody.innerHTML = html || '<tr><td colspan="9" style="text-align:center;">No students found</td></tr>';
     }
     
     window.togglePayment = async function(id, makePaid) {
@@ -400,6 +430,116 @@
         if(!confirm("Reset devices?")) return;
         await updateDoc(doc(db, "students", id), { device1: "", device2: "" }); loadStudents(); alert("Devices Reset!");
     }
+
+    window.resetStudentPassword = async function(id) {
+        let newPass = prompt("Enter New Password for the student:");
+        if(newPass === null || newPass.trim() === "") return;
+        let newCode = Math.random().toString(36).substring(2, 8).toUpperCase();
+        if(!confirm(`Are you sure you want to reset the password?\n\nNew Password: ${newPass}\nNew Recovery Code: ${newCode}\n\nPlease share this with the student.`)) return;
+
+        await updateDoc(doc(db, "students", id), { password: newPass.trim(), recoveryCode: newCode });
+        
+        loadStudents();
+        alert("Password and Recovery Code reset successfully!");
+    }
+
+    // ===== NEW: EXPORT TO EXCEL (CSV) FUNCTIONS =====
+    window.exportStudents = async function() {
+        showLoading(true);
+        const snap = await getDocs(collection(db, "students"));
+        let dataToExport = [];
+        snap.forEach(d => {
+            const data = d.data();
+            dataToExport.push({
+                "Name": data.name || "",
+                "Mobile": data.mobile || "",
+                "Login ID": data.loginId || "",
+                "Password": data.password || "",
+                "Recovery Code": data.recoveryCode || "",
+                "Status": data.isPaid ? "PAID" : "FREE",
+                "Expiry Date": data.expiryDate || "",
+                "Device 1": data.device1 || "",
+                "Device 2": data.device2 || ""
+            });
+        });
+        
+        if(dataToExport.length === 0) { showLoading(false); return alert("No data to export!"); }
+        
+        const csv = Papa.unparse(dataToExport);
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.download = `TaiyariGhar_Students_${new Date().toISOString().split('T')[0]}.csv`;
+        link.click();
+        URL.revokeObjectURL(link.href);
+        showLoading(false);
+    }
+
+    window.exportTests = async function() {
+        showLoading(true);
+        const snap = await getDocs(collection(db, "tests"));
+        let dataToExport = [];
+        snap.forEach(d => {
+            const data = d.data();
+            dataToExport.push({
+                "Test ID": data.id || "",
+                "Main Category": data.mainCat || "",
+                "Sub Category": data.subCat || "",
+                "Exam Name": data.examName || "",
+                "Test Name": data.testName || "",
+                "Duration (Mins)": data.duration || "",
+                "Total Marks": data.marks || "",
+                "Language": data.language || "Both",
+                "Has Negative": data.hasNegative || "No",
+                "Negative Mark": data.negativeMark || 0,
+                "Is Free": data.isFree || "Yes"
+            });
+        });
+        
+        if(dataToExport.length === 0) { showLoading(false); return alert("No data to export!"); }
+        
+        const csv = Papa.unparse(dataToExport);
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.download = `TaiyariGhar_Tests_${new Date().toISOString().split('T')[0]}.csv`;
+        link.click();
+        URL.revokeObjectURL(link.href);
+        showLoading(false);
+    }
+
+    window.exportResults = async function() {
+        showLoading(true);
+        const snap = await getDocs(collection(db, "results"));
+        let dataToExport = [];
+        snap.forEach(d => {
+            const data = d.data();
+            dataToExport.push({
+                "Date": new Date(data.timestamp).toLocaleString(),
+                "Student Name": data.studentName || "",
+                "Login ID": data.loginId || "",
+                "Test Name": data.testName || "",
+                "Correct": data.correctCount || 0,
+                "Wrong": data.wrongCount || 0,
+                "Negative Deducted": data.negDeducted || 0,
+                "Final Score": data.finalScore || 0,
+                "Total Marks": data.totalMarks || 0,
+                "Percentage": data.percent || "0"
+            });
+        });
+        
+        if(dataToExport.length === 0) { showLoading(false); return alert("No data to export!"); }
+        
+        const csv = Papa.unparse(dataToExport);
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.download = `TaiyariGhar_Results_${new Date().toISOString().split('T')[0]}.csv`;
+        link.click();
+        URL.revokeObjectURL(link.href);
+        showLoading(false);
+    }
+    // ==================================================
 
     window.toggleTestNeg = function() { document.getElementById('tNegBox').style.display = document.getElementById('tHasNeg').value === 'Yes' ? 'block' : 'none'; }
 
