@@ -63,33 +63,8 @@
         .section { padding: 25px 5%; }
         .section-title { font-size: 22px; font-weight: 700; margin-bottom: 15px; color: var(--text); }
         
-        /* FIXED: Flexbox for perfect centering and spacing */
-        .category-grid { 
-            display: flex; 
-            flex-wrap: wrap; 
-            justify-content: center; 
-            gap: 20px; 
-            margin-top: 15px;
-            width: 100%;
-        }
-        .cat-card { 
-            flex: 1 1 250px; 
-            max-width: 320px; 
-            padding: 25px 15px; 
-            border-radius: 12px; 
-            box-shadow: 0 6px 15px rgba(0,0,0,0.1); 
-            cursor: pointer; 
-            transition: 0.3s; 
-            text-align: center; 
-            color: white; 
-            position: relative; 
-            overflow: hidden; 
-            display: flex; 
-            flex-direction: column; 
-            justify-content: center; 
-            align-items: center; 
-            min-height: 150px; 
-        }
+        .category-grid { display: flex; flex-wrap: wrap; justify-content: center; gap: 20px; margin-top: 15px; width: 100%; }
+        .cat-card { flex: 1 1 250px; max-width: 320px; padding: 25px 15px; border-radius: 12px; box-shadow: 0 6px 15px rgba(0,0,0,0.1); cursor: pointer; transition: 0.3s; text-align: center; color: white; position: relative; overflow: hidden; display: flex; flex-direction: column; justify-content: center; align-items: center; min-height: 150px; }
         .cat-card:hover { transform: translateY(-5px) scale(1.03); box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
         .cat-icon { font-size: 40px; margin-bottom: 10px; text-shadow: 0 3px 6px rgba(0,0,0,0.3);}
         .cat-title { font-size: 20px; font-weight: 800; text-shadow: 1px 1px 4px rgba(0,0,0,0.6); line-height: 1.2; letter-spacing: 0.5px;}
@@ -100,7 +75,6 @@
         .wide-cat-banner h2 { font-size: 20px; margin-bottom: 5px; color: white; text-shadow: 1px 1px 3px rgba(0,0,0,0.4);}
         .wide-cat-banner p { font-size: 13px; opacity: 0.9; text-shadow: 1px 1px 2px rgba(0,0,0,0.4);}
 
-        /* Sub-Category Pills */
         .sub-cat-container { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 20px; }
         .sub-cat-pill { padding: 8px 16px; background: white; border: 2px solid var(--primary); color: var(--primary); border-radius: 20px; font-weight: 600; cursor: pointer; transition: 0.2s; font-size: 14px; }
         .sub-cat-pill:hover, .sub-cat-pill.active { background: var(--primary); color: white; }
@@ -114,7 +88,6 @@
         .test-item { background: var(--white); padding: 15px 20px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); display: flex; justify-content: space-between; align-items: center; border: 1px solid #E5E7EB; }
         .test-item.locked { border-left: 5px solid var(--grey); opacity: 0.9; }
 
-        /* --- NEW SECTIONS CSS --- */
         .features-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-top: 20px; }
         .feature-card { background: white; padding: 25px 20px; border-radius: 12px; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.05); transition: 0.3s; border-bottom: 4px solid var(--primary); }
         .feature-card:hover { transform: translateY(-5px); }
@@ -143,7 +116,6 @@
         .footer-links a:hover { color: var(--white); }
         .footer p { font-size: 12px; color: #6B7280; }
 
-        /* --- INSTRUCTIONS SCREEN --- */
         .instruction-container { max-width: 900px; margin: 20px auto; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
         .inst-header { display: flex; justify-content: space-between; border-bottom: 2px solid #eee; padding-bottom: 15px; margin-bottom: 20px; }
         .inst-header h2 { color: var(--primary); font-size: 24px; }
@@ -153,7 +125,6 @@
         .lang-select-box select { padding: 10px; font-size: 15px; border-radius: 6px; border: 1px solid #ccc; width: 100%; max-width: 300px; }
         .declaration-box { display: flex; align-items: center; gap: 10px; font-weight: 600; margin: 20px 0; }
 
-        /* --- MAIN TEST SCREEN (TESTBOOK UI) --- */
         .test-header { background: var(--test-header); color: var(--white); padding: 10px 20px; display: flex; justify-content: space-between; align-items: center; position: sticky; top:0; z-index: 100; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
         .test-header h2 { font-size: 16px; font-weight: 500; }
         .timer-box { display: flex; align-items: center; gap: 15px; }
@@ -205,14 +176,12 @@
         
         .sidebar-bottom { padding: 15px; background: #fff; border-top: 1px solid #E5E7EB; }
         
-        /* --- SUBMIT MODAL --- */
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(17, 24, 39, 0.7); display: flex; justify-content: center; align-items: center; z-index: 2000; }
         .submit-modal { background: white; padding: 25px; border-radius: 12px; max-width: 600px; width: 90%; text-align: center; box-shadow: 0 20px 40px rgba(0,0,0,0.2); }
         .submit-table { width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 14px; }
         .submit-table th, .submit-table td { border: 1px solid #E5E7EB; padding: 12px; }
         .submit-table th { background: #F8FAFC; color: var(--primary); }
 
-        /* --- ANALYSIS DASHBOARD --- */
         .analysis-container { max-width: 800px; margin: 30px auto; background: white; padding: 30px; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); text-align: center; }
         .score-circle { width: 180px; height: 180px; border-radius: 50%; margin: 20px auto; display: flex; flex-direction: column; justify-content: center; align-items: center; background: conic-gradient(var(--accent) 0%, var(--accent) 100%); position: relative; }
         .score-circle::before { content: ''; position: absolute; width: 150px; height: 150px; background: white; border-radius: 50%; }
@@ -231,7 +200,6 @@
         .stat-card.skipped { border-bottom: 4px solid var(--grey); }
         .stat-card.skipped p { color: var(--grey); }
 
-        /* --- EXISTING CA & POPUPS --- */
         .ca-tabs { display: flex; gap: 10px; margin-bottom: 20px; justify-content: center;}
         .ca-tab { padding: 10px 20px; border-radius: 20px; background: white; border: 1px solid #ddd; cursor: pointer; font-weight: 600; }
         .ca-tab.active { background: var(--primary); color: white; border-color: var(--primary); }
@@ -321,7 +289,6 @@
             </div>
         </div>
 
-        <!-- FREE MOCK TESTS BANNER -->
         <div class="section" style="padding-bottom: 0;">
             <div class="wide-cat-banner" style="background: linear-gradient(135deg, #10B981 0%, #059669 100%);" onclick="scrollToCategories()">
                 <div>
@@ -337,7 +304,6 @@
             <div id="homeCatContainer"></div>
         </div>
 
-        <!-- HOW IT WORKS SECTION -->
         <div class="section">
             <h2 class="section-title" style="text-align: center;">How It Works</h2>
             <div class="steps-container">
@@ -364,7 +330,6 @@
             </div>
         </div>
 
-        <!-- FAQ SECTION -->
         <div class="section">
             <h2 class="section-title" style="text-align: center;">Frequently Asked Questions (FAQ)</h2>
             <div class="faq-container">
@@ -428,7 +393,6 @@
         </div>
     </div>
 
-    <!-- FORGOT PASSWORD SCREEN -->
     <div id="forgotPasswordScreen" class="section hide" style="max-width: 450px; margin: 30px auto;">
         <div style="background: white; padding: 30px 20px; border-radius: 16px; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.05);">
             <h2 style="color: var(--primary); margin-bottom: 20px; font-size: 20px;">Reset Your Password</h2>
@@ -491,10 +455,7 @@
         <button class="btn btn-outline" style="margin-bottom: 20px;" onclick="goDashboard()" data-translate="btn_back_cat">← Back to Categories</button>
         <h2 class="section-title" id="subCatTitle"></h2>
         
-        <!-- Sub-category pills container -->
         <div id="subCatPills" class="sub-cat-container"></div>
-
-        <!-- Test list container -->
         <div id="testListContainer" class="test-list"></div>
     </div>
 
@@ -756,7 +717,6 @@
         <p>आप लगातार 3 सवालों के गलत जवाब दे रहे हैं। कृपया आर्टिकल ध्यान से पढ़ें और फिर उत्तर दें।</p>
     </div>
 
-    <!-- FOOTER -->
     <footer class="footer" id="mainFooter">
         <div class="footer-links">
             <a onclick="alert('About Us page coming soon!')">About Us</a>
@@ -772,6 +732,7 @@
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getFirestore, collection, getDocs, getDoc, setDoc, addDoc, query, where, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    import { initializeAppCheck, ReCaptchaV3Provider } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app-check.js"; // 👈 App Check Import
 
     const firebaseConfig = {
         apiKey: "AIzaSyA7x6gQziPYLxrXnyVJJ80mvJkh3VCm24",
@@ -783,6 +744,13 @@
     };
 
     const app = initializeApp(firebaseConfig);
+
+    // 👇 App Check शुरू करें
+    const appCheck = initializeAppCheck(app, {
+      provider: new ReCaptchaV3Provider('6LdmiwAuAAAAAI3GMNNfi-mE1rUQQ8qhPmv3LEfy'), // 👈 आपकी Site Key
+      isTokenAutoRefreshEnabled: true
+    });
+
     const db = getFirestore(app);
 
     let allTests = [], appSettings = {}, allCA = [], allExamCategories = [];
@@ -800,7 +768,6 @@
     let pendingTestDetails = null;
     let currentResultData = null;
 
-    // Predefined Main Categories for display
     const defaultMainCategories = [
         { name: "SSC Exams", icon: "🏛️", gradient: "linear-gradient(135deg, #FF416C 0%, #FF4B2B 100%)", subText: "CGL, CHSL, MTS, GD, Stenographer" },
         { name: "Railway Exams", icon: "🚂", gradient: "linear-gradient(135deg, #43E97B 0%, #38F9D7 100%)", subText: "NTPC, Group D, ALP, RPF" },
@@ -1113,7 +1080,6 @@
     function renderMainCategories() {
         let finalMainCats = [...defaultMainCategories];
         
-        // Add any unique main categories from tests that aren't in the default list (excluding duplicates like 'SSC' when 'SSC Exams' exists)
         const testMainCats = [...new Set(allTests.map(t => t.mainCat))];
         testMainCats.forEach(catName => {
             let isDuplicate = finalMainCats.some(c => {
@@ -1150,13 +1116,9 @@
         if(!isLoggedIn) return showLogin();
         nav.mainCat = mainCat;
         
-        // Normalize mainCat for matching (e.g., treat "SSC" and "SSC Exams" as same)
         let normalizedMain = mainCat.toLowerCase().replace("exams", "").trim();
-
-        // Find sub-categories for this main category from exam_categories
         let subCats = allExamCategories.filter(c => c.mainCat.toLowerCase().replace("exams", "").trim() === normalizedMain).map(c => c.subCat);
         
-        // Also add unique sub-cats from existing tests
         const testSubCats = allTests.filter(t => t.mainCat.toLowerCase().replace("exams", "").trim() === normalizedMain).map(t => t.subCat);
         subCats = [...new Set([...subCats, ...testSubCats])];
 
@@ -1173,7 +1135,7 @@
         document.getElementById('subCatScreen').classList.remove('hide'); 
         document.getElementById('subCatTitle').innerText = mainCat + (currentLang === 'en' ? " - Select Exam Type" : " - परीक्षा प्रकार चुनें"); 
         document.getElementById('subCatPills').innerHTML = pillsHtml;
-        document.getElementById('testListContainer').innerHTML = ""; // Clear tests until a pill is clicked
+        document.getElementById('testListContainer').innerHTML = ""; 
     }
 
     window.loadTestsForSubCat = function(subCat, pillElement) {
