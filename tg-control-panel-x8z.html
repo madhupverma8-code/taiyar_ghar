@@ -125,7 +125,6 @@
                 </div>
             </div>
 
-            <!-- NEW TAB: MANAGE SUB-CATEGORIES -->
             <div id="tabCategories" class="section">
                 <h2 class="title">Manage Sub-Categories (Exam Types)</h2>
                 <p style="font-size:13px; color:#666; margin-bottom:15px;">Yahan se aap kisi bhi Main Category (jaise Railway) ke andar nayi Sub-Category (jaise RPF, NTPC) add ya delete kar sakte hain. Ye categories student website par filter ki tarah dikhengi.</p>
@@ -315,7 +314,7 @@
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getFirestore, collection, getDocs, doc, getDoc, setDoc, updateDoc, deleteDoc, addDoc, writeBatch } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    import { getFirestore, collection, getDocs, doc, getDoc, setDoc, updateDoc, deleteDoc, addDoc, writeBatch, query, where } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyA7x6gQziPYLxrXnyVJJ80mvJkh3VCm24",
@@ -328,6 +327,9 @@
 
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
+
+    // 🔐 यह सीक्रेट की है जो Firebase Rules से मैच करती है
+    const ADMIN_KEY = "TG_Admin_999"; 
 
     window.checkPass = async function() {
         const pass = document.getElementById('adminPass').value.trim();
@@ -393,8 +395,11 @@
     
     window.saveSettings = async function() {
         await setDoc(doc(db, "settings", "global"), {
-            UPI_ID: document.getElementById('setUpi').value.trim(), Mobile: document.getElementById('setMobile').value.trim(),
-            Price: document.getElementById('setPrice').value.trim(), OfferText: document.getElementById('setOffer').value.trim()
+            UPI_ID: document.getElementById('setUpi').value.trim(), 
+            Mobile: document.getElementById('setMobile').value.trim(),
+            Price: document.getElementById('setPrice').value.trim(), 
+            OfferText: document.getElementById('setOffer').value.trim(),
+            adminKey: ADMIN_KEY // 🔐 Key Added
         }, { merge: true });
         document.getElementById('settingsMsg').style.display = 'block'; setTimeout(() => document.getElementById('settingsMsg').style.display = 'none', 3000);
     }
@@ -443,17 +448,17 @@
         if(makePaid) {
             let expiry = prompt("Enter Expiry Date (YYYY-MM-DD):", "2024-12-31");
             if(expiry === null) return;
-            await updateDoc(doc(db, "students", id), { isPaid: true, expiryDate: expiry }); 
+            await updateDoc(doc(db, "students", id), { isPaid: true, expiryDate: expiry, adminKey: ADMIN_KEY }); 
         } else {
             if(!confirm("Mark as Unpaid?")) return;
-            await updateDoc(doc(db, "students", id), { isPaid: false, expiryDate: "" }); 
+            await updateDoc(doc(db, "students", id), { isPaid: false, expiryDate: "", adminKey: ADMIN_KEY }); 
         }
         loadStudents();
     }
     
     window.resetDevices = async function(id) {
         if(!confirm("Reset devices?")) return;
-        await updateDoc(doc(db, "students", id), { device1: "", device2: "" }); loadStudents(); alert("Devices Reset!");
+        await updateDoc(doc(db, "students", id), { device1: "", device2: "", adminKey: ADMIN_KEY }); loadStudents(); alert("Devices Reset!");
     }
 
     window.resetStudentPassword = async function(id) {
@@ -462,7 +467,7 @@
         let newCode = Math.random().toString(36).substring(2, 8).toUpperCase();
         if(!confirm(`Are you sure you want to reset the password?\n\nNew Password: ${newPass}\nNew Recovery Code: ${newCode}\n\nPlease share this with the student.`)) return;
 
-        await updateDoc(doc(db, "students", id), { password: newPass.trim(), recoveryCode: newCode });
+        await updateDoc(doc(db, "students", id), { password: newPass.trim(), recoveryCode: newCode, adminKey: ADMIN_KEY });
         loadStudents();
         alert("Password and Recovery Code reset successfully!");
     }
@@ -497,12 +502,11 @@
         const subCat = document.getElementById('newSubCat').value.trim();
         if(!mainCat || !subCat) return alert("Please enter both Main Category and Sub Category!");
 
-        // Check if already exists
         const q = query(collection(db, "exam_categories"), where("mainCat", "==", mainCat), where("subCat", "==", subCat));
         const snap = await getDocs(q);
         if(!snap.empty) return alert("This Sub-Category already exists in this Main Category!");
 
-        await addDoc(collection(db, "exam_categories"), { mainCat: mainCat, subCat: subCat });
+        await addDoc(collection(db, "exam_categories"), { mainCat: mainCat, subCat: subCat, adminKey: ADMIN_KEY });
         
         document.getElementById('newMainCat').value = '';
         document.getElementById('newSubCat').value = '';
@@ -567,13 +571,19 @@
         if(!id) { showLoading(false); return alert("Test ID required!"); }
         
         const data = {
-            id: id, mainCat: document.getElementById('tMain').value, subCat: document.getElementById('tSub').value,
-            examName: document.getElementById('tExam').value, testName: document.getElementById('tName').value,
-            duration: Number(document.getElementById('tDur').value), marks: Number(document.getElementById('tMarks').value),
+            id: id, 
+            mainCat: document.getElementById('tMain').value, 
+            subCat: document.getElementById('tSub').value,
+            examName: document.getElementById('tExam').value, 
+            testName: document.getElementById('tName').value,
+            duration: Number(document.getElementById('tDur').value), 
+            marks: Number(document.getElementById('tMarks').value),
             totalQuestions: Number(document.getElementById('tTotalQs').value) || 0,
-            hasNegative: document.getElementById('tHasNeg').value, negativeMark: Number(document.getElementById('tNegMark').value) || 0,
+            hasNegative: document.getElementById('tHasNeg').value, 
+            negativeMark: Number(document.getElementById('tNegMark').value) || 0,
             isFree: document.getElementById('tFree').value,
-            language: document.getElementById('tLanguage').value
+            language: document.getElementById('tLanguage').value,
+            adminKey: ADMIN_KEY // 🔐 Key Added
         };
 
         if(editId) {
@@ -656,7 +666,8 @@
             correctAnswer: Number(document.getElementById('qAns').value), 
             questionMarks: Number(document.getElementById('qMarks').value) || 1, 
             questionNeg: Number(document.getElementById('qNeg').value) || 0,
-            explanation: document.getElementById('qExp').value
+            explanation: document.getElementById('qExp').value,
+            adminKey: ADMIN_KEY // 🔐 Key Added
         };
 
         if(editId) {
@@ -727,7 +738,8 @@
             type: document.getElementById('caType').value, date: document.getElementById('caDate').value,
             title: document.getElementById('caTitle').value, link: document.getElementById('caLink').value,
             question: document.getElementById('caQ').value, options: opts,
-            correctAnswer: Number(document.getElementById('caAns').value), explanation: document.getElementById('caExp').value
+            correctAnswer: Number(document.getElementById('caAns').value), explanation: document.getElementById('caExp').value,
+            adminKey: ADMIN_KEY // 🔐 Key Added
         };
 
         if(editId) {
@@ -847,7 +859,8 @@
                     totalQuestions: Number(row.TotalQuestions) || 0,
                     hasNegative: row.HasNegative || "No", negativeMark: Number(row.NegativeMark) || 0,
                     isFree: String(row.IsFree).trim().toLowerCase() === "yes" ? "Yes" : "No",
-                    language: row.Language || "Both"
+                    language: row.Language || "Both",
+                    adminKey: ADMIN_KEY // 🔐 Key Added
                 }); count++;
             }
             await batch.commit(); statusText.innerText = `✅ Uploaded ${count} tests!`; loadTests();
@@ -877,7 +890,8 @@
                 await addDoc(collection(db, "questions"), {
                     testId: tId, questionHindi: qH, questionEnglish: qE,
                     optionsHindi: optsHindi, optionsEnglish: optsEnglish, correctAnswer: ansIndex, 
-                    questionMarks: Number(row.QuestionMarks) || 1, questionNeg: Number(row.QuestionNegativeMark) || 0, explanation: row.Explanation || ""
+                    questionMarks: Number(row.QuestionMarks) || 1, questionNeg: Number(row.QuestionNegativeMark) || 0, explanation: row.Explanation || "",
+                    adminKey: ADMIN_KEY // 🔐 Key Added
                 }); count++;
                 if(count % 10 === 0) statusText.innerText = `Uploading: ${count}/${res.data.length}`;
             }
@@ -900,7 +914,8 @@
                 
                 await addDoc(collection(db, "current_affairs"), {
                     type: row.Type || "Daily", date: row.Date || "", title: row.Title || "", link: row.Article_Link || "",
-                    question: row.Question, options: opts, correctAnswer: ansIndex, explanation: row.Explanation || ""
+                    question: row.Question, options: opts, correctAnswer: ansIndex, explanation: row.Explanation || "",
+                    adminKey: ADMIN_KEY // 🔐 Key Added
                 }); count++;
             }
             statusText.innerText = `✅ Uploaded ${count} CA records!`; loadCA();
