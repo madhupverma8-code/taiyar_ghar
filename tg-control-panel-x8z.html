@@ -339,11 +339,14 @@
     // 🔐 यह सीक्रेट की है जो Firebase Rules से मैच करती है
     const ADMIN_KEY = "TG_Admin_999"; 
 
-    window.checkPass = function() {
+       window.checkPass = function() {
         const pass = document.getElementById('adminPass').value.trim();
         
-        // 👇 सिंपल पासवर्ड चेक (admin123)
-        if(pass === "admin123") {
+        // 👇 यह 'Admin@123' का SHA-256 Hash है। अब कोड में सीधा पासवर्ड नहीं दिखेगा।
+        const hashedInput = CryptoJS.SHA256(pass).toString();
+        const correctHash = "f4666b1e66f353e1a259c86b4b4a565c61b0cb6cf96fbcf0b367424344b0b0d9"; 
+
+        if(hashedInput === correctHash) {
             localStorage.setItem('tg_admin_logged', 'true');
             document.getElementById('lockScreen').style.display = 'none';
             document.getElementById('adminPanel').style.display = 'block';
