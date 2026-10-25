@@ -63,13 +63,13 @@
         .section { padding: 25px 5%; }
         .section-title { font-size: 22px; font-weight: 700; margin-bottom: 15px; color: var(--text); }
         
-        /* BIGGER CATEGORY CARDS & BOLD TEXT */
-        .category-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 15px; }
-        .cat-card { padding: 25px 15px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); cursor: pointer; transition: 0.3s; text-align: center; color: white; position: relative; overflow: hidden; display: flex; flex-direction: column; justify-content: center; align-items: center; min-height: 130px; }
-        .cat-card:hover { transform: translateY(-3px) scale(1.03); box-shadow: 0 8px 20px rgba(0,0,0,0.2); }
-        .cat-icon { font-size: 36px; margin-bottom: 10px; text-shadow: 0 2px 4px rgba(0,0,0,0.3);}
-        .cat-title { font-size: 17px; font-weight: 800; text-shadow: 1px 1px 3px rgba(0,0,0,0.6); line-height: 1.2; letter-spacing: 0.5px;}
-        .cat-sub-text { font-size: 11px; opacity: 0.9; margin-top: 5px; font-weight: 400; }
+        /* FIXED: Category Grid Layout - No Empty Space */
+        .category-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; }
+        .cat-card { padding: 20px 15px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); cursor: pointer; transition: 0.3s; text-align: center; color: white; position: relative; overflow: hidden; display: flex; flex-direction: column; justify-content: center; align-items: center; min-height: 130px; width: 100%; }
+        .cat-card:hover { transform: translateY(-5px) scale(1.02); box-shadow: 0 8px 25px rgba(0,0,0,0.25); }
+        .cat-icon { font-size: 38px; margin-bottom: 10px; text-shadow: 0 3px 6px rgba(0,0,0,0.3);}
+        .cat-title { font-size: 18px; font-weight: 800; text-shadow: 1px 1px 4px rgba(0,0,0,0.6); line-height: 1.2; letter-spacing: 0.5px;}
+        .cat-sub-text { font-size: 12px; opacity: 0.95; margin-top: 6px; font-weight: 500; text-shadow: 1px 1px 2px rgba(0,0,0,0.5); }
 
         .wide-cat-banner { padding: 20px 25px; border-radius: 12px; color: white; display: flex; justify-content: space-between; align-items: center; margin-top: 15px; box-shadow: 0 8px 20px rgba(0,0,0,0.15); cursor: pointer; transition: 0.3s;}
         .wide-cat-banner:hover { transform: translateY(-2px); box-shadow: 0 12px 25px rgba(0,0,0,0.25);}
@@ -234,10 +234,11 @@
             .hero-img { margin-top: 15px; }
             .hero-img img { max-height: 180px; }
             .wide-cat-banner { flex-direction: column; text-align: center; gap: 10px;}
-            .category-grid { grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 10px; }
+            .category-grid { grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; }
             .cat-card { min-height: 110px; padding: 15px 10px; }
-            .cat-icon { font-size: 28px; }
+            .cat-icon { font-size: 30px; }
             .cat-title { font-size: 15px; }
+            .cat-sub-text { font-size: 10px; }
             .nav-links { display: none; } 
             .test-item { flex-direction: column; align-items: flex-start; gap: 10px; }
             .header { justify-content: center;}
@@ -535,7 +536,7 @@
             </div>
 
             <div style="display: flex; justify-content: space-between; margin-top: 20px;">
-                <button class="btn btn-outline" onclick="goBackToExam()">Previous</button>
+                <button class="btn btn-outline" onclick="goBackToSubCat()">Previous</button>
                 <button class="btn btn-primary" id="btnStartActualTest" onclick="startActualTest()" disabled style="opacity: 0.5; cursor: not-allowed;">I am ready to begin</button>
             </div>
         </div>
@@ -775,15 +776,15 @@
     let pendingTestDetails = null;
     let currentResultData = null;
 
-    // Hardcoded Main Categories for display
+    // Predefined Main Categories for display
     const defaultMainCategories = [
-        { name: "SSC Exams", icon: "🏛️", gradient: "linear-gradient(135deg, #FF416C 0%, #FF4B2B 100%)", subText: "CGL, CHSL, MTS, GD" },
-        { name: "Railway Exams", icon: "🚂", gradient: "linear-gradient(135deg, #43E97B 0%, #38F9D7 100%)", subText: "NTPC, Group D, ALP" },
-        { name: "UP State Exams", icon: "🏛️", gradient: "linear-gradient(135deg, #F6D365 0%, #FDA085 100%)", subText: "PCS, RO/ARO, VDO" },
-        { name: "Banking Exams", icon: "🏦", gradient: "linear-gradient(135deg, #4FACFE 0%, #00F2FE 100%)", subText: "PO, Clerk, SO" },
-        { name: "UP Police", icon: "👮", gradient: "linear-gradient(135deg, #667EEA 0%, #764BA2 100%)", subText: "Daroga, Constable" },
-        { name: "Other Central Exams", icon: "🌍", gradient: "linear-gradient(135deg, #00B4DB 0%, #0083B0 100%)", subText: "IBPS, LIC, Army" },
-        { name: "Other State Exams", icon: "🗺️", gradient: "linear-gradient(135deg, #FA709A 0%, #FEE140 100%)", subText: "Bihar, Uttarakhand" }
+        { name: "SSC Exams", icon: "🏛️", gradient: "linear-gradient(135deg, #FF416C 0%, #FF4B2B 100%)", subText: "CGL, CHSL, MTS, GD, Stenographer" },
+        { name: "Railway Exams", icon: "🚂", gradient: "linear-gradient(135deg, #43E97B 0%, #38F9D7 100%)", subText: "NTPC, Group D, ALP, RPF" },
+        { name: "UP State Exams", icon: "🏛️", gradient: "linear-gradient(135deg, #F6D365 0%, #FDA085 100%)", subText: "PCS, RO/ARO, VDO, BEO" },
+        { name: "Banking Exams", icon: "🏦", gradient: "linear-gradient(135deg, #4FACFE 0%, #00F2FE 100%)", subText: "IBPS PO, Clerk, SBI PO, SO" },
+        { name: "UP Police", icon: "👮", gradient: "linear-gradient(135deg, #667EEA 0%, #764BA2 100%)", subText: "Constable, SI (Daroga), Home Guard" },
+        { name: "Other Central Exams", icon: "🌍", gradient: "linear-gradient(135deg, #00B4DB 0%, #0083B0 100%)", subText: "IBPS RRB, LIC, Army, Navy" },
+        { name: "Other State Exams", icon: "🗺️", gradient: "linear-gradient(135deg, #FA709A 0%, #FEE140 100%)", subText: "BPSC, UKPSC, JPSC, JSSC" }
     ];
 
     const translations = {
@@ -1086,13 +1087,18 @@
     }
 
     function renderMainCategories() {
-        // We will render the default categories AND any custom ones added in tests/admin
         let finalMainCats = [...defaultMainCategories];
         
-        // Add any unique main categories from tests that aren't in the default list
+        // Add any unique main categories from tests that aren't in the default list (excluding duplicates like 'SSC' when 'SSC Exams' exists)
         const testMainCats = [...new Set(allTests.map(t => t.mainCat))];
         testMainCats.forEach(catName => {
-            if(!finalMainCats.find(c => c.name.toLowerCase() === catName.toLowerCase())) {
+            let isDuplicate = finalMainCats.some(c => {
+                let cName = c.name.toLowerCase().replace("exams", "").trim();
+                let tName = catName.toLowerCase().replace("exams", "").trim();
+                return cName === tName || cName.includes(tName) || tName.includes(cName);
+            });
+
+            if(!isDuplicate) {
                 finalMainCats.push({ 
                     name: catName, 
                     icon: "📚", 
@@ -1120,12 +1126,14 @@
         if(!isLoggedIn) return showLogin();
         nav.mainCat = mainCat;
         
-        // Find sub-categories for this main category
-        // 1. From exam_categories collection
-        let subCats = allExamCategories.filter(c => c.mainCat.toLowerCase() === mainCat.toLowerCase()).map(c => c.subCat);
+        // Normalize mainCat for matching (e.g., treat "SSC" and "SSC Exams" as same)
+        let normalizedMain = mainCat.toLowerCase().replace("exams", "").trim();
+
+        // Find sub-categories for this main category from exam_categories
+        let subCats = allExamCategories.filter(c => c.mainCat.toLowerCase().replace("exams", "").trim() === normalizedMain).map(c => c.subCat);
         
-        // 2. Also add unique sub-cats from existing tests just in case admin forgot to add them in exam_categories
-        const testSubCats = allTests.filter(t => t.mainCat.toLowerCase() === mainCat.toLowerCase()).map(t => t.subCat);
+        // Also add unique sub-cats from existing tests
+        const testSubCats = allTests.filter(t => t.mainCat.toLowerCase().replace("exams", "").trim() === normalizedMain).map(t => t.subCat);
         subCats = [...new Set([...subCats, ...testSubCats])];
 
         let pillsHtml = "";
@@ -1145,12 +1153,18 @@
     }
 
     window.loadTestsForSubCat = function(subCat, pillElement) {
-        // Highlight active pill
         document.querySelectorAll('.sub-cat-pill').forEach(p => p.classList.remove('active'));
         if(pillElement) pillElement.classList.add('active');
 
         nav.subCat = subCat;
-        const filtered = allTests.filter(t => t.mainCat.toLowerCase() === nav.mainCat.toLowerCase() && t.subCat.toLowerCase() === subCat.toLowerCase());
+        
+        let normalizedMain = nav.mainCat.toLowerCase().replace("exams", "").trim();
+        let normalizedSub = subCat.toLowerCase().trim();
+
+        const filtered = allTests.filter(t => 
+            t.mainCat.toLowerCase().replace("exams", "").trim() === normalizedMain && 
+            t.subCat.toLowerCase().trim() === normalizedSub
+        );
         
         let html = "";
         if(filtered.length === 0) {
@@ -1816,7 +1830,7 @@
     }
 
     window.onload = () => {
-        // Set Dynamic Year
+        // Set Dynamic Year for Copyright
         document.getElementById('currentYear').innerText = new Date().getFullYear();
         
         applyLanguage(); 
