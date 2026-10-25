@@ -339,11 +339,14 @@
     // 🔐 यह सीक्रेट की है जो Firebase Rules से मैच करती है
     const ADMIN_KEY = "TG_Admin_999"; 
 
-           window.checkPass = function() {
+               window.checkPass = function() {
         const pass = document.getElementById('adminPass').value.trim();
         
-        // सिंपल टेक्स्ट पासवर्ड
-        if(pass === "Admin@123") {
+        // 👇 यह 'Admin@123' का एनकोडेड कोड है। अब कोड में सीधा पासवर्ड नहीं दिखेगा।
+        const encodedPass = btoa(pass);
+        const correctPass = "QWRtaW5AMTIz"; 
+
+        if(encodedPass === correctPass) {
             localStorage.setItem('tg_admin_logged', 'true');
             document.getElementById('lockScreen').style.display = 'none';
             document.getElementById('adminPanel').style.display = 'block';
