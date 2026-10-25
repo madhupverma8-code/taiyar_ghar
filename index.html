@@ -756,7 +756,7 @@
         <p>आप लगातार 3 सवालों के गलत जवाब दे रहे हैं। कृपया आर्टिकल ध्यान से पढ़ें और फिर उत्तर दें।</p>
     </div>
 
-    <!-- FOOTER (Dynamic Year) -->
+    <!-- FOOTER (Hardcoded 2024) -->
     <footer class="footer" id="mainFooter">
         <div class="footer-links">
             <a onclick="alert('About Us page coming soon!')">About Us</a>
@@ -766,7 +766,7 @@
             <a onclick="alert('Refund Policy page coming soon!')">Refund Policy</a>
             <a onclick="alert('Disclaimer page coming soon!')">Disclaimer</a>
         </div>
-        <p>© <span id="currentYear">2024</span> TaiyariGhar. All rights reserved. Made with ❤️ for Govt Job Aspirants.</p>
+        <p>© 2024 TaiyariGhar. All rights reserved. Made with ❤️ for Govt Job Aspirants.</p>
     </footer>
 
 <script type="module">
@@ -1853,13 +1853,7 @@
         window.addEventListener('load', () => { navigator.serviceWorker.register('sw.js').then(reg => console.log('SW')).catch(err => console.log('SW err', err)); });
     }
 
-    // THIS FIXES THE YEAR 2026 ISSUE BY PULLING THE DEVICE'S CURRENT YEAR
-    document.getElementById('currentYear').innerText = new Date().getFullYear();
-
     window.onload = () => {
-        // Set Dynamic Year for Copyright AGAIN just to be safe
-        document.getElementById('currentYear').innerText = new Date().getFullYear();
-        
         applyLanguage(); 
         let savedUser = localStorage.getItem('tg_user');
         if(savedUser) { 
