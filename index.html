@@ -1,4 +1,4 @@
-<!-- Copyright (c) 2026 TaiyariGhar. All Rights Reserved. Unauthorized copying is strictly prohibited. -->
+<!-- Copyright (c) 2024 TaiyariGhar. All Rights Reserved. Unauthorized copying is strictly prohibited. -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -63,12 +63,12 @@
         .section { padding: 25px 5%; }
         .section-title { font-size: 22px; font-weight: 700; margin-bottom: 15px; color: var(--text); }
         
-        /* UPDATED: Smaller Category Cards Grid */
-        .category-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 12px; }
-        .cat-card { padding: 15px 10px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); cursor: pointer; transition: 0.3s; text-align: center; color: white; position: relative; overflow: hidden; display: flex; flex-direction: column; justify-content: center; align-items: center; min-height: 100px; }
-        .cat-card:hover { transform: translateY(-3px) scale(1.03); box-shadow: 0 8px 15px rgba(0,0,0,0.2); }
-        .cat-icon { font-size: 26px; margin-bottom: 6px; text-shadow: 0 2px 4px rgba(0,0,0,0.3);}
-        .cat-title { font-size: 13px; font-weight: 600; text-shadow: 1px 1px 3px rgba(0,0,0,0.6); line-height: 1.2;}
+        /* BIGGER CATEGORY CARDS & BOLD TEXT */
+        .category-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 15px; }
+        .cat-card { padding: 20px 15px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); cursor: pointer; transition: 0.3s; text-align: center; color: white; position: relative; overflow: hidden; display: flex; flex-direction: column; justify-content: center; align-items: center; min-height: 120px; }
+        .cat-card:hover { transform: translateY(-3px) scale(1.03); box-shadow: 0 8px 20px rgba(0,0,0,0.2); }
+        .cat-icon { font-size: 32px; margin-bottom: 10px; text-shadow: 0 2px 4px rgba(0,0,0,0.3);}
+        .cat-title { font-size: 16px; font-weight: 800; text-shadow: 1px 1px 3px rgba(0,0,0,0.6); line-height: 1.2; letter-spacing: 0.5px;}
 
         .wide-cat-banner { padding: 20px 25px; border-radius: 12px; color: white; display: flex; justify-content: space-between; align-items: center; margin-top: 15px; box-shadow: 0 8px 20px rgba(0,0,0,0.15); cursor: pointer; transition: 0.3s;}
         .wide-cat-banner:hover { transform: translateY(-2px); box-shadow: 0 12px 25px rgba(0,0,0,0.25);}
@@ -228,10 +228,10 @@
             .hero-img { margin-top: 15px; }
             .hero-img img { max-height: 180px; }
             .wide-cat-banner { flex-direction: column; text-align: center; gap: 10px;}
-            .category-grid { grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 8px; }
-            .cat-card { min-height: 90px; padding: 10px 5px; }
-            .cat-icon { font-size: 24px; }
-            .cat-title { font-size: 12px; }
+            .category-grid { grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 10px; }
+            .cat-card { min-height: 100px; padding: 15px 10px; }
+            .cat-icon { font-size: 26px; }
+            .cat-title { font-size: 14px; }
             .nav-links { display: none; } 
             .test-item { flex-direction: column; align-items: flex-start; gap: 10px; }
             .header { justify-content: center;}
@@ -261,7 +261,6 @@
         </div>
         <div class="header-right" id="headerAuth">
             <button class="lang-btn" onclick="toggleLanguage()" id="langBtn">हिंदी</button>
-            <!-- Application Download Button (Always Visible) -->
             <button id="installBtn" class="install-btn" onclick="installPWA()">📲 Install App</button>
             <button class="btn btn-outline" onclick="showLogin()" data-translate="nav_login">Login</button>
             <button class="btn btn-primary" onclick="showRegister()" data-translate="nav_register">Register</button>
@@ -370,8 +369,8 @@
                     <p>Our subscription is very affordable. You can check the exact price by clicking on any locked test or in the "My Purchases" section.</p>
                 </details>
                 <details>
-                    <summary>What is the validity of the subscription?</summary>
-                    <p>Our subscription is a one-time payment plan with a validity of 1 year (365 days) from the date of purchase.</p>
+                    <summary>What are the subscription plans available?</summary>
+                    <p>We offer flexible Monthly and Quarterly (3 months) subscription plans. You can choose the plan that best suits your preparation timeline.</p>
                 </details>
                 <details>
                     <summary>How can I make the payment?</summary>
@@ -402,7 +401,7 @@
     <div id="loginScreen" class="section hide" style="max-width: 450px; margin: 30px auto;">
         <div style="background: white; padding: 30px 20px; border-radius: 16px; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.05);">
             <h2 style="color: var(--primary); margin-bottom: 20px; font-size: 20px;" data-translate="login_h2">Login to Your Account</h2>
-            <input type="tel" id="loginId" placeholder="WhatsApp Number (e.g., 9876543210)" style="width:100%; padding:12px; margin-bottom: 12px; border:2px solid #E5E7EB; border-radius:8px; outline:none;">
+            <input type="text" id="loginId" placeholder="Login ID or WhatsApp Number" style="width:100%; padding:12px; margin-bottom: 12px; border:2px solid #E5E7EB; border-radius:8px; outline:none;">
             <input type="password" id="loginPass" placeholder="Password" style="width:100%; padding:12px; margin-bottom: 10px; border:2px solid #E5E7EB; border-radius:8px; outline:none;">
             
             <div style="text-align: right; margin-bottom: 15px;">
@@ -436,7 +435,11 @@
             <input type="password" id="forgotNewPass" placeholder="New Password" style="width:100%; padding:12px; margin-bottom: 20px; border:2px solid #E5E7EB; border-radius:8px; outline:none;">
             
             <button class="btn btn-primary" style="width:100%; padding:12px;" onclick="doResetPassword()">Reset Password</button>
-            <p style="margin-top: 15px; font-size: 14px;"><a href="#" onclick="showLogin()" style="color: var(--primary);">← Back to Login</a></p>
+            
+            <p style="margin-top: 15px; font-size: 13px;">
+                <a href="#" onclick="contactWhatsAppSupport()" style="color: var(--accent); font-weight: bold; text-decoration: none;">Recovery Code भूल गए? WhatsApp पर संपर्क करें</a>
+            </p>
+            <p style="margin-top: 10px; font-size: 14px;"><a href="#" onclick="showLogin()" style="color: var(--primary);">← Back to Login</a></p>
         </div>
     </div>
 
@@ -766,7 +769,7 @@
             <a onclick="alert('Refund Policy page coming soon!')">Refund Policy</a>
             <a onclick="alert('Disclaimer page coming soon!')">Disclaimer</a>
         </div>
-        <p>© 2026 TaiyariGhar. All rights reserved. Made with ❤️ for Govt Job Aspirants.</p>
+        <p>© <span id="currentYear"></span> TaiyariGhar. All rights reserved. Made with ❤️ for Govt Job Aspirants.</p>
     </footer>
 
 <script type="module">
@@ -835,7 +838,7 @@
             }
         });
         const placeholders = { 
-            "loginId": currentLang === 'en' ? "WhatsApp Number (e.g., 9876543210)" : "व्हाट्सएप नंबर (जैसे 9876543210)", 
+            "loginId": currentLang === 'en' ? "Login ID or WhatsApp Number" : "लॉगिन आईडी या व्हाट्सएप नंबर", 
             "loginPass": currentLang === 'en' ? "Password" : "पासवर्ड", 
             "regName": currentLang === 'en' ? "Full Name" : "पूरा नाम", 
             "regMobile": currentLang === 'en' ? "WhatsApp Number (e.g., 9876543210)" : "व्हाट्सएप नंबर (जैसे 9876543210)", 
@@ -903,14 +906,20 @@
     window.scrollToCategories = function() { if(!isLoggedIn) { alert(currentLang === 'en' ? "Please login first!" : "कृपया पहले लॉगिन करें!"); showLogin(); } else { document.getElementById('dashCategories').scrollIntoView({behavior: 'smooth'}); } }
     window.showPurchases = function() { if(!isLoggedIn) return; let status = currentStudent.isPaid ? (currentLang === 'en' ? "Paid (All Access Pass)" : "पेड (ऑल एक्सेस)") : (currentLang === 'en' ? "Free User" : "फ्री यूजर"); alert(`--- MY PURCHASES ---\n\nPlan: ${status}\nExpiry Date: ${currentStudent.expiry || "N/A"}`); }
 
+    // NEW: LOGIN VIA ID OR MOBILE
     window.doLogin = async function() {
-        const mobile = document.getElementById('loginId').value.trim(); 
+        const inputVal = document.getElementById('loginId').value.trim(); 
         const pass = document.getElementById('loginPass').value.trim();
-        if(!mobile || !pass) return alert(currentLang === 'en' ? "Enter Mobile and Password!" : "मोबाइल नंबर और पासवर्ड दर्ज करें!");
+        if(!inputVal || !pass) return alert(currentLang === 'en' ? "Enter Login ID / Mobile and Password!" : "लॉगिन आईडी / मोबाइल और पासवर्ड दर्ज करें!");
         
         try {
-            const q = query(collection(db, "students"), where("mobile", "==", mobile), where("password", "==", pass));
-            const snapshot = await getDocs(q);
+            // Check by Login ID first
+            let snapshot = await getDocs(query(collection(db, "students"), where("loginId", "==", inputVal), where("password", "==", pass)));
+            
+            // If not found, check by Mobile Number
+            if(snapshot.empty) {
+                snapshot = await getDocs(query(collection(db, "students"), where("mobile", "==", inputVal), where("password", "==", pass)));
+            }
             
             if(!snapshot.empty) {
                 const studentDoc = snapshot.docs[0];
@@ -939,7 +948,7 @@
                 localStorage.setItem('tg_user', JSON.stringify(currentStudent));
                 await fetchSettingsAndTests();
                 goDashboard();
-            } else { alert(currentLang === 'en' ? "Invalid WhatsApp Number or Password!" : "गलत व्हाट्सएप नंबर या पासवर्ड!"); }
+            } else { alert(currentLang === 'en' ? "Invalid Login ID / Mobile or Password!" : "गलत लॉगिन आईडी / मोबाइल या पासवर्ड!"); }
         } catch (e) { console.error(e); alert("Database Error: " + e.message); }
     }
 
@@ -1013,6 +1022,16 @@
                 alert("❌ Invalid WhatsApp Number or Recovery Code!\nPlease contact WhatsApp support if you forgot the code.");
             }
         } catch(e) { console.error(e); alert("Error: " + e.message); }
+    }
+
+    // NEW: WHATSAPP SUPPORT FUNCTION
+    window.contactWhatsAppSupport = function() {
+        let mobile = (appSettings.Mobile || "9140281870").toString().trim();
+        let cleanMobile = mobile.replace(/[^0-9]/g, '');
+        if(cleanMobile.length === 10) cleanMobile = "91" + cleanMobile;
+        
+        const msg = `Hello Admin, I forgot my password AND Recovery Code for TaiyariGhar. Please help me reset it.`;
+        window.open(`https://wa.me/${cleanMobile}?text=${encodeURIComponent(msg)}`, '_blank');
     }
 
     async function fetchSettingsAndTests() {
@@ -1089,23 +1108,22 @@
         const uniqueCats = [...new Set(allTests.map(t => t.mainCat))];
         let gridHtml = ""; let bannerHtml = "";
 
-        // Array of 15+ Unique & Dark Gradients for readable white text
         const colorGradients = [
-            "linear-gradient(135deg, #FF416C 0%, #FF4B2B 100%)", // Red
-            "linear-gradient(135deg, #4FACFE 0%, #00F2FE 100%)", // Blue
-            "linear-gradient(135deg, #43E97B 0%, #38F9D7 100%)", // Green
-            "linear-gradient(135deg, #FA709A 0%, #FEE140 100%)", // Pink/Yellow
-            "linear-gradient(135deg, #667EEA 0%, #764BA2 100%)", // Purple
-            "linear-gradient(135deg, #F6D365 0%, #FDA085 100%)", // Orange
-            "linear-gradient(135deg, #00B4DB 0%, #0083B0 100%)", // Teal
-            "linear-gradient(135deg, #FF9A44 0%, #FC6076 100%)", // Peach
-            "linear-gradient(135deg, #3A1C71 0%, #D76D77 100%)", // Dark Purple/Red
-            "linear-gradient(135deg, #11998E 0%, #38EF7D 100%)", // Bright Green
-            "linear-gradient(135deg, #FC5C7D 0%, #6A82FB 100%)", // Pink to Blue
-            "linear-gradient(135deg, #FDC830 0%, #F37335 100%)", // Gold/Orange
-            "linear-gradient(135deg, #8E2DE2 0%, #4A00E0 100%)", // Deep Purple
-            "linear-gradient(135deg, #E44D26 0%, #F16529 100%)", // Orange/Red
-            "linear-gradient(135deg, #232526 0%, #414345 100%)"  // Dark Grey
+            "linear-gradient(135deg, #FF416C 0%, #FF4B2B 100%)", 
+            "linear-gradient(135deg, #4FACFE 0%, #00F2FE 100%)", 
+            "linear-gradient(135deg, #43E97B 0%, #38F9D7 100%)", 
+            "linear-gradient(135deg, #FA709A 0%, #FEE140 100%)", 
+            "linear-gradient(135deg, #667EEA 0%, #764BA2 100%)", 
+            "linear-gradient(135deg, #F6D365 0%, #FDA085 100%)", 
+            "linear-gradient(135deg, #00B4DB 0%, #0083B0 100%)", 
+            "linear-gradient(135deg, #FF9A44 0%, #FC6076 100%)", 
+            "linear-gradient(135deg, #3A1C71 0%, #D76D77 100%)", 
+            "linear-gradient(135deg, #11998E 0%, #38EF7D 100%)", 
+            "linear-gradient(135deg, #FC5C7D 0%, #6A82FB 100%)", 
+            "linear-gradient(135deg, #FDC830 0%, #F37335 100%)", 
+            "linear-gradient(135deg, #8E2DE2 0%, #4A00E0 100%)", 
+            "linear-gradient(135deg, #E44D26 0%, #F16529 100%)", 
+            "linear-gradient(135deg, #232526 0%, #414345 100%)"  
         ];
         
         const icons = ["📚", "📝", "🏛️", "🚂", "👮", "🏦", "🌍", "💼", "🎯", "🎓", "🏥", "⚖️", "🛡️", "💻", "📊"];
@@ -1113,7 +1131,6 @@
         uniqueCats.forEach((catName, index) => {
             let n = catName.toLowerCase();
             
-            // Automatically assign unique color and icon based on index
             let bgGradient = colorGradients[index % colorGradients.length];
             let icon = icons[index % icons.length];
 
@@ -1135,7 +1152,7 @@
         const filtered = allTests.filter(t => t.mainCat === mainCat);
         const uniqueSubCats = [...new Set(filtered.map(t => t.subCat))];
         let html = "";
-        uniqueSubCats.forEach(subCat => { html += `<div class="cat-card" style="background: white; border: 2px solid #E5E7EB; color: #1F2937; padding: 15px; min-height: auto;" onclick="openSubCategory('${subCat}')"><div class="cat-icon" style="font-size:26px; margin-bottom:5px;">📂</div><div class="cat-title" style="font-size:14px; text-shadow:none;">${subCat}</div></div>`; });
+        uniqueSubCats.forEach(subCat => { html += `<div class="cat-card" style="background: white; border: 2px solid #E5E7EB; color: #1F2937; padding: 15px; min-height: auto;" onclick="openSubCategory('${subCat}')"><div class="cat-icon" style="font-size:26px; margin-bottom:5px;">📂</div><div class="cat-title" style="font-size:15px; text-shadow:none;">${subCat}</div></div>`; });
         hideAll(); document.getElementById('subCatScreen').classList.remove('hide'); document.getElementById('subCatTitle').innerText = mainCat + (currentLang === 'en' ? " - Select Type" : " - प्रकार चुनें"); document.getElementById('subCatGrid').innerHTML = html;
     }
 
@@ -1144,7 +1161,7 @@
         const filtered = allTests.filter(t => t.mainCat === nav.mainCat && t.subCat === subCat);
         const uniqueExams = [...new Set(filtered.map(t => t.examName))];
         let html = "";
-        uniqueExams.forEach(exam => { html += `<div class="cat-card" style="background: white; border: 2px solid #E5E7EB; color: #1F2937; padding: 15px; min-height: auto;" onclick="openExam('${exam}')"><div class="cat-icon" style="font-size:26px; margin-bottom:5px;">📚</div><div class="cat-title" style="font-size:14px; text-shadow:none;">${exam}</div></div>`; });
+        uniqueExams.forEach(exam => { html += `<div class="cat-card" style="background: white; border: 2px solid #E5E7EB; color: #1F2937; padding: 15px; min-height: auto;" onclick="openExam('${exam}')"><div class="cat-icon" style="font-size:26px; margin-bottom:5px;">📚</div><div class="cat-title" style="font-size:15px; text-shadow:none;">${exam}</div></div>`; });
         hideAll(); document.getElementById('examScreen').classList.remove('hide'); document.getElementById('examTitle').innerText = nav.mainCat + " > " + subCat + (currentLang === 'en' ? " - Select Exam" : " - परीक्षा चुनें"); document.getElementById('examGrid').innerHTML = html;
     }
 
@@ -1812,6 +1829,9 @@
     }
 
     window.onload = () => {
+        // Set Dynamic Year
+        document.getElementById('currentYear').innerText = new Date().getFullYear();
+        
         applyLanguage(); 
         let savedUser = localStorage.getItem('tg_user');
         if(savedUser) { 
