@@ -64,16 +64,22 @@
         .section-title { font-size: 22px; font-weight: 700; margin-bottom: 15px; color: var(--text); }
         
         /* BIGGER CATEGORY CARDS & BOLD TEXT */
-        .category-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 15px; }
-        .cat-card { padding: 20px 15px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); cursor: pointer; transition: 0.3s; text-align: center; color: white; position: relative; overflow: hidden; display: flex; flex-direction: column; justify-content: center; align-items: center; min-height: 120px; }
+        .category-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 15px; }
+        .cat-card { padding: 25px 15px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); cursor: pointer; transition: 0.3s; text-align: center; color: white; position: relative; overflow: hidden; display: flex; flex-direction: column; justify-content: center; align-items: center; min-height: 130px; }
         .cat-card:hover { transform: translateY(-3px) scale(1.03); box-shadow: 0 8px 20px rgba(0,0,0,0.2); }
-        .cat-icon { font-size: 32px; margin-bottom: 10px; text-shadow: 0 2px 4px rgba(0,0,0,0.3);}
-        .cat-title { font-size: 16px; font-weight: 800; text-shadow: 1px 1px 3px rgba(0,0,0,0.6); line-height: 1.2; letter-spacing: 0.5px;}
+        .cat-icon { font-size: 36px; margin-bottom: 10px; text-shadow: 0 2px 4px rgba(0,0,0,0.3);}
+        .cat-title { font-size: 17px; font-weight: 800; text-shadow: 1px 1px 3px rgba(0,0,0,0.6); line-height: 1.2; letter-spacing: 0.5px;}
+        .cat-sub-text { font-size: 11px; opacity: 0.9; margin-top: 5px; font-weight: 400; }
 
         .wide-cat-banner { padding: 20px 25px; border-radius: 12px; color: white; display: flex; justify-content: space-between; align-items: center; margin-top: 15px; box-shadow: 0 8px 20px rgba(0,0,0,0.15); cursor: pointer; transition: 0.3s;}
         .wide-cat-banner:hover { transform: translateY(-2px); box-shadow: 0 12px 25px rgba(0,0,0,0.25);}
         .wide-cat-banner h2 { font-size: 20px; margin-bottom: 5px; color: white; text-shadow: 1px 1px 3px rgba(0,0,0,0.4);}
         .wide-cat-banner p { font-size: 13px; opacity: 0.9; text-shadow: 1px 1px 2px rgba(0,0,0,0.4);}
+
+        /* Sub-Category Pills */
+        .sub-cat-container { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 20px; }
+        .sub-cat-pill { padding: 8px 16px; background: white; border: 2px solid var(--primary); color: var(--primary); border-radius: 20px; font-weight: 600; cursor: pointer; transition: 0.2s; font-size: 14px; }
+        .sub-cat-pill:hover, .sub-cat-pill.active { background: var(--primary); color: white; }
 
         .quick-view { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px; margin-bottom: 15px; }
         .qv-card { background: var(--white); padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); border-left: 5px solid var(--secondary); }
@@ -228,10 +234,10 @@
             .hero-img { margin-top: 15px; }
             .hero-img img { max-height: 180px; }
             .wide-cat-banner { flex-direction: column; text-align: center; gap: 10px;}
-            .category-grid { grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 10px; }
-            .cat-card { min-height: 100px; padding: 15px 10px; }
-            .cat-icon { font-size: 26px; }
-            .cat-title { font-size: 14px; }
+            .category-grid { grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 10px; }
+            .cat-card { min-height: 110px; padding: 15px 10px; }
+            .cat-icon { font-size: 28px; }
+            .cat-title { font-size: 15px; }
             .nav-links { display: none; } 
             .test-item { flex-direction: column; align-items: flex-start; gap: 10px; }
             .header { justify-content: center;}
@@ -287,33 +293,6 @@
             </div>
             <div class="hero-img">
                 <img src="YOUR_IMAGE_LINK_HERE" alt="Student" onerror="this.src='https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=600&auto=format&fit=crop'">
-            </div>
-        </div>
-
-        <!-- WHY CHOOSE SECTION -->
-        <div class="section" style="padding-bottom: 0;">
-            <h2 class="section-title" style="text-align: center;">Why Choose TaiyariGhar?</h2>
-            <div class="features-grid">
-                <div class="feature-card">
-                    <div class="feature-icon">📚</div>
-                    <h3>Chapter-wise Tests</h3>
-                    <p>Strengthen your basics with topic-wise practice tests.</p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon">📝</div>
-                    <h3>Sectional Tests</h3>
-                    <p>Master each section with targeted sectional mock tests.</p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon">⏱️</div>
-                    <h3>Full-Length Mocks</h3>
-                    <p>Experience the real exam environment with full-length mocks.</p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon">💡</div>
-                    <h3>Detailed Solutions</h3>
-                    <p>Understand your mistakes with in-depth explanations for every question.</p>
-                </div>
             </div>
         </div>
 
@@ -486,19 +465,12 @@
     <div id="subCatScreen" class="section hide">
         <button class="btn btn-outline" style="margin-bottom: 20px;" onclick="goDashboard()" data-translate="btn_back_cat">← Back to Categories</button>
         <h2 class="section-title" id="subCatTitle"></h2>
-        <div class="category-grid" id="subCatGrid"></div>
-    </div>
+        
+        <!-- Sub-category pills container -->
+        <div id="subCatPills" class="sub-cat-container"></div>
 
-    <div id="examScreen" class="section hide">
-        <button class="btn btn-outline" style="margin-bottom: 20px;" onclick="goBackToSubCat()" data-translate="btn_back_sub">← Back to Sub-Categories</button>
-        <h2 class="section-title" id="examTitle"></h2>
-        <div class="category-grid" id="examGrid"></div>
-    </div>
-
-    <div id="testListScreen" class="section hide">
-        <button class="btn btn-outline" style="margin-bottom: 20px;" onclick="goBackToExam()" data-translate="btn_back_exam">← Back to Exams</button>
-        <h2 class="section-title" id="testListTitle"></h2>
-        <div class="test-list" id="testListContainer"></div>
+        <!-- Test list container -->
+        <div id="testListContainer" class="test-list"></div>
     </div>
 
     <div id="caScreen" class="section hide" style="max-width: 900px; margin: 0 auto;">
@@ -788,7 +760,7 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    let allTests = [], appSettings = {}, allCA = [];
+    let allTests = [], appSettings = {}, allCA = [], allExamCategories = [];
     let userPastResults = {}; 
     
     let currentStudent = { name: "", loginId: "", isPaid: false, expiry: "" };
@@ -802,6 +774,17 @@
     let currentTestId = "", currentTestName = "", currentTestMarks = 0, currentTestNegMark = 0, currentTestLanguage = "Both";
     let pendingTestDetails = null;
     let currentResultData = null;
+
+    // Hardcoded Main Categories for display
+    const defaultMainCategories = [
+        { name: "SSC Exams", icon: "🏛️", gradient: "linear-gradient(135deg, #FF416C 0%, #FF4B2B 100%)", subText: "CGL, CHSL, MTS, GD" },
+        { name: "Railway Exams", icon: "🚂", gradient: "linear-gradient(135deg, #43E97B 0%, #38F9D7 100%)", subText: "NTPC, Group D, ALP" },
+        { name: "UP State Exams", icon: "🏛️", gradient: "linear-gradient(135deg, #F6D365 0%, #FDA085 100%)", subText: "PCS, RO/ARO, VDO" },
+        { name: "Banking Exams", icon: "🏦", gradient: "linear-gradient(135deg, #4FACFE 0%, #00F2FE 100%)", subText: "PO, Clerk, SO" },
+        { name: "UP Police", icon: "👮", gradient: "linear-gradient(135deg, #667EEA 0%, #764BA2 100%)", subText: "Daroga, Constable" },
+        { name: "Other Central Exams", icon: "🌍", gradient: "linear-gradient(135deg, #00B4DB 0%, #0083B0 100%)", subText: "IBPS, LIC, Army" },
+        { name: "Other State Exams", icon: "🗺️", gradient: "linear-gradient(135deg, #FA709A 0%, #FEE140 100%)", subText: "Bihar, Uttarakhand" }
+    ];
 
     const translations = {
         "en": { "nav_home": "Home", "nav_exams": "All Exams", "nav_ca": "Current Affairs", "nav_login": "Login", "nav_register": "Register", "nav_dash": "Dashboard", "nav_purchase": "My Purchases", "nav_logout": "Logout", "hero_h1": "Crack Your Dream Govt Job with Confidence.", "hero_p": "All-in-one mock test platform for SSC, Railway, Police & All State Exams. Latest syllabus, real-time rankings, and unlimited tests in one subscription.", "sec_cats": "🎯 Exam Categories", "ca_h2": "📰 Current Affairs Hub", "ca_p": "Stay updated with Daily, Weekly, and Monthly Current Affairs.", "btn_explore": "Explore Now", "login_h2": "Login to Your Account", "login_btn": "Login", "login_new": "New user?", "login_reg": "Register Here", "reg_h2": "Create an Account", "reg_btn": "Register Now", "dash_h2": "Crack Your Dream Govt Job with Confidence.", "dash_qv": "📊 Dashboard Quick View", "qv_explore": "Explore Tests", "qv_browse": "Browse all available tests", "qv_view": "View Tests", "qv_rec": "Recommended Next", "qv_loading": "Loading...", "qv_start": "Start Now", "qv_recent": "Recent Performance", "qv_not_att": "Not Attempted Yet", "qv_take": "Take a test to see your score", "btn_back_cat": "← Back to Categories", "btn_back_sub": "← Back to Sub-Categories", "btn_back_exam": "← Back to Exams", "btn_back_home": "← Back to Home", "test_clear": "Clear Response", "test_mark": "⭐ Mark", "test_prev": "← Prev", "test_next": "Save & Next →", "test_palette": "Question Palette", "test_submit": "Submit Test", "res_h2": "Test Result", "res_lb": "🏆 Top 5 Leaderboard", "res_back": "Back to Dashboard", "pay_lock": "🔒 Test Locked", "pay_unlock": "Unlock all tests with a one-time payment of", "pay_upi": "UPI ID:", "pay_wa": "📲 Send Screenshot on WhatsApp", "pay_check": "🔄 Check Status", "pay_close": "Close" },
@@ -871,7 +854,7 @@
     }
 
     function hideAll() { 
-        ['homeScreen', 'loginScreen', 'registerScreen', 'forgotPasswordScreen', 'dashboardScreen', 'subCatScreen', 'examScreen', 'testListScreen', 'caScreen', 'instructionsScreen', 'testScreen', 'resultScreen', 'solutionsScreen'].forEach(id => document.getElementById(id).classList.add('hide')); 
+        ['homeScreen', 'loginScreen', 'registerScreen', 'forgotPasswordScreen', 'dashboardScreen', 'subCatScreen', 'caScreen', 'instructionsScreen', 'testScreen', 'resultScreen', 'solutionsScreen'].forEach(id => document.getElementById(id).classList.add('hide')); 
         document.getElementById('mainHeader').classList.remove('hide');
         document.getElementById('mainFooter').classList.remove('hide');
     }
@@ -906,17 +889,13 @@
     window.scrollToCategories = function() { if(!isLoggedIn) { alert(currentLang === 'en' ? "Please login first!" : "कृपया पहले लॉगिन करें!"); showLogin(); } else { document.getElementById('dashCategories').scrollIntoView({behavior: 'smooth'}); } }
     window.showPurchases = function() { if(!isLoggedIn) return; let status = currentStudent.isPaid ? (currentLang === 'en' ? "Paid (All Access Pass)" : "पेड (ऑल एक्सेस)") : (currentLang === 'en' ? "Free User" : "फ्री यूजर"); alert(`--- MY PURCHASES ---\n\nPlan: ${status}\nExpiry Date: ${currentStudent.expiry || "N/A"}`); }
 
-    // NEW: LOGIN VIA ID OR MOBILE
     window.doLogin = async function() {
         const inputVal = document.getElementById('loginId').value.trim(); 
         const pass = document.getElementById('loginPass').value.trim();
         if(!inputVal || !pass) return alert(currentLang === 'en' ? "Enter Login ID / Mobile and Password!" : "लॉगिन आईडी / मोबाइल और पासवर्ड दर्ज करें!");
         
         try {
-            // Check by Login ID first
             let snapshot = await getDocs(query(collection(db, "students"), where("loginId", "==", inputVal), where("password", "==", pass)));
-            
-            // If not found, check by Mobile Number
             if(snapshot.empty) {
                 snapshot = await getDocs(query(collection(db, "students"), where("mobile", "==", inputVal), where("password", "==", pass)));
             }
@@ -1024,7 +1003,6 @@
         } catch(e) { console.error(e); alert("Error: " + e.message); }
     }
 
-    // NEW: WHATSAPP SUPPORT FUNCTION
     window.contactWhatsAppSupport = function() {
         let mobile = (appSettings.Mobile || "9140281870").toString().trim();
         let cleanMobile = mobile.replace(/[^0-9]/g, '');
@@ -1043,7 +1021,10 @@
             const testSnap = await getDocs(collection(db, "tests"));
             allTests = testSnap.docs.map(d => ({ id: d.id, ...d.data() }));
             
-            renderCategories();
+            const catSnap = await getDocs(collection(db, "exam_categories"));
+            allExamCategories = catSnap.docs.map(d => d.data());
+
+            renderMainCategories();
 
             const caSnap = await getDocs(collection(db, "current_affairs"));
             allCA = caSnap.docs.map(d => ({ id: d.id, ...d.data() }));
@@ -1104,44 +1085,33 @@
         }
     }
 
-    function renderCategories() {
-        const uniqueCats = [...new Set(allTests.map(t => t.mainCat))];
-        let gridHtml = ""; let bannerHtml = "";
-
-        const colorGradients = [
-            "linear-gradient(135deg, #FF416C 0%, #FF4B2B 100%)", 
-            "linear-gradient(135deg, #4FACFE 0%, #00F2FE 100%)", 
-            "linear-gradient(135deg, #43E97B 0%, #38F9D7 100%)", 
-            "linear-gradient(135deg, #FA709A 0%, #FEE140 100%)", 
-            "linear-gradient(135deg, #667EEA 0%, #764BA2 100%)", 
-            "linear-gradient(135deg, #F6D365 0%, #FDA085 100%)", 
-            "linear-gradient(135deg, #00B4DB 0%, #0083B0 100%)", 
-            "linear-gradient(135deg, #FF9A44 0%, #FC6076 100%)", 
-            "linear-gradient(135deg, #3A1C71 0%, #D76D77 100%)", 
-            "linear-gradient(135deg, #11998E 0%, #38EF7D 100%)", 
-            "linear-gradient(135deg, #FC5C7D 0%, #6A82FB 100%)", 
-            "linear-gradient(135deg, #FDC830 0%, #F37335 100%)", 
-            "linear-gradient(135deg, #8E2DE2 0%, #4A00E0 100%)", 
-            "linear-gradient(135deg, #E44D26 0%, #F16529 100%)", 
-            "linear-gradient(135deg, #232526 0%, #414345 100%)"  
-        ];
+    function renderMainCategories() {
+        // We will render the default categories AND any custom ones added in tests/admin
+        let finalMainCats = [...defaultMainCategories];
         
-        const icons = ["📚", "📝", "🏛️", "🚂", "👮", "🏦", "🌍", "💼", "🎯", "🎓", "🏥", "⚖️", "🛡️", "💻", "📊"];
-
-        uniqueCats.forEach((catName, index) => {
-            let n = catName.toLowerCase();
-            
-            let bgGradient = colorGradients[index % colorGradients.length];
-            let icon = icons[index % icons.length];
-
-            if(n.includes("more") || n.includes("other")) {
-                bannerHtml = `<div class="wide-cat-banner" style="background: ${bgGradient};" onclick="openCategory('${catName}')"><div><h2>🌍 ${catName}</h2><p>Explore all other miscellaneous exams here.</p></div><button class="btn" style="background: white; color: #333; font-weight: bold;">View Now</button></div>`;
-            } else {
-                gridHtml += `<div class="cat-card" style="background: ${bgGradient};" onclick="openCategory('${catName}')"><div class="cat-icon">${icon}</div><div class="cat-title">${catName}</div></div>`;
+        // Add any unique main categories from tests that aren't in the default list
+        const testMainCats = [...new Set(allTests.map(t => t.mainCat))];
+        testMainCats.forEach(catName => {
+            if(!finalMainCats.find(c => c.name.toLowerCase() === catName.toLowerCase())) {
+                finalMainCats.push({ 
+                    name: catName, 
+                    icon: "📚", 
+                    gradient: "linear-gradient(135deg, #8E2DE2 0%, #4A00E0 100%)",
+                    subText: "Explore Tests"
+                });
             }
         });
 
-        const finalHtml = `<div class="category-grid">${gridHtml}</div>${bannerHtml}`;
+        let gridHtml = "";
+        finalMainCats.forEach(cat => {
+            gridHtml += `<div class="cat-card" style="background: ${cat.gradient};" onclick="openCategory('${cat.name}')">
+                <div class="cat-icon">${cat.icon}</div>
+                <div class="cat-title">${cat.name}</div>
+                <div class="cat-sub-text">${cat.subText || ''}</div>
+            </div>`;
+        });
+
+        const finalHtml = `<div class="category-grid">${gridHtml}</div>`;
         document.getElementById('homeCatContainer').innerHTML = finalHtml;
         document.getElementById('dashCatContainer').innerHTML = finalHtml;
     }
@@ -1149,62 +1119,79 @@
     window.openCategory = function(mainCat) {
         if(!isLoggedIn) return showLogin();
         nav.mainCat = mainCat;
-        const filtered = allTests.filter(t => t.mainCat === mainCat);
-        const uniqueSubCats = [...new Set(filtered.map(t => t.subCat))];
-        let html = "";
-        uniqueSubCats.forEach(subCat => { html += `<div class="cat-card" style="background: white; border: 2px solid #E5E7EB; color: #1F2937; padding: 15px; min-height: auto;" onclick="openSubCategory('${subCat}')"><div class="cat-icon" style="font-size:26px; margin-bottom:5px;">📂</div><div class="cat-title" style="font-size:15px; text-shadow:none;">${subCat}</div></div>`; });
-        hideAll(); document.getElementById('subCatScreen').classList.remove('hide'); document.getElementById('subCatTitle').innerText = mainCat + (currentLang === 'en' ? " - Select Type" : " - प्रकार चुनें"); document.getElementById('subCatGrid').innerHTML = html;
+        
+        // Find sub-categories for this main category
+        // 1. From exam_categories collection
+        let subCats = allExamCategories.filter(c => c.mainCat.toLowerCase() === mainCat.toLowerCase()).map(c => c.subCat);
+        
+        // 2. Also add unique sub-cats from existing tests just in case admin forgot to add them in exam_categories
+        const testSubCats = allTests.filter(t => t.mainCat.toLowerCase() === mainCat.toLowerCase()).map(t => t.subCat);
+        subCats = [...new Set([...subCats, ...testSubCats])];
+
+        let pillsHtml = "";
+        if(subCats.length > 0) {
+            subCats.forEach(sc => {
+                pillsHtml += `<div class="sub-cat-pill" onclick="loadTestsForSubCat('${sc}', this)">${sc}</div>`;
+            });
+        } else {
+            pillsHtml = `<p style="color:#666; font-style:italic;">No sub-categories added yet for this exam.</p>`;
+        }
+
+        hideAll(); 
+        document.getElementById('subCatScreen').classList.remove('hide'); 
+        document.getElementById('subCatTitle').innerText = mainCat + (currentLang === 'en' ? " - Select Exam Type" : " - परीक्षा प्रकार चुनें"); 
+        document.getElementById('subCatPills').innerHTML = pillsHtml;
+        document.getElementById('testListContainer').innerHTML = ""; // Clear tests until a pill is clicked
     }
 
-    window.openSubCategory = function(subCat) {
+    window.loadTestsForSubCat = function(subCat, pillElement) {
+        // Highlight active pill
+        document.querySelectorAll('.sub-cat-pill').forEach(p => p.classList.remove('active'));
+        if(pillElement) pillElement.classList.add('active');
+
         nav.subCat = subCat;
-        const filtered = allTests.filter(t => t.mainCat === nav.mainCat && t.subCat === subCat);
-        const uniqueExams = [...new Set(filtered.map(t => t.examName))];
+        const filtered = allTests.filter(t => t.mainCat.toLowerCase() === nav.mainCat.toLowerCase() && t.subCat.toLowerCase() === subCat.toLowerCase());
+        
         let html = "";
-        uniqueExams.forEach(exam => { html += `<div class="cat-card" style="background: white; border: 2px solid #E5E7EB; color: #1F2937; padding: 15px; min-height: auto;" onclick="openExam('${exam}')"><div class="cat-icon" style="font-size:26px; margin-bottom:5px;">📚</div><div class="cat-title" style="font-size:15px; text-shadow:none;">${exam}</div></div>`; });
-        hideAll(); document.getElementById('examScreen').classList.remove('hide'); document.getElementById('examTitle').innerText = nav.mainCat + " > " + subCat + (currentLang === 'en' ? " - Select Exam" : " - परीक्षा चुनें"); document.getElementById('examGrid').innerHTML = html;
-    }
+        if(filtered.length === 0) {
+            html = `<p style="text-align:center; color:#666; padding:20px;">No tests available for <b>${subCat}</b> right now. Please check back later.</p>`;
+        } else {
+            filtered.forEach(t => {
+                let isLocked = (String(t.isFree).trim().toLowerCase() !== "yes" && !currentStudent.isPaid);
+                let hasPastResult = userPastResults[t.id] !== undefined;
+                let inProgressData = localStorage.getItem('tg_resume_' + t.id);
 
-    window.openExam = function(examName) {
-        nav.examName = examName;
-        const filtered = allTests.filter(t => t.mainCat === nav.mainCat && t.subCat === nav.subCat && t.examName === examName);
-        let html = "";
-        filtered.forEach(t => {
-            let isLocked = (String(t.isFree).trim().toLowerCase() !== "yes" && !currentStudent.isPaid);
-            let hasPastResult = userPastResults[t.id] !== undefined;
-            let inProgressData = localStorage.getItem('tg_resume_' + t.id);
-
-            let btnHtml = "";
-            if(isLocked) {
-                btnHtml = `<button class="btn" style="background:#F3F4F6; color:#6B7280; border:1px solid #E5E7EB;" onclick="openPaymentModal()">🔒 Unlock</button>`;
-            } else {
-                if(inProgressData) {
-                    btnHtml = `<div style="display:flex; gap:10px;">
-                        <button class="btn btn-primary" onclick="showInstructions('${t.id}', '${t.testName}', ${t.duration}, ${t.marks}, ${t.negativeMark || 0}, '${t.hasNegative}', '${t.language || 'Both'}', true)">▶ Resume Test</button>
-                        <button class="btn btn-outline" style="color:var(--danger); border-color:var(--danger);" onclick="clearResumeData('${t.id}', '${examName}')">Clear</button>
-                    </div>`;
+                let btnHtml = "";
+                if(isLocked) {
+                    btnHtml = `<button class="btn" style="background:#F3F4F6; color:#6B7280; border:1px solid #E5E7EB;" onclick="openPaymentModal()">🔒 Unlock</button>`;
                 } else {
-                    btnHtml = `<button class="btn btn-accent" onclick="showInstructions('${t.id}', '${t.testName}', ${t.duration}, ${t.marks}, ${t.negativeMark || 0}, '${t.hasNegative}', '${t.language || 'Both'}', false)">Start Test</button>`;
+                    if(inProgressData) {
+                        btnHtml = `<div style="display:flex; gap:10px;">
+                            <button class="btn btn-primary" onclick="showInstructions('${t.id}', '${t.testName}', ${t.duration}, ${t.marks}, ${t.negativeMark || 0}, '${t.hasNegative}', '${t.language || 'Both'}', true)">▶ Resume Test</button>
+                            <button class="btn btn-outline" style="color:var(--danger); border-color:var(--danger);" onclick="clearResumeData('${t.id}', '${t.examName}')">Clear</button>
+                        </div>`;
+                    } else {
+                        btnHtml = `<button class="btn btn-accent" onclick="showInstructions('${t.id}', '${t.testName}', ${t.duration}, ${t.marks}, ${t.negativeMark || 0}, '${t.hasNegative}', '${t.language || 'Both'}', false)">Start Test</button>`;
+                    }
+                    
+                    if(hasPastResult) {
+                        btnHtml += `<button class="btn" style="background:#4F46E5; color:white; margin-left:10px;" onclick="viewPastAnalysis('${t.id}')">📊 Analysis</button>`;
+                    }
                 }
-                
-                if(hasPastResult) {
-                    btnHtml += `<button class="btn" style="background:#4F46E5; color:white; margin-left:10px;" onclick="viewPastAnalysis('${t.id}')">📊 Analysis</button>`;
-                }
-            }
-            html += `<div class="test-item ${isLocked ? 'locked' : ''}"><div><h3 style="color: var(--primary); margin-bottom: 5px; font-size:16px;">${t.testName}</h3><p style="font-size: 13px; color: #666;">⏱️ ${t.duration} Mins | ${t.marks} Marks | Lang: ${t.language || 'Both'}</p></div><div style="display:flex; align-items:center;">${btnHtml}</div></div>`;
-        });
-        hideAll(); document.getElementById('testListScreen').classList.remove('hide'); document.getElementById('testListTitle').innerText = examName + (currentLang === 'en' ? " Tests" : " टेस्ट"); document.getElementById('testListContainer').innerHTML = html;
+                html += `<div class="test-item ${isLocked ? 'locked' : ''}"><div><h3 style="color: var(--primary); margin-bottom: 5px; font-size:16px;">${t.testName}</h3><p style="font-size: 13px; color: #666;">⏱️ ${t.duration} Mins | ${t.marks} Marks | Lang: ${t.language || 'Both'}</p></div><div style="display:flex; align-items:center;">${btnHtml}</div></div>`;
+            });
+        }
+        document.getElementById('testListContainer').innerHTML = html;
     }
 
     window.clearResumeData = function(testId, examName) {
         if(confirm("Are you sure? Your progress for this test will be lost.")) {
             localStorage.removeItem('tg_resume_' + testId);
-            openExam(examName); 
+            loadTestsForSubCat(nav.subCat, document.querySelector('.sub-cat-pill.active')); 
         }
     }
 
     window.goBackToSubCat = function() { hideAll(); document.getElementById('subCatScreen').classList.remove('hide'); }
-    window.goBackToExam = function() { hideAll(); document.getElementById('examScreen').classList.remove('hide'); }
 
     let caStreak = 0;
     let caCorrectCount = 0;
@@ -1486,10 +1473,10 @@
                 startTimer();
             } else { 
                 alert("No questions found for this test!"); 
-                goBackToExam(); 
+                goBackToSubCat(); 
             }
         } catch (e) { 
-            console.error(e); alert("Failed to load test!"); goBackToExam(); 
+            console.error(e); alert("Failed to load test!"); goBackToSubCat(); 
         }
     }
 
