@@ -315,6 +315,7 @@
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getFirestore, collection, getDocs, doc, getDoc, setDoc, updateDoc, deleteDoc, addDoc, writeBatch, query, where } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    import { initializeAppCheck, ReCaptchaV3Provider } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app-check.js"; // 👈 App Check Import
 
     const firebaseConfig = {
         apiKey: "AIzaSyA7x6gQziPYLxrXnyVJJ80mvJkh3VCm24",
@@ -326,15 +327,22 @@
     };
 
     const app = initializeApp(firebaseConfig);
+
+    // 👇 App Check शुरू करें
+    const appCheck = initializeAppCheck(app, {
+      provider: new ReCaptchaV3Provider('6LdmiwAuAAAAAI3GMNNfi-mE1rUQQ8qhPmv3LEfy'), // 👈 आपकी Site Key
+      isTokenAutoRefreshEnabled: true
+    });
+
     const db = getFirestore(app);
 
     // 🔐 यह सीक्रेट की है जो Firebase Rules से मैच करती है
     const ADMIN_KEY = "TG_Admin_999"; 
 
-           window.checkPass = function() {
+    window.checkPass = function() {
         const pass = document.getElementById('adminPass').value.trim();
         
-        // 👇 यहाँ हमने एक सीधा पासवर्ड सेट कर दिया है
+        // 👇 सिंपल पासवर्ड चेक (admin123)
         if(pass === "admin123") {
             localStorage.setItem('tg_admin_logged', 'true');
             document.getElementById('lockScreen').style.display = 'none';
