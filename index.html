@@ -1,3 +1,4 @@
+<!-- Copyright (c) 2026 TaiyariGhar. All Rights Reserved. Unauthorized copying is strictly prohibited. -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -62,16 +63,17 @@
         .section { padding: 25px 5%; }
         .section-title { font-size: 22px; font-weight: 700; margin-bottom: 15px; color: var(--text); }
         
-        .category-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; }
-        .cat-card { padding: 20px 15px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); cursor: pointer; transition: 0.3s; text-align: center; color: white; position: relative; overflow: hidden; display: flex; flex-direction: column; justify-content: center; align-items: center;}
-        .cat-card:hover { transform: translateY(-3px) scale(1.02); box-shadow: 0 8px 20px rgba(0,0,0,0.15); }
-        .cat-icon { font-size: 40px; margin-bottom: 10px; text-shadow: 0 3px 5px rgba(0,0,0,0.1);}
-        .cat-title { font-size: 18px; font-weight: 700; text-shadow: 1px 1px 2px rgba(0,0,0,0.3); }
+        /* UPDATED: Smaller Category Cards Grid */
+        .category-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 12px; }
+        .cat-card { padding: 15px 10px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); cursor: pointer; transition: 0.3s; text-align: center; color: white; position: relative; overflow: hidden; display: flex; flex-direction: column; justify-content: center; align-items: center; min-height: 100px; }
+        .cat-card:hover { transform: translateY(-3px) scale(1.03); box-shadow: 0 8px 15px rgba(0,0,0,0.2); }
+        .cat-icon { font-size: 26px; margin-bottom: 6px; text-shadow: 0 2px 4px rgba(0,0,0,0.3);}
+        .cat-title { font-size: 13px; font-weight: 600; text-shadow: 1px 1px 3px rgba(0,0,0,0.6); line-height: 1.2;}
 
-        .wide-cat-banner { padding: 25px 30px; border-radius: 15px; color: white; display: flex; justify-content: space-between; align-items: center; margin-top: 15px; box-shadow: 0 8px 20px rgba(0,0,0,0.15); cursor: pointer; transition: 0.3s;}
+        .wide-cat-banner { padding: 20px 25px; border-radius: 12px; color: white; display: flex; justify-content: space-between; align-items: center; margin-top: 15px; box-shadow: 0 8px 20px rgba(0,0,0,0.15); cursor: pointer; transition: 0.3s;}
         .wide-cat-banner:hover { transform: translateY(-2px); box-shadow: 0 12px 25px rgba(0,0,0,0.25);}
-        .wide-cat-banner h2 { font-size: 24px; margin-bottom: 5px; color: white;}
-        .wide-cat-banner p { font-size: 14px; opacity: 0.9;}
+        .wide-cat-banner h2 { font-size: 20px; margin-bottom: 5px; color: white; text-shadow: 1px 1px 3px rgba(0,0,0,0.4);}
+        .wide-cat-banner p { font-size: 13px; opacity: 0.9; text-shadow: 1px 1px 2px rgba(0,0,0,0.4);}
 
         .quick-view { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px; margin-bottom: 15px; }
         .qv-card { background: var(--white); padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); border-left: 5px solid var(--secondary); }
@@ -226,7 +228,10 @@
             .hero-img { margin-top: 15px; }
             .hero-img img { max-height: 180px; }
             .wide-cat-banner { flex-direction: column; text-align: center; gap: 10px;}
-            .category-grid { grid-template-columns: repeat(2, 1fr); }
+            .category-grid { grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 8px; }
+            .cat-card { min-height: 90px; padding: 10px 5px; }
+            .cat-icon { font-size: 24px; }
+            .cat-title { font-size: 12px; }
             .nav-links { display: none; } 
             .test-item { flex-direction: column; align-items: flex-start; gap: 10px; }
             .header { justify-content: center;}
@@ -243,9 +248,6 @@
             .steps-container { flex-direction: column; align-items: center; }
             .step-box { width: 100%; }
         }
-        @media (max-width: 480px) {
-            .category-grid { grid-template-columns: 1fr; }
-        }
     </style>
 </head>
 <body>
@@ -259,7 +261,7 @@
         </div>
         <div class="header-right" id="headerAuth">
             <button class="lang-btn" onclick="toggleLanguage()" id="langBtn">हिंदी</button>
-            <!-- UPDATED: Hide class removed from install buttons so they are always visible -->
+            <!-- Application Download Button (Always Visible) -->
             <button id="installBtn" class="install-btn" onclick="installPWA()">📲 Install App</button>
             <button class="btn btn-outline" onclick="showLogin()" data-translate="nav_login">Login</button>
             <button class="btn btn-primary" onclick="showRegister()" data-translate="nav_register">Register</button>
@@ -289,7 +291,7 @@
             </div>
         </div>
 
-        <!-- NEW: WHY CHOOSE SECTION -->
+        <!-- WHY CHOOSE SECTION -->
         <div class="section" style="padding-bottom: 0;">
             <h2 class="section-title" style="text-align: center;">Why Choose TaiyariGhar?</h2>
             <div class="features-grid">
@@ -316,7 +318,7 @@
             </div>
         </div>
 
-        <!-- NEW: FREE MOCK TESTS BANNER -->
+        <!-- FREE MOCK TESTS BANNER -->
         <div class="section" style="padding-bottom: 0;">
             <div class="wide-cat-banner" style="background: linear-gradient(135deg, #10B981 0%, #059669 100%);" onclick="scrollToCategories()">
                 <div>
@@ -332,7 +334,7 @@
             <div id="homeCatContainer"></div>
         </div>
 
-        <!-- NEW: HOW IT WORKS SECTION -->
+        <!-- HOW IT WORKS SECTION -->
         <div class="section">
             <h2 class="section-title" style="text-align: center;">How It Works</h2>
             <div class="steps-container">
@@ -359,7 +361,7 @@
             </div>
         </div>
 
-        <!-- NEW: FAQ SECTION -->
+        <!-- FAQ SECTION -->
         <div class="section">
             <h2 class="section-title" style="text-align: center;">Frequently Asked Questions (FAQ)</h2>
             <div class="faq-container">
@@ -764,7 +766,7 @@
             <a onclick="alert('Refund Policy page coming soon!')">Refund Policy</a>
             <a onclick="alert('Disclaimer page coming soon!')">Disclaimer</a>
         </div>
-        <p>© 2024 TaiyariGhar. All rights reserved. Made with ❤️ for Govt Job Aspirants.</p>
+        <p>© 2026 TaiyariGhar. All rights reserved. Made with ❤️ for Govt Job Aspirants.</p>
     </footer>
 
 <script type="module">
@@ -1087,21 +1089,38 @@
         const uniqueCats = [...new Set(allTests.map(t => t.mainCat))];
         let gridHtml = ""; let bannerHtml = "";
 
-        uniqueCats.forEach(catName => {
+        // Array of 15+ Unique & Dark Gradients for readable white text
+        const colorGradients = [
+            "linear-gradient(135deg, #FF416C 0%, #FF4B2B 100%)", // Red
+            "linear-gradient(135deg, #4FACFE 0%, #00F2FE 100%)", // Blue
+            "linear-gradient(135deg, #43E97B 0%, #38F9D7 100%)", // Green
+            "linear-gradient(135deg, #FA709A 0%, #FEE140 100%)", // Pink/Yellow
+            "linear-gradient(135deg, #667EEA 0%, #764BA2 100%)", // Purple
+            "linear-gradient(135deg, #F6D365 0%, #FDA085 100%)", // Orange
+            "linear-gradient(135deg, #00B4DB 0%, #0083B0 100%)", // Teal
+            "linear-gradient(135deg, #FF9A44 0%, #FC6076 100%)", // Peach
+            "linear-gradient(135deg, #3A1C71 0%, #D76D77 100%)", // Dark Purple/Red
+            "linear-gradient(135deg, #11998E 0%, #38EF7D 100%)", // Bright Green
+            "linear-gradient(135deg, #FC5C7D 0%, #6A82FB 100%)", // Pink to Blue
+            "linear-gradient(135deg, #FDC830 0%, #F37335 100%)", // Gold/Orange
+            "linear-gradient(135deg, #8E2DE2 0%, #4A00E0 100%)", // Deep Purple
+            "linear-gradient(135deg, #E44D26 0%, #F16529 100%)", // Orange/Red
+            "linear-gradient(135deg, #232526 0%, #414345 100%)"  // Dark Grey
+        ];
+        
+        const icons = ["📚", "📝", "🏛️", "🚂", "👮", "🏦", "🌍", "💼", "🎯", "🎓", "🏥", "⚖️", "🛡️", "💻", "📊"];
+
+        uniqueCats.forEach((catName, index) => {
             let n = catName.toLowerCase();
-            let style = { bg: "linear-gradient(135deg, #8E2DE2 0%, #4A00E0 100%)", icon: "📝" };
-            if(n.includes("ssc")) style = { bg: "linear-gradient(135deg, #FF9A9E 0%, #FECFEF 100%)", icon: "🏛️" };
-            else if(n.includes("bank")) style = { bg: "linear-gradient(135deg, #4FACFE 0%, #00F2FE 100%)", icon: "🏦" };
-            else if(n.includes("rail") || n.includes("rrb")) style = { bg: "linear-gradient(135deg, #43E97B 0%, #38F9D7 100%)", icon: "🚂" };
-            else if(n.includes("police")) style = { bg: "linear-gradient(135deg, #FF416C 0%, #FF4B2B 100%)", icon: "👮" };
-            else if(n.includes("up state")) style = { bg: "linear-gradient(135deg, #F6D365 0%, #FDA085 100%)", icon: "🏛️" };
-            else if(n.includes("up")) style = { bg: "linear-gradient(135deg, #FFD700 0%, #FF8C00 100%)", icon: "📝" };
-            else if(n.includes("all state")) style = { bg: "linear-gradient(135deg, #00b4db 0%, #0083b0 100%)", icon: "🌍" };
+            
+            // Automatically assign unique color and icon based on index
+            let bgGradient = colorGradients[index % colorGradients.length];
+            let icon = icons[index % icons.length];
 
             if(n.includes("more") || n.includes("other")) {
-                bannerHtml = `<div class="wide-cat-banner" style="background: ${style.bg};" onclick="openCategory('${catName}')"><div><h2>🌍 ${catName}</h2><p>Explore all other miscellaneous exams here.</p></div><button class="btn" style="background: white; color: #4A00E0; font-weight: bold;">View Now</button></div>`;
+                bannerHtml = `<div class="wide-cat-banner" style="background: ${bgGradient};" onclick="openCategory('${catName}')"><div><h2>🌍 ${catName}</h2><p>Explore all other miscellaneous exams here.</p></div><button class="btn" style="background: white; color: #333; font-weight: bold;">View Now</button></div>`;
             } else {
-                gridHtml += `<div class="cat-card" style="background: ${style.bg};" onclick="openCategory('${catName}')"><div class="cat-icon">${style.icon}</div><div class="cat-title">${catName}</div></div>`;
+                gridHtml += `<div class="cat-card" style="background: ${bgGradient};" onclick="openCategory('${catName}')"><div class="cat-icon">${icon}</div><div class="cat-title">${catName}</div></div>`;
             }
         });
 
@@ -1116,7 +1135,7 @@
         const filtered = allTests.filter(t => t.mainCat === mainCat);
         const uniqueSubCats = [...new Set(filtered.map(t => t.subCat))];
         let html = "";
-        uniqueSubCats.forEach(subCat => { html += `<div class="cat-card" style="background: white; border: 2px solid #E5E7EB; color: #1F2937; padding: 15px;" onclick="openSubCategory('${subCat}')"><div class="cat-icon" style="font-size:30px; margin-bottom:5px;">📂</div><div class="cat-title" style="font-size:16px; text-shadow:none;">${subCat}</div></div>`; });
+        uniqueSubCats.forEach(subCat => { html += `<div class="cat-card" style="background: white; border: 2px solid #E5E7EB; color: #1F2937; padding: 15px; min-height: auto;" onclick="openSubCategory('${subCat}')"><div class="cat-icon" style="font-size:26px; margin-bottom:5px;">📂</div><div class="cat-title" style="font-size:14px; text-shadow:none;">${subCat}</div></div>`; });
         hideAll(); document.getElementById('subCatScreen').classList.remove('hide'); document.getElementById('subCatTitle').innerText = mainCat + (currentLang === 'en' ? " - Select Type" : " - प्रकार चुनें"); document.getElementById('subCatGrid').innerHTML = html;
     }
 
@@ -1125,7 +1144,7 @@
         const filtered = allTests.filter(t => t.mainCat === nav.mainCat && t.subCat === subCat);
         const uniqueExams = [...new Set(filtered.map(t => t.examName))];
         let html = "";
-        uniqueExams.forEach(exam => { html += `<div class="cat-card" style="background: white; border: 2px solid #E5E7EB; color: #1F2937; padding: 15px;" onclick="openExam('${exam}')"><div class="cat-icon" style="font-size:30px; margin-bottom:5px;">📚</div><div class="cat-title" style="font-size:16px; text-shadow:none;">${exam}</div></div>`; });
+        uniqueExams.forEach(exam => { html += `<div class="cat-card" style="background: white; border: 2px solid #E5E7EB; color: #1F2937; padding: 15px; min-height: auto;" onclick="openExam('${exam}')"><div class="cat-icon" style="font-size:26px; margin-bottom:5px;">📚</div><div class="cat-title" style="font-size:14px; text-shadow:none;">${exam}</div></div>`; });
         hideAll(); document.getElementById('examScreen').classList.remove('hide'); document.getElementById('examTitle').innerText = nav.mainCat + " > " + subCat + (currentLang === 'en' ? " - Select Exam" : " - परीक्षा चुनें"); document.getElementById('examGrid').innerHTML = html;
     }
 
@@ -1805,8 +1824,6 @@
         else { fetchSettingsAndTests(); goHome(); }
     }
 </script>
-
-<!-- F12 और Right-Click ब्लॉक करने वाली स्क्रिप्ट पूरी तरह हटा दी गई है ताकि कोई एरर न आए -->
 
 </body>
 </html>
