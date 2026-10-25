@@ -26,17 +26,20 @@
         
         .btn { padding: 10px 20px; border: none; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 600; text-decoration: none; display: inline-block; text-align: center; transition: all 0.3s ease; font-family: 'Poppins', sans-serif; }
         .btn-primary { background: linear-gradient(135deg, #4F46E5, #7C3AED); color: var(--white); box-shadow: 0 4px 15px rgba(79, 70, 229, 0.3); }
+        .btn-primary:hover { transform: translateY(-2px); }
         .btn-accent { background: var(--accent); color: var(--white); box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3); }
         .btn-outline { border: 2px solid var(--primary); color: var(--primary); background: transparent; }
         .btn-outline:hover { background: var(--primary); color: white; }
 
         .lang-btn { border: 2px solid var(--primary); background: transparent; color: var(--primary); padding: 6px 12px; border-radius: 8px; font-weight: 700; cursor: pointer; transition: 0.3s; font-family: 'Poppins', sans-serif; font-size: 13px; margin-right: 8px;}
         .lang-btn:hover { background: var(--primary); color: white; }
+        .install-btn { background: var(--accent); color: white; padding: 6px 12px; border-radius: 8px; font-weight: 600; font-size: 13px; border: none; cursor: pointer; margin-right: 8px; display: flex; align-items: center; gap: 5px;}
 
         .header { background: var(--white); padding: 12px 5%; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 10px rgba(0,0,0,0.05); position: sticky; top: 0; z-index: 100; flex-wrap: wrap; gap: 10px;}
         .logo { font-size: 24px; font-weight: 800; color: var(--primary); display: flex; align-items: center; gap: 8px; }
         .nav-links { display: flex; gap: 20px; }
         .nav-links a { text-decoration: none; color: var(--text); font-weight: 500; font-size: 14px; cursor: pointer; }
+        .nav-links a:hover { color: var(--primary); }
         .header-right { display: flex; gap: 8px; align-items: center; flex-wrap: wrap;}
         
         .profile-menu { position: relative; cursor: pointer; display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 14px; color: var(--primary); background: #EEF2FF; padding: 6px 14px; border-radius: 20px; }
@@ -57,9 +60,19 @@
         
         .category-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; }
         .cat-card { padding: 20px 15px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); cursor: pointer; transition: 0.3s; text-align: center; color: white; position: relative; overflow: hidden; display: flex; flex-direction: column; justify-content: center; align-items: center;}
-        .cat-card:hover { transform: translateY(-3px) scale(1.02); }
+        .cat-card:hover { transform: translateY(-3px) scale(1.02); box-shadow: 0 8px 20px rgba(0,0,0,0.15); }
         .cat-icon { font-size: 40px; margin-bottom: 10px; text-shadow: 0 3px 5px rgba(0,0,0,0.1);}
         .cat-title { font-size: 18px; font-weight: 700; text-shadow: 1px 1px 2px rgba(0,0,0,0.3); }
+
+        .wide-cat-banner { padding: 25px 30px; border-radius: 15px; color: white; display: flex; justify-content: space-between; align-items: center; margin-top: 15px; box-shadow: 0 8px 20px rgba(0,0,0,0.15); cursor: pointer; transition: 0.3s;}
+        .wide-cat-banner:hover { transform: translateY(-2px); box-shadow: 0 12px 25px rgba(0,0,0,0.25);}
+        .wide-cat-banner h2 { font-size: 24px; margin-bottom: 5px; color: white;}
+        .wide-cat-banner p { font-size: 14px; opacity: 0.9;}
+
+        .quick-view { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px; margin-bottom: 15px; }
+        .qv-card { background: var(--white); padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); border-left: 5px solid var(--secondary); }
+        .qv-card h3 { font-size: 13px; color: var(--grey); margin-bottom: 10px; text-transform: uppercase; }
+        .qv-card p { font-size: 16px; font-weight: 700; margin-bottom: 15px; color: var(--text); }
 
         .test-list { display: flex; flex-direction: column; gap: 12px; }
         .test-item { background: var(--white); padding: 15px 20px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); display: flex; justify-content: space-between; align-items: center; border: 1px solid #E5E7EB; }
@@ -74,7 +87,7 @@
         .lang-select-box { margin: 20px 0; padding: 15px; background: #F9FAFB; border-radius: 8px; border: 1px solid #E5E7EB; }
         .lang-select-box select { padding: 10px; font-size: 15px; border-radius: 6px; border: 1px solid #ccc; width: 100%; max-width: 300px; }
         .declaration-box { display: flex; align-items: center; gap: 10px; font-weight: 600; margin: 20px 0; }
-        
+
         /* --- MAIN TEST SCREEN (TESTBOOK UI) --- */
         .test-header { background: var(--test-header); color: var(--white); padding: 10px 20px; display: flex; justify-content: space-between; align-items: center; position: sticky; top:0; z-index: 100; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
         .test-header h2 { font-size: 16px; font-weight: 500; }
@@ -128,7 +141,7 @@
         .sidebar-bottom { padding: 15px; background: #fff; border-top: 1px solid #E5E7EB; }
         
         /* --- SUBMIT MODAL --- */
-        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(17, 24, 39, 0.7); display: flex; justify-content: center; align-items: center; z-index: 1000; }
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(17, 24, 39, 0.7); display: flex; justify-content: center; align-items: center; z-index: 2000; }
         .submit-modal { background: white; padding: 25px; border-radius: 12px; max-width: 600px; width: 90%; text-align: center; box-shadow: 0 20px 40px rgba(0,0,0,0.2); }
         .submit-table { width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 14px; }
         .submit-table th, .submit-table td { border: 1px solid #E5E7EB; padding: 12px; }
@@ -153,7 +166,38 @@
         .stat-card.skipped { border-bottom: 4px solid var(--grey); }
         .stat-card.skipped p { color: var(--grey); }
 
+        /* --- EXISTING CA & POPUPS --- */
+        .ca-tabs { display: flex; gap: 10px; margin-bottom: 20px; justify-content: center;}
+        .ca-tab { padding: 10px 20px; border-radius: 20px; background: white; border: 1px solid #ddd; cursor: pointer; font-weight: 600; }
+        .ca-tab.active { background: var(--primary); color: white; border-color: var(--primary); }
+        .ca-article { background: #F8FAFC; padding: 20px; border-radius: 10px; border-left: 5px solid var(--primary); margin-bottom: 20px; }
+        .ca-question { background: white; padding: 20px; border-radius: 10px; margin-bottom: 15px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+        .ca-option { display: block; padding: 12px; border: 2px solid #E5E7EB; border-radius: 8px; margin-bottom: 8px; cursor: pointer; transition: 0.2s; }
+        .ca-option:hover { background: #F3F4F6; }
+        .ca-option.correct { background: #D1FAE5; border-color: #10B981; color: #065F46; font-weight: 600; }
+        .ca-option.wrong { background: #FEE2E2; border-color: #EF4444; color: #991B1B; font-weight: 600; }
+        .ca-explanation { display: none; background: #EFF6FF; padding: 12px; border-radius: 8px; color: #1E3A8A; font-size: 14px; margin-top: 10px; border-left: 4px solid #3B82F6; }
+        
+        .game-popup { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0.8); background: white; padding: 30px; border-radius: 16px; box-shadow: 0 10px 40px rgba(0,0,0,0.2); text-align: center; z-index: 2000; opacity: 0; transition: 0.3s; pointer-events: none; }
+        .game-popup.show { opacity: 1; transform: translate(-50%, -50%) scale(1); pointer-events: auto; }
+        .game-popup h2 { font-size: 24px; margin-bottom: 10px; }
+        .game-popup.success { border-top: 5px solid var(--accent); }
+        .game-popup.warning { border-top: 5px solid var(--danger); }
+
+        .modal-overlay-payment { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(17, 24, 39, 0.7); display: flex; justify-content: center; align-items: center; z-index: 1000; }
+        .modal-box { background: white; padding: 30px; border-radius: 16px; max-width: 420px; width: 90%; text-align: center; }
+        
         @media (max-width: 768px) {
+            .hero { flex-direction: column; text-align: center; padding: 20px 5%; }
+            .hero-text h1 { font-size: 26px; }
+            .hero-img { margin-top: 15px; }
+            .hero-img img { max-height: 180px; }
+            .wide-cat-banner { flex-direction: column; text-align: center; gap: 10px;}
+            .category-grid { grid-template-columns: repeat(2, 1fr); }
+            .nav-links { display: none; } 
+            .test-item { flex-direction: column; align-items: flex-start; gap: 10px; }
+            .header { justify-content: center;}
+            .header-right { justify-content: center; width: 100%;}
             .test-body { flex-direction: column; height: auto; overflow: visible; }
             .sidebar-section { width: 100%; order: -1; }
             .question-section { overflow: visible; }
@@ -163,6 +207,9 @@
             .score-circle::before { width: 110px; height: 110px; }
             .score-text h1 { font-size: 32px; }
             .stats-grid { grid-template-columns: 1fr; }
+        }
+        @media (max-width: 480px) {
+            .category-grid { grid-template-columns: 1fr; }
         }
     </style>
 </head>
@@ -176,16 +223,20 @@
             <a onclick="showCurrentAffairs()" data-translate="nav_ca">Current Affairs</a>
         </div>
         <div class="header-right" id="headerAuth">
+            <button class="lang-btn" onclick="toggleLanguage()" id="langBtn">हिंदी</button>
+            <button id="installBtn" class="install-btn hide" onclick="installPWA()">📲 Install App</button>
             <button class="btn btn-outline" onclick="showLogin()" data-translate="nav_login">Login</button>
             <button class="btn btn-primary" onclick="showRegister()" data-translate="nav_register">Register</button>
         </div>
         <div class="header-right hide" id="headerProfile">
+            <button class="lang-btn" onclick="toggleLanguage()" id="langBtnProfile">हिंदी</button>
+            <button id="installBtnProfile" class="install-btn hide" onclick="installPWA()">📲 Install App</button>
             <div class="profile-menu">
                 <span>👤 <span id="navStudentName">User</span> ▼</span>
                 <div class="profile-dropdown">
-                    <a onclick="goDashboard()">Dashboard</a>
-                    <a onclick="showPurchases()">My Purchases</a>
-                    <a onclick="logout()" style="color: var(--danger);">Logout</a>
+                    <a onclick="goDashboard()" data-translate="nav_dash">Dashboard</a>
+                    <a onclick="showPurchases()" data-translate="nav_purchase">My Purchases</a>
+                    <a onclick="logout()" style="color: var(--danger);" data-translate="nav_logout">Logout</a>
                 </div>
             </div>
         </div>
@@ -194,58 +245,125 @@
     <div id="homeScreen">
         <div class="hero">
             <div class="hero-text">
-                <h1>Crack Your Dream Govt Job with Confidence.</h1>
-                <p>All-in-one mock test platform for SSC, Railway, Police & All State Exams.</p>
+                <h1 data-translate="hero_h1">Crack Your Dream Govt Job with Confidence.</h1>
+                <p data-translate="hero_p">All-in-one mock test platform for SSC, Railway, Police & All State Exams. Latest syllabus, real-time rankings, and unlimited tests in one subscription.</p>
+            </div>
+            <div class="hero-img">
+                <img src="YOUR_IMAGE_LINK_HERE" alt="Student" onerror="this.src='https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=600&auto=format&fit=crop'">
             </div>
         </div>
         
         <div class="section" id="homeCategories">
-            <h2 class="section-title">🎯 Exam Categories</h2>
+            <h2 class="section-title" data-translate="sec_cats">🎯 Exam Categories</h2>
             <div id="homeCatContainer"></div>
+        </div>
+
+        <div class="section" style="padding-top: 0;">
+            <div class="wide-cat-banner" style="background: linear-gradient(135deg, #F59E0B 0%, #EA580C 100%);" onclick="showCurrentAffairs()">
+                <div>
+                    <h2>📰 Current Affairs Hub</h2>
+                    <p>Daily Article & Instant Quiz. Stay updated!</p>
+                </div>
+                <button class="btn" style="background: white; color: #EA580C; font-weight: bold;">Explore Now</button>
+            </div>
         </div>
     </div>
 
     <div id="loginScreen" class="section hide" style="max-width: 450px; margin: 30px auto;">
-        <div style="background: white; padding: 30px 20px; border-radius: 16px; text-align: center;">
-            <h2 style="color: var(--primary); margin-bottom: 20px;">Login to Your Account</h2>
-            <input type="text" id="loginId" placeholder="Login ID (e.g., TG0001)" style="width:100%; padding:12px; margin-bottom: 12px; border:2px solid #E5E7EB; border-radius:8px;">
-            <input type="password" id="loginPass" placeholder="Password" style="width:100%; padding:12px; margin-bottom: 20px; border:2px solid #E5E7EB; border-radius:8px;">
-            <button class="btn btn-primary" style="width:100%; padding:12px;" onclick="doLogin()">Login</button>
+        <div style="background: white; padding: 30px 20px; border-radius: 16px; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.05);">
+            <h2 style="color: var(--primary); margin-bottom: 20px; font-size: 20px;" data-translate="login_h2">Login to Your Account</h2>
+            <input type="text" id="loginId" placeholder="Login ID (e.g., TG0001)" style="width:100%; padding:12px; margin-bottom: 12px; border:2px solid #E5E7EB; border-radius:8px; outline:none;">
+            <input type="password" id="loginPass" placeholder="Password" style="width:100%; padding:12px; margin-bottom: 20px; border:2px solid #E5E7EB; border-radius:8px; outline:none;">
+            <button class="btn btn-primary" style="width:100%; padding:12px;" onclick="doLogin()" data-translate="login_btn">Login</button>
+            <p style="margin-top: 15px; font-size: 14px;"><span data-translate="login_new">New user?</span> <a href="#" onclick="showRegister()" style="color: var(--primary);" data-translate="login_reg">Register Here</a></p>
         </div>
     </div>
     
+    <div id="registerScreen" class="section hide" style="max-width: 450px; margin: 30px auto;">
+        <div style="background: white; padding: 30px 20px; border-radius: 16px; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.05);">
+            <h2 style="color: var(--accent); margin-bottom: 20px; font-size: 20px;" data-translate="reg_h2">Create an Account</h2>
+            <input type="text" id="regName" placeholder="Full Name" style="width:100%; padding:12px; margin-bottom: 12px; border:2px solid #E5E7EB; border-radius:8px; outline:none;">
+            <input type="tel" id="regMobile" placeholder="Mobile Number" style="width:100%; padding:12px; margin-bottom: 12px; border:2px solid #E5E7EB; border-radius:8px; outline:none;">
+            <input type="password" id="regPass" placeholder="Create Password" style="width:100%; padding:12px; margin-bottom: 12px; border:2px solid #E5E7EB; border-radius:8px; outline:none;">
+            <input type="password" id="regPassConfirm" placeholder="Confirm Password" style="width:100%; padding:12px; margin-bottom: 20px; border:2px solid #E5E7EB; border-radius:8px; outline:none;">
+            <button class="btn btn-accent" style="width:100%; padding:12px;" onclick="doRegister()" data-translate="reg_btn">Register Now</button>
+        </div>
+    </div>
+
     <div id="dashboardScreen" class="hide">
+        <div class="hero" style="padding: 20px 5%;">
+            <div class="hero-text">
+                <h1 style="font-size: 24px; color: #1E1B4B; margin-bottom: 5px;" id="welcomeMessage"></h1>
+                <h2 style="font-size: 18px; color: #1E1B4B; margin-top: 10px;" data-translate="dash_h2">Crack Your Dream Govt Job with Confidence.</h2>
+                <p style="font-size: 14px; color: #4B5563; margin-top: 5px;">All-in-one mock test platform for SSC, Railway, Police & All State Exams.</p>
+            </div>
+            <div class="hero-img">
+                <img src="YOUR_IMAGE_LINK_HERE" style="max-width: 100%; max-height: 160px;" onerror="this.src='https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=600&auto=format&fit=crop'">
+            </div>
+        </div>
+
         <div class="section" style="padding-top: 15px;">
-            <h2 class="section-title">📊 Dashboard</h2>
-            <div class="quick-view" style="display:flex; gap:15px; margin-bottom:20px;">
-                <div class="qv-card" style="flex:1; background:white; padding:20px; border-radius:12px;">
-                    <h3>Explore Tests</h3>
-                    <button class="btn btn-outline" style="width:100%;" onclick="scrollToCategories()">View Tests</button>
+            <h2 class="section-title" data-translate="dash_qv">📊 Dashboard Quick View</h2>
+            <div class="quick-view">
+                <div class="qv-card">
+                    <h3 data-translate="qv_explore">Explore Tests</h3>
+                    <p data-translate="qv_browse">Browse all available tests</p>
+                    <button class="btn btn-outline" style="width:100%;" onclick="scrollToCategories()" data-translate="qv_view">View Tests</button>
+                </div>
+                <div class="qv-card" style="border-left-color: var(--accent);">
+                    <h3 data-translate="qv_rec">Recommended Next</h3>
+                    <p id="recTestName" data-translate="qv_loading">Loading...</p>
+                    <p id="recTestDetails" style="font-size: 13px; color: #666; margin-top: -10px; margin-bottom: 15px;"></p>
+                    <button class="btn btn-accent" style="width:100%;" onclick="startRecommendedTest()" data-translate="qv_start">Start Now</button>
+                </div>
+                <div class="qv-card" style="border-left-color: var(--purple);">
+                    <h3 data-translate="qv_recent">Recent Performance</h3>
+                    <p id="recentTestName" data-translate="qv_not_att">Not Attempted Yet</p>
+                    <p id="recentTestScore" style="font-size: 13px; color: #666; margin-top: -10px; margin-bottom: 15px;" data-translate="qv_take">Take a test to see your score</p>
                 </div>
             </div>
         </div>
+
         <div class="section" id="dashCategories">
-            <h2 class="section-title">🎯 Exam Categories</h2>
+            <h2 class="section-title" data-translate="sec_cats">🎯 Exam Categories</h2>
             <div id="dashCatContainer"></div>
         </div>
     </div>
 
     <div id="subCatScreen" class="section hide">
-        <button class="btn btn-outline" style="margin-bottom: 20px;" onclick="goDashboard()">← Back</button>
+        <button class="btn btn-outline" style="margin-bottom: 20px;" onclick="goDashboard()" data-translate="btn_back_cat">← Back to Categories</button>
         <h2 class="section-title" id="subCatTitle"></h2>
         <div class="category-grid" id="subCatGrid"></div>
     </div>
 
     <div id="examScreen" class="section hide">
-        <button class="btn btn-outline" style="margin-bottom: 20px;" onclick="goBackToSubCat()">← Back</button>
+        <button class="btn btn-outline" style="margin-bottom: 20px;" onclick="goBackToSubCat()" data-translate="btn_back_sub">← Back to Sub-Categories</button>
         <h2 class="section-title" id="examTitle"></h2>
         <div class="category-grid" id="examGrid"></div>
     </div>
 
     <div id="testListScreen" class="section hide">
-        <button class="btn btn-outline" style="margin-bottom: 20px;" onclick="goBackToExam()">← Back to Exams</button>
+        <button class="btn btn-outline" style="margin-bottom: 20px;" onclick="goBackToExam()" data-translate="btn_back_exam">← Back to Exams</button>
         <h2 class="section-title" id="testListTitle"></h2>
         <div class="test-list" id="testListContainer"></div>
+    </div>
+
+    <div id="caScreen" class="section hide" style="max-width: 900px; margin: 0 auto;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <button class="btn btn-outline" onclick="goHome()" data-translate="btn_back_home">← Back</button>
+            <div style="background: #EEF2FF; padding: 8px 16px; border-radius: 20px; font-weight: 700; color: var(--primary);">
+                Score: <span id="caLiveScoreCorrect">0</span> ✅ / <span id="caLiveScoreWrong">0</span> ❌
+            </div>
+        </div>
+        
+        <h2 class="section-title" style="text-align: center;">📰 Current Affairs</h2>
+        
+        <div class="ca-tabs">
+            <div class="ca-tab active" onclick="filterCA('Daily', this)">Daily</div>
+            <div class="ca-tab" onclick="filterCA('Monthly', this)">Monthly</div>
+        </div>
+
+        <div id="caContentContainer"></div>
     </div>
 
     <!-- NEW: INSTRUCTIONS SCREEN -->
@@ -449,6 +567,42 @@
         <div id="solutionsContainer"></div>
     </div>
 
+    <div id="paymentModal" class="modal-overlay-payment hide">
+        <div class="modal-box">
+            <h2 style="color: var(--danger); margin-bottom: 10px; font-size: 20px;" data-translate="pay_lock">🔒 Test Locked</h2>
+            <p style="margin-bottom: 15px; font-size: 14px;"><span data-translate="pay_unlock">Unlock all tests with a one-time payment of</span> <b>₹<span id="modalPrice"></span></b>. <span id="modalOffer" style="color: var(--success); font-weight: bold;"></span></p>
+            <div id="qrcode" style="margin: 15px auto; display: flex; justify-content: center;"></div>
+            <p style="font-size: 14px; margin-bottom: 15px;"><span data-translate="pay_upi">UPI ID:</span> <b id="modalUpi"></b></p>
+            <a href="#" id="whatsappBtn" target="_blank" class="btn btn-accent" style="width: 100%; margin-bottom: 10px; display:block;" data-translate="pay_wa">📲 Send Screenshot on WhatsApp</a>
+            <button class="btn btn-outline" style="width: 100%; margin-bottom: 10px;" onclick="checkPaymentStatus()" data-translate="pay_check">🔄 Check Status</button>
+            <button class="btn" style="width: 100%; background:#F3F4F6;" onclick="closeModal()" data-translate="pay_close">Close</button>
+        </div>
+    </div>
+
+    <div id="registerSuccessModal" class="modal-overlay-payment hide">
+        <div class="modal-box">
+            <h2 style="color: var(--accent); margin-bottom: 10px; font-size: 22px;">🎉 Registration Successful!</h2>
+            <p style="margin-bottom: 15px; color: #4B5563; font-size: 14px;">Please save your Login details to access your account.</p>
+            
+            <div style="background: #F3F4F6; padding: 15px; border-radius: 10px; margin-bottom: 15px; text-align: left; border: 1px dashed #D1D5DB;">
+                <p style="margin-bottom: 8px; font-size: 15px;"><b>Login ID:</b> <span id="newLoginId" style="color: var(--primary); font-weight: 700;"></span></p>
+                <p style="font-size: 15px;"><b>Password:</b> <span id="newLoginPass" style="color: var(--primary); font-weight: 700;"></span></p>
+            </div>
+
+            <a href="#" id="regWhatsappBtn" target="_blank" class="btn btn-accent" style="width: 100%; margin-bottom: 10px; display:block;">📲 Save on WhatsApp</a>
+            <button class="btn btn-primary" style="width: 100%;" onclick="closeRegModal()">Proceed to Login</button>
+        </div>
+    </div>
+
+    <div id="popupSuccess" class="game-popup success">
+        <h2 style="color: var(--success);">🎉 शानदार!</h2>
+        <p>आपने लगातार 3 सही जवाब दिए हैं। आप तो कमाल कर रहे हैं!</p>
+    </div>
+    <div id="popupWarning" class="game-popup warning">
+        <h2 style="color: var(--danger);">⚠️ ध्यान दें!</h2>
+        <p>आप लगातार 3 सवालों के गलत जवाब दे रहे हैं। कृपया आर्टिकल ध्यान से पढ़ें और फिर उत्तर दें।</p>
+    </div>
+
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getFirestore, collection, getDocs, getDoc, setDoc, addDoc, query, where, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
@@ -465,25 +619,80 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    let allTests = [], appSettings = {};
+    let allTests = [], appSettings = {}, allCA = [];
     let currentStudent = { name: "", loginId: "", isPaid: false, expiry: "" };
     let isLoggedIn = false;
+    let isFirstLoginSession = false;
+    let recommendedTestData = null;
     let nav = { mainCat: "", subCat: "", examName: "" };
 
-    // Test State Variables
+    // Test State Variables (NEW)
     let testQuestions = [], currentQIndex = 0, userAnswers = {}, markedForReview = {}, visitedQuestions = {};
     let timerInterval, timeLeft = 0, totalTime = 0;
     let currentTestId = "", currentTestName = "", currentTestMarks = 0, currentTestNegMark = 0, currentTestLanguage = "Both";
     let pendingTestDetails = null;
 
-    // UI Functions
+    const translations = {
+        "en": { "nav_home": "Home", "nav_exams": "All Exams", "nav_ca": "Current Affairs", "nav_login": "Login", "nav_register": "Register", "nav_dash": "Dashboard", "nav_purchase": "My Purchases", "nav_logout": "Logout", "hero_h1": "Crack Your Dream Govt Job with Confidence.", "hero_p": "All-in-one mock test platform for SSC, Railway, Police & All State Exams. Latest syllabus, real-time rankings, and unlimited tests in one subscription.", "sec_cats": "🎯 Exam Categories", "ca_h2": "📰 Current Affairs Hub", "ca_p": "Stay updated with Daily, Weekly, and Monthly Current Affairs.", "btn_explore": "Explore Now", "login_h2": "Login to Your Account", "login_btn": "Login", "login_new": "New user?", "login_reg": "Register Here", "reg_h2": "Create an Account", "reg_btn": "Register Now", "dash_h2": "Crack Your Dream Govt Job with Confidence.", "dash_qv": "📊 Dashboard Quick View", "qv_explore": "Explore Tests", "qv_browse": "Browse all available tests", "qv_view": "View Tests", "qv_rec": "Recommended Next", "qv_loading": "Loading...", "qv_start": "Start Now", "qv_recent": "Recent Performance", "qv_not_att": "Not Attempted Yet", "qv_take": "Take a test to see your score", "btn_back_cat": "← Back to Categories", "btn_back_sub": "← Back to Sub-Categories", "btn_back_exam": "← Back to Exams", "btn_back_home": "← Back to Home", "test_clear": "Clear Response", "test_mark": "⭐ Mark", "test_prev": "← Prev", "test_next": "Save & Next →", "test_palette": "Question Palette", "test_submit": "Submit Test", "res_h2": "Test Result", "res_lb": "🏆 Top 5 Leaderboard", "res_back": "Back to Dashboard", "pay_lock": "🔒 Test Locked", "pay_unlock": "Unlock all tests with a one-time payment of", "pay_upi": "UPI ID:", "pay_wa": "📲 Send Screenshot on WhatsApp", "pay_check": "🔄 Check Status", "pay_close": "Close" },
+        "hi": { "nav_home": "होम", "nav_exams": "सभी परीक्षाएं", "nav_ca": "करंट अफेयर्स", "nav_login": "लॉगिन", "nav_register": "रजिस्टर", "nav_dash": "डैशबोर्ड", "nav_purchase": "मेरी खरीदारी", "nav_logout": "लॉगआउट", "hero_h1": "TayariGhar के साथ पाएं अपनी ड्रीम गवर्नमेंट जॉब।", "hero_p": "SSC, रेलवे, पुलिस और सभी राज्य परीक्षाओं के लिए ऑल-इन-वन मॉक टेस्ट प्लेटफॉर्म। नवीनतम सिलेबस, रियल-टाइम रैंकिंग और वन सब्सक्रिप्शन में अनलिमिटेड टेस्ट।", "sec_cats": "🎯 परीक्षा श्रेणियाँ", "ca_h2": "📰 करंट अफेयर्स हब", "ca_p": "दैनिक, साप्ताहिक और मासिक करंट अफेयर्स के साथ अपडेट रहें।", "btn_explore": "अभी देखें", "login_h2": "अपने खाते में लॉगिन करें", "login_btn": "लॉगिन", "login_new": "नए उपयोगकर्ता हैं?", "login_reg": "यहाँ रजिस्टर करें", "reg_h2": "खाता बनाएँ", "reg_btn": "अभी रजिस्टर करें", "dash_h2": "TayariGhar के साथ पाएं अपनी ड्रीम गवर्नमेंट जॉब।", "dash_qv": "📊 डैशबोर्ड त्वरित दृश्य", "qv_explore": "टेस्ट खोजें", "qv_browse": "सभी उपलब्ध टेस्ट ब्राउज़ करें", "qv_view": "टेस्ट देखें", "qv_rec": "अगला सुझाव", "qv_loading": "लोड हो रहा है...", "qv_start": "अभी शुरू करें", "qv_recent": "हालिया प्रदर्शन", "qv_not_att": "अभी तक प्रयास नहीं किया", "qv_take": "अपना स्कोर देखने के लिए टेस्ट दें", "btn_back_cat": "← श्रेणियों पर वापस जाएँ", "btn_back_sub": "← उप-श्रेणियों पर वापस जाएँ", "btn_back_exam": "← परीक्षाओं पर वापस जाएँ", "btn_back_home": "← होम पर वापस जाएँ", "test_clear": "उत्तर साफ़ करें", "test_mark": "⭐ मार्क करें", "test_prev": "← पिछला", "test_next": "सेव और अगला →", "test_palette": "प्रश्न पैलेट", "test_submit": "टेस्ट सबमिट करें", "res_h2": "टेस्ट परिणाम", "res_lb": "🏆 टॉप 5 लीडरबोर्ड", "res_back": "डैशबोर्ड पर वापस जाएँ", "pay_lock": "🔒 टेस्ट लॉक है", "pay_unlock": "एकमुश्त भुगतान के साथ सभी टेस्ट अनलॉक करें", "pay_upi": "UPI आईडी:", "pay_wa": "📲 व्हाट्सएप पर स्क्रीनशॉट भेजें", "pay_check": "🔄 स्थिति जांचें", "pay_close": "बंद करें" }
+    };
+
+    let currentLang = localStorage.getItem('tg_lang') || 'en';
+
+    window.toggleLanguage = function() {
+        currentLang = currentLang === 'en' ? 'hi' : 'en';
+        localStorage.setItem('tg_lang', currentLang);
+        applyLanguage();
+        if(isLoggedIn && !document.getElementById('dashboardScreen').classList.contains('hide')) { updateWelcomeMessage(isFirstLoginSession); }
+    }
+
+    function applyLanguage() {
+        const btnText = currentLang === 'en' ? 'हिंदी' : 'English';
+        if(document.getElementById('langBtn')) document.getElementById('langBtn').innerText = btnText;
+        if(document.getElementById('langBtnProfile')) document.getElementById('langBtnProfile').innerText = btnText;
+        document.querySelectorAll('[data-translate]').forEach(el => {
+            const key = el.getAttribute('data-translate');
+            if(translations[currentLang][key]) {
+                if(el.tagName === 'INPUT') { el.placeholder = translations[currentLang][key]; } 
+                else { el.innerText = translations[currentLang][key]; }
+            }
+        });
+        const placeholders = { "loginId": currentLang === 'en' ? "Login ID (e.g., TG0001)" : "लॉगिन आईडी (जैसे TG0001)", "loginPass": currentLang === 'en' ? "Password" : "पासवर्ड", "regName": currentLang === 'en' ? "Full Name" : "पूरा नाम", "regMobile": currentLang === 'en' ? "Mobile Number" : "मोबाइल नंबर", "regPass": currentLang === 'en' ? "Create Password" : "पासवर्ड बनाएँ", "regPassConfirm": currentLang === 'en' ? "Confirm Password" : "पासवर्ड की पुष्टि करें" };
+        for(let id in placeholders) { if(document.getElementById(id)) document.getElementById(id).placeholder = placeholders[id]; }
+    }
+
+    let deferredPrompt;
+    window.addEventListener('beforeinstallprompt', (e) => {
+        e.preventDefault(); deferredPrompt = e;
+        document.getElementById('installBtn').classList.remove('hide');
+        document.getElementById('installBtnProfile').classList.remove('hide');
+    });
+    window.installPWA = function() {
+        if (deferredPrompt) {
+            deferredPrompt.prompt();
+            deferredPrompt.userChoice.then((choiceResult) => {
+                if (choiceResult.outcome === 'accepted') { console.log('User accepted the install prompt'); }
+                deferredPrompt = null;
+                document.getElementById('installBtn').classList.add('hide');
+                document.getElementById('installBtnProfile').classList.add('hide');
+            });
+        } else { alert(currentLang === 'en' ? "To install, tap the share icon and select 'Add to Home Screen'." : "इंस्टॉल करने के लिए, शेयर आइकन पर टैप करें और 'Add to Home Screen' चुनें।"); }
+    }
+
+    function getDeviceId() {
+        let devId = localStorage.getItem('tg_device_id');
+        if(!devId) { devId = 'dev_' + Math.random().toString(36).substr(2, 9); localStorage.setItem('tg_device_id', devId); }
+        return devId;
+    }
+
     function hideAll() { 
-        ['homeScreen', 'loginScreen', 'dashboardScreen', 'subCatScreen', 'examScreen', 'testListScreen', 'instructionsScreen', 'testScreen', 'resultScreen', 'solutionsScreen'].forEach(id => document.getElementById(id).classList.add('hide')); 
+        ['homeScreen', 'loginScreen', 'registerScreen', 'dashboardScreen', 'subCatScreen', 'examScreen', 'testListScreen', 'caScreen', 'instructionsScreen', 'testScreen', 'resultScreen', 'solutionsScreen'].forEach(id => document.getElementById(id).classList.add('hide')); 
         document.getElementById('mainHeader').classList.remove('hide');
     }
     window.goHome = function() { hideAll(); document.getElementById('homeScreen').classList.remove('hide'); updateHeaderUI(); }
-    window.goDashboard = function() { if(!isLoggedIn) return showLogin(); hideAll(); document.getElementById('dashboardScreen').classList.remove('hide'); updateHeaderUI(); }
+    window.goDashboard = function() { if(!isLoggedIn) return showLogin(); hideAll(); document.getElementById('dashboardScreen').classList.remove('hide'); updateHeaderUI(); fetchDashboardData(); updateWelcomeMessage(isFirstLoginSession); }
     window.showLogin = function() { hideAll(); document.getElementById('loginScreen').classList.remove('hide'); }
+    window.showRegister = function() { hideAll(); document.getElementById('registerScreen').classList.remove('hide'); }
     window.logout = function() { isLoggedIn = false; currentStudent = {}; localStorage.removeItem('tg_user'); goHome(); }
 
     function updateHeaderUI() {
@@ -497,44 +706,185 @@
         }
     }
 
+    function updateWelcomeMessage(isFirst) {
+        let firstName = currentStudent.name.split(' ')[0];
+        let msgEl = document.getElementById('welcomeMessage');
+        if(isFirst) {
+            msgEl.innerHTML = currentLang === 'en' ? `🎉 Welcome, ${firstName}! Your journey to a Govt Job starts here.` : `🎉 स्वागत है, ${firstName}! आपकी सरकारी नौकरी की तैयारी का सफर यहीं से शुरू होता है।`;
+        } else {
+            msgEl.innerHTML = currentLang === 'en' ? `💪 Welcome back, ${firstName}! Consistency is the key to success. Let's keep going.` : `💪 वापसी पर स्वागत है, ${firstName}! सफलता उन्हीं को मिलती है जो रोज़ मेहनत करते हैं। चलिए आगे बढ़ते हैं।`;
+        }
+    }
+
+    window.scrollToCategories = function() { if(!isLoggedIn) { alert(currentLang === 'en' ? "Please login first!" : "कृपया पहले लॉगिन करें!"); showLogin(); } else { document.getElementById('dashCategories').scrollIntoView({behavior: 'smooth'}); } }
+    window.showPurchases = function() { if(!isLoggedIn) return; let status = currentStudent.isPaid ? (currentLang === 'en' ? "Paid (All Access Pass)" : "पेड (ऑल एक्सेस)") : (currentLang === 'en' ? "Free User" : "फ्री यूजर"); alert(`--- MY PURCHASES ---\n\nPlan: ${status}\nExpiry Date: ${currentStudent.expiry || "N/A"}`); }
+
     window.doLogin = async function() {
         const id = document.getElementById('loginId').value.trim();
         const pass = document.getElementById('loginPass').value.trim();
-        if(!id || !pass) return alert("Enter ID and Password!");
+        if(!id || !pass) return alert(currentLang === 'en' ? "Enter ID and Password!" : "आईडी और पासवर्ड दर्ज करें!");
         
         try {
             const q = query(collection(db, "students"), where("loginId", "==", id), where("password", "==", pass));
             const snapshot = await getDocs(q);
+            
             if(!snapshot.empty) {
-                const studentData = snapshot.docs[0].data();
+                const studentDoc = snapshot.docs[0];
+                const studentData = studentDoc.data();
+                const docRef = doc(db, "students", studentDoc.id);
+
+                let dev1 = studentData.device1 || "";
+                let dev2 = studentData.device2 || "";
+                let myDev = getDeviceId();
+
+                if(dev1 && dev2 && dev1 !== myDev && dev2 !== myDev) {
+                    await updateDoc(docRef, { device1: dev2, device2: myDev }); 
+                } else if(!dev1) {
+                    await updateDoc(docRef, { device1: myDev });
+                } else if(!dev2 && dev1 !== myDev) {
+                    await updateDoc(docRef, { device2: myDev });
+                }
+
                 currentStudent = { name: studentData.name, loginId: studentData.loginId, isPaid: studentData.isPaid, expiry: studentData.expiryDate || "" };
                 isLoggedIn = true;
+                
+                let hasLoggedInBefore = localStorage.getItem('tg_has_logged_in');
+                if(!hasLoggedInBefore) { isFirstLoginSession = true; localStorage.setItem('tg_has_logged_in', 'true'); } 
+                else { isFirstLoginSession = false; }
+
                 localStorage.setItem('tg_user', JSON.stringify(currentStudent));
-                await fetchSettingsAndTests();
+                fetchSettingsAndTests();
                 goDashboard();
-            } else { alert("Invalid Login ID or Password!"); }
-        } catch (e) { alert("Database Error!"); }
+            } else { alert(currentLang === 'en' ? "Invalid Login ID or Password!" : "गलत लॉगिन आईडी या पासवर्ड!"); }
+        } catch (e) { console.error(e); alert("Database Error: " + e.message); }
+    }
+
+    window.doRegister = async function() {
+        const name = document.getElementById('regName').value.trim();
+        const mobile = document.getElementById('regMobile').value.trim();
+        const pass = document.getElementById('regPass').value.trim();
+        const passConfirm = document.getElementById('regPassConfirm').value.trim();
+        
+        if(!name || !mobile || !pass || !passConfirm) return alert(currentLang === 'en' ? "Fill all fields!" : "सभी फ़ील्ड भरें!");
+        if(pass !== passConfirm) return alert(currentLang === 'en' ? "Passwords do not match!" : "पासवर्ड मेल नहीं खा रहे हैं!");
+
+        try {
+            const qCheck = query(collection(db, "students"), where("name", "==", name));
+            const qCheck2 = query(collection(db, "students"), where("mobile", "==", mobile));
+            const snapCheck = await getDocs(qCheck);
+            const snapCheck2 = await getDocs(qCheck2);
+
+            if(!snapCheck.empty || !snapCheck2.empty) {
+                return alert(currentLang === 'en' ? "Name or Mobile already registered!" : "नाम या मोबाइल पहले से रजिस्टर्ड है!");
+            }
+
+            const allStudentsSnap = await getDocs(collection(db, "students"));
+            const newId = "TG" + String(allStudentsSnap.size + 1).padStart(4, '0');
+
+            await addDoc(collection(db, "students"), {
+                name: name, mobile: mobile, loginId: newId, password: pass, 
+                isPaid: false, expiryDate: "", device1: getDeviceId(), device2: ""
+            });
+
+            document.getElementById('newLoginId').innerText = newId;
+            document.getElementById('newLoginPass').innerText = pass;
+            
+            const waMsg = `Hello! I have registered on TaiyariGhar.\n\nName: ${name}\nLogin ID: ${newId}\nPassword: ${pass}\n\nLink: https://taiyarighar.in`;
+            document.getElementById('regWhatsappBtn').href = `https://wa.me/?text=${encodeURIComponent(waMsg)}`;
+            
+            document.getElementById('registerSuccessModal').classList.remove('hide');
+        } catch (e) { console.error(e); alert("Database Error: " + e.message); }
+    }
+
+    window.closeRegModal = function() {
+        document.getElementById('registerSuccessModal').classList.add('hide');
+        document.getElementById('regName').value = ''; document.getElementById('regMobile').value = ''; document.getElementById('regPass').value = ''; document.getElementById('regPassConfirm').value = '';
+        showLogin();
     }
 
     async function fetchSettingsAndTests() {
         try {
             const setSnap = await getDoc(doc(db, "settings", "global"));
             if(setSnap.exists()) appSettings = setSnap.data();
-            
+            else appSettings = { UPI_ID: "taiyarighar@ptyes", Price: "99", Mobile: "9140281870", OfferText: "" };
+
             const testSnap = await getDocs(collection(db, "tests"));
             allTests = testSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+            
             renderCategories();
-        } catch (e) { console.log(e); }
+
+            const caSnap = await getDocs(collection(db, "current_affairs"));
+            allCA = caSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+        } catch (e) { console.log("Data load error", e); }
+    }
+
+    async function fetchDashboardData() {
+        try {
+            const qRes = query(collection(db, "results"), where("loginId", "==", currentStudent.loginId));
+            const resSnap = await getDocs(qRes);
+            let lastTest = null;
+            let attemptedTestIds = [];
+
+            if(!resSnap.empty) {
+                let results = resSnap.docs.map(d => d.data()).sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp));
+                lastTest = results[0];
+                attemptedTestIds = results.map(r => r.testId);
+            }
+
+            if(lastTest) {
+                document.getElementById('recentTestName').innerText = lastTest.testName;
+                document.getElementById('recentTestScore').innerText = `Score: ${lastTest.finalScore}/${lastTest.totalMarks} (${lastTest.percent}%)`;
+            } else {
+                document.getElementById('recentTestName').innerText = currentLang === 'en' ? "Not Attempted Yet" : "अभी तक प्रयास नहीं किया";
+                document.getElementById('recentTestScore').innerText = currentLang === 'en' ? "Take a test to see your score" : "अपना स्कोर देखने के लिए टेस्ट दें";
+            }
+
+            let recTest = allTests.find(t => !attemptedTestIds.includes(t.id));
+            if(!recTest && allTests.length > 0) recTest = allTests[0];
+
+            if(recTest) {
+                recommendedTestData = recTest;
+                document.getElementById('recTestName').innerText = recTest.testName;
+                document.getElementById('recTestDetails').innerText = `⏱️ ${recTest.duration} Mins | ${recTest.marks} Marks`;
+            } else {
+                document.getElementById('recTestName').innerText = currentLang === 'en' ? "No tests available" : "कोई टेस्ट उपलब्ध नहीं है";
+            }
+        } catch (e) { console.log("Error fetching dashboard data", e); }
+    }
+
+    window.startRecommendedTest = function() { 
+        if(recommendedTestData) {
+            showInstructions(recommendedTestData.id, recommendedTestData.testName, recommendedTestData.duration, recommendedTestData.marks, recommendedTestData.negativeMark || 0, recommendedTestData.hasNegative, recommendedTestData.language || 'Both');
+        } else {
+            scrollToCategories(); 
+        }
     }
 
     function renderCategories() {
         const uniqueCats = [...new Set(allTests.map(t => t.mainCat))];
-        let gridHtml = "";
+        let gridHtml = ""; let bannerHtml = "";
+
         uniqueCats.forEach(catName => {
-            gridHtml += `<div class="cat-card" style="background: linear-gradient(135deg, #8E2DE2, #4A00E0);" onclick="openCategory('${catName}')"><div class="cat-icon">📝</div><div class="cat-title">${catName}</div></div>`;
+            let n = catName.toLowerCase();
+            let style = { bg: "linear-gradient(135deg, #8E2DE2 0%, #4A00E0 100%)", icon: "📝" };
+            if(n.includes("ssc")) style = { bg: "linear-gradient(135deg, #FF9A9E 0%, #FECFEF 100%)", icon: "🏛️" };
+            else if(n.includes("bank")) style = { bg: "linear-gradient(135deg, #4FACFE 0%, #00F2FE 100%)", icon: "🏦" };
+            else if(n.includes("rail") || n.includes("rrb")) style = { bg: "linear-gradient(135deg, #43E97B 0%, #38F9D7 100%)", icon: "🚂" };
+            else if(n.includes("police")) style = { bg: "linear-gradient(135deg, #FF416C 0%, #FF4B2B 100%)", icon: "👮" };
+            else if(n.includes("up state")) style = { bg: "linear-gradient(135deg, #F6D365 0%, #FDA085 100%)", icon: "🏛️" };
+            else if(n.includes("up")) style = { bg: "linear-gradient(135deg, #FFD700 0%, #FF8C00 100%)", icon: "📝" };
+            else if(n.includes("all state")) style = { bg: "linear-gradient(135deg, #00b4db 0%, #0083b0 100%)", icon: "🌍" };
+
+            if(n.includes("more") || n.includes("other")) {
+                bannerHtml = `<div class="wide-cat-banner" style="background: ${style.bg};" onclick="openCategory('${catName}')"><div><h2>🌍 ${catName}</h2><p>Explore all other miscellaneous exams here.</p></div><button class="btn" style="background: white; color: #4A00E0; font-weight: bold;">View Now</button></div>`;
+            } else {
+                gridHtml += `<div class="cat-card" style="background: ${style.bg};" onclick="openCategory('${catName}')"><div class="cat-icon">${style.icon}</div><div class="cat-title">${catName}</div></div>`;
+            }
         });
-        document.getElementById('homeCatContainer').innerHTML = `<div class="category-grid">${gridHtml}</div>`;
-        document.getElementById('dashCatContainer').innerHTML = `<div class="category-grid">${gridHtml}</div>`;
+
+        const finalHtml = `<div class="category-grid">${gridHtml}</div>${bannerHtml}`;
+        document.getElementById('homeCatContainer').innerHTML = finalHtml;
+        document.getElementById('dashCatContainer').innerHTML = finalHtml;
     }
 
     window.openCategory = function(mainCat) {
@@ -543,8 +893,8 @@
         const filtered = allTests.filter(t => t.mainCat === mainCat);
         const uniqueSubCats = [...new Set(filtered.map(t => t.subCat))];
         let html = "";
-        uniqueSubCats.forEach(subCat => { html += `<div class="cat-card" style="background: white; border: 2px solid #E5E7EB; color: #1F2937; padding: 15px;" onclick="openSubCategory('${subCat}')"><div class="cat-icon">📂</div><div class="cat-title" style="font-size:16px; text-shadow:none;">${subCat}</div></div>`; });
-        hideAll(); document.getElementById('subCatScreen').classList.remove('hide'); document.getElementById('subCatTitle').innerText = mainCat + " - Select Type"; document.getElementById('subCatGrid').innerHTML = html;
+        uniqueSubCats.forEach(subCat => { html += `<div class="cat-card" style="background: white; border: 2px solid #E5E7EB; color: #1F2937; padding: 15px;" onclick="openSubCategory('${subCat}')"><div class="cat-icon" style="font-size:30px; margin-bottom:5px;">📂</div><div class="cat-title" style="font-size:16px; text-shadow:none;">${subCat}</div></div>`; });
+        hideAll(); document.getElementById('subCatScreen').classList.remove('hide'); document.getElementById('subCatTitle').innerText = mainCat + (currentLang === 'en' ? " - Select Type" : " - प्रकार चुनें"); document.getElementById('subCatGrid').innerHTML = html;
     }
 
     window.openSubCategory = function(subCat) {
@@ -552,8 +902,8 @@
         const filtered = allTests.filter(t => t.mainCat === nav.mainCat && t.subCat === subCat);
         const uniqueExams = [...new Set(filtered.map(t => t.examName))];
         let html = "";
-        uniqueExams.forEach(exam => { html += `<div class="cat-card" style="background: white; border: 2px solid #E5E7EB; color: #1F2937; padding: 15px;" onclick="openExam('${exam}')"><div class="cat-icon">📚</div><div class="cat-title" style="font-size:16px; text-shadow:none;">${exam}</div></div>`; });
-        hideAll(); document.getElementById('examScreen').classList.remove('hide'); document.getElementById('examTitle').innerText = subCat + " - Select Exam"; document.getElementById('examGrid').innerHTML = html;
+        uniqueExams.forEach(exam => { html += `<div class="cat-card" style="background: white; border: 2px solid #E5E7EB; color: #1F2937; padding: 15px;" onclick="openExam('${exam}')"><div class="cat-icon" style="font-size:30px; margin-bottom:5px;">📚</div><div class="cat-title" style="font-size:16px; text-shadow:none;">${exam}</div></div>`; });
+        hideAll(); document.getElementById('examScreen').classList.remove('hide'); document.getElementById('examTitle').innerText = nav.mainCat + " > " + subCat + (currentLang === 'en' ? " - Select Exam" : " - परीक्षा चुनें"); document.getElementById('examGrid').innerHTML = html;
     }
 
     window.openExam = function(examName) {
@@ -562,16 +912,171 @@
         let html = "";
         filtered.forEach(t => {
             let isLocked = (String(t.isFree).trim().toLowerCase() !== "yes" && !currentStudent.isPaid);
-            let btn = isLocked ? `<button class="btn" style="background:#F3F4F6; color:#6B7280;" onclick="alert('Test is locked. Please purchase the pass.')">🔒 Unlock</button>` : `<button class="btn btn-accent" onclick="showInstructions('${t.id}', '${t.testName}', ${t.duration}, ${t.marks}, ${t.negativeMark || 0}, '${t.hasNegative}', '${t.language}')">Start Test</button>`;
-            html += `<div class="test-item ${isLocked ? 'locked' : ''}"><div><h3 style="color: var(--primary); font-size:16px;">${t.testName}</h3><p style="font-size: 13px; color: #666;">⏱️ ${t.duration} Mins | ${t.marks} Marks | Lang: ${t.language}</p></div>${btn}</div>`;
+            let btn = isLocked ? `<button class="btn" style="background:#F3F4F6; color:#6B7280; border:1px solid #E5E7EB;" onclick="openPaymentModal()" data-translate="unlock">${currentLang === 'en' ? '🔒 Unlock' : '🔒 अनलॉक'}</button>` : `<button class="btn btn-accent" onclick="showInstructions('${t.id}', '${t.testName}', ${t.duration}, ${t.marks}, ${t.negativeMark || 0}, '${t.hasNegative}', '${t.language || 'Both'}')">${currentLang === 'en' ? 'Start Test' : 'टेस्ट शुरू करें'}</button>`;
+            html += `<div class="test-item ${isLocked ? 'locked' : ''}"><div><h3 style="color: var(--primary); margin-bottom: 5px; font-size:16px;">${t.testName}</h3><p style="font-size: 13px; color: #666;">⏱️ ${t.duration} Mins | ${t.marks} Marks | Lang: ${t.language || 'Both'}</p></div>${btn}</div>`;
         });
-        hideAll(); document.getElementById('testListScreen').classList.remove('hide'); document.getElementById('testListTitle').innerText = examName + " Tests"; document.getElementById('testListContainer').innerHTML = html;
+        hideAll(); document.getElementById('testListScreen').classList.remove('hide'); document.getElementById('testListTitle').innerText = examName + (currentLang === 'en' ? " Tests" : " टेस्ट"); document.getElementById('testListContainer').innerHTML = html;
     }
 
     window.goBackToSubCat = function() { hideAll(); document.getElementById('subCatScreen').classList.remove('hide'); }
     window.goBackToExam = function() { hideAll(); document.getElementById('examScreen').classList.remove('hide'); }
 
-    // --- INSTRUCTIONS LOGIC ---
+    let caStreak = 0;
+    let caCorrectCount = 0;
+    let caWrongCount = 0;
+
+    window.showCurrentAffairs = function() {
+        hideAll();
+        document.getElementById('caScreen').classList.remove('hide');
+        document.getElementById('caLiveScoreCorrect').innerText = "0";
+        document.getElementById('caLiveScoreWrong').innerText = "0";
+        caCorrectCount = 0; caWrongCount = 0; caStreak = 0;
+        filterCA('Daily', document.querySelector('.ca-tab'));
+    }
+
+    window.filterCA = function(type, btn) {
+        document.querySelectorAll('.ca-tab').forEach(b => b.classList.remove('active'));
+        if(btn) btn.classList.add('active');
+        
+        const container = document.getElementById('caContentContainer');
+        container.innerHTML = '';
+        
+        const filtered = allCA.filter(c => c.type.toLowerCase() === type.toLowerCase());
+        if(filtered.length === 0) { container.innerHTML = '<p style="text-align:center;">No current affairs available.</p>'; return; }
+
+        const grouped = {};
+        filtered.forEach(c => {
+            if(!grouped[c.title]) grouped[c.title] = { date: c.date, link: c.link, questions: [] };
+            grouped[c.title].questions.push(c);
+        });
+
+        for(let title in grouped) {
+            const article = grouped[title];
+            let articleHtml = `<div class="ca-article">
+                <h3 style="color:var(--primary); margin-bottom:5px;">${title}</h3>
+                <p style="font-size:13px; color:#666; margin-bottom:10px;">📅 ${article.date}</p>`;
+            if(type === 'Daily' && article.link) {
+                articleHtml += `<a href="${article.link}" target="_blank" class="btn btn-outline" style="padding:6px 12px; font-size:12px;">📄 Read Full Article / PDF</a>`;
+            }
+            articleHtml += `</div>`;
+
+            let qHtml = '';
+            article.questions.forEach((q, idx) => {
+                qHtml += `<div class="ca-question" id="caQ_${q.id}">
+                    <p style="font-weight:600; margin-bottom:15px;">Q${idx+1}. ${q.question}</p>
+                    <div class="ca-options">`;
+                q.options.forEach((opt, i) => {
+                    if(opt && opt.trim() !== "") {
+                        qHtml += `<label class="ca-option" onclick="checkCAAnswer('${q.id}', ${i}, ${q.correctAnswer}, '${type}', '${q.explanation}')">${String.fromCharCode(65+i)}) ${opt}</label>`;
+                    }
+                });
+                qHtml += `</div>
+                    <div class="ca-explanation" id="caExp_${q.id}"><b>Explanation:</b> ${q.explanation || 'N/A'}</div>
+                </div>`;
+            });
+
+            container.innerHTML += articleHtml + qHtml;
+        }
+    }
+
+    window.checkCAAnswer = function(qId, selectedIndex, correctIndex, type, explanation) {
+        const qDiv = document.getElementById(`caQ_${qId}`);
+        const options = qDiv.querySelectorAll('.ca-option');
+        
+        if(qDiv.getAttribute('data-answered') === 'true') return;
+        qDiv.setAttribute('data-answered', 'true');
+
+        options.forEach((opt, i) => {
+            opt.style.pointerEvents = 'none'; 
+            if(i === correctIndex) opt.classList.add('correct'); 
+            if(i === selectedIndex && i !== correctIndex) opt.classList.add('wrong'); 
+        });
+
+        if(type === 'Monthly' && explanation) {
+            document.getElementById(`caExp_${qId}`).style.display = 'block';
+        }
+
+        if(selectedIndex === correctIndex) {
+            caCorrectCount++;
+            caStreak = caStreak > 0 ? caStreak + 1 : 1; 
+            if(caStreak >= 3) {
+                showPopup('popupSuccess');
+                caStreak = 0;
+            }
+        } else {
+            caWrongCount++;
+            caStreak = caStreak < 0 ? caStreak - 1 : -1;
+            if(caStreak <= -3) {
+                showPopup('popupWarning');
+                caStreak = 0;
+            }
+        }
+
+        document.getElementById('caLiveScoreCorrect').innerText = caCorrectCount;
+        document.getElementById('caLiveScoreWrong').innerText = caWrongCount;
+    }
+
+    function showPopup(id) {
+        const popup = document.getElementById(id);
+        popup.classList.add('show');
+        setTimeout(() => { popup.classList.remove('show'); }, 3000);
+    }
+
+    window.openPaymentModal = function() {
+        let upi = (appSettings.UPI_ID || "taiyarighar@ptyes").toString().trim();
+        let price = (appSettings.Price || "99").toString().trim();
+        let mobile = (appSettings.Mobile || "9140281870").toString().trim();
+        let offer = (appSettings.OfferText || "").toString().trim();
+
+        if(upi.toLowerCase() === "mobile" || upi.toLowerCase() === "price" || !upi.includes("@")) upi = "taiyarighar@ptyes";
+        if(isNaN(price) || price === "") price = "99";
+        if(mobile.length < 10) mobile = "9140281870";
+
+        document.getElementById('paymentModal').classList.remove('hide');
+        document.getElementById('modalPrice').innerText = price;
+        document.getElementById('modalOffer').innerText = offer ? `(${offer})` : "";
+        document.getElementById('modalUpi').innerText = upi;
+
+        let formattedAmount = parseFloat(price).toFixed(2);
+        let encodedName = encodeURIComponent("TaiyariGhar");
+        const upiString = `upi://pay?pa=${upi}&pn=${encodedName}&am=${formattedAmount}&cu=INR`;
+        
+        let qrContainer = document.getElementById("qrcode");
+        qrContainer.innerHTML = `<img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(upiString)}" alt="Payment QR" style="width: 180px; height: 180px; border-radius: 10px; border: 2px solid #E5E7EB; padding: 5px; background: white;">`;
+
+        let cleanMobile = mobile.replace(/[^0-9]/g, '');
+        if(cleanMobile.length === 10) cleanMobile = "91" + cleanMobile; 
+
+        const waMsg = `Hello Sir, I am ${currentStudent.name} (ID: ${currentStudent.loginId}). I have paid Rs.${price}. Please unlock my tests.`;
+        document.getElementById('whatsappBtn').href = `https://wa.me/${cleanMobile}?text=${encodeURIComponent(waMsg)}`;
+    }
+
+    window.closeModal = function() { document.getElementById('paymentModal').classList.add('hide'); }
+    
+    window.checkPaymentStatus = async function() {
+        closeModal();
+        try {
+            const q = query(collection(db, "students"), where("loginId", "==", currentStudent.loginId));
+            const snap = await getDocs(q);
+            
+            if(!snap.empty) {
+                const studentData = snap.docs[0].data();
+                if(studentData.isPaid) {
+                    currentStudent.isPaid = true;
+                    localStorage.setItem('tg_user', JSON.stringify(currentStudent));
+                    alert(currentLang === 'en' ? "✅ Payment Approved! Tests Unlocked." : "✅ भुगतान स्वीकृत! टेस्ट अनलॉक हो गए।");
+                    location.reload();
+                } else {
+                    alert(currentLang === 'en' ? "⏳ Payment not approved yet. Please wait 5 mins." : "⏳ भुगतान अभी स्वीकृत नहीं हुआ है। कृपया 5 मिनट प्रतीक्षा करें।");
+                }
+            }
+        } catch(e) { console.error(e); }
+    }
+
+    // ==========================================
+    // NEW TEST INTERFACE & INSTRUCTIONS LOGIC
+    // ==========================================
+
     window.showInstructions = function(id, name, duration, marks, negMark, hasNeg, lang) {
         pendingTestDetails = { id, name, duration, marks, negMark, hasNeg, lang };
         
@@ -581,8 +1086,9 @@
         document.getElementById('instMarks').innerText = marks;
         
         if(hasNeg === "Yes") {
-            document.getElementById('instNegRule').innerText = `You will be awarded ${marks/duration>0?1:1} mark for each correct answer and ${negMark} will be deducted for each wrong answer.`;
+            document.getElementById('instNegRule').innerText = `You will be awarded 1 mark for each correct answer and ${negMark} will be deducted for each wrong answer.`;
             document.getElementById('instNegRule').classList.remove('hide');
+            document.getElementById('instNegRule').style.color = "var(--danger)";
         } else {
             document.getElementById('instNegRule').innerText = "There is NO negative marking for wrong answers.";
             document.getElementById('instNegRule').style.color = "var(--accent)";
@@ -620,7 +1126,6 @@
         initTest(pendingTestDetails.id, pendingTestDetails.name, pendingTestDetails.duration, pendingTestDetails.marks, pendingTestDetails.negMark, pendingTestDetails.hasNeg, selectedLang);
     }
 
-    // --- TEST LOGIC ---
     async function initTest(testId, testName, duration, marks, negMark, hasNeg, lang) {
         hideAll(); 
         document.getElementById('mainHeader').classList.add('hide'); // Hide top nav during test
@@ -657,12 +1162,15 @@
                 testQuestions = rawQuestions.map(qData => {
                     // Map Options to Objects { h: "Hindi", e: "English" }
                     let optsArray = [];
-                    for(let i=0; i<qData.optionsHindi.length; i++) {
-                        optsArray.push({ h: qData.optionsHindi[i], e: qData.optionsEnglish[i] || "" });
+                    let hOpts = qData.optionsHindi || qData.options || [];
+                    let eOpts = qData.optionsEnglish || [];
+
+                    for(let i=0; i<hOpts.length; i++) {
+                        optsArray.push({ h: hOpts[i], e: eOpts[i] || "" });
                     }
                     
                     // Get Correct option object
-                    let correctObj = { h: qData.optionsHindi[qData.correctAnswer], e: qData.optionsEnglish[qData.correctAnswer] };
+                    let correctObj = { h: hOpts[qData.correctAnswer], e: eOpts[qData.correctAnswer] || "" };
                     
                     // Shuffle Options
                     optsArray.sort(() => Math.random() - 0.5);
@@ -671,7 +1179,7 @@
                     let newAnsIndex = optsArray.findIndex(o => o.h === correctObj.h && o.e === correctObj.e);
                     
                     return { 
-                        qH: qData.questionHindi, qE: qData.questionEnglish, 
+                        qH: qData.questionHindi || qData.question, qE: qData.questionEnglish, 
                         opts: optsArray, ans: newAnsIndex, 
                         exp: qData.explanation || "No explanation provided.",
                         marks: qData.questionMarks || 1, neg: qData.questionNeg || 0
@@ -781,7 +1289,6 @@
         else { if (document.exitFullscreen) { document.exitFullscreen(); } }
     }
 
-    // --- SUBMIT LOGIC ---
     window.showSubmitModal = function() {
         let answered = 0, notAnswered = 0, marked = 0, notVisited = 0;
         testQuestions.forEach((_, i) => {
@@ -866,7 +1373,6 @@
         } catch(e) { console.error(e); document.getElementById('rankText').innerText = "Rank calculation failed."; }
     }
 
-    // --- SOLUTIONS SCREEN ---
     window.viewSolutions = function() {
         const container = document.getElementById('solutionsContainer');
         let html = "";
@@ -878,7 +1384,7 @@
             let qHtml = "";
             if(currentTestLanguage === "Hindi") qHtml = `<div>${q.qH}</div>`;
             else if(currentTestLanguage === "English") qHtml = `<div>${q.qE}</div>`;
-            else qHtml = `<div>${q.qH}</div><div class="q-lang-en">${q.qE}</div>`;
+            else qHtml = `<div>${q.qH}</div><div style="color:#6B7280; font-size:14px; margin-top:5px;">${q.qE}</div>`;
 
             html += `<div style="background: white; padding: 25px; border-radius: 12px; margin-bottom: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); border-left: 5px solid ${isCorrect ? 'var(--accent)' : (uAns !== undefined ? 'var(--danger)' : 'var(--grey)')};">`;
             html += `<div style="font-weight: 600; font-size: 16px; margin-bottom: 15px;">Q${i+1}. ${qHtml}</div>`;
@@ -916,19 +1422,32 @@
         document.getElementById('solutionsScreen').classList.remove('hide');
     }
 
-    // Init
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => { navigator.serviceWorker.register('sw.js').then(reg => console.log('SW')).catch(err => console.log('SW err', err)); });
+    }
+
     window.onload = () => {
+        applyLanguage(); 
         let savedUser = localStorage.getItem('tg_user');
         if(savedUser) { 
             currentStudent = JSON.parse(savedUser); 
             isLoggedIn = true; 
+            isFirstLoginSession = false; 
             fetchSettingsAndTests(); 
             goDashboard(); 
-        } else { 
-            fetchSettingsAndTests(); 
-            goHome(); 
-        }
+        } 
+        else { fetchSettingsAndTests(); goHome(); }
     }
 </script>
+
+<script>
+    document.addEventListener('contextmenu', event => event.preventDefault());
+    document.addEventListener('keydown', function(e) {
+        if ((e.ctrlKey && (e.key === 'c' || e.key === 'C' || e.key === 'u' || e.key === 'U')) || e.key === 'F12') {
+            e.preventDefault();
+        }
+    });
+</script>
+
 </body>
 </html>
