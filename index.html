@@ -63,16 +63,17 @@
         .section { padding: 25px 5%; }
         .section-title { font-size: 22px; font-weight: 700; margin-bottom: 15px; color: var(--text); }
         
-        /* FIXED: Flexbox to prevent awkward empty spaces and center items */
+        /* FIXED: Flexbox for perfect centering and spacing */
         .category-grid { 
             display: flex; 
             flex-wrap: wrap; 
             justify-content: center; 
             gap: 20px; 
             margin-top: 15px;
+            width: 100%;
         }
         .cat-card { 
-            flex: 1 1 240px; 
+            flex: 1 1 250px; 
             max-width: 320px; 
             padding: 25px 15px; 
             border-radius: 12px; 
@@ -755,7 +756,7 @@
         <p>आप लगातार 3 सवालों के गलत जवाब दे रहे हैं। कृपया आर्टिकल ध्यान से पढ़ें और फिर उत्तर दें।</p>
     </div>
 
-    <!-- FOOTER -->
+    <!-- FOOTER (Dynamic Year) -->
     <footer class="footer" id="mainFooter">
         <div class="footer-links">
             <a onclick="alert('About Us page coming soon!')">About Us</a>
@@ -765,7 +766,7 @@
             <a onclick="alert('Refund Policy page coming soon!')">Refund Policy</a>
             <a onclick="alert('Disclaimer page coming soon!')">Disclaimer</a>
         </div>
-        <p>© <span id="currentYear"></span> TaiyariGhar. All rights reserved. Made with ❤️ for Govt Job Aspirants.</p>
+        <p>© <span id="currentYear">2024</span> TaiyariGhar. All rights reserved. Made with ❤️ for Govt Job Aspirants.</p>
     </footer>
 
 <script type="module">
@@ -1852,8 +1853,11 @@
         window.addEventListener('load', () => { navigator.serviceWorker.register('sw.js').then(reg => console.log('SW')).catch(err => console.log('SW err', err)); });
     }
 
+    // THIS FIXES THE YEAR 2026 ISSUE BY PULLING THE DEVICE'S CURRENT YEAR
+    document.getElementById('currentYear').innerText = new Date().getFullYear();
+
     window.onload = () => {
-        // Set Dynamic Year for Copyright
+        // Set Dynamic Year for Copyright AGAIN just to be safe
         document.getElementById('currentYear').innerText = new Date().getFullYear();
         
         applyLanguage(); 
