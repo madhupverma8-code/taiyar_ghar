@@ -1757,4 +1757,56 @@
         
         testQuestions.forEach((q, i) => {
             let userAns = userAnswers[i];
-            let qText = (currentTestLanguage === "English")
+            let qText = (currentTestLanguage === "English") ? q.qE : (currentTestLanguage === "Hindi" ? q.qH : `${q.qH} <br><span style="font-size:14px; color:#555;">${q.qE}</span>`);
+            
+            html += `<div class="q"><p><b>Q${i+1}. ${qText}</b></p>`;
+            q.opts.forEach((opt, j) => {
+                let labelHtml = (currentTestLanguage === "English") ? opt.e : (currentTestLanguage === "Hindi" ? opt.h : `${opt.h} (${opt.e})`);
+                if(labelHtml && labelHtml.trim() !== "") {
+                    let style = "";
+                    if(j === q.ans) style = 'class="correct"';
+                    else if(j === userAns) style = 'class="wrong"';
+                    html += `<p ${style}>${String.fromCharCode(65+j)}) ${labelHtml}</p>`;
+                }
+            });
+            html += `<p style="margin-top:10px;">Your Answer: ${userAns !== undefined ? String.fromCharCode(65+userAns) : 'Not Attempted'}</p>`;
+            html += `<p>Correct Answer: ${String.fromCharCode(65+q.ans)}</p>`;
+            if(q.exp) html += `<div class="exp"><b>Explanation:</b> ${q.exp}</div>`;
+            html += `</div>`;
+        });
+        html += `</body></html>`;
+        let w = window.open('', '_blank'); 
+        w.document.write(html); 
+        w.document.close(); 
+        setTimeout(() => w.print(), 500);
+    }
+
+    window.shareResultOnWhatsApp = function() {
+        if(!currentResultData) return alert("No result data available!");
+        
+        let msg = `🏆 *TaiyariGhar Result* 🏆\n\n👤 *Name:* ${currentStudent.name}\n📚 *Test:* ${currentTestName}\n📊 *Score:* ${currentResultData.score} / ${currentResultData.total}\n✅ *Correct:* ${currentResultData.correct}\n❌ *Wrong:* ${currentResultData.wrong}\n➖ *Negative:* -${currentResultData.neg}\n📈 *Percentage:* ${currentResultData.percent}%\n🥇 *Rank:* ${currentResultData.rank} ${currentResultData.totalStudents !== '-' ? '(out of '+currentResultData.totalStudents+')' : ''}\n\nमेहनत आपकी, साथ हमारा! 💪\nhttps://taiyarighar.in`;
+        window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
+    }
+
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => { navigator.serviceWorker.register('sw.js').then(reg => console.log('SW')).catch(err => console.log('SW err', err)); });
+    }
+
+    window.onload = () => {
+        applyLanguage(); 
+        let savedUser = localStorage.getItem('tg_user');
+        if(savedUser) { 
+            currentStudent = JSON.parse(savedUser); 
+            isLoggedIn = true; 
+            isFirstLoginSession = false; 
+            fetchSettingsAndTests(); 
+            goDashboard(); 
+        } 
+        else { fetchSettingsAndTests(); goHome(); }
+    }
+</script>
+
+<!-- F12 और Right-Click ब्लॉक करने वाली स्क्रिप्ट पूरी तरह हटा दी गई है ताकि कोई एरर न आए -->
+
+</body>
+</html>
