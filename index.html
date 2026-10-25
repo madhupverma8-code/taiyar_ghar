@@ -516,6 +516,7 @@
         </div>
     </div>
 
+    <!-- UPDATED: ANALYSIS DASHBOARD WITH PDF & WHATSAPP BUTTONS -->
     <div id="resultScreen" class="hide">
         <div class="analysis-container">
             <h2 style="color: var(--text); font-size: 24px;">Test Analysis Report</h2>
@@ -549,10 +550,16 @@
                 Negative Marks Deducted: -<span id="statNeg">0</span>
             </div>
 
-            <div style="display: flex; gap: 10px;">
+            <div style="display: flex; gap: 10px; margin-bottom: 15px;">
                 <button class="btn btn-primary" style="flex: 1;" onclick="viewSolutions()">📝 View Solutions</button>
                 <button class="btn btn-outline" style="flex: 1;" onclick="goDashboard()">🏠 Back to Dashboard</button>
             </div>
+            
+            <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+                <button class="btn btn-primary" onclick="downloadScorecard()" style="flex: 1; background: #F59E0B; box-shadow: none;">📄 Scorecard PDF</button>
+                <button class="btn btn-primary" onclick="downloadQuestionPaper()" style="flex: 1; background: #8B5CF6; box-shadow: none;">📝 Question Paper</button>
+            </div>
+            <button class="btn btn-accent" id="waShareBtn" style="width: 100%;" onclick="shareResultOnWhatsApp()">📲 Share on WhatsApp</button>
         </div>
     </div>
 
@@ -615,7 +622,7 @@
     const db = getFirestore(app);
 
     let allTests = [], appSettings = {}, allCA = [];
-    let userPastResults = {}; // नया: स्टूडेंट के पुराने रिजल्ट्स सेव करने के लिए
+    let userPastResults = {}; 
     
     let currentStudent = { name: "", loginId: "", isPaid: false, expiry: "" };
     let isLoggedIn = false;
@@ -627,6 +634,7 @@
     let timerInterval, timeLeft = 0, totalTime = 0;
     let currentTestId = "", currentTestName = "", currentTestMarks = 0, currentTestNegMark = 0, currentTestLanguage = "Both";
     let pendingTestDetails = null;
+    let currentResultData = null; // NEW: Store current result for PDF/Share
 
     const translations = {
         "en": { "nav_home": "Home", "nav_exams": "All Exams", "nav_ca": "Current Affairs", "nav_login": "Login", "nav_register": "Register", "nav_dash": "Dashboard", "nav_purchase": "My Purchases", "nav_logout": "Logout", "hero_h1": "Crack Your Dream Govt Job with Confidence.", "hero_p": "All-in-one mock test platform for SSC, Railway, Police & All State Exams. Latest syllabus, real-time rankings, and unlimited tests in one subscription.", "sec_cats": "🎯 Exam Categories", "ca_h2": "📰 Current Affairs Hub", "ca_p": "Stay updated with Daily, Weekly, and Monthly Current Affairs.", "btn_explore": "Explore Now", "login_h2": "Login to Your Account", "login_btn": "Login", "login_new": "New user?", "login_reg": "Register Here", "reg_h2": "Create an Account", "reg_btn": "Register Now", "dash_h2": "Crack Your Dream Govt Job with Confidence.", "dash_qv": "📊 Dashboard Quick View", "qv_explore": "Explore Tests", "qv_browse": "Browse all available tests", "qv_view": "View Tests", "qv_rec": "Recommended Next", "qv_loading": "Loading...", "qv_start": "Start Now", "qv_recent": "Recent Performance", "qv_not_att": "Not Attempted Yet", "qv_take": "Take a test to see your score", "btn_back_cat": "← Back to Categories", "btn_back_sub": "← Back to Sub-Categories", "btn_back_exam": "← Back to Exams", "btn_back_home": "← Back to Home", "test_clear": "Clear Response", "test_mark": "⭐ Mark", "test_prev": "← Prev", "test_next": "Save & Next →", "test_palette": "Question Palette", "test_submit": "Submit Test", "res_h2": "Test Result", "res_lb": "🏆 Top 5 Leaderboard", "res_back": "Back to Dashboard", "pay_lock": "🔒 Test Locked", "pay_unlock": "Unlock all tests with a one-time payment of", "pay_upi": "UPI ID:", "pay_wa": "📲 Send Screenshot on WhatsApp", "pay_check": "🔄 Check Status", "pay_close": "Close" },
@@ -812,7 +820,6 @@
             const caSnap = await getDocs(collection(db, "current_affairs"));
             allCA = caSnap.docs.map(d => ({ id: d.id, ...d.data() }));
 
-            // नया: स्टूडेंट के पुराने रिजल्ट्स फेच करें
             if(isLoggedIn) {
                 const resSnap = await getDocs(query(collection(db, "results"), where("loginId", "==", currentStudent.loginId)));
                 userPastResults = {};
@@ -1188,7 +1195,6 @@
             const qSnap = await getDocs(q);
             
             if(!qSnap.empty) {
-                // अगर रिज्यूम है, तो पुराने शफल किए हुए प्रश्नों को लोड करें
                 let resumeData = localStorage.getItem('tg_resume_' + testId);
                 if(isResume && resumeData) {
                     let parsed = JSON.parse(resumeData);
@@ -1245,7 +1251,6 @@
         }
     }
 
-    // प्रोग्रेस सेव करने का फंक्शन
     function saveProgress() {
         let data = {
             testQuestions: testQuestions,
@@ -1261,7 +1266,7 @@
     function startTimer() {
         clearInterval(timerInterval); const timerEl = document.getElementById('timerDisplay'); timerEl.classList.remove('timer-danger');
         timerInterval = setInterval(() => {
-            timeLeft--; if(timeLeft % 5 === 0) saveProgress(); // हर 5 सेकंड में सेव करें
+            timeLeft--; if(timeLeft % 5 === 0) saveProgress();
             let h = Math.floor(timeLeft / 3600), m = Math.floor((timeLeft % 3600) / 60), s = timeLeft % 60;
             timerEl.innerText = `${h>0?h+':':''}${m < 10 ? '0'+m : m}:${s < 10 ? '0'+s : s}`;
             if(timeLeft <= (totalTime * 0.2) && timeLeft > 0) { timerEl.classList.add('timer-danger'); }
@@ -1366,7 +1371,7 @@
     window.finalSubmitTest = async function() {
         closeSubmitModal();
         clearInterval(timerInterval);
-        localStorage.removeItem('tg_resume_' + currentTestId); // रिज्यूम डेटा डिलीट करें
+        localStorage.removeItem('tg_resume_' + currentTestId); 
         
         let score = 0, correctCount = 0, wrongCount = 0, skippedCount = 0, negDeducted = 0;
         
@@ -1422,9 +1427,9 @@
 
             document.getElementById('rankText').innerText = `Your Rank: ${userRank} out of ${allResults.length} students`;
             
-            window.currentResultData = { score, total: currentTestMarks, rank: userRank, totalStudents: allResults.length };
+            // PDF और WhatsApp शेयर के लिए डेटा सेव करें
+            currentResultData = { score: score.toFixed(2), total: currentTestMarks, rank: userRank, totalStudents: allResults.length, correct: correctCount, wrong: wrongCount, neg: negDeducted.toFixed(2), percent: percentStr };
             
-            // फेच डेटा अपडेट करें ताकि 'Analysis' बटन तुरंत दिखे
             fetchSettingsAndTests();
 
         } catch(e) { console.error(e); document.getElementById('rankText').innerText = "Rank calculation failed."; }
@@ -1479,7 +1484,6 @@
         document.getElementById('solutionsScreen').classList.remove('hide');
     }
 
-    // पुराना रिजल्ट/एनालिसिस देखने के लिए
     window.viewPastAnalysis = function(testId) {
         let res = userPastResults[testId];
         if(!res) return alert("Result not found!");
@@ -1487,6 +1491,7 @@
         testQuestions = res.testQuestionsState || [];
         userAnswers = res.userAnswers || {};
         currentTestLanguage = "Both"; 
+        currentTestName = res.testName;
         
         hideAll();
         document.getElementById('resultScreen').classList.remove('hide');
@@ -1507,6 +1512,77 @@
         document.getElementById('scoreCircle').style.background = `conic-gradient(var(--accent) ${percent}%, #E5E7EB ${percent}%)`;
         
         document.getElementById('rankText').innerText = "Previous Attempt Analysis";
+
+        // PDF और WhatsApp के लिए डेटा सेट करें
+        currentResultData = { score: res.finalScore, total: res.totalMarks, rank: '-', totalStudents: '-', correct: res.correctCount, wrong: res.wrongCount, neg: res.negDeducted, percent: res.percent };
+    }
+
+    // --- NEW: PDF DOWNLOAD & WHATSAPP SHARE FUNCTIONS ---
+
+    window.downloadScorecard = function() {
+        if(!currentResultData) return alert("No result data available!");
+        
+        let html = `<html><head><title>Scorecard - TaiyariGhar</title><style>body{font-family:sans-serif; text-align:center; padding:50px;} h1{color:#4F46E5;} table{margin:20px auto; border-collapse:collapse; width:70%;} th,td{border:1px solid #ddd; padding:12px;} .footer{margin-top:30px; font-size:12px; color:#666;}</style></head><body>
+            <h1>🏠 TaiyariGhar</h1>
+            <h2>Test Scorecard</h2>
+            <table>
+                <tr><th>Student Name</th><td>${currentStudent.name}</td></tr>
+                <tr><th>Login ID</th><td>${currentStudent.loginId}</td></tr>
+                <tr><th>Test Name</th><td>${currentTestName}</td></tr>
+                <tr><th>Total Questions</th><td>${testQuestions.length}</td></tr>
+                <tr><th>Correct Answers</th><td style="color:green; font-weight:bold;">${currentResultData.correct}</td></tr>
+                <tr><th>Wrong Answers</th><td style="color:red; font-weight:bold;">${currentResultData.wrong}</td></tr>
+                <tr><th>Negative Deducted</th><td style="color:red;">-${currentResultData.neg}</td></tr>
+                <tr><th>Final Score</th><td>${currentResultData.score} / ${currentResultData.total}</td></tr>
+                <tr><th>Percentage</th><td>${currentResultData.percent}%</td></tr>
+                <tr><th>Rank</th><td>${currentResultData.rank} ${currentResultData.totalStudents !== '-' ? '(out of '+currentResultData.totalStudents+')' : ''}</td></tr>
+            </table>
+            <div class="footer">मेहनत आपकी, साथ हमारा!</div>
+        </body></html>`;
+        let w = window.open('', '_blank'); 
+        w.document.write(html); 
+        w.document.close(); 
+        setTimeout(() => w.print(), 500);
+    }
+
+    window.downloadQuestionPaper = function() {
+        if(!testQuestions || testQuestions.length === 0) return alert("No questions available!");
+        
+        let html = `<html><head><title>Question Paper - TaiyariGhar</title><style>body{font-family:sans-serif; padding:30px;} .q{margin-bottom:20px; border-bottom:1px solid #eee; padding-bottom:15px;} .correct{color:green; font-weight:bold;} .wrong{color:red; font-weight:bold;} .exp{background:#f0fdf4; padding:10px; border-radius:5px; font-size:14px; margin-top:8px;}</style></head><body>
+            <h1 style="text-align:center;">🏠 TaiyariGhar - Question Paper</h1>
+            <h3>Test: ${currentTestName} | Student: ${currentStudent.name}</h3><hr>`;
+        
+        testQuestions.forEach((q, i) => {
+            let userAns = userAnswers[i];
+            let qText = (currentTestLanguage === "English") ? q.qE : (currentTestLanguage === "Hindi" ? q.qH : `${q.qH} <br><span style="font-size:14px; color:#555;">${q.qE}</span>`);
+            
+            html += `<div class="q"><p><b>Q${i+1}. ${qText}</b></p>`;
+            q.opts.forEach((opt, j) => {
+                let labelHtml = (currentTestLanguage === "English") ? opt.e : (currentTestLanguage === "Hindi" ? opt.h : `${opt.h} (${opt.e})`);
+                if(labelHtml && labelHtml.trim() !== "") {
+                    let style = "";
+                    if(j === q.ans) style = 'class="correct"';
+                    else if(j === userAns) style = 'class="wrong"';
+                    html += `<p ${style}>${String.fromCharCode(65+j)}) ${labelHtml}</p>`;
+                }
+            });
+            html += `<p style="margin-top:10px;">Your Answer: ${userAns !== undefined ? String.fromCharCode(65+userAns) : 'Not Attempted'}</p>`;
+            html += `<p>Correct Answer: ${String.fromCharCode(65+q.ans)}</p>`;
+            if(q.exp) html += `<div class="exp"><b>Explanation:</b> ${q.exp}</div>`;
+            html += `</div>`;
+        });
+        html += `</body></html>`;
+        let w = window.open('', '_blank'); 
+        w.document.write(html); 
+        w.document.close(); 
+        setTimeout(() => w.print(), 500);
+    }
+
+    window.shareResultOnWhatsApp = function() {
+        if(!currentResultData) return alert("No result data available!");
+        
+        let msg = `🏆 *TaiyariGhar Result* 🏆\n\n👤 *Name:* ${currentStudent.name}\n📚 *Test:* ${currentTestName}\n📊 *Score:* ${currentResultData.score} / ${currentResultData.total}\n✅ *Correct:* ${currentResultData.correct}\n❌ *Wrong:* ${currentResultData.wrong}\n➖ *Negative:* -${currentResultData.neg}\n📈 *Percentage:* ${currentResultData.percent}%\n🥇 *Rank:* ${currentResultData.rank} ${currentResultData.totalStudents !== '-' ? '(out of '+currentResultData.totalStudents+')' : ''}\n\nमेहनत आपकी, साथ हमारा! 💪\nhttps://taiyarighar.in`;
+        window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
     }
 
     if ('serviceWorker' in navigator) {
