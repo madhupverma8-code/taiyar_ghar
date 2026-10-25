@@ -81,6 +81,7 @@
         <div class="tabs">
             <button class="tab-btn active" onclick="openTab('tabSettings', this)">⚙️ Settings</button>
             <button class="tab-btn" onclick="openTab('tabStudents', this)">👨‍🎓 Students</button>
+            <button class="tab-btn" onclick="openTab('tabCategories', this)">🗂️ Exam Types</button>
             <button class="tab-btn" onclick="openTab('tabTests', this)">📝 Tests</button>
             <button class="tab-btn" onclick="openTab('tabQuestions', this)">❓ Questions</button>
             <button class="tab-btn" onclick="openTab('tabResults', this)">📊 Results</button>
@@ -102,7 +103,6 @@
                 <p id="settingsMsg" class="msg" style="display: none;">✅ Settings Saved!</p>
             </div>
 
-            <!-- STUDENTS TAB -->
             <div id="tabStudents" class="section">
                 <h2 class="title">Students & Payments <button class="btn-export" onclick="exportStudents()">📥 Export to Excel</button></h2>
                 <div class="table-wrapper">
@@ -125,13 +125,32 @@
                 </div>
             </div>
 
+            <!-- NEW TAB: MANAGE SUB-CATEGORIES -->
+            <div id="tabCategories" class="section">
+                <h2 class="title">Manage Sub-Categories (Exam Types)</h2>
+                <p style="font-size:13px; color:#666; margin-bottom:15px;">Yahan se aap kisi bhi Main Category (jaise Railway) ke andar nayi Sub-Category (jaise RPF, NTPC) add ya delete kar sakte hain. Ye categories student website par filter ki tarah dikhengi.</p>
+                
+                <div class="row">
+                    <div><input type="text" id="newMainCat" placeholder="Main Category (e.g., Railway Exams)"></div>
+                    <div><input type="text" id="newSubCat" placeholder="Sub Category (e.g., RPF)"></div>
+                    <div><button class="save-btn" style="margin-bottom:0; background:var(--success);" onclick="addSubCategory()">Add Sub-Category</button></div>
+                </div>
+
+                <div class="table-wrapper">
+                    <table id="categoriesTable">
+                        <thead><tr><th>Main Category</th><th>Sub-Category (Exam Type)</th><th>Action</th></tr></thead>
+                        <tbody><tr><td colspan="3" style="text-align:center;">Loading...</td></tr></tbody>
+                    </table>
+                </div>
+            </div>
+
             <div id="tabTests" class="section">
                 <h2 class="title">Manage Tests <button class="btn-export" onclick="exportTests()">📥 Export to Excel</button></h2>
                 <input type="hidden" id="editTestId">
                 <div class="row">
                     <div><input type="text" id="tId" placeholder="Test ID (e.g., T1)"></div>
-                    <div><input type="text" id="tMain" placeholder="Main Cat (e.g., SSC)"></div>
-                    <div><input type="text" id="tSub" placeholder="Sub Cat (e.g., Mock)"></div>
+                    <div><input type="text" id="tMain" placeholder="Main Cat (e.g., Railway Exams)"></div>
+                    <div><input type="text" id="tSub" placeholder="Sub Cat (e.g., RPF)"></div>
                     <div><input type="text" id="tExam" placeholder="Exam Name"></div>
                 </div>
                 <div class="row">
@@ -358,8 +377,9 @@
     }
 
     function showLoading(show) { document.getElementById('loading').style.display = show ? 'flex' : 'none'; }
-    function loadAllData() { loadSettings(); loadStudents(); loadTests(); loadQuestions(); loadResults(); loadCA(); }
+    function loadAllData() { loadSettings(); loadStudents(); loadCategories(); loadTests(); loadQuestions(); loadResults(); loadCA(); }
 
+    // ===== SETTINGS =====
     async function loadSettings() {
         const docSnap = await getDoc(doc(db, "settings", "global"));
         if(docSnap.exists()) {
@@ -379,6 +399,7 @@
         document.getElementById('settingsMsg').style.display = 'block'; setTimeout(() => document.getElementById('settingsMsg').style.display = 'none', 3000);
     }
 
+    // ===== STUDENTS =====
     async function loadStudents() {
         const tbody = document.querySelector('#studentsTable tbody');
         const snap = await getDocs(collection(db, "students"));
@@ -395,7 +416,6 @@
             let mobile = data.mobile || '-';
             let recoveryCode = data.recoveryCode || '-';
             
-            // Action Buttons (Approve, Devices, Pass Reset, Delete)
             let passResetBtn = `<button class="btn-reset-pass" onclick="resetStudentPassword('${d.id}')">Pass Reset</button>`;
             let deleteBtn = `<button class="btn-delete" onclick="deleteStudent('${d.id}')">Del</button>`;
 
@@ -436,135 +456,67 @@
         await updateDoc(doc(db, "students", id), { device1: "", device2: "" }); loadStudents(); alert("Devices Reset!");
     }
 
-    // NEW: Reset Student Password Function
     window.resetStudentPassword = async function(id) {
         let newPass = prompt("Enter New Password for the student:");
         if(newPass === null || newPass.trim() === "") return;
-        
         let newCode = Math.random().toString(36).substring(2, 8).toUpperCase();
-        
-        if(!confirm(`Are you sure you want to reset the password?\n\nNew Password: ${newPass}\nNew Recovery Code: ${newCode}\n\nPlease share this with the student on WhatsApp.`)) return;
+        if(!confirm(`Are you sure you want to reset the password?\n\nNew Password: ${newPass}\nNew Recovery Code: ${newCode}\n\nPlease share this with the student.`)) return;
 
-        await updateDoc(doc(db, "students", id), { 
-            password: newPass.trim(), 
-            recoveryCode: newCode 
-        });
-        
+        await updateDoc(doc(db, "students", id), { password: newPass.trim(), recoveryCode: newCode });
         loadStudents();
         alert("Password and Recovery Code reset successfully!");
     }
 
-    // NEW: Delete Student Function
     window.deleteStudent = async function(id) {
         if(!confirm("Are you sure you want to DELETE this student? This cannot be undone!")) return;
         try {
             await deleteDoc(doc(db, "students", id));
             loadStudents();
             alert("Student deleted successfully!");
-        } catch(e) {
-            console.error(e);
-            alert("Error deleting student: " + e.message);
-        }
+        } catch(e) { console.error(e); alert("Error deleting student: " + e.message); }
     }
 
-    // ===== EXPORT TO EXCEL (CSV) FUNCTIONS =====
-    window.exportStudents = async function() {
-        showLoading(true);
-        const snap = await getDocs(collection(db, "students"));
-        let dataToExport = [];
+    // ===== MANAGE SUB-CATEGORIES =====
+    async function loadCategories() {
+        const tbody = document.querySelector('#categoriesTable tbody');
+        const snap = await getDocs(collection(db, "exam_categories"));
+        let html = "";
         snap.forEach(d => {
             const data = d.data();
-            dataToExport.push({
-                "Name": data.name || "",
-                "Mobile": data.mobile || "",
-                "Login ID": data.loginId || "",
-                "Password": data.password || "",
-                "Recovery Code": data.recoveryCode || "",
-                "Status": data.isPaid ? "PAID" : "FREE",
-                "Expiry Date": data.expiryDate || "",
-                "Device 1": data.device1 || "",
-                "Device 2": data.device2 || ""
-            });
+            html += `<tr>
+                <td>${data.mainCat}</td>
+                <td style="font-weight:bold; color:var(--primary);">${data.subCat}</td>
+                <td><button class="btn-delete" onclick="deleteCategory('${d.id}')">Delete</button></td>
+            </tr>`;
         });
-        
-        if(dataToExport.length === 0) { showLoading(false); return alert("No data to export!"); }
-        
-        const csv = Papa.unparse(dataToExport);
-        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-        const link = document.createElement("a");
-        link.href = URL.createObjectURL(blob);
-        link.download = `TaiyariGhar_Students_${new Date().toISOString().split('T')[0]}.csv`;
-        link.click();
-        URL.revokeObjectURL(link.href);
-        showLoading(false);
+        tbody.innerHTML = html || '<tr><td colspan="3" style="text-align:center;">No categories found</td></tr>';
     }
 
-    window.exportTests = async function() {
-        showLoading(true);
-        const snap = await getDocs(collection(db, "tests"));
-        let dataToExport = [];
-        snap.forEach(d => {
-            const data = d.data();
-            dataToExport.push({
-                "Test ID": data.id || "",
-                "Main Category": data.mainCat || "",
-                "Sub Category": data.subCat || "",
-                "Exam Name": data.examName || "",
-                "Test Name": data.testName || "",
-                "Duration (Mins)": data.duration || "",
-                "Total Marks": data.marks || "",
-                "Language": data.language || "Both",
-                "Has Negative": data.hasNegative || "No",
-                "Negative Mark": data.negativeMark || 0,
-                "Is Free": data.isFree || "Yes"
-            });
-        });
+    window.addSubCategory = async function() {
+        const mainCat = document.getElementById('newMainCat').value.trim();
+        const subCat = document.getElementById('newSubCat').value.trim();
+        if(!mainCat || !subCat) return alert("Please enter both Main Category and Sub Category!");
+
+        // Check if already exists
+        const q = query(collection(db, "exam_categories"), where("mainCat", "==", mainCat), where("subCat", "==", subCat));
+        const snap = await getDocs(q);
+        if(!snap.empty) return alert("This Sub-Category already exists in this Main Category!");
+
+        await addDoc(collection(db, "exam_categories"), { mainCat: mainCat, subCat: subCat });
         
-        if(dataToExport.length === 0) { showLoading(false); return alert("No data to export!"); }
-        
-        const csv = Papa.unparse(dataToExport);
-        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-        const link = document.createElement("a");
-        link.href = URL.createObjectURL(blob);
-        link.download = `TaiyariGhar_Tests_${new Date().toISOString().split('T')[0]}.csv`;
-        link.click();
-        URL.revokeObjectURL(link.href);
-        showLoading(false);
+        document.getElementById('newMainCat').value = '';
+        document.getElementById('newSubCat').value = '';
+        loadCategories();
+        alert("Sub-Category Added Successfully!");
     }
 
-    window.exportResults = async function() {
-        showLoading(true);
-        const snap = await getDocs(collection(db, "results"));
-        let dataToExport = [];
-        snap.forEach(d => {
-            const data = d.data();
-            dataToExport.push({
-                "Date": new Date(data.timestamp).toLocaleString(),
-                "Student Name": data.studentName || "",
-                "Login ID": data.loginId || "",
-                "Test Name": data.testName || "",
-                "Correct": data.correctCount || 0,
-                "Wrong": data.wrongCount || 0,
-                "Negative Deducted": data.negDeducted || 0,
-                "Final Score": data.finalScore || 0,
-                "Total Marks": data.totalMarks || 0,
-                "Percentage": data.percent || "0"
-            });
-        });
-        
-        if(dataToExport.length === 0) { showLoading(false); return alert("No data to export!"); }
-        
-        const csv = Papa.unparse(dataToExport);
-        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-        const link = document.createElement("a");
-        link.href = URL.createObjectURL(blob);
-        link.download = `TaiyariGhar_Results_${new Date().toISOString().split('T')[0]}.csv`;
-        link.click();
-        URL.revokeObjectURL(link.href);
-        showLoading(false);
+    window.deleteCategory = async function(id) {
+        if(!confirm("Delete this Sub-Category? Tests inside it will not be deleted, but will be hidden until re-added.")) return;
+        await deleteDoc(doc(db, "exam_categories", id));
+        loadCategories();
     }
-    // ==================================================
 
+    // ===== TESTS =====
     window.toggleTestNeg = function() { document.getElementById('tNegBox').style.display = document.getElementById('tHasNeg').value === 'Yes' ? 'block' : 'none'; }
 
     async function loadTests() {
@@ -645,6 +597,7 @@
         loadTests(); 
     }
 
+    // ===== QUESTIONS =====
     async function loadQuestions() {
         const tbody = document.querySelector('#questionsTable tbody');
         const snap = await getDocs(collection(db, "questions"));
@@ -725,6 +678,7 @@
         loadTests(); 
     }
 
+    // ===== RESULTS =====
     async function loadResults() {
         const tbody = document.querySelector('#resultsTable tbody');
         const snap = await getDocs(collection(db, "results"));
@@ -736,6 +690,7 @@
         tbody.innerHTML = html || '<tr><td colspan="7" style="text-align:center;">No results found</td></tr>';
     }
 
+    // ===== CURRENT AFFAIRS =====
     async function loadCA() {
         const tbody = document.querySelector('#caTable tbody');
         const snap = await getDocs(collection(db, "current_affairs"));
@@ -787,20 +742,79 @@
     
     window.deleteCA = async function(id) { if(!confirm("Delete?")) return; await deleteDoc(doc(db, "current_affairs", id)); loadCA(); }
 
-    // ===== CSV TEMPLATE DOWNLOAD & UPLOAD FUNCTIONS =====
+    // ===== EXPORT FUNCTIONS =====
+    window.exportStudents = async function() {
+        showLoading(true);
+        const snap = await getDocs(collection(db, "students"));
+        let dataToExport = [];
+        snap.forEach(d => {
+            const data = d.data();
+            dataToExport.push({
+                "Name": data.name || "", "Mobile": data.mobile || "", "Login ID": data.loginId || "", "Password": data.password || "",
+                "Recovery Code": data.recoveryCode || "", "Status": data.isPaid ? "PAID" : "FREE", "Expiry Date": data.expiryDate || "",
+                "Device 1": data.device1 || "", "Device 2": data.device2 || ""
+            });
+        });
+        if(dataToExport.length === 0) { showLoading(false); return alert("No data to export!"); }
+        const csv = Papa.unparse(dataToExport);
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement("a"); link.href = URL.createObjectURL(blob);
+        link.download = `TaiyariGhar_Students_${new Date().toISOString().split('T')[0]}.csv`;
+        link.click(); URL.revokeObjectURL(link.href); showLoading(false);
+    }
+
+    window.exportTests = async function() {
+        showLoading(true);
+        const snap = await getDocs(collection(db, "tests"));
+        let dataToExport = [];
+        snap.forEach(d => {
+            const data = d.data();
+            dataToExport.push({
+                "Test ID": data.id || "", "Main Category": data.mainCat || "", "Sub Category": data.subCat || "",
+                "Exam Name": data.examName || "", "Test Name": data.testName || "", "Duration (Mins)": data.duration || "",
+                "Total Marks": data.marks || "", "Language": data.language || "Both", "Has Negative": data.hasNegative || "No",
+                "Negative Mark": data.negativeMark || 0, "Is Free": data.isFree || "Yes"
+            });
+        });
+        if(dataToExport.length === 0) { showLoading(false); return alert("No data to export!"); }
+        const csv = Papa.unparse(dataToExport);
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement("a"); link.href = URL.createObjectURL(blob);
+        link.download = `TaiyariGhar_Tests_${new Date().toISOString().split('T')[0]}.csv`;
+        link.click(); URL.revokeObjectURL(link.href); showLoading(false);
+    }
+
+    window.exportResults = async function() {
+        showLoading(true);
+        const snap = await getDocs(collection(db, "results"));
+        let dataToExport = [];
+        snap.forEach(d => {
+            const data = d.data();
+            dataToExport.push({
+                "Date": new Date(data.timestamp).toLocaleString(), "Student Name": data.studentName || "", "Login ID": data.loginId || "",
+                "Test Name": data.testName || "", "Correct": data.correctCount || 0, "Wrong": data.wrongCount || 0,
+                "Negative Deducted": data.negDeducted || 0, "Final Score": data.finalScore || 0, "Total Marks": data.totalMarks || 0, "Percentage": data.percent || "0"
+            });
+        });
+        if(dataToExport.length === 0) { showLoading(false); return alert("No data to export!"); }
+        const csv = Papa.unparse(dataToExport);
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement("a"); link.href = URL.createObjectURL(blob);
+        link.download = `TaiyariGhar_Results_${new Date().toISOString().split('T')[0]}.csv`;
+        link.click(); URL.revokeObjectURL(link.href); showLoading(false);
+    }
+
+    // ===== BULK UPLOAD FUNCTIONS =====
     function downloadCSV(filename, headers, sampleRow) {
         const csv = Papa.unparse([headers, sampleRow]);
         const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-        const link = document.createElement("a");
-        link.href = URL.createObjectURL(blob);
-        link.download = filename;
-        link.click();
-        URL.revokeObjectURL(link.href);
+        const link = document.createElement("a"); link.href = URL.createObjectURL(blob);
+        link.download = filename; link.click(); URL.revokeObjectURL(link.href);
     }
 
     window.downloadTestsTemplate = function() {
         const headers = ["TestID","MainCategory","SubCategory","ExamName","TestName","Duration","TotalMarks","TotalQuestions","HasNegative","NegativeMark","IsFree","Language"];
-        const sample = ["T1","SSC","Mock Test","SSC CGL 2024","SSC CGL Mock 1","60","100","50","Yes","0.25","Yes","Both"];
+        const sample = ["T1","SSC Exams","CGL","SSC CGL 2024","SSC CGL Mock 1","60","100","50","Yes","0.25","Yes","Both"];
         downloadCSV("tests_template.csv", headers, sample);
     }
 
@@ -861,18 +875,13 @@
                 let ansIndex = ansMap[ansStr] !== undefined ? ansMap[ansStr] : 0;
 
                 await addDoc(collection(db, "questions"), {
-                    testId: tId, 
-                    questionHindi: qH, questionEnglish: qE,
-                    optionsHindi: optsHindi, optionsEnglish: optsEnglish,
-                    correctAnswer: ansIndex, 
-                    questionMarks: Number(row.QuestionMarks) || 1, questionNeg: Number(row.QuestionNegativeMark) || 0, 
-                    explanation: row.Explanation || ""
+                    testId: tId, questionHindi: qH, questionEnglish: qE,
+                    optionsHindi: optsHindi, optionsEnglish: optsEnglish, correctAnswer: ansIndex, 
+                    questionMarks: Number(row.QuestionMarks) || 1, questionNeg: Number(row.QuestionNegativeMark) || 0, explanation: row.Explanation || ""
                 }); count++;
                 if(count % 10 === 0) statusText.innerText = `Uploading: ${count}/${res.data.length}`;
             }
-            statusText.innerText = `✅ Uploaded ${count} questions!`; 
-            loadQuestions(); 
-            loadTests(); 
+            statusText.innerText = `✅ Uploaded ${count} questions!`; loadQuestions(); loadTests(); 
         }});
     }
 
