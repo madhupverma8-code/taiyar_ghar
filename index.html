@@ -35,11 +35,10 @@
         .lang-btn:hover { background: var(--primary); color: white; }
         .install-btn { background: var(--accent); color: white; padding: 6px 12px; border-radius: 8px; font-weight: 600; font-size: 13px; border: none; cursor: pointer; margin-right: 8px; display: flex; align-items: center; gap: 5px;}
 
-        /* UPDATED: Sticky Header with Transition */
         .header { background: var(--white); padding: 12px 5%; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 10px rgba(0,0,0,0.05); position: sticky; top: 0; z-index: 100; flex-wrap: wrap; gap: 10px; transition: all 0.3s ease; }
         .header.scrolled { padding: 5px 5%; background: rgba(255, 255, 255, 0.98); backdrop-filter: blur(5px); box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
         .header.scrolled .logo { font-size: 20px; }
-        .header.scrolled .nav-links { display: none; } /* Hide links on scroll for mobile */
+        .header.scrolled .nav-links { display: none; }
         
         .logo { font-size: 24px; font-weight: 800; color: var(--primary); display: flex; align-items: center; gap: 8px; transition: 0.3s; }
         .nav-links { display: flex; gap: 20px; }
@@ -260,13 +259,14 @@
         </div>
         <div class="header-right" id="headerAuth">
             <button class="lang-btn" onclick="toggleLanguage()" id="langBtn">हिंदी</button>
-            <button id="installBtn" class="install-btn hide" onclick="installPWA()">📲 Install App</button>
+            <!-- UPDATED: Hide class removed from install buttons so they are always visible -->
+            <button id="installBtn" class="install-btn" onclick="installPWA()">📲 Install App</button>
             <button class="btn btn-outline" onclick="showLogin()" data-translate="nav_login">Login</button>
             <button class="btn btn-primary" onclick="showRegister()" data-translate="nav_register">Register</button>
         </div>
         <div class="header-right hide" id="headerProfile">
             <button class="lang-btn" onclick="toggleLanguage()" id="langBtnProfile">हिंदी</button>
-            <button id="installBtnProfile" class="install-btn hide" onclick="installPWA()">📲 Install App</button>
+            <button id="installBtnProfile" class="install-btn" onclick="installPWA()">📲 Install App</button>
             <div class="profile-menu">
                 <span>👤 <span id="navStudentName">User</span> ▼</span>
                 <div class="profile-dropdown">
@@ -754,7 +754,7 @@
         <p>आप लगातार 3 सवालों के गलत जवाब दे रहे हैं। कृपया आर्टिकल ध्यान से पढ़ें और फिर उत्तर दें।</p>
     </div>
 
-    <!-- NEW: FOOTER -->
+    <!-- FOOTER -->
     <footer class="footer" id="mainFooter">
         <div class="footer-links">
             <a onclick="alert('About Us page coming soon!')">About Us</a>
@@ -805,7 +805,6 @@
 
     let currentLang = localStorage.getItem('tg_lang') || 'en';
 
-    // NEW: Scroll Event for Header
     window.addEventListener('scroll', () => {
         const header = document.getElementById('mainHeader');
         if (window.scrollY > 50) {
@@ -847,8 +846,6 @@
     let deferredPrompt;
     window.addEventListener('beforeinstallprompt', (e) => {
         e.preventDefault(); deferredPrompt = e;
-        document.getElementById('installBtn').classList.remove('hide');
-        document.getElementById('installBtnProfile').classList.remove('hide');
     });
     window.installPWA = function() {
         if (deferredPrompt) {
@@ -856,10 +853,10 @@
             deferredPrompt.userChoice.then((choiceResult) => {
                 if (choiceResult.outcome === 'accepted') { console.log('User accepted the install prompt'); }
                 deferredPrompt = null;
-                document.getElementById('installBtn').classList.add('hide');
-                document.getElementById('installBtnProfile').classList.add('hide');
             });
-        } else { alert(currentLang === 'en' ? "To install, tap the share icon and select 'Add to Home Screen'." : "इंस्टॉल करने के लिए, शेयर आइकन पर टैप करें और 'Add to Home Screen' चुनें।"); }
+        } else { 
+            alert(currentLang === 'en' ? "To install, tap the browser menu (3 dots) and select 'Add to Home Screen' or 'Install App'." : "इंस्टॉल करने के लिए, ब्राउज़र के मेनू (3 डॉट्स) पर टैप करें और 'Add to Home Screen' या 'Install App' चुनें।"); 
+        }
     }
 
     function getDeviceId() {
@@ -1697,4 +1694,67 @@
         let res = userPastResults[testId];
         if(!res) return alert("Result not found!");
         
-        testQuestions = res.test
+        testQuestions = res.testQuestionsState || [];
+        userAnswers = res.userAnswers || {};
+        currentTestLanguage = "Both"; 
+        currentTestName = res.testName;
+        
+        hideAll();
+        document.getElementById('resultScreen').classList.remove('hide');
+        
+        document.getElementById('resTestName').innerText = res.testName;
+        document.getElementById('finalScore').innerText = res.finalScore; 
+        document.getElementById('totalScore').innerText = res.totalMarks;
+        document.getElementById('statCorrect').innerText = res.correctCount;
+        document.getElementById('statWrong').innerText = res.wrongCount;
+        
+        let skipped = (testQuestions.length || res.totalMarks) - res.correctCount - res.wrongCount;
+        document.getElementById('statSkipped').innerText = skipped > 0 ? skipped : 0;
+        
+        document.getElementById('statNeg').innerText = res.negDeducted;
+        
+        let percent = parseFloat(res.percent);
+        if(percent < 0) percent = 0;
+        document.getElementById('scoreCircle').style.background = `conic-gradient(var(--accent) ${percent}%, #E5E7EB ${percent}%)`;
+        
+        document.getElementById('rankText').innerText = "Previous Attempt Analysis";
+
+        currentResultData = { score: res.finalScore, total: res.totalMarks, rank: '-', totalStudents: '-', correct: res.correctCount, wrong: res.wrongCount, neg: res.negDeducted, percent: res.percent };
+    }
+
+    window.downloadScorecard = function() {
+        if(!currentResultData) return alert("No result data available!");
+        
+        let html = `<html><head><title>Scorecard - TaiyariGhar</title><style>body{font-family:sans-serif; text-align:center; padding:50px;} h1{color:#4F46E5;} table{margin:20px auto; border-collapse:collapse; width:70%;} th,td{border:1px solid #ddd; padding:12px;} .footer{margin-top:30px; font-size:12px; color:#666;}</style></head><body>
+            <h1>🏠 TaiyariGhar</h1>
+            <h2>Test Scorecard</h2>
+            <table>
+                <tr><th>Student Name</th><td>${currentStudent.name}</td></tr>
+                <tr><th>Login ID</th><td>${currentStudent.loginId}</td></tr>
+                <tr><th>Test Name</th><td>${currentTestName}</td></tr>
+                <tr><th>Total Questions</th><td>${testQuestions.length}</td></tr>
+                <tr><th>Correct Answers</th><td style="color:green; font-weight:bold;">${currentResultData.correct}</td></tr>
+                <tr><th>Wrong Answers</th><td style="color:red; font-weight:bold;">${currentResultData.wrong}</td></tr>
+                <tr><th>Negative Deducted</th><td style="color:red;">-${currentResultData.neg}</td></tr>
+                <tr><th>Final Score</th><td>${currentResultData.score} / ${currentResultData.total}</td></tr>
+                <tr><th>Percentage</th><td>${currentResultData.percent}%</td></tr>
+                <tr><th>Rank</th><td>${currentResultData.rank} ${currentResultData.totalStudents !== '-' ? '(out of '+currentResultData.totalStudents+')' : ''}</td></tr>
+            </table>
+            <div class="footer">मेहनत आपकी, साथ हमारा!</div>
+        </body></html>`;
+        let w = window.open('', '_blank'); 
+        w.document.write(html); 
+        w.document.close(); 
+        setTimeout(() => w.print(), 500);
+    }
+
+    window.downloadQuestionPaper = function() {
+        if(!testQuestions || testQuestions.length === 0) return alert("No questions available!");
+        
+        let html = `<html><head><title>Question Paper - TaiyariGhar</title><style>body{font-family:sans-serif; padding:30px;} .q{margin-bottom:20px; border-bottom:1px solid #eee; padding-bottom:15px;} .correct{color:green; font-weight:bold;} .wrong{color:red; font-weight:bold;} .exp{background:#f0fdf4; padding:10px; border-radius:5px; font-size:14px; margin-top:8px;}</style></head><body>
+            <h1 style="text-align:center;">🏠 TaiyariGhar - Question Paper</h1>
+            <h3>Test: ${currentTestName} | Student: ${currentStudent.name}</h3><hr>`;
+        
+        testQuestions.forEach((q, i) => {
+            let userAns = userAnswers[i];
+            let qText = (currentTestLanguage === "English")
