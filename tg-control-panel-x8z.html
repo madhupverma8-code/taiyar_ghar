@@ -51,7 +51,6 @@
         .btn-reset { background: #6366f1; color: white; border: none; padding: 6px 10px; border-radius: 5px; cursor: pointer; font-weight: 600; font-size:11px; margin-bottom: 3px;}
         .btn-reset-pass { background: var(--purple); color: white; border: none; padding: 6px 10px; border-radius: 5px; cursor: pointer; font-weight: 600; font-size:11px; margin-bottom: 3px;}
         
-        /* NEW: Export Button Style */
         .btn-export { background: #10B981; color: white; border: none; padding: 8px 15px; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 12px; display: flex; align-items: center; gap: 5px; }
 
         .status-paid { color: var(--success); font-weight: bold; }
@@ -103,7 +102,7 @@
                 <p id="settingsMsg" class="msg" style="display: none;">✅ Settings Saved!</p>
             </div>
 
-            <!-- UPDATED: STUDENTS TAB WITH EXPORT BUTTON -->
+            <!-- STUDENTS TAB -->
             <div id="tabStudents" class="section">
                 <h2 class="title">Students & Payments <button class="btn-export" onclick="exportStudents()">📥 Export to Excel</button></h2>
                 <div class="table-wrapper">
@@ -126,7 +125,6 @@
                 </div>
             </div>
 
-            <!-- UPDATED: TESTS TAB WITH EXPORT BUTTON -->
             <div id="tabTests" class="section">
                 <h2 class="title">Manage Tests <button class="btn-export" onclick="exportTests()">📥 Export to Excel</button></h2>
                 <input type="hidden" id="editTestId">
@@ -226,7 +224,6 @@
                 </div>
             </div>
 
-            <!-- UPDATED: RESULTS TAB WITH EXPORT BUTTON -->
             <div id="tabResults" class="section">
                 <h2 class="title">Student Results <button class="btn-export" onclick="exportResults()">📥 Export to Excel</button></h2>
                 <div class="table-wrapper">
@@ -397,7 +394,10 @@
             
             let mobile = data.mobile || '-';
             let recoveryCode = data.recoveryCode || '-';
+            
+            // Action Buttons (Approve, Devices, Pass Reset, Delete)
             let passResetBtn = `<button class="btn-reset-pass" onclick="resetStudentPassword('${d.id}')">Pass Reset</button>`;
+            let deleteBtn = `<button class="btn-delete" onclick="deleteStudent('${d.id}')">Del</button>`;
 
             html += `<tr>
                 <td>${data.name}</td>
@@ -408,7 +408,12 @@
                 <td>${status}</td>
                 <td>${data.expiryDate || '-'}</td>
                 <td>${devices}</td>
-                <td>${actionBtn} <br> <button class="btn-reset" onclick="resetDevices('${d.id}')">Devices</button> <br> ${passResetBtn}</td>
+                <td>
+                    ${actionBtn} <br> 
+                    <button class="btn-reset" onclick="resetDevices('${d.id}')">Devices</button> <br> 
+                    ${passResetBtn} 
+                    ${deleteBtn}
+                </td>
             </tr>`;
         });
         tbody.innerHTML = html || '<tr><td colspan="9" style="text-align:center;">No students found</td></tr>';
@@ -431,19 +436,38 @@
         await updateDoc(doc(db, "students", id), { device1: "", device2: "" }); loadStudents(); alert("Devices Reset!");
     }
 
+    // NEW: Reset Student Password Function
     window.resetStudentPassword = async function(id) {
         let newPass = prompt("Enter New Password for the student:");
         if(newPass === null || newPass.trim() === "") return;
+        
         let newCode = Math.random().toString(36).substring(2, 8).toUpperCase();
-        if(!confirm(`Are you sure you want to reset the password?\n\nNew Password: ${newPass}\nNew Recovery Code: ${newCode}\n\nPlease share this with the student.`)) return;
+        
+        if(!confirm(`Are you sure you want to reset the password?\n\nNew Password: ${newPass}\nNew Recovery Code: ${newCode}\n\nPlease share this with the student on WhatsApp.`)) return;
 
-        await updateDoc(doc(db, "students", id), { password: newPass.trim(), recoveryCode: newCode });
+        await updateDoc(doc(db, "students", id), { 
+            password: newPass.trim(), 
+            recoveryCode: newCode 
+        });
         
         loadStudents();
         alert("Password and Recovery Code reset successfully!");
     }
 
-    // ===== NEW: EXPORT TO EXCEL (CSV) FUNCTIONS =====
+    // NEW: Delete Student Function
+    window.deleteStudent = async function(id) {
+        if(!confirm("Are you sure you want to DELETE this student? This cannot be undone!")) return;
+        try {
+            await deleteDoc(doc(db, "students", id));
+            loadStudents();
+            alert("Student deleted successfully!");
+        } catch(e) {
+            console.error(e);
+            alert("Error deleting student: " + e.message);
+        }
+    }
+
+    // ===== EXPORT TO EXCEL (CSV) FUNCTIONS =====
     window.exportStudents = async function() {
         showLoading(true);
         const snap = await getDocs(collection(db, "students"));
