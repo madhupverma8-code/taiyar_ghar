@@ -31,6 +31,7 @@
         .section { display: none; background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 20px; }
         .section.active { display: block; }
         h2.title { color: var(--primary); font-size: 18px; margin-bottom: 20px; border-bottom: 2px solid #eee; padding-bottom: 10px; }
+        h3.sub-title { font-size: 14px; color: #555; margin-bottom: 10px; background: #f8fafc; padding: 5px 10px; border-radius: 5px; display: inline-block;}
         
         input, select, textarea { width: 100%; padding: 10px; margin-bottom: 10px; border: 1px solid #ccc; border-radius: 8px; font-family: 'Poppins', sans-serif; font-size: 13px; }
         button.save-btn { background: var(--primary); color: white; border: none; padding: 12px 20px; border-radius: 8px; cursor: pointer; font-size: 15px; font-weight: 600; width: 100%; transition: 0.3s; margin-bottom: 15px;}
@@ -112,6 +113,7 @@
                 </div>
             </div>
 
+            <!-- UPDATED TESTS TAB -->
             <div id="tabTests" class="section">
                 <h2 class="title">Manage Tests</h2>
                 <input type="hidden" id="editTestId">
@@ -126,6 +128,15 @@
                     <div><input type="number" id="tDur" placeholder="Duration (Mins)"></div>
                     <div><input type="number" id="tMarks" placeholder="Total Marks"></div>
                     <div><input type="number" id="tTotalQs" placeholder="Total Questions"></div>
+                </div>
+                <div class="row">
+                    <div>
+                        <select id="tLanguage">
+                            <option value="Both">Language: Hindi + English</option>
+                            <option value="Hindi">Language: Only Hindi</option>
+                            <option value="English">Language: Only English</option>
+                        </select>
+                    </div>
                     <div>
                         <select id="tHasNeg" onchange="toggleTestNeg()">
                             <option value="No">Negative Marking? No</option>
@@ -133,7 +144,7 @@
                         </select>
                     </div>
                     <div id="tNegBox" style="display:none;">
-                        <input type="number" step="0.01" id="tNegMark" placeholder="Neg Mark (e.g., 0.25)">
+                        <input type="number" step="0.01" id="tNegMark" placeholder="Neg Mark (e.g., 0.33)">
                     </div>
                     <div>
                         <select id="tFree"><option value="Yes">Is Free? Yes</option><option value="No">Is Free? No</option></select>
@@ -142,37 +153,63 @@
                 <button class="save-btn" id="testBtn" onclick="saveTest()">Add Test</button>
                 <div class="table-wrapper">
                     <table id="testsTable">
-                        <thead><tr><th>ID</th><th>Category</th><th>Test Name</th><th>Marks</th><th>Qs</th><th>Neg</th><th>Action</th></tr></thead>
-                        <tbody><tr><td colspan="7" style="text-align:center;">Loading...</td></tr></tbody>
+                        <thead><tr><th>ID</th><th>Category</th><th>Test Name</th><th>Lang</th><th>Marks</th><th>Qs</th><th>Neg</th><th>Action</th></tr></thead>
+                        <tbody><tr><td colspan="8" style="text-align:center;">Loading...</td></tr></tbody>
                     </table>
                 </div>
             </div>
 
+            <!-- UPDATED QUESTIONS TAB -->
             <div id="tabQuestions" class="section">
-                <h2 class="title">Manage Questions</h2>
+                <h2 class="title">Manage Questions (Dual Language)</h2>
                 <input type="hidden" id="editQId">
                 <div class="row">
                     <div><input type="text" id="qTestId" placeholder="Test ID (e.g., T1)"></div>
-                    <div style="flex:3;"><input type="text" id="qText" placeholder="Question"></div>
+                </div>
+                
+                <h3 class="sub-title">Question Text</h3>
+                <div class="row">
+                    <div style="flex:2;"><input type="text" id="qTextHindi" placeholder="Question in Hindi"></div>
+                    <div style="flex:2;"><input type="text" id="qTextEnglish" placeholder="Question in English"></div>
+                </div>
+
+                <h3 class="sub-title">Options</h3>
+                <div class="row">
+                    <div><input type="text" id="qOptAHindi" placeholder="Option A (Hindi)"></div>
+                    <div><input type="text" id="qOptAEnglish" placeholder="Option A (English)"></div>
                 </div>
                 <div class="row">
-                    <div><input type="text" id="qOptA" placeholder="Option A"></div>
-                    <div><input type="text" id="qOptB" placeholder="Option B"></div>
-                    <div><input type="text" id="qOptC" placeholder="Option C"></div>
-                    <div><input type="text" id="qOptD" placeholder="Option D"></div>
-                    <div><input type="text" id="qOptE" placeholder="Option E (Optional)"></div>
+                    <div><input type="text" id="qOptBHindi" placeholder="Option B (Hindi)"></div>
+                    <div><input type="text" id="qOptBEnglish" placeholder="Option B (English)"></div>
                 </div>
+                <div class="row">
+                    <div><input type="text" id="qOptCHindi" placeholder="Option C (Hindi)"></div>
+                    <div><input type="text" id="qOptCEnglish" placeholder="Option C (English)"></div>
+                </div>
+                <div class="row">
+                    <div><input type="text" id="qOptDHindi" placeholder="Option D (Hindi)"></div>
+                    <div><input type="text" id="qOptDEnglish" placeholder="Option D (English)"></div>
+                </div>
+                <div class="row">
+                    <div><input type="text" id="qOptEHindi" placeholder="Option E (Hindi - Optional)"></div>
+                    <div><input type="text" id="qOptEEnglish" placeholder="Option E (English - Optional)"></div>
+                </div>
+
+                <h3 class="sub-title">Answer & Explanation</h3>
                 <div class="row">
                     <div><select id="qAns"><option value="0">Correct: A</option><option value="1">Correct: B</option><option value="2">Correct: C</option><option value="3">Correct: D</option><option value="4">Correct: E</option></select></div>
                     <div><input type="number" step="0.01" id="qMarks" placeholder="Marks (e.g., 1)"></div>
-                    <div><input type="number" step="0.01" id="qNeg" placeholder="Neg Marks (e.g., 0.25)"></div>
-                    <div style="flex:2;"><input type="text" id="qExp" placeholder="Explanation (Optional)"></div>
+                    <div><input type="number" step="0.01" id="qNeg" placeholder="Neg Marks (e.g., 0.33)"></div>
                 </div>
+                <div class="row">
+                    <div style="flex:1;"><input type="text" id="qExp" placeholder="Explanation (Optional)"></div>
+                </div>
+                
                 <button class="save-btn" id="qBtn" onclick="saveQuestion()">Add Question</button>
                 <div class="table-wrapper">
                     <table id="questionsTable">
-                        <thead><tr><th>Test ID</th><th>Question</th><th>Marks</th><th>Action</th></tr></thead>
-                        <tbody><tr><td colspan="4" style="text-align:center;">Loading...</td></tr></tbody>
+                        <thead><tr><th>Test ID</th><th>Question (Hindi)</th><th>Question (English)</th><th>Marks</th><th>Action</th></tr></thead>
+                        <tbody><tr><td colspan="5" style="text-align:center;">Loading...</td></tr></tbody>
                     </table>
                 </div>
             </div>
@@ -227,16 +264,10 @@
                         <button onclick="downloadTestsTemplate()" style="background:none; border:1px solid #8B5CF6; color:#8B5CF6; padding:6px 12px; border-radius:6px; cursor:pointer; font-size:12px; margin-top:5px; width:100%;">📥 Download Test Template</button>
                     </div>
                     <div style="border: 2px dashed #ccc; padding: 15px; border-radius: 10px; text-align: center;">
-                        <h3 style="font-size: 14px; margin-bottom: 10px;">2. Upload Questions</h3>
+                        <h3 style="font-size: 14px; margin-bottom: 10px;">2. Upload Questions (Dual Lang)</h3>
                         <input type="file" id="questionsCsvFile" accept=".csv" style="border: none; margin-bottom: 10px;">
                         <button class="save-btn" style="background: #EC4899;" onclick="uploadQuestionsCsv()">Upload Questions</button>
                         <button onclick="downloadQuestionsTemplate()" style="background:none; border:1px solid #EC4899; color:#EC4899; padding:6px 12px; border-radius:6px; cursor:pointer; font-size:12px; margin-top:5px; width:100%;">📥 Download Question Template</button>
-                    </div>
-                    <div style="border: 2px dashed #ccc; padding: 15px; border-radius: 10px; text-align: center;">
-                        <h3 style="font-size: 14px; margin-bottom: 10px;">3. Upload Current Affairs</h3>
-                        <input type="file" id="caCsvFile" accept=".csv" style="border: none; margin-bottom: 10px;">
-                        <button class="save-btn" style="background: #F59E0B;" onclick="uploadCaCsv()">Upload CA</button>
-                        <button onclick="downloadCaTemplate()" style="background:none; border:1px solid #F59E0B; color:#F59E0B; padding:6px 12px; border-radius:6px; cursor:pointer; font-size:12px; margin-top:5px; width:100%;">📥 Download CA Template</button>
                     </div>
                 </div>
                 <p id="bulkStatus" style="text-align: center; font-weight: bold; margin-top: 20px; color: var(--primary);"></p>
@@ -261,7 +292,6 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    // ✅ NO PASSWORDS ARE WRITTEN HERE. ONLY READS FROM DATABASE.
     window.checkPass = async function() {
         const pass = document.getElementById('adminPass').value.trim();
         if(!pass) return;
@@ -383,9 +413,10 @@
             const t = d.data();
             let negDisplay = t.hasNegative === "Yes" ? `-${t.negativeMark}` : 'No';
             const actualQs = qCount[t.id] !== undefined ? qCount[t.id] : (t.totalQuestions || 0);
-            html += `<tr><td>${t.id}</td><td>${t.mainCat} > ${t.subCat}</td><td>${t.testName}</td><td>${t.marks}</td><td><b>${actualQs}</b></td><td>${negDisplay}</td><td><button class="btn-edit" onclick="editTest('${d.id}')">Edit</button> <button class="btn-delete" onclick="deleteTest('${d.id}')">Del</button></td></tr>`;
+            let lang = t.language || "Both";
+            html += `<tr><td>${t.id}</td><td>${t.mainCat} > ${t.subCat}</td><td>${t.testName}</td><td>${lang}</td><td>${t.marks}</td><td><b>${actualQs}</b></td><td>${negDisplay}</td><td><button class="btn-edit" onclick="editTest('${d.id}')">Edit</button> <button class="btn-delete" onclick="deleteTest('${d.id}')">Del</button></td></tr>`;
         });
-        tbody.innerHTML = html || '<tr><td colspan="7" style="text-align:center;">No tests found</td></tr>';
+        tbody.innerHTML = html || '<tr><td colspan="8" style="text-align:center;">No tests found</td></tr>';
     }
 
     window.editTest = async function(docId) {
@@ -399,7 +430,9 @@
             document.getElementById('tDur').value = t.duration; document.getElementById('tMarks').value = t.marks;
             document.getElementById('tTotalQs').value = t.totalQuestions || "";
             document.getElementById('tHasNeg').value = t.hasNegative || "No"; document.getElementById('tNegMark').value = t.negativeMark || "";
-            document.getElementById('tFree').value = t.isFree; toggleTestNeg();
+            document.getElementById('tFree').value = t.isFree; 
+            document.getElementById('tLanguage').value = t.language || "Both";
+            toggleTestNeg();
             document.getElementById('testBtn').innerText = "Update Test"; document.getElementById('testBtn').style.background = "var(--warning)"; window.scrollTo(0,0);
         }
     }
@@ -415,7 +448,8 @@
             duration: Number(document.getElementById('tDur').value), marks: Number(document.getElementById('tMarks').value),
             totalQuestions: Number(document.getElementById('tTotalQs').value) || 0,
             hasNegative: document.getElementById('tHasNeg').value, negativeMark: Number(document.getElementById('tNegMark').value) || 0,
-            isFree: document.getElementById('tFree').value
+            isFree: document.getElementById('tFree').value,
+            language: document.getElementById('tLanguage').value
         };
 
         if(editId) {
@@ -428,6 +462,7 @@
         ['tId','tMain','tSub','tExam','tName','tDur','tMarks','tTotalQs','tNegMark'].forEach(fid => document.getElementById(fid).value = "");
         document.getElementById('tHasNeg').value = "No";
         document.getElementById('tFree').value = "Yes";
+        document.getElementById('tLanguage').value = "Both";
         toggleTestNeg();
         loadTests(); alert("Test Saved!");
     }
@@ -444,9 +479,11 @@
         let html = "";
         snap.forEach(d => {
             const q = d.data();
-            html += `<tr><td>${q.testId}</td><td>${q.question}</td><td>${q.questionMarks || 1}</td><td><button class="btn-edit" onclick="editQuestion('${d.id}')">Edit</button> <button class="btn-delete" onclick="deleteQuestion('${d.id}')">Del</button></td></tr>`;
+            let qH = q.questionHindi || q.question || "-";
+            let qE = q.questionEnglish || "-";
+            html += `<tr><td>${q.testId}</td><td>${qH}</td><td>${qE}</td><td>${q.questionMarks || 1}</td><td><button class="btn-edit" onclick="editQuestion('${d.id}')">Edit</button> <button class="btn-delete" onclick="deleteQuestion('${d.id}')">Del</button></td></tr>`;
         });
-        tbody.innerHTML = html || '<tr><td colspan="4" style="text-align:center;">No questions found</td></tr>';
+        tbody.innerHTML = html || '<tr><td colspan="5" style="text-align:center;">No questions found</td></tr>';
     }
 
     window.editQuestion = async function(docId) {
@@ -454,10 +491,22 @@
         if(docSnap.exists()) {
             const q = docSnap.data();
             document.getElementById('editQId').value = docId;
-            document.getElementById('qTestId').value = q.testId; document.getElementById('qText').value = q.question;
-            document.getElementById('qOptA').value = q.options[0]; document.getElementById('qOptB').value = q.options[1];
-            document.getElementById('qOptC').value = q.options[2]; document.getElementById('qOptD').value = q.options[3];
-            document.getElementById('qOptE').value = q.options[4] || ""; document.getElementById('qAns').value = q.correctAnswer;
+            document.getElementById('qTestId').value = q.testId; 
+            
+            // Dual Language Data Mapping
+            document.getElementById('qTextHindi').value = q.questionHindi || (q.question ? q.question : "");
+            document.getElementById('qTextEnglish').value = q.questionEnglish || "";
+
+            let oH = q.optionsHindi || q.options || [];
+            let oE = q.optionsEnglish || [];
+
+            document.getElementById('qOptAHindi').value = oH[0] || ""; document.getElementById('qOptAEnglish').value = oE[0] || "";
+            document.getElementById('qOptBHindi').value = oH[1] || ""; document.getElementById('qOptBEnglish').value = oE[1] || "";
+            document.getElementById('qOptCHindi').value = oH[2] || ""; document.getElementById('qOptCEnglish').value = oE[2] || "";
+            document.getElementById('qOptDHindi').value = oH[3] || ""; document.getElementById('qOptDEnglish').value = oE[3] || "";
+            document.getElementById('qOptEHindi').value = oH[4] || ""; document.getElementById('qOptEEnglish').value = oE[4] || "";
+
+            document.getElementById('qAns').value = q.correctAnswer;
             document.getElementById('qMarks').value = q.questionMarks || 1; document.getElementById('qNeg').value = q.questionNeg || 0;
             document.getElementById('qExp').value = q.explanation || "";
             document.getElementById('qBtn').innerText = "Update Question"; document.getElementById('qBtn').style.background = "var(--warning)"; window.scrollTo(0,0);
@@ -467,13 +516,34 @@
     window.saveQuestion = async function() {
         showLoading(true);
         const editId = document.getElementById('editQId').value;
-        let opts = [document.getElementById('qOptA').value, document.getElementById('qOptB').value, document.getElementById('qOptC').value, document.getElementById('qOptD').value];
-        if(document.getElementById('qOptE').value.trim()) opts.push(document.getElementById('qOptE').value);
+        
+        // Collect Hindi Options
+        let optsHindi = [
+            document.getElementById('qOptAHindi').value, 
+            document.getElementById('qOptBHindi').value, 
+            document.getElementById('qOptCHindi').value, 
+            document.getElementById('qOptDHindi').value
+        ];
+        if(document.getElementById('qOptEHindi').value.trim()) optsHindi.push(document.getElementById('qOptEHindi').value);
+
+        // Collect English Options
+        let optsEnglish = [
+            document.getElementById('qOptAEnglish').value, 
+            document.getElementById('qOptBEnglish').value, 
+            document.getElementById('qOptCEnglish').value, 
+            document.getElementById('qOptDEnglish').value
+        ];
+        if(document.getElementById('qOptEEnglish').value.trim()) optsEnglish.push(document.getElementById('qOptEEnglish').value);
 
         const data = {
-            testId: document.getElementById('qTestId').value, question: document.getElementById('qText').value, options: opts,
+            testId: document.getElementById('qTestId').value, 
+            questionHindi: document.getElementById('qTextHindi').value,
+            questionEnglish: document.getElementById('qTextEnglish').value,
+            optionsHindi: optsHindi,
+            optionsEnglish: optsEnglish,
             correctAnswer: Number(document.getElementById('qAns').value), 
-            questionMarks: Number(document.getElementById('qMarks').value) || 1, questionNeg: Number(document.getElementById('qNeg').value) || 0,
+            questionMarks: Number(document.getElementById('qMarks').value) || 1, 
+            questionNeg: Number(document.getElementById('qNeg').value) || 0,
             explanation: document.getElementById('qExp').value
         };
 
@@ -483,7 +553,7 @@
         } else { await addDoc(collection(db, "questions"), data); }
         
         showLoading(false); 
-        ['qText','qOptA','qOptB','qOptC','qOptD','qOptE'].forEach(id => document.getElementById(id).value = "");
+        ['qTextHindi','qTextEnglish','qOptAHindi','qOptAEnglish','qOptBHindi','qOptBEnglish','qOptCHindi','qOptCEnglish','qOptDHindi','qOptDEnglish','qOptEHindi','qOptEEnglish'].forEach(id => document.getElementById(id).value = "");
         loadQuestions(); 
         loadTests(); 
         alert("Question Saved!");
@@ -558,7 +628,7 @@
     
     window.deleteCA = async function(id) { if(!confirm("Delete?")) return; await deleteDoc(doc(db, "current_affairs", id)); loadCA(); }
 
-    // ===== CSV TEMPLATE DOWNLOAD FUNCTIONS =====
+    // ===== CSV TEMPLATE DOWNLOAD & UPLOAD FUNCTIONS =====
     function downloadCSV(filename, headers, sampleRow) {
         const csv = Papa.unparse([headers, sampleRow]);
         const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
@@ -570,21 +640,15 @@
     }
 
     window.downloadTestsTemplate = function() {
-        const headers = ["TestID","MainCategory","SubCategory","ExamName","TestName","Duration","TotalMarks","TotalQuestions","HasNegative","NegativeMark","IsFree"];
-        const sample = ["T1","SSC","Mock Test","SSC CGL 2024","SSC CGL Mock 1","60","100","50","Yes","0.25","Yes"];
+        const headers = ["TestID","MainCategory","SubCategory","ExamName","TestName","Duration","TotalMarks","TotalQuestions","HasNegative","NegativeMark","IsFree","Language"];
+        const sample = ["T1","SSC","Mock Test","SSC CGL 2024","SSC CGL Mock 1","60","100","50","Yes","0.25","Yes","Both"];
         downloadCSV("tests_template.csv", headers, sample);
     }
 
     window.downloadQuestionsTemplate = function() {
-        const headers = ["TestID","Question","OptionA","OptionB","OptionC","OptionD","OptionE","CorrectAnswer","QuestionMarks","QuestionNegativeMark","Explanation"];
-        const sample = ["T1","What is the capital of India?","Mumbai","Delhi","Kolkata","Chennai","","B","1","0.25","Delhi is the capital of India."];
-        downloadCSV("questions_template.csv", headers, sample);
-    }
-
-    window.downloadCaTemplate = function() {
-        const headers = ["Type","Date","Title","Article_Link","Question","OptionA","OptionB","OptionC","OptionD","OptionE","CorrectAnswer","Explanation"];
-        const sample = ["Daily","2024-12-01","India GDP Growth","https://example.com/article","India's GDP growth rate in 2024?","6.5%","7.2%","8.0%","7.8%","","B","India's GDP grew at 7.2% in 2024."];
-        downloadCSV("current_affairs_template.csv", headers, sample);
+        const headers = ["TestID","QuestionHindi","QuestionEnglish","OptionA_Hindi","OptionB_Hindi","OptionC_Hindi","OptionD_Hindi","OptionE_Hindi","OptionA_English","OptionB_English","OptionC_English","OptionD_English","OptionE_English","CorrectAnswer","QuestionMarks","QuestionNegativeMark","Explanation"];
+        const sample = ["T1","भारत की राजधानी क्या है?","What is the capital of India?","मुंबई","दिल्ली","कोलकाता","चेन्नई","","Mumbai","Delhi","Kolkata","Chennai","","B","1","0.33","दिल्ली भारत की राजधानी है।"];
+        downloadCSV("questions_template_dual.csv", headers, sample);
     }
 
     const statusText = document.getElementById('bulkStatus');
@@ -602,7 +666,8 @@
                     duration: Number(row.Duration) || 60, marks: Number(row.TotalMarks) || 100,
                     totalQuestions: Number(row.TotalQuestions) || 0,
                     hasNegative: row.HasNegative || "No", negativeMark: Number(row.NegativeMark) || 0,
-                    isFree: String(row.IsFree).trim().toLowerCase() === "yes" ? "Yes" : "No"
+                    isFree: String(row.IsFree).trim().toLowerCase() === "yes" ? "Yes" : "No",
+                    language: row.Language || "Both"
                 }); count++;
             }
             await batch.commit(); statusText.innerText = `✅ Uploaded ${count} tests!`; loadTests();
@@ -616,44 +681,32 @@
         Papa.parse(file, { header: true, skipEmptyLines: true, complete: async function(res) {
             let count = 0; const ansMap = { 'A':0, 'B':1, 'C':2, 'D':3, 'E':4, 'a':0, 'b':1, 'c':2, 'd':3, 'e':4 };
             for (let row of res.data) {
-                let tId = row.TestID || row.testId; let qText = row.Question || row.question;
-                if(!tId || !qText) continue;
-                let opts = [row.OptionA || "", row.OptionB || "", row.OptionC || "", row.OptionD || ""];
-                if(row.OptionE) opts.push(row.OptionE);
-                let ansStr = String(row.CorrectAnswer || row.correctAnswer || "A").trim().toUpperCase();
+                let tId = row.TestID || row.testId; 
+                let qH = row.QuestionHindi || ""; let qE = row.QuestionEnglish || "";
+                if(!tId || (!qH && !qE)) continue;
+
+                let optsHindi = [row.OptionA_Hindi || "", row.OptionB_Hindi || "", row.OptionC_Hindi || "", row.OptionD_Hindi || ""];
+                if(row.OptionE_Hindi) optsHindi.push(row.OptionE_Hindi);
+
+                let optsEnglish = [row.OptionA_English || "", row.OptionB_English || "", row.OptionC_English || "", row.OptionD_English || ""];
+                if(row.OptionE_English) optsEnglish.push(row.OptionE_English);
+
+                let ansStr = String(row.CorrectAnswer || "A").trim().toUpperCase();
                 let ansIndex = ansMap[ansStr] !== undefined ? ansMap[ansStr] : 0;
 
                 await addDoc(collection(db, "questions"), {
-                    testId: tId, question: qText, options: opts, correctAnswer: ansIndex, 
-                    questionMarks: Number(row.QuestionMarks) || 1, questionNeg: Number(row.QuestionNegativeMark) || 0, explanation: row.Explanation || ""
+                    testId: tId, 
+                    questionHindi: qH, questionEnglish: qE,
+                    optionsHindi: optsHindi, optionsEnglish: optsEnglish,
+                    correctAnswer: ansIndex, 
+                    questionMarks: Number(row.QuestionMarks) || 1, questionNeg: Number(row.QuestionNegativeMark) || 0, 
+                    explanation: row.Explanation || ""
                 }); count++;
                 if(count % 10 === 0) statusText.innerText = `Uploading: ${count}/${res.data.length}`;
             }
             statusText.innerText = `✅ Uploaded ${count} questions!`; 
             loadQuestions(); 
             loadTests(); 
-        }});
-    }
-
-    window.uploadCaCsv = function() {
-        const file = document.getElementById('caCsvFile').files[0];
-        if(!file) return alert("Select file!");
-        statusText.innerText = "Uploading CA...";
-        Papa.parse(file, { header: true, skipEmptyLines: true, complete: async function(res) {
-            let count = 0; const ansMap = { 'A':0, 'B':1, 'C':2, 'D':3, 'E':4, 'a':0, 'b':1, 'c':2, 'd':3, 'e':4 };
-            for (let row of res.data) {
-                if(!row.Question || !row.Title) continue;
-                let opts = [row.OptionA || "", row.OptionB || "", row.OptionC || "", row.OptionD || ""];
-                if(row.OptionE) opts.push(row.OptionE);
-                let ansStr = String(row.CorrectAnswer || "A").trim().toUpperCase();
-                let ansIndex = ansMap[ansStr] !== undefined ? ansMap[ansStr] : 0;
-                
-                await addDoc(collection(db, "current_affairs"), {
-                    type: row.Type || "Daily", date: row.Date || "", title: row.Title || "", link: row.Article_Link || "",
-                    question: row.Question, options: opts, correctAnswer: ansIndex, explanation: row.Explanation || ""
-                }); count++;
-            }
-            statusText.innerText = `✅ Uploaded ${count} CA records!`; loadCA();
         }});
     }
 </script>
