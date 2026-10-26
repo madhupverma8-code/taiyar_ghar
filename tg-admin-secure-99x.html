@@ -125,7 +125,6 @@
                 </div>
             </div>
 
-            <!-- 3-LEVEL CATEGORY TAB WITH EDIT AND BULK UPLOAD -->
             <div id="tabCategories" class="section">
                 <h2 class="title">Manage Categories & Exam Types</h2>
                 
@@ -570,7 +569,7 @@
         const headers = ["MainCategory", "SubCategory", "ExamName"];
         const sample = ["Railway Exams", "RPF", "Full Length Mock"];
         const csv = Papa.unparse([headers, sample]);
-        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' }); // 👈 \uFEFF जोड़ा
         const link = document.createElement("a"); link.href = URL.createObjectURL(blob);
         link.download = "categories_template.csv"; link.click(); URL.revokeObjectURL(link.href);
     }
@@ -917,7 +916,7 @@
         });
         if(dataToExport.length === 0) { showLoading(false); return alert("No data to export!"); }
         const csv = Papa.unparse(dataToExport);
-        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' }); // 👈 \uFEFF जोड़ा
         const link = document.createElement("a"); link.href = URL.createObjectURL(blob);
         link.download = `TaiyariGhar_Students_${new Date().toISOString().split('T')[0]}.csv`;
         link.click(); URL.revokeObjectURL(link.href); showLoading(false);
@@ -938,7 +937,7 @@
         });
         if(dataToExport.length === 0) { showLoading(false); return alert("No data to export!"); }
         const csv = Papa.unparse(dataToExport);
-        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' }); // 👈 \uFEFF जोड़ा
         const link = document.createElement("a"); link.href = URL.createObjectURL(blob);
         link.download = `TaiyariGhar_Tests_${new Date().toISOString().split('T')[0]}.csv`;
         link.click(); URL.revokeObjectURL(link.href); showLoading(false);
@@ -958,7 +957,7 @@
         });
         if(dataToExport.length === 0) { showLoading(false); return alert("No data to export!"); }
         const csv = Papa.unparse(dataToExport);
-        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' }); // 👈 \uFEFF जोड़ा
         const link = document.createElement("a"); link.href = URL.createObjectURL(blob);
         link.download = `TaiyariGhar_Results_${new Date().toISOString().split('T')[0]}.csv`;
         link.click(); URL.revokeObjectURL(link.href); showLoading(false);
@@ -967,7 +966,7 @@
     // ===== BULK UPLOAD FUNCTIONS (FIXED WITH UTF-8 & DELIMITER) =====
     function downloadCSV(filename, headers, sampleRow) {
         const csv = Papa.unparse([headers, sampleRow]);
-        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' }); // 👈 \uFEFF जोड़ा
         const link = document.createElement("a"); link.href = URL.createObjectURL(blob);
         link.download = filename; link.click(); URL.revokeObjectURL(link.href);
     }
