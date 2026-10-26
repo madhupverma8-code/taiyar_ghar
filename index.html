@@ -1676,4 +1676,210 @@
         
         document.getElementById('resTestName').innerText = currentTestName;
         document.getElementById('finalScore').innerText = score.toFixed(2); 
-        document.getElementById('total
+        document.getElementById('totalScore').innerText = currentTestMarks;
+        document.getElementById('statCorrect').innerText = correctCount;
+        document.getElementById('statWrong').innerText = wrongCount;
+        document.getElementById('statSkipped').innerText = skippedCount;
+        document.getElementById('statNeg').innerText = negDeducted.toFixed(2);
+        
+        let percent = (score / currentTestMarks) * 100;
+        if(percent < 0) percent = 0;
+        document.getElementById('scoreCircle').style.background = `conic-gradient(var(--accent) ${percent}%, #E5E7EB ${percent}%)`;
+
+        document.getElementById('rankText').innerText = "Calculating Rank...";
+
+        try {
+            const percentStr = percent.toFixed(1);
+            const now = new Date().toISOString();
+            
+            await addDoc(collection(db, "results"), {
+                timestamp: now, loginId: currentStudent.loginId, studentName: currentStudent.name,
+                testId: currentTestId, testName: currentTestName, correctCount: correctCount, wrongCount: wrongCount,
+                negDeducted: negDeducted.toFixed(2), finalScore: score.toFixed(2), totalMarks: currentTestMarks, percent: percentStr,
+                userAnswers: userAnswers, 
+                testQuestionsState: testQuestions 
+            });
+
+            const qRank = query(collection(db, "results"), where("testId", "==", currentTestId));
+            const rankSnap = await getDocs(qRank);
+            let allResults = rankSnap.docs.map(d => d.data()).sort((a, b) => b.finalScore - a.finalScore);
+
+            let userRank = 1;
+            allResults.forEach((r, index) => { if(r.loginId === currentStudent.loginId && r.finalScore === score.toFixed(2)) userRank = index + 1; });
+
+            document.getElementById('rankText').innerText = `Your Rank: ${userRank} out of ${allResults.length} students`;
+            
+            currentResultData = { score: score.toFixed(2), total: currentTestMarks, rank: userRank, totalStudents: allResults.length, correct: correctCount, wrong: wrongCount, neg: negDeducted.toFixed(2), percent: percentStr };
+            
+            fetchSettingsAndTests();
+
+        } catch(e) { console.error(e); document.getElementById('rankText').innerText = "Rank calculation failed."; }
+    }
+
+    window.viewSolutions = function() {
+        const container = document.getElementById('solutionsContainer');
+        let html = "";
+        
+        testQuestions.forEach((q, i) => {
+            let uAns = userAnswers[i];
+            let isCorrect = (uAns === q.ans);
+            
+            let qHtml = "";
+            if(currentTestLanguage === "Hindi") qHtml = `<div>${q.qH}</div>`;
+            else if(currentTestLanguage === "English") qHtml = `<div>${q.qE}</div>`;
+            else qHtml = `<div>${q.qH}</div><div style="color:#6B7280; font-size:14px; margin-top:5px;">${q.qE}</div>`;
+
+            html += `<div style="background: white; padding: 25px; border-radius: 12px; margin-bottom: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); border-left: 5px solid ${isCorrect ? 'var(--accent)' : (uAns !== undefined ? 'var(--danger)' : 'var(--grey)')};">`;
+            html += `<div style="font-weight: 600; font-size: 16px; margin-bottom: 15px;">Q${i+1}. ${qHtml}</div>`;
+            
+            q.opts.forEach((opt, j) => {
+                let labelHtml = "";
+                if(currentTestLanguage === "Hindi") labelHtml = opt.h;
+                else if(currentTestLanguage === "English") labelHtml = opt.e;
+                else labelHtml = `${opt.h} <span style="font-size:12px; color:#6B7280;">(${opt.e})</span>`;
+
+                let isUser = (uAns === j);
+                let isRight = (q.ans === j);
+                
+                let bgColor = "#F9FAFB"; let borderColor = "transparent"; let textColor = "#374151";
+                if(isRight) { bgColor = "#D1FAE5"; borderColor = "var(--accent)"; textColor = "#065F46"; }
+                else if(isUser && !isRight) { bgColor = "#FEE2E2"; borderColor = "var(--danger)"; textColor = "#991B1B"; }
+
+                html += `<div style="padding: 12px; border-radius: 8px; background: ${bgColor}; border: 1px solid ${borderColor}; color: ${textColor}; margin-bottom: 8px; font-size: 14px;">
+                    ${String.fromCharCode(65+j)}) ${labelHtml} ${isRight ? '✅' : ''} ${isUser && !isRight ? '❌' : ''}
+                </div>`;
+            });
+            
+            if(uAns === undefined) html += `<div style="color: var(--danger); font-size: 13px; font-weight:600; margin-top:10px;">You did not attempt this question.</div>`;
+            
+            if(q.exp) {
+                html += `<div style="background: #EFF6FF; padding: 15px; border-radius: 8px; color: #1E3A8A; font-size: 14px; margin-top: 15px; border-left: 4px solid #3B82F6;">
+                    <b>Explanation:</b> ${q.exp}
+                </div>`;
+            }
+            html += `</div>`;
+        });
+        
+        container.innerHTML = html;
+        hideAll();
+        document.getElementById('solutionsScreen').classList.remove('hide');
+    }
+
+    window.viewPastAnalysis = function(testId) {
+        let res = userPastResults[testId];
+        if(!res) return alert("Result not found!");
+        
+        testQuestions = res.testQuestionsState || [];
+        userAnswers = res.userAnswers || {};
+        currentTestLanguage = "Both"; 
+        currentTestName = res.testName;
+        
+        hideAll();
+        document.getElementById('resultScreen').classList.remove('hide');
+        
+        document.getElementById('resTestName').innerText = res.testName;
+        document.getElementById('finalScore').innerText = res.finalScore; 
+        document.getElementById('totalScore').innerText = res.totalMarks;
+        document.getElementById('statCorrect').innerText = res.correctCount;
+        document.getElementById('statWrong').innerText = res.wrongCount;
+        
+        let skipped = (testQuestions.length || res.totalMarks) - res.correctCount - res.wrongCount;
+        document.getElementById('statSkipped').innerText = skipped > 0 ? skipped : 0;
+        
+        document.getElementById('statNeg').innerText = res.negDeducted;
+        
+        let percent = parseFloat(res.percent);
+        if(percent < 0) percent = 0;
+        document.getElementById('scoreCircle').style.background = `conic-gradient(var(--accent) ${percent}%, #E5E7EB ${percent}%)`;
+        
+        document.getElementById('rankText').innerText = "Previous Attempt Analysis";
+
+        currentResultData = { score: res.finalScore, total: res.totalMarks, rank: '-', totalStudents: '-', correct: res.correctCount, wrong: res.wrongCount, neg: res.negDeducted, percent: res.percent };
+    }
+
+    window.downloadScorecard = function() {
+        if(!currentResultData) return alert("No result data available!");
+        
+        let html = `<html><head><title>Scorecard - TaiyariGhar</title><style>body{font-family:sans-serif; text-align:center; padding:50px;} h1{color:#4F46E5;} table{margin:20px auto; border-collapse:collapse; width:70%;} th,td{border:1px solid #ddd; padding:12px;} .footer{margin-top:30px; font-size:12px; color:#666;}</style></head><body>
+            <h1>🏠 TaiyariGhar</h1>
+            <h2>Test Scorecard</h2>
+            <table>
+                <tr><th>Student Name</th><td>${currentStudent.name}</td></tr>
+                <tr><th>Login ID</th><td>${currentStudent.loginId}</td></tr>
+                <tr><th>Test Name</th><td>${currentTestName}</td></tr>
+                <tr><th>Total Questions</th><td>${testQuestions.length}</td></tr>
+                <tr><th>Correct Answers</th><td style="color:green; font-weight:bold;">${currentResultData.correct}</td></tr>
+                <tr><th>Wrong Answers</th><td style="color:red; font-weight:bold;">${currentResultData.wrong}</td></tr>
+                <tr><th>Negative Deducted</th><td style="color:red;">-${currentResultData.neg}</td></tr>
+                <tr><th>Final Score</th><td>${currentResultData.score} / ${currentResultData.total}</td></tr>
+                <tr><th>Percentage</th><td>${currentResultData.percent}%</td></tr>
+                <tr><th>Rank</th><td>${currentResultData.rank} ${currentResultData.totalStudents !== '-' ? '(out of '+currentResultData.totalStudents+')' : ''}</td></tr>
+            </table>
+            <div class="footer">मेहनत आपकी, साथ हमारा!</div>
+        </body></html>`;
+        let w = window.open('', '_blank'); 
+        w.document.write(html); 
+        w.document.close(); 
+        setTimeout(() => w.print(), 500);
+    }
+
+    window.downloadQuestionPaper = function() {
+        if(!testQuestions || testQuestions.length === 0) return alert("No questions available!");
+        
+        let html = `<html><head><title>Question Paper - TaiyariGhar</title><style>body{font-family:sans-serif; padding:30px;} .q{margin-bottom:20px; border-bottom:1px solid #eee; padding-bottom:15px;} .correct{color:green; font-weight:bold;} .wrong{color:red; font-weight:bold;} .exp{background:#f0fdf4; padding:10px; border-radius:5px; font-size:14px; margin-top:8px;}</style></head><body>
+            <h1 style="text-align:center;">🏠 TaiyariGhar - Question Paper</h1>
+            <h3>Test: ${currentTestName} | Student: ${currentStudent.name}</h3><hr>`;
+        
+        testQuestions.forEach((q, i) => {
+            let userAns = userAnswers[i];
+            let qText = (currentTestLanguage === "English") ? q.qE : (currentTestLanguage === "Hindi" ? q.qH : `${q.qH} <br><span style="font-size:14px; color:#555;">${q.qE}</span>`);
+            
+            html += `<div class="q"><p><b>Q${i+1}. ${qText}</b></p>`;
+            q.opts.forEach((opt, j) => {
+                let labelHtml = (currentTestLanguage === "English") ? opt.e : (currentTestLanguage === "Hindi" ? opt.h : `${opt.h} (${opt.e})`);
+                if(labelHtml && labelHtml.trim() !== "") {
+                    let style = "";
+                    if(j === q.ans) style = 'class="correct"';
+                    else if(j === userAns) style = 'class="wrong"';
+                    html += `<p ${style}>${String.fromCharCode(65+j)}) ${labelHtml}</p>`;
+                }
+            });
+            html += `<p style="margin-top:10px;">Your Answer: ${userAns !== undefined ? String.fromCharCode(65+userAns) : 'Not Attempted'}</p>`;
+            html += `<p>Correct Answer: ${String.fromCharCode(65+q.ans)}</p>`;
+            if(q.exp) html += `<div class="exp"><b>Explanation:</b> ${q.exp}</div>`;
+            html += `</div>`;
+        });
+        html += `</body></html>`;
+        let w = window.open('', '_blank'); 
+        w.document.write(html); 
+        w.document.close(); 
+        setTimeout(() => w.print(), 500);
+    }
+
+    window.shareResultOnWhatsApp = function() {
+        if(!currentResultData) return alert("No result data available!");
+        
+        let msg = `🏆 *TaiyariGhar Result* 🏆\n\n👤 *Name:* ${currentStudent.name}\n📚 *Test:* ${currentTestName}\n📊 *Score:* ${currentResultData.score} / ${currentResultData.total}\n✅ *Correct:* ${currentResultData.correct}\n❌ *Wrong:* ${currentResultData.wrong}\n➖ *Negative:* -${currentResultData.neg}\n📈 *Percentage:* ${currentResultData.percent}%\n🥇 *Rank:* ${currentResultData.rank} ${currentResultData.totalStudents !== '-' ? '(out of '+currentResultData.totalStudents+')' : ''}\n\nमेहनत आपकी, साथ हमारा! 💪\nhttps://taiyarighar.in`;
+        window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
+    }
+
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => { navigator.serviceWorker.register('sw.js').then(reg => console.log('SW')).catch(err => console.log('SW err', err)); });
+    }
+
+    window.onload = () => {
+        applyLanguage(); 
+        let savedUser = localStorage.getItem('tg_user');
+        if(savedUser) { 
+            currentStudent = JSON.parse(savedUser); 
+            isLoggedIn = true; 
+            isFirstLoginSession = false; 
+            fetchSettingsAndTests(); 
+            goDashboard(); 
+        } 
+        else { fetchSettingsAndTests(); goHome(); }
+    }
+</script>
+
+</body>
+</html>
