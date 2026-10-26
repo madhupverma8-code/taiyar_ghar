@@ -84,11 +84,67 @@
         .wide-cat-banner h2 { font-size: 20px; margin-bottom: 5px; color: white; text-shadow: 1px 1px 3px rgba(0,0,0,0.4);}
         .wide-cat-banner p { font-size: 13px; opacity: 0.9; text-shadow: 1px 1px 2px rgba(0,0,0,0.4);}
 
-        .sub-cat-container { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 20px; }
+        /* Sub-category Pills (SSC MTS, SSC CHSL etc.) */
+        .sub-cat-container { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 25px; }
         .sub-cat-pill { padding: 8px 16px; background: white; border: 2px solid var(--primary); color: var(--primary); border-radius: 20px; font-weight: 600; cursor: pointer; transition: 0.2s; font-size: 14px; }
         .sub-cat-pill:hover, .sub-cat-pill.active { background: var(--primary); color: white; }
-        .exam-name-pill { padding: 8px 16px; background: #EEF2FF; border: 2px solid #C7D2FE; color: #4338CA; border-radius: 20px; font-weight: 600; cursor: pointer; transition: 0.2s; font-size: 14px; }
-        .exam-name-pill:hover, .exam-name-pill.active { background: #4338CA; border-color: #4338CA; color: white; }
+
+        /* NEW: Exam Type Grid Cards */
+        .exam-type-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+            margin-bottom: 30px;
+        }
+        .exam-name-card {
+            background: white;
+            border: 1px solid #E5E7EB;
+            border-radius: 12px;
+            padding: 25px 15px;
+            text-align: center;
+            cursor: pointer;
+            transition: 0.3s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+        }
+        .exam-name-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 15px rgba(0,0,0,0.08);
+            border-color: #D1D5DB;
+        }
+        .exam-name-card.active {
+            background: #EEF2FF;
+            border: 2px solid var(--primary);
+            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.15);
+        }
+        .exam-name-card .e-icon {
+            font-size: 32px;
+        }
+        .exam-name-card .e-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #374151;
+            line-height: 1.3;
+        }
+        .exam-name-card.active .e-title {
+            color: var(--primary);
+        }
+
+        /* Mobile Adjustments for Grid */
+        @media (max-width: 768px) {
+            .exam-type-grid {
+                grid-template-columns: repeat(2, 1fr); /* Force 2 columns on mobile */
+                gap: 12px;
+            }
+            .exam-name-card { padding: 15px 10px; gap: 8px; }
+            .exam-name-card .e-icon { font-size: 26px; }
+            .exam-name-card .e-title { font-size: 12px; }
+        }
 
         .quick-view { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px; margin-bottom: 15px; }
         .qv-card { background: var(--white); padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); border-left: 5px solid var(--secondary); }
@@ -455,16 +511,16 @@
         </div>
     </div>
 
-    <!-- UPDATED SCREEN FOR 3-LEVEL NAVIGATION -->
+    <!-- 3-LEVEL NAVIGATION SCREEN -->
     <div id="subCatScreen" class="section hide">
         <button class="btn btn-outline" style="margin-bottom: 20px;" onclick="goDashboard()" data-translate="btn_back_cat">← Back to Categories</button>
         <h2 class="section-title" id="subCatTitle"></h2>
         
-        <!-- Sub-Category Pills -->
+        <!-- Sub-Category Pills (SSC CGL, SSC CHSL, etc.) -->
         <div id="subCatPills" class="sub-cat-container"></div>
         
-        <!-- Exam Name / Test Type Pills (New) -->
-        <div id="examNamePills" class="sub-cat-container" style="margin-top: 10px;"></div>
+        <!-- Exam Type / Exam Name Grid (New Style) -->
+        <div id="examNamePills" class="exam-type-grid"></div>
 
         <!-- Test list container -->
         <div id="testListContainer" class="test-list"></div>
@@ -1148,7 +1204,7 @@
         document.getElementById('testListContainer').innerHTML = ""; 
     }
 
-    // UPDATED LOGIC FOR 3-LEVEL: Main -> Sub -> Exam Name -> Tests
+    // UPDATED: 3-LEVEL NAVIGATION WITH GRID CARDS FOR EXAM NAMES
     window.loadTestsForSubCat = function(subCat, pillElement) {
         document.querySelectorAll('#subCatPills .sub-cat-pill').forEach(p => p.classList.remove('active'));
         if(pillElement) pillElement.classList.add('active');
@@ -1163,31 +1219,42 @@
             t.subCat.toLowerCase().trim() === normalizedSub
         );
 
-        // Extract unique Exam Names from both categories DB and Tests
         const uniqueExamNames = [...new Set([
             ...allExamCategories.filter(c => c.mainCat.toLowerCase().replace("exams", "").trim() === normalizedMain && c.subCat.toLowerCase().trim() === normalizedSub).map(c => c.examName),
             ...filteredTests.map(t => t.examName)
-        ])].filter(name => name); // Remove empty
+        ])].filter(name => name); 
 
         const examNameContainer = document.getElementById('examNamePills');
-        examNameContainer.innerHTML = ""; // Clear previous
+        examNameContainer.innerHTML = ""; 
 
         if(uniqueExamNames.length > 0) {
-            // Render Exam Name Pills
             uniqueExamNames.forEach(ename => {
-                examNameContainer.innerHTML += `<div class="exam-name-pill" onclick="loadTestsForExamName('${ename}', this)">${ename}</div>`;
+                // Assign icon based on exam name text
+                let icon = '📝';
+                let lowerName = ename.toLowerCase();
+                if(lowerName.includes('ncert')) icon = '⭐';
+                else if(lowerName.includes('current') || lowerName.includes('gk')) icon = '🌍';
+                else if(lowerName.includes('mini') || lowerName.includes('speed')) icon = '⚡';
+                else if(lowerName.includes('memory')) icon = '📄';
+                else if(lowerName.includes('previous') || lowerName.includes('pyp')) icon = '📋';
+                else if(lowerName.includes('full')) icon = '✅';
+                else if(lowerName.includes('chapter') || lowerName.includes('topic')) icon = '📚';
+
+                examNameContainer.innerHTML += `
+                    <div class="exam-name-card" onclick="loadTestsForExamName('${ename}', this)">
+                        <div class="e-icon">${icon}</div>
+                        <div class="e-title">${ename}</div>
+                    </div>`;
             });
-            // Hide tests initially until a type is selected
-            document.getElementById('testListContainer').innerHTML = `<p style="text-align:center; color:#666; padding:20px;">Select an Exam Type above to view tests.</p>`;
+            document.getElementById('testListContainer').innerHTML = `<p style="text-align:center; color:#666; padding:20px;">Select a Test Type above to view tests.</p>`;
         } else {
-            // If no exam names, just show all tests for this subcat (fallback)
             renderTestList(filteredTests);
         }
     }
 
-    window.loadTestsForExamName = function(examName, pillElement) {
-        document.querySelectorAll('#examNamePills .exam-name-pill').forEach(p => p.classList.remove('active'));
-        if(pillElement) pillElement.classList.add('active');
+    window.loadTestsForExamName = function(examName, cardElement) {
+        document.querySelectorAll('#examNamePills .exam-name-card').forEach(p => p.classList.remove('active'));
+        if(cardElement) cardElement.classList.add('active');
 
         nav.examName = examName;
 
@@ -1239,7 +1306,7 @@
     window.clearResumeData = function(testId, examName) {
         if(confirm("Are you sure? Your progress for this test will be lost.")) {
             localStorage.removeItem('tg_resume_' + testId);
-            loadTestsForExamName(nav.examName, document.querySelector('.exam-name-pill.active')); 
+            loadTestsForExamName(nav.examName, document.querySelector('.exam-name-card.active')); 
         }
     }
 
