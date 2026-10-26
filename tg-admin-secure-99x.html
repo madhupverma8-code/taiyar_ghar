@@ -125,7 +125,7 @@
                 </div>
             </div>
 
-            <!-- UPDATED CATEGORY TAB WITH EDIT AND BULK UPLOAD -->
+            <!-- 3-LEVEL CATEGORY TAB WITH EDIT AND BULK UPLOAD -->
             <div id="tabCategories" class="section">
                 <h2 class="title">Manage Categories & Exam Types</h2>
                 
@@ -356,10 +356,10 @@
     const ADMIN_KEY = "TG_Admin_999"; 
     let allExamCategories = [];
 
-      window.checkPass = function() {
+    window.checkPass = function() {
         const pass = document.getElementById('adminPass').value.trim();
         
-        // 👇 यह 'Tg@Admin2024' का Base64 एनकोडेड रूप है
+        // 'Tg@Admin2024' Base64
         const encodedPass = btoa(pass);
         const correctPass = "VGdAQWRtaW4yMDI0"; 
 
@@ -498,12 +498,12 @@
     async function loadCategories() {
         const tbody = document.querySelector('#categoriesTable tbody');
         const snap = await getDocs(collection(db, "exam_categories"));
-        allExamCategories = []; // Reset array
+        allExamCategories = [];
         let html = "";
         
         snap.forEach(d => {
             const data = d.data();
-            allExamCategories.push(data); // Store for dropdowns
+            allExamCategories.push(data);
             html += `<tr>
                 <td>${data.mainCat}</td>
                 <td style="font-weight:bold; color:var(--primary);">${data.subCat}</td>
@@ -578,10 +578,14 @@
     window.uploadCategoriesCsv = function() {
         const file = document.getElementById('categoriesCsvFile').files[0];
         if(!file) return alert("Select file!");
-        const statusText = document.getElementById('bulkStatus'); // Using main bulk status or we can alert directly
         alert("Uploading Categories... Please wait.");
         
-        Papa.parse(file, { header: true, skipEmptyLines: true, complete: async function(res) {
+        Papa.parse(file, { 
+            header: true, 
+            skipEmptyLines: true, 
+            encoding: "UTF-8", 
+            delimiter: ",",
+            complete: async function(res) {
             let count = 0; 
             for (let row of res.data) {
                 let mainCat = row.MainCategory || "";
@@ -960,7 +964,7 @@
         link.click(); URL.revokeObjectURL(link.href); showLoading(false);
     }
 
-    // ===== BULK UPLOAD FUNCTIONS =====
+    // ===== BULK UPLOAD FUNCTIONS (FIXED WITH UTF-8 & DELIMITER) =====
     function downloadCSV(filename, headers, sampleRow) {
         const csv = Papa.unparse([headers, sampleRow]);
         const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
@@ -992,7 +996,12 @@
         const file = document.getElementById('testsCsvFile').files[0];
         if(!file) return alert("Select file!");
         statusText.innerText = "Uploading Tests...";
-        Papa.parse(file, { header: true, skipEmptyLines: true, complete: async function(res) {
+        Papa.parse(file, { 
+            header: true, 
+            skipEmptyLines: true, 
+            encoding: "UTF-8", 
+            delimiter: ",", 
+            complete: async function(res) {
             let count = 0; const batch = writeBatch(db);
             for (let row of res.data) {
                 let tId = row.TestID || row.testId; if(!tId) continue;
@@ -1015,7 +1024,12 @@
         const file = document.getElementById('questionsCsvFile').files[0];
         if(!file) return alert("Select file!");
         statusText.innerText = "Uploading Questions...";
-        Papa.parse(file, { header: true, skipEmptyLines: true, complete: async function(res) {
+        Papa.parse(file, { 
+            header: true, 
+            skipEmptyLines: true, 
+            encoding: "UTF-8", 
+            delimiter: ",", 
+            complete: async function(res) {
             let count = 0; const ansMap = { 'A':0, 'B':1, 'C':2, 'D':3, 'E':4, 'a':0, 'b':1, 'c':2, 'd':3, 'e':4 };
             for (let row of res.data) {
                 let tId = row.TestID || row.testId; 
@@ -1047,7 +1061,12 @@
         const file = document.getElementById('caCsvFile').files[0];
         if(!file) return alert("Select file!");
         statusText.innerText = "Uploading CA...";
-        Papa.parse(file, { header: true, skipEmptyLines: true, complete: async function(res) {
+        Papa.parse(file, { 
+            header: true, 
+            skipEmptyLines: true, 
+            encoding: "UTF-8", 
+            delimiter: ",", 
+            complete: async function(res) {
             let count = 0; const ansMap = { 'A':0, 'B':1, 'C':2, 'D':3, 'E':4, 'a':0, 'b':1, 'c':2, 'd':3, 'e':4 };
             for (let row of res.data) {
                 if(!row.Question || !row.Title) continue;
