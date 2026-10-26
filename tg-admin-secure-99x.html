@@ -352,7 +352,12 @@
       provider: new ReCaptchaV3Provider('6LdmiwAuAAAAAI3GMNNfi-mE1rUQQ8qhPmv3LEfy'),
       isTokenAutoRefreshEnabled: true
     });
-
+    
+    // const appCheck = initializeAppCheck(app, {
+    //   provider: new ReCaptchaV3Provider('6LdmiwAuAAAAAI3GMNNfi-mE1rUQQ8qhPmv3LEfy'),
+    //   isTokenAutoRefreshEnabled: true
+    // });
+    
     const db = getFirestore(app);
     const auth = getAuth(app); // 👈 Auth Initialize
     let allExamCategories = [];
