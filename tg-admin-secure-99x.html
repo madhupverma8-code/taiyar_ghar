@@ -6,7 +6,6 @@
     <title>TaiyariGhar | Admin Panel</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
     <style>
         :root { --primary: #4F46E5; --bg: #f3f4f6; --text: #1f2937; --white: #ffffff; --danger: #EF4444; --success: #10B981; --warning: #F59E0B; --purple: #8B5CF6; }
         * { box-sizing: border-box; font-family: 'Poppins', sans-serif; margin: 0; padding: 0; }
@@ -63,12 +62,14 @@
 
     <div id="loading">Processing... Please wait.</div>
 
+    <!-- UPDATED LOGIN SCREEN FOR FIREBASE AUTH -->
     <div id="lockScreen">
         <div class="lock-box">
             <h2>🔐 Admin Login</h2>
-            <input type="password" id="adminPass" placeholder="Enter Password" onkeypress="if(event.key==='Enter') checkPass()">
+            <input type="email" id="adminEmail" placeholder="Admin Email">
+            <input type="password" id="adminPass" placeholder="Password" onkeypress="if(event.key==='Enter') checkPass()">
             <button onclick="checkPass()">Unlock Panel</button>
-            <p id="errMsg" class="err-msg">❌ Incorrect Password!</p>
+            <p id="errMsg" class="err-msg">❌ Incorrect Email or Password!</p>
         </div>
     </div>
 
@@ -334,6 +335,7 @@
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getFirestore, collection, getDocs, doc, getDoc, setDoc, updateDoc, deleteDoc, addDoc, writeBatch, query, where } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
     import { initializeAppCheck, ReCaptchaV3Provider } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app-check.js";
 
     const firebaseConfig = {
@@ -352,37 +354,45 @@
     });
 
     const db = getFirestore(app);
-    const ADMIN_KEY = "TG_Admin_999"; 
+    const auth = getAuth(app); // 👈 Auth Initialize
     let allExamCategories = [];
 
+    // FIREBASE AUTH LOGIN LOGIC
     window.checkPass = function() {
+        const email = document.getElementById('adminEmail').value.trim();
         const pass = document.getElementById('adminPass').value.trim();
-        
-        // 'Tg@Admin2024' Base64
-        const encodedPass = btoa(pass);
-        const correctPass = "VGdAQWRtaW4yMDI0"; 
+        if(!email || !pass) return alert("Enter Email and Password!");
 
-        if(encodedPass === correctPass) {
-            localStorage.setItem('tg_admin_logged', 'true');
+        showLoading(true);
+        signInWithEmailAndPassword(auth, email, pass)
+            .then((userCredential) => {
+                showLoading(false);
+                // onAuthStateChanged handles the screen switch
+            })
+            .catch((error) => {
+                showLoading(false);
+                document.getElementById('errMsg').style.display = 'block';
+                setTimeout(() => document.getElementById('errMsg').style.display = 'none', 3000);
+            });
+    }
+
+    window.logoutAdmin = function() { 
+        signOut(auth).then(() => {
+            location.reload(); 
+        });
+    }
+
+    // यह चेक करेगा कि यूजर पहले से लॉगिन है या नहीं
+    onAuthStateChanged(auth, (user) => {
+        if (user) {
             document.getElementById('lockScreen').style.display = 'none';
             document.getElementById('adminPanel').style.display = 'block';
             loadAllData();
         } else {
-            document.getElementById('errMsg').style.display = 'block';
-            setTimeout(() => document.getElementById('errMsg').style.display = 'none', 3000);
+            document.getElementById('lockScreen').style.display = 'flex';
+            document.getElementById('adminPanel').style.display = 'none';
         }
-    }
-
-    window.logoutAdmin = function() { 
-        localStorage.removeItem('tg_admin_logged'); 
-        location.reload(); 
-    }
-
-    if(localStorage.getItem('tg_admin_logged') === 'true') {
-        document.getElementById('lockScreen').style.display = 'none';
-        document.getElementById('adminPanel').style.display = 'block';
-        loadAllData();
-    }
+    });
 
     window.openTab = function(tabId, btn) {
         document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
@@ -410,8 +420,7 @@
             UPI_ID: document.getElementById('setUpi').value.trim(), 
             Mobile: document.getElementById('setMobile').value.trim(),
             Price: document.getElementById('setPrice').value.trim(), 
-            OfferText: document.getElementById('setOffer').value.trim(),
-            adminKey: ADMIN_KEY
+            OfferText: document.getElementById('setOffer').value.trim()
         }, { merge: true });
         document.getElementById('settingsMsg').style.display = 'block'; setTimeout(() => document.getElementById('settingsMsg').style.display = 'none', 3000);
     }
@@ -460,17 +469,17 @@
         if(makePaid) {
             let expiry = prompt("Enter Expiry Date (YYYY-MM-DD):", "2024-12-31");
             if(expiry === null) return;
-            await updateDoc(doc(db, "students", id), { isPaid: true, expiryDate: expiry, adminKey: ADMIN_KEY }); 
+            await updateDoc(doc(db, "students", id), { isPaid: true, expiryDate: expiry }); 
         } else {
             if(!confirm("Mark as Unpaid?")) return;
-            await updateDoc(doc(db, "students", id), { isPaid: false, expiryDate: "", adminKey: ADMIN_KEY }); 
+            await updateDoc(doc(db, "students", id), { isPaid: false, expiryDate: "" }); 
         }
         loadStudents();
     }
     
     window.resetDevices = async function(id) {
         if(!confirm("Reset devices?")) return;
-        await updateDoc(doc(db, "students", id), { device1: "", device2: "", adminKey: ADMIN_KEY }); loadStudents(); alert("Devices Reset!");
+        await updateDoc(doc(db, "students", id), { device1: "", device2: "" }); loadStudents(); alert("Devices Reset!");
     }
 
     window.resetStudentPassword = async function(id) {
@@ -479,7 +488,7 @@
         let newCode = Math.random().toString(36).substring(2, 8).toUpperCase();
         if(!confirm(`Are you sure you want to reset the password?\n\nNew Password: ${newPass}\nNew Recovery Code: ${newCode}\n\nPlease share this with the student.`)) return;
 
-        await updateDoc(doc(db, "students", id), { password: newPass.trim(), recoveryCode: newCode, adminKey: ADMIN_KEY });
+        await updateDoc(doc(db, "students", id), { password: newPass.trim(), recoveryCode: newCode });
         loadStudents();
         alert("Password and Recovery Code reset successfully!");
     }
@@ -526,7 +535,7 @@
         
         if(!mainCat || !subCat || !examName) return alert("Please enter Main Category, Sub Category AND Exam Name!");
 
-        const data = { mainCat: mainCat, subCat: subCat, examName: examName, adminKey: ADMIN_KEY };
+        const data = { mainCat: mainCat, subCat: subCat, examName: examName };
 
         if(editId) {
             await updateDoc(doc(db, "exam_categories", editId), data);
@@ -569,7 +578,7 @@
         const headers = ["MainCategory", "SubCategory", "ExamName"];
         const sample = ["Railway Exams", "RPF", "Full Length Mock"];
         const csv = Papa.unparse([headers, sample]);
-        const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' }); // 👈 \uFEFF जोड़ा
+        const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' }); 
         const link = document.createElement("a"); link.href = URL.createObjectURL(blob);
         link.download = "categories_template.csv"; link.click(); URL.revokeObjectURL(link.href);
     }
@@ -594,7 +603,7 @@
                 if(!mainCat || !subCat || !examName) continue;
 
                 await addDoc(collection(db, "exam_categories"), {
-                    mainCat: mainCat, subCat: subCat, examName: examName, adminKey: ADMIN_KEY
+                    mainCat: mainCat, subCat: subCat, examName: examName
                 }); 
                 count++;
             }
@@ -727,8 +736,7 @@
             hasNegative: document.getElementById('tHasNeg').value, 
             negativeMark: Number(document.getElementById('tNegMark').value) || 0,
             isFree: document.getElementById('tFree').value,
-            language: document.getElementById('tLanguage').value,
-            adminKey: ADMIN_KEY
+            language: document.getElementById('tLanguage').value
         };
 
         if(editId) {
@@ -813,8 +821,7 @@
             correctAnswer: Number(document.getElementById('qAns').value), 
             questionMarks: Number(document.getElementById('qMarks').value) || 1, 
             questionNeg: Number(document.getElementById('qNeg').value) || 0,
-            explanation: document.getElementById('qExp').value,
-            adminKey: ADMIN_KEY
+            explanation: document.getElementById('qExp').value
         };
 
         if(editId) {
@@ -885,8 +892,7 @@
             type: document.getElementById('caType').value, date: document.getElementById('caDate').value,
             title: document.getElementById('caTitle').value, link: document.getElementById('caLink').value,
             question: document.getElementById('caQ').value, options: opts,
-            correctAnswer: Number(document.getElementById('caAns').value), explanation: document.getElementById('caExp').value,
-            adminKey: ADMIN_KEY
+            correctAnswer: Number(document.getElementById('caAns').value), explanation: document.getElementById('caExp').value
         };
 
         if(editId) {
@@ -1011,8 +1017,7 @@
                     totalQuestions: Number(row.TotalQuestions) || 0,
                     hasNegative: row.HasNegative || "No", negativeMark: Number(row.NegativeMark) || 0,
                     isFree: String(row.IsFree).trim().toLowerCase() === "yes" ? "Yes" : "No",
-                    language: row.Language || "Both",
-                    adminKey: ADMIN_KEY
+                    language: row.Language || "Both"
                 }); count++;
             }
             await batch.commit(); statusText.innerText = `✅ Uploaded ${count} tests!`; loadTests();
@@ -1047,8 +1052,7 @@
                 await addDoc(collection(db, "questions"), {
                     testId: tId, questionHindi: qH, questionEnglish: qE,
                     optionsHindi: optsHindi, optionsEnglish: optsEnglish, correctAnswer: ansIndex, 
-                    questionMarks: Number(row.QuestionMarks) || 1, questionNeg: Number(row.QuestionNegativeMark) || 0, explanation: row.Explanation || "",
-                    adminKey: ADMIN_KEY
+                    questionMarks: Number(row.QuestionMarks) || 1, questionNeg: Number(row.QuestionNegativeMark) || 0, explanation: row.Explanation || ""
                 }); count++;
                 if(count % 10 === 0) statusText.innerText = `Uploading: ${count}/${res.data.length}`;
             }
@@ -1076,8 +1080,7 @@
                 
                 await addDoc(collection(db, "current_affairs"), {
                     type: row.Type || "Daily", date: row.Date || "", title: row.Title || "", link: row.Article_Link || "",
-                    question: row.Question, options: opts, correctAnswer: ansIndex, explanation: row.Explanation || "",
-                    adminKey: ADMIN_KEY
+                    question: row.Question, options: opts, correctAnswer: ansIndex, explanation: row.Explanation || ""
                 }); count++;
             }
             statusText.innerText = `✅ Uploaded ${count} CA records!`; loadCA();
