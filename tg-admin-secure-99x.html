@@ -356,10 +356,12 @@
     const ADMIN_KEY = "TG_Admin_999"; 
     let allExamCategories = [];
 
-    window.checkPass = function() {
+      window.checkPass = function() {
         const pass = document.getElementById('adminPass').value.trim();
+        
+        // 👇 यह 'Tg@Admin2024' का Base64 एनकोडेड रूप है
         const encodedPass = btoa(pass);
-        const correctPass = "QWRtaW5AMTIz"; 
+        const correctPass = "VGdAQWRtaW4yMDI0"; 
 
         if(encodedPass === correctPass) {
             localStorage.setItem('tg_admin_logged', 'true');
