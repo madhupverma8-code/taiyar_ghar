@@ -374,12 +374,17 @@
                 showLoading(false);
                 // onAuthStateChanged handles the screen switch
             })
+                    signInWithEmailAndPassword(auth, email, pass)
+            .then((userCredential) => {
+                showLoading(false);
+            })
             .catch((error) => {
                 showLoading(false);
+                // 👇 यह लाइन असली एरर दिखाएगी
+                alert("Firebase Error: " + error.message + "\nError Code: " + error.code);
                 document.getElementById('errMsg').style.display = 'block';
                 setTimeout(() => document.getElementById('errMsg').style.display = 'none', 3000);
             });
-    }
 
     window.logoutAdmin = function() { 
         signOut(auth).then(() => {
