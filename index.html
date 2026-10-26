@@ -84,12 +84,10 @@
         .wide-cat-banner h2 { font-size: 20px; margin-bottom: 5px; color: white; text-shadow: 1px 1px 3px rgba(0,0,0,0.4);}
         .wide-cat-banner p { font-size: 13px; opacity: 0.9; text-shadow: 1px 1px 2px rgba(0,0,0,0.4);}
 
-        /* Sub-category Pills (SSC MTS, SSC CHSL etc.) */
         .sub-cat-container { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 25px; }
         .sub-cat-pill { padding: 8px 16px; background: white; border: 2px solid var(--primary); color: var(--primary); border-radius: 20px; font-weight: 600; cursor: pointer; transition: 0.2s; font-size: 14px; }
         .sub-cat-pill:hover, .sub-cat-pill.active { background: var(--primary); color: white; }
 
-        /* NEW: Exam Type Grid Cards */
         .exam-type-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
@@ -122,25 +120,12 @@
             border: 2px solid var(--primary);
             box-shadow: 0 4px 12px rgba(79, 70, 229, 0.15);
         }
-        .exam-name-card .e-icon {
-            font-size: 32px;
-        }
-        .exam-name-card .e-title {
-            font-size: 14px;
-            font-weight: 600;
-            color: #374151;
-            line-height: 1.3;
-        }
-        .exam-name-card.active .e-title {
-            color: var(--primary);
-        }
+        .exam-name-card .e-icon { font-size: 32px; }
+        .exam-name-card .e-title { font-size: 14px; font-weight: 600; color: #374151; line-height: 1.3; }
+        .exam-name-card.active .e-title { color: var(--primary); }
 
-        /* Mobile Adjustments for Grid */
         @media (max-width: 768px) {
-            .exam-type-grid {
-                grid-template-columns: repeat(2, 1fr); /* Force 2 columns on mobile */
-                gap: 12px;
-            }
+            .exam-type-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
             .exam-name-card { padding: 15px 10px; gap: 8px; }
             .exam-name-card .e-icon { font-size: 26px; }
             .exam-name-card .e-title { font-size: 12px; }
@@ -516,13 +501,8 @@
         <button class="btn btn-outline" style="margin-bottom: 20px;" onclick="goDashboard()" data-translate="btn_back_cat">← Back to Categories</button>
         <h2 class="section-title" id="subCatTitle"></h2>
         
-        <!-- Sub-Category Pills (SSC CGL, SSC CHSL, etc.) -->
         <div id="subCatPills" class="sub-cat-container"></div>
-        
-        <!-- Exam Type / Exam Name Grid (New Style) -->
         <div id="examNamePills" class="exam-type-grid"></div>
-
-        <!-- Test list container -->
         <div id="testListContainer" class="test-list"></div>
     </div>
 
@@ -799,7 +779,9 @@
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getFirestore, collection, getDocs, getDoc, setDoc, addDoc, query, where, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-    import { initializeAppCheck, ReCaptchaV3Provider } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app-check.js";
+    
+    // App Check को फिलहाल के लिए बंद कर दिया गया है
+    // import { initializeAppCheck, ReCaptchaV3Provider } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app-check.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyA7x6gQziPYLxrXnyVJJ80mvJkh3VCm24",
@@ -811,10 +793,12 @@
     };
 
     const app = initializeApp(firebaseConfig);
-    const appCheck = initializeAppCheck(app, {
-      provider: new ReCaptchaV3Provider('6LdmiwAuAAAAAI3GMNNfi-mE1rUQQ8qhPmv3LEfy'),
-      isTokenAutoRefreshEnabled: true
-    });
+    
+    // App Check बंद है
+    // const appCheck = initializeAppCheck(app, {
+    //   provider: new ReCaptchaV3Provider('6LdmiwAuAAAAAI3GMNNfi-mE1rUQQ8qhPmv3LEfy'),
+    //   isTokenAutoRefreshEnabled: true
+    // });
 
     const db = getFirestore(app);
 
@@ -1200,11 +1184,10 @@
         document.getElementById('subCatScreen').classList.remove('hide'); 
         document.getElementById('subCatTitle').innerText = mainCat + (currentLang === 'en' ? " - Select Exam Type" : " - परीक्षा प्रकार चुनें"); 
         document.getElementById('subCatPills').innerHTML = pillsHtml;
-        document.getElementById('examNamePills').innerHTML = ""; // Clear exam names on new category
+        document.getElementById('examNamePills').innerHTML = ""; 
         document.getElementById('testListContainer').innerHTML = ""; 
     }
 
-    // UPDATED: 3-LEVEL NAVIGATION WITH GRID CARDS FOR EXAM NAMES
     window.loadTestsForSubCat = function(subCat, pillElement) {
         document.querySelectorAll('#subCatPills .sub-cat-pill').forEach(p => p.classList.remove('active'));
         if(pillElement) pillElement.classList.add('active');
@@ -1229,7 +1212,6 @@
 
         if(uniqueExamNames.length > 0) {
             uniqueExamNames.forEach(ename => {
-                // Assign icon based on exam name text
                 let icon = '📝';
                 let lowerName = ename.toLowerCase();
                 if(lowerName.includes('ncert')) icon = '⭐';
