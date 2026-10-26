@@ -62,7 +62,6 @@
 
     <div id="loading">Processing... Please wait.</div>
 
-    <!-- UPDATED LOGIN SCREEN FOR FIREBASE AUTH -->
     <div id="lockScreen">
         <div class="lock-box">
             <h2>🔐 Admin Login</h2>
@@ -336,7 +335,9 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getFirestore, collection, getDocs, doc, getDoc, setDoc, updateDoc, deleteDoc, addDoc, writeBatch, query, where } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
     import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-    import { initializeAppCheck, ReCaptchaV3Provider } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app-check.js";
+    
+    // App Check को फिलहाल के लिए बंद कर दिया गया है ताकि लॉगिन में दिक्कत न आए
+    // import { initializeAppCheck, ReCaptchaV3Provider } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app-check.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyA7x6gQziPYLxrXnyVJJ80mvJkh3VCm24",
@@ -348,18 +349,15 @@
     };
 
     const app = initializeApp(firebaseConfig);
-    const appCheck = initializeAppCheck(app, {
-      provider: new ReCaptchaV3Provider('6LdmiwAuAAAAAI3GMNNfi-mE1rUQQ8qhPmv3LEfy'),
-      isTokenAutoRefreshEnabled: true
-    });
     
+    // App Check को बंद कर दिया गया है
     // const appCheck = initializeAppCheck(app, {
     //   provider: new ReCaptchaV3Provider('6LdmiwAuAAAAAI3GMNNfi-mE1rUQQ8qhPmv3LEfy'),
     //   isTokenAutoRefreshEnabled: true
     // });
-    
+
     const db = getFirestore(app);
-    const auth = getAuth(app); // 👈 Auth Initialize
+    const auth = getAuth(app); 
     let allExamCategories = [];
 
     // FIREBASE AUTH LOGIN LOGIC
@@ -372,19 +370,14 @@
         signInWithEmailAndPassword(auth, email, pass)
             .then((userCredential) => {
                 showLoading(false);
-                // onAuthStateChanged handles the screen switch
-            })
-                    signInWithEmailAndPassword(auth, email, pass)
-            .then((userCredential) => {
-                showLoading(false);
             })
             .catch((error) => {
                 showLoading(false);
-                // 👇 यह लाइन असली एरर दिखाएगी
-                alert("Firebase Error: " + error.message + "\nError Code: " + error.code);
+                alert("Error: " + error.code + "\nMessage: " + error.message);
                 document.getElementById('errMsg').style.display = 'block';
                 setTimeout(() => document.getElementById('errMsg').style.display = 'none', 3000);
             });
+    }
 
     window.logoutAdmin = function() { 
         signOut(auth).then(() => {
@@ -392,7 +385,6 @@
         });
     }
 
-    // यह चेक करेगा कि यूजर पहले से लॉगिन है या नहीं
     onAuthStateChanged(auth, (user) => {
         if (user) {
             document.getElementById('lockScreen').style.display = 'none';
@@ -932,7 +924,7 @@
         });
         if(dataToExport.length === 0) { showLoading(false); return alert("No data to export!"); }
         const csv = Papa.unparse(dataToExport);
-        const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' }); // 👈 \uFEFF जोड़ा
+        const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' }); 
         const link = document.createElement("a"); link.href = URL.createObjectURL(blob);
         link.download = `TaiyariGhar_Students_${new Date().toISOString().split('T')[0]}.csv`;
         link.click(); URL.revokeObjectURL(link.href); showLoading(false);
@@ -953,7 +945,7 @@
         });
         if(dataToExport.length === 0) { showLoading(false); return alert("No data to export!"); }
         const csv = Papa.unparse(dataToExport);
-        const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' }); // 👈 \uFEFF जोड़ा
+        const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' }); 
         const link = document.createElement("a"); link.href = URL.createObjectURL(blob);
         link.download = `TaiyariGhar_Tests_${new Date().toISOString().split('T')[0]}.csv`;
         link.click(); URL.revokeObjectURL(link.href); showLoading(false);
@@ -973,16 +965,16 @@
         });
         if(dataToExport.length === 0) { showLoading(false); return alert("No data to export!"); }
         const csv = Papa.unparse(dataToExport);
-        const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' }); // 👈 \uFEFF जोड़ा
+        const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' }); 
         const link = document.createElement("a"); link.href = URL.createObjectURL(blob);
         link.download = `TaiyariGhar_Results_${new Date().toISOString().split('T')[0]}.csv`;
         link.click(); URL.revokeObjectURL(link.href); showLoading(false);
     }
 
-    // ===== BULK UPLOAD FUNCTIONS (FIXED WITH UTF-8 & DELIMITER) =====
+    // ===== BULK UPLOAD FUNCTIONS =====
     function downloadCSV(filename, headers, sampleRow) {
         const csv = Papa.unparse([headers, sampleRow]);
-        const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' }); // 👈 \uFEFF जोड़ा
+        const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' }); 
         const link = document.createElement("a"); link.href = URL.createObjectURL(blob);
         link.download = filename; link.click(); URL.revokeObjectURL(link.href);
     }
@@ -1012,10 +1004,7 @@
         if(!file) return alert("Select file!");
         statusText.innerText = "Uploading Tests...";
         Papa.parse(file, { 
-            header: true, 
-            skipEmptyLines: true, 
-            encoding: "UTF-8", 
-            delimiter: ",", 
+            header: true, skipEmptyLines: true, encoding: "UTF-8", delimiter: ",", 
             complete: async function(res) {
             let count = 0; const batch = writeBatch(db);
             for (let row of res.data) {
@@ -1039,10 +1028,7 @@
         if(!file) return alert("Select file!");
         statusText.innerText = "Uploading Questions...";
         Papa.parse(file, { 
-            header: true, 
-            skipEmptyLines: true, 
-            encoding: "UTF-8", 
-            delimiter: ",", 
+            header: true, skipEmptyLines: true, encoding: "UTF-8", delimiter: ",", 
             complete: async function(res) {
             let count = 0; const ansMap = { 'A':0, 'B':1, 'C':2, 'D':3, 'E':4, 'a':0, 'b':1, 'c':2, 'd':3, 'e':4 };
             for (let row of res.data) {
@@ -1075,10 +1061,7 @@
         if(!file) return alert("Select file!");
         statusText.innerText = "Uploading CA...";
         Papa.parse(file, { 
-            header: true, 
-            skipEmptyLines: true, 
-            encoding: "UTF-8", 
-            delimiter: ",", 
+            header: true, skipEmptyLines: true, encoding: "UTF-8", delimiter: ",", 
             complete: async function(res) {
             let count = 0; const ansMap = { 'A':0, 'B':1, 'C':2, 'D':3, 'E':4, 'a':0, 'b':1, 'c':2, 'd':3, 'e':4 };
             for (let row of res.data) {
