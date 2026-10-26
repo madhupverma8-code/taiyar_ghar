@@ -5,19 +5,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     
-    <!-- 🚀 SEO Meta Tags for Google Ranking -->
     <title>TaiyariGhar - Free SSC, Railway & Police Mock Tests in Hindi</title>
     <meta name="description" content="Prepare for SSC, Railway, Police & State Govt exams with TaiyariGhar. Attempt free mock tests, get real-time rank, detailed analysis, and daily current affairs. Register now!">
     <meta name="keywords" content="SSC Mock Test, Railway NTPC Free Test, UP Police Practice Set, Govt Job Mock Test, Current Affairs Quiz, TaiyariGhar, Free Mock Test in Hindi">
     <meta name="author" content="TaiyariGhar">
     
-    <!-- 📱 Social Media / WhatsApp Link Preview Tags -->
     <meta property="og:title" content="TaiyariGhar - Crack Your Dream Govt Job">
     <meta property="og:description" content="All-in-one mock test platform for SSC, Railway, Police & All State Exams. Free tests available!">
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://taiyarighar.in">
 
-    <!-- PWA & Icons -->
     <link rel="icon" href="logo.png">
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#1a3a6b">
@@ -90,6 +87,8 @@
         .sub-cat-container { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 20px; }
         .sub-cat-pill { padding: 8px 16px; background: white; border: 2px solid var(--primary); color: var(--primary); border-radius: 20px; font-weight: 600; cursor: pointer; transition: 0.2s; font-size: 14px; }
         .sub-cat-pill:hover, .sub-cat-pill.active { background: var(--primary); color: white; }
+        .exam-name-pill { padding: 8px 16px; background: #EEF2FF; border: 2px solid #C7D2FE; color: #4338CA; border-radius: 20px; font-weight: 600; cursor: pointer; transition: 0.2s; font-size: 14px; }
+        .exam-name-pill:hover, .exam-name-pill.active { background: #4338CA; border-color: #4338CA; color: white; }
 
         .quick-view { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px; margin-bottom: 15px; }
         .qv-card { background: var(--white); padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); border-left: 5px solid var(--secondary); }
@@ -99,13 +98,6 @@
         .test-list { display: flex; flex-direction: column; gap: 12px; }
         .test-item { background: var(--white); padding: 15px 20px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); display: flex; justify-content: space-between; align-items: center; border: 1px solid #E5E7EB; }
         .test-item.locked { border-left: 5px solid var(--grey); opacity: 0.9; }
-
-        .features-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-top: 20px; }
-        .feature-card { background: white; padding: 25px 20px; border-radius: 12px; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.05); transition: 0.3s; border-bottom: 4px solid var(--primary); }
-        .feature-card:hover { transform: translateY(-5px); }
-        .feature-icon { font-size: 35px; margin-bottom: 15px; }
-        .feature-card h3 { font-size: 16px; margin-bottom: 10px; color: var(--text); }
-        .feature-card p { font-size: 13px; color: #6B7280; line-height: 1.5; }
 
         .steps-container { display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 15px; margin-top: 20px; }
         .step-box { flex: 1; min-width: 150px; text-align: center; position: relative; }
@@ -463,11 +455,18 @@
         </div>
     </div>
 
+    <!-- UPDATED SCREEN FOR 3-LEVEL NAVIGATION -->
     <div id="subCatScreen" class="section hide">
         <button class="btn btn-outline" style="margin-bottom: 20px;" onclick="goDashboard()" data-translate="btn_back_cat">← Back to Categories</button>
         <h2 class="section-title" id="subCatTitle"></h2>
         
+        <!-- Sub-Category Pills -->
         <div id="subCatPills" class="sub-cat-container"></div>
+        
+        <!-- Exam Name / Test Type Pills (New) -->
+        <div id="examNamePills" class="sub-cat-container" style="margin-top: 10px;"></div>
+
+        <!-- Test list container -->
         <div id="testListContainer" class="test-list"></div>
     </div>
 
@@ -744,7 +743,7 @@
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getFirestore, collection, getDocs, getDoc, setDoc, addDoc, query, where, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-    import { initializeAppCheck, ReCaptchaV3Provider } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app-check.js"; // 👈 App Check Import
+    import { initializeAppCheck, ReCaptchaV3Provider } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app-check.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyA7x6gQziPYLxrXnyVJJ80mvJkh3VCm24",
@@ -756,10 +755,8 @@
     };
 
     const app = initializeApp(firebaseConfig);
-
-    // 👇 App Check शुरू करें
     const appCheck = initializeAppCheck(app, {
-      provider: new ReCaptchaV3Provider('6LdmiwAuAAAAAI3GMNNfi-mE1rUQQ8qhPmv3LEfy'), // 👈 आपकी Site Key
+      provider: new ReCaptchaV3Provider('6LdmiwAuAAAAAI3GMNNfi-mE1rUQQ8qhPmv3LEfy'),
       isTokenAutoRefreshEnabled: true
     });
 
@@ -1147,11 +1144,13 @@
         document.getElementById('subCatScreen').classList.remove('hide'); 
         document.getElementById('subCatTitle').innerText = mainCat + (currentLang === 'en' ? " - Select Exam Type" : " - परीक्षा प्रकार चुनें"); 
         document.getElementById('subCatPills').innerHTML = pillsHtml;
+        document.getElementById('examNamePills').innerHTML = ""; // Clear exam names on new category
         document.getElementById('testListContainer').innerHTML = ""; 
     }
 
+    // UPDATED LOGIC FOR 3-LEVEL: Main -> Sub -> Exam Name -> Tests
     window.loadTestsForSubCat = function(subCat, pillElement) {
-        document.querySelectorAll('.sub-cat-pill').forEach(p => p.classList.remove('active'));
+        document.querySelectorAll('#subCatPills .sub-cat-pill').forEach(p => p.classList.remove('active'));
         if(pillElement) pillElement.classList.add('active');
 
         nav.subCat = subCat;
@@ -1159,14 +1158,55 @@
         let normalizedMain = nav.mainCat.toLowerCase().replace("exams", "").trim();
         let normalizedSub = subCat.toLowerCase().trim();
 
-        const filtered = allTests.filter(t => 
+        const filteredTests = allTests.filter(t => 
             t.mainCat.toLowerCase().replace("exams", "").trim() === normalizedMain && 
             t.subCat.toLowerCase().trim() === normalizedSub
         );
-        
+
+        // Extract unique Exam Names from both categories DB and Tests
+        const uniqueExamNames = [...new Set([
+            ...allExamCategories.filter(c => c.mainCat.toLowerCase().replace("exams", "").trim() === normalizedMain && c.subCat.toLowerCase().trim() === normalizedSub).map(c => c.examName),
+            ...filteredTests.map(t => t.examName)
+        ])].filter(name => name); // Remove empty
+
+        const examNameContainer = document.getElementById('examNamePills');
+        examNameContainer.innerHTML = ""; // Clear previous
+
+        if(uniqueExamNames.length > 0) {
+            // Render Exam Name Pills
+            uniqueExamNames.forEach(ename => {
+                examNameContainer.innerHTML += `<div class="exam-name-pill" onclick="loadTestsForExamName('${ename}', this)">${ename}</div>`;
+            });
+            // Hide tests initially until a type is selected
+            document.getElementById('testListContainer').innerHTML = `<p style="text-align:center; color:#666; padding:20px;">Select an Exam Type above to view tests.</p>`;
+        } else {
+            // If no exam names, just show all tests for this subcat (fallback)
+            renderTestList(filteredTests);
+        }
+    }
+
+    window.loadTestsForExamName = function(examName, pillElement) {
+        document.querySelectorAll('#examNamePills .exam-name-pill').forEach(p => p.classList.remove('active'));
+        if(pillElement) pillElement.classList.add('active');
+
+        nav.examName = examName;
+
+        let normalizedMain = nav.mainCat.toLowerCase().replace("exams", "").trim();
+        let normalizedSub = nav.subCat.toLowerCase().trim();
+
+        const filteredTests = allTests.filter(t => 
+            t.mainCat.toLowerCase().replace("exams", "").trim() === normalizedMain && 
+            t.subCat.toLowerCase().trim() === normalizedSub &&
+            t.examName === examName
+        );
+
+        renderTestList(filteredTests);
+    }
+
+    function renderTestList(filtered) {
         let html = "";
         if(filtered.length === 0) {
-            html = `<p style="text-align:center; color:#666; padding:20px;">No tests available for <b>${subCat}</b> right now. Please check back later.</p>`;
+            html = `<p style="text-align:center; color:#666; padding:20px;">No tests available right now. Please check back later.</p>`;
         } else {
             filtered.forEach(t => {
                 let isLocked = (String(t.isFree).trim().toLowerCase() !== "yes" && !currentStudent.isPaid);
@@ -1199,7 +1239,7 @@
     window.clearResumeData = function(testId, examName) {
         if(confirm("Are you sure? Your progress for this test will be lost.")) {
             localStorage.removeItem('tg_resume_' + testId);
-            loadTestsForSubCat(nav.subCat, document.querySelector('.sub-cat-pill.active')); 
+            loadTestsForExamName(nav.examName, document.querySelector('.exam-name-pill.active')); 
         }
     }
 
@@ -1636,210 +1676,4 @@
         
         document.getElementById('resTestName').innerText = currentTestName;
         document.getElementById('finalScore').innerText = score.toFixed(2); 
-        document.getElementById('totalScore').innerText = currentTestMarks;
-        document.getElementById('statCorrect').innerText = correctCount;
-        document.getElementById('statWrong').innerText = wrongCount;
-        document.getElementById('statSkipped').innerText = skippedCount;
-        document.getElementById('statNeg').innerText = negDeducted.toFixed(2);
-        
-        let percent = (score / currentTestMarks) * 100;
-        if(percent < 0) percent = 0;
-        document.getElementById('scoreCircle').style.background = `conic-gradient(var(--accent) ${percent}%, #E5E7EB ${percent}%)`;
-
-        document.getElementById('rankText').innerText = "Calculating Rank...";
-
-        try {
-            const percentStr = percent.toFixed(1);
-            const now = new Date().toISOString();
-            
-            await addDoc(collection(db, "results"), {
-                timestamp: now, loginId: currentStudent.loginId, studentName: currentStudent.name,
-                testId: currentTestId, testName: currentTestName, correctCount: correctCount, wrongCount: wrongCount,
-                negDeducted: negDeducted.toFixed(2), finalScore: score.toFixed(2), totalMarks: currentTestMarks, percent: percentStr,
-                userAnswers: userAnswers, 
-                testQuestionsState: testQuestions 
-            });
-
-            const qRank = query(collection(db, "results"), where("testId", "==", currentTestId));
-            const rankSnap = await getDocs(qRank);
-            let allResults = rankSnap.docs.map(d => d.data()).sort((a, b) => b.finalScore - a.finalScore);
-
-            let userRank = 1;
-            allResults.forEach((r, index) => { if(r.loginId === currentStudent.loginId && r.finalScore === score.toFixed(2)) userRank = index + 1; });
-
-            document.getElementById('rankText').innerText = `Your Rank: ${userRank} out of ${allResults.length} students`;
-            
-            currentResultData = { score: score.toFixed(2), total: currentTestMarks, rank: userRank, totalStudents: allResults.length, correct: correctCount, wrong: wrongCount, neg: negDeducted.toFixed(2), percent: percentStr };
-            
-            fetchSettingsAndTests();
-
-        } catch(e) { console.error(e); document.getElementById('rankText').innerText = "Rank calculation failed."; }
-    }
-
-    window.viewSolutions = function() {
-        const container = document.getElementById('solutionsContainer');
-        let html = "";
-        
-        testQuestions.forEach((q, i) => {
-            let uAns = userAnswers[i];
-            let isCorrect = (uAns === q.ans);
-            
-            let qHtml = "";
-            if(currentTestLanguage === "Hindi") qHtml = `<div>${q.qH}</div>`;
-            else if(currentTestLanguage === "English") qHtml = `<div>${q.qE}</div>`;
-            else qHtml = `<div>${q.qH}</div><div style="color:#6B7280; font-size:14px; margin-top:5px;">${q.qE}</div>`;
-
-            html += `<div style="background: white; padding: 25px; border-radius: 12px; margin-bottom: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); border-left: 5px solid ${isCorrect ? 'var(--accent)' : (uAns !== undefined ? 'var(--danger)' : 'var(--grey)')};">`;
-            html += `<div style="font-weight: 600; font-size: 16px; margin-bottom: 15px;">Q${i+1}. ${qHtml}</div>`;
-            
-            q.opts.forEach((opt, j) => {
-                let labelHtml = "";
-                if(currentTestLanguage === "Hindi") labelHtml = opt.h;
-                else if(currentTestLanguage === "English") labelHtml = opt.e;
-                else labelHtml = `${opt.h} <span style="font-size:12px; color:#6B7280;">(${opt.e})</span>`;
-
-                let isUser = (uAns === j);
-                let isRight = (q.ans === j);
-                
-                let bgColor = "#F9FAFB"; let borderColor = "transparent"; let textColor = "#374151";
-                if(isRight) { bgColor = "#D1FAE5"; borderColor = "var(--accent)"; textColor = "#065F46"; }
-                else if(isUser && !isRight) { bgColor = "#FEE2E2"; borderColor = "var(--danger)"; textColor = "#991B1B"; }
-
-                html += `<div style="padding: 12px; border-radius: 8px; background: ${bgColor}; border: 1px solid ${borderColor}; color: ${textColor}; margin-bottom: 8px; font-size: 14px;">
-                    ${String.fromCharCode(65+j)}) ${labelHtml} ${isRight ? '✅' : ''} ${isUser && !isRight ? '❌' : ''}
-                </div>`;
-            });
-            
-            if(uAns === undefined) html += `<div style="color: var(--danger); font-size: 13px; font-weight:600; margin-top:10px;">You did not attempt this question.</div>`;
-            
-            if(q.exp) {
-                html += `<div style="background: #EFF6FF; padding: 15px; border-radius: 8px; color: #1E3A8A; font-size: 14px; margin-top: 15px; border-left: 4px solid #3B82F6;">
-                    <b>Explanation:</b> ${q.exp}
-                </div>`;
-            }
-            html += `</div>`;
-        });
-        
-        container.innerHTML = html;
-        hideAll();
-        document.getElementById('solutionsScreen').classList.remove('hide');
-    }
-
-    window.viewPastAnalysis = function(testId) {
-        let res = userPastResults[testId];
-        if(!res) return alert("Result not found!");
-        
-        testQuestions = res.testQuestionsState || [];
-        userAnswers = res.userAnswers || {};
-        currentTestLanguage = "Both"; 
-        currentTestName = res.testName;
-        
-        hideAll();
-        document.getElementById('resultScreen').classList.remove('hide');
-        
-        document.getElementById('resTestName').innerText = res.testName;
-        document.getElementById('finalScore').innerText = res.finalScore; 
-        document.getElementById('totalScore').innerText = res.totalMarks;
-        document.getElementById('statCorrect').innerText = res.correctCount;
-        document.getElementById('statWrong').innerText = res.wrongCount;
-        
-        let skipped = (testQuestions.length || res.totalMarks) - res.correctCount - res.wrongCount;
-        document.getElementById('statSkipped').innerText = skipped > 0 ? skipped : 0;
-        
-        document.getElementById('statNeg').innerText = res.negDeducted;
-        
-        let percent = parseFloat(res.percent);
-        if(percent < 0) percent = 0;
-        document.getElementById('scoreCircle').style.background = `conic-gradient(var(--accent) ${percent}%, #E5E7EB ${percent}%)`;
-        
-        document.getElementById('rankText').innerText = "Previous Attempt Analysis";
-
-        currentResultData = { score: res.finalScore, total: res.totalMarks, rank: '-', totalStudents: '-', correct: res.correctCount, wrong: res.wrongCount, neg: res.negDeducted, percent: res.percent };
-    }
-
-    window.downloadScorecard = function() {
-        if(!currentResultData) return alert("No result data available!");
-        
-        let html = `<html><head><title>Scorecard - TaiyariGhar</title><style>body{font-family:sans-serif; text-align:center; padding:50px;} h1{color:#4F46E5;} table{margin:20px auto; border-collapse:collapse; width:70%;} th,td{border:1px solid #ddd; padding:12px;} .footer{margin-top:30px; font-size:12px; color:#666;}</style></head><body>
-            <h1>🏠 TaiyariGhar</h1>
-            <h2>Test Scorecard</h2>
-            <table>
-                <tr><th>Student Name</th><td>${currentStudent.name}</td></tr>
-                <tr><th>Login ID</th><td>${currentStudent.loginId}</td></tr>
-                <tr><th>Test Name</th><td>${currentTestName}</td></tr>
-                <tr><th>Total Questions</th><td>${testQuestions.length}</td></tr>
-                <tr><th>Correct Answers</th><td style="color:green; font-weight:bold;">${currentResultData.correct}</td></tr>
-                <tr><th>Wrong Answers</th><td style="color:red; font-weight:bold;">${currentResultData.wrong}</td></tr>
-                <tr><th>Negative Deducted</th><td style="color:red;">-${currentResultData.neg}</td></tr>
-                <tr><th>Final Score</th><td>${currentResultData.score} / ${currentResultData.total}</td></tr>
-                <tr><th>Percentage</th><td>${currentResultData.percent}%</td></tr>
-                <tr><th>Rank</th><td>${currentResultData.rank} ${currentResultData.totalStudents !== '-' ? '(out of '+currentResultData.totalStudents+')' : ''}</td></tr>
-            </table>
-            <div class="footer">मेहनत आपकी, साथ हमारा!</div>
-        </body></html>`;
-        let w = window.open('', '_blank'); 
-        w.document.write(html); 
-        w.document.close(); 
-        setTimeout(() => w.print(), 500);
-    }
-
-    window.downloadQuestionPaper = function() {
-        if(!testQuestions || testQuestions.length === 0) return alert("No questions available!");
-        
-        let html = `<html><head><title>Question Paper - TaiyariGhar</title><style>body{font-family:sans-serif; padding:30px;} .q{margin-bottom:20px; border-bottom:1px solid #eee; padding-bottom:15px;} .correct{color:green; font-weight:bold;} .wrong{color:red; font-weight:bold;} .exp{background:#f0fdf4; padding:10px; border-radius:5px; font-size:14px; margin-top:8px;}</style></head><body>
-            <h1 style="text-align:center;">🏠 TaiyariGhar - Question Paper</h1>
-            <h3>Test: ${currentTestName} | Student: ${currentStudent.name}</h3><hr>`;
-        
-        testQuestions.forEach((q, i) => {
-            let userAns = userAnswers[i];
-            let qText = (currentTestLanguage === "English") ? q.qE : (currentTestLanguage === "Hindi" ? q.qH : `${q.qH} <br><span style="font-size:14px; color:#555;">${q.qE}</span>`);
-            
-            html += `<div class="q"><p><b>Q${i+1}. ${qText}</b></p>`;
-            q.opts.forEach((opt, j) => {
-                let labelHtml = (currentTestLanguage === "English") ? opt.e : (currentTestLanguage === "Hindi" ? opt.h : `${opt.h} (${opt.e})`);
-                if(labelHtml && labelHtml.trim() !== "") {
-                    let style = "";
-                    if(j === q.ans) style = 'class="correct"';
-                    else if(j === userAns) style = 'class="wrong"';
-                    html += `<p ${style}>${String.fromCharCode(65+j)}) ${labelHtml}</p>`;
-                }
-            });
-            html += `<p style="margin-top:10px;">Your Answer: ${userAns !== undefined ? String.fromCharCode(65+userAns) : 'Not Attempted'}</p>`;
-            html += `<p>Correct Answer: ${String.fromCharCode(65+q.ans)}</p>`;
-            if(q.exp) html += `<div class="exp"><b>Explanation:</b> ${q.exp}</div>`;
-            html += `</div>`;
-        });
-        html += `</body></html>`;
-        let w = window.open('', '_blank'); 
-        w.document.write(html); 
-        w.document.close(); 
-        setTimeout(() => w.print(), 500);
-    }
-
-    window.shareResultOnWhatsApp = function() {
-        if(!currentResultData) return alert("No result data available!");
-        
-        let msg = `🏆 *TaiyariGhar Result* 🏆\n\n👤 *Name:* ${currentStudent.name}\n📚 *Test:* ${currentTestName}\n📊 *Score:* ${currentResultData.score} / ${currentResultData.total}\n✅ *Correct:* ${currentResultData.correct}\n❌ *Wrong:* ${currentResultData.wrong}\n➖ *Negative:* -${currentResultData.neg}\n📈 *Percentage:* ${currentResultData.percent}%\n🥇 *Rank:* ${currentResultData.rank} ${currentResultData.totalStudents !== '-' ? '(out of '+currentResultData.totalStudents+')' : ''}\n\nमेहनत आपकी, साथ हमारा! 💪\nhttps://taiyarighar.in`;
-        window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
-    }
-
-    if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => { navigator.serviceWorker.register('sw.js').then(reg => console.log('SW')).catch(err => console.log('SW err', err)); });
-    }
-
-    window.onload = () => {
-        applyLanguage(); 
-        let savedUser = localStorage.getItem('tg_user');
-        if(savedUser) { 
-            currentStudent = JSON.parse(savedUser); 
-            isLoggedIn = true; 
-            isFirstLoginSession = false; 
-            fetchSettingsAndTests(); 
-            goDashboard(); 
-        } 
-        else { fetchSettingsAndTests(); goHome(); }
-    }
-</script>
-
-</body>
-</html>
+        document.getElementById('total
