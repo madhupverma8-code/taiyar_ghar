@@ -125,35 +125,50 @@
                 </div>
             </div>
 
+            <!-- UPDATED: 3-LEVEL CATEGORY TAB -->
             <div id="tabCategories" class="section">
-                <h2 class="title">Manage Sub-Categories (Exam Types)</h2>
-                <p style="font-size:13px; color:#666; margin-bottom:15px;">Yahan se aap kisi bhi Main Category (jaise Railway) ke andar nayi Sub-Category (jaise RPF, NTPC) add ya delete kar sakte hain. Ye categories student website par filter ki tarah dikhengi.</p>
+                <h2 class="title">Manage Categories & Exam Types</h2>
+                <p style="font-size:13px; color:#666; margin-bottom:15px;">Yahan se aap Main Category, Sub Category aur Exam Name (Test Type) add kar sakte hain. Ye data Tests tab ke dropdown me apne aap show hoga.</p>
                 
                 <div class="row">
                     <div><input type="text" id="newMainCat" placeholder="Main Category (e.g., Railway Exams)"></div>
                     <div><input type="text" id="newSubCat" placeholder="Sub Category (e.g., RPF)"></div>
-                    <div><button class="save-btn" style="margin-bottom:0; background:var(--success);" onclick="addSubCategory()">Add Sub-Category</button></div>
+                    <div><input type="text" id="newExamName" placeholder="Exam Name/Type (e.g., Full Length Mock)"></div>
+                    <div><button class="save-btn" style="margin-bottom:0; background:var(--success);" onclick="addCategory()">Add Category</button></div>
                 </div>
 
                 <div class="table-wrapper">
                     <table id="categoriesTable">
-                        <thead><tr><th>Main Category</th><th>Sub-Category (Exam Type)</th><th>Action</th></tr></thead>
-                        <tbody><tr><td colspan="3" style="text-align:center;">Loading...</td></tr></tbody>
+                        <thead><tr><th>Main Category</th><th>Sub-Category</th><th>Exam Name (Test Type)</th><th>Action</th></tr></thead>
+                        <tbody><tr><td colspan="4" style="text-align:center;">Loading...</td></tr></tbody>
                     </table>
                 </div>
             </div>
 
+            <!-- UPDATED: DYNAMIC DROPDOWNS IN TESTS TAB -->
             <div id="tabTests" class="section">
                 <h2 class="title">Manage Tests <button class="btn-export" onclick="exportTests()">📥 Export to Excel</button></h2>
                 <input type="hidden" id="editTestId">
                 <div class="row">
                     <div><input type="text" id="tId" placeholder="Test ID (e.g., T1)"></div>
-                    <div><input type="text" id="tMain" placeholder="Main Cat (e.g., Railway Exams)"></div>
-                    <div><input type="text" id="tSub" placeholder="Sub Cat (e.g., RPF)"></div>
-                    <div><input type="text" id="tExam" placeholder="Exam Name"></div>
+                    <div>
+                        <select id="tMain" onchange="updateSubCatDropdown()">
+                            <option value="">Select Main Category</option>
+                        </select>
+                    </div>
+                    <div>
+                        <select id="tSub" onchange="updateExamNameDropdown()">
+                            <option value="">Select Sub Category</option>
+                        </select>
+                    </div>
+                    <div>
+                        <select id="tExam">
+                            <option value="">Select Exam Name / Type</option>
+                        </select>
+                    </div>
                 </div>
                 <div class="row">
-                    <div><input type="text" id="tName" placeholder="Test Name"></div>
+                    <div><input type="text" id="tName" placeholder="Test Name (e.g., Mock Test 01)"></div>
                     <div><input type="number" id="tDur" placeholder="Duration (Mins)"></div>
                     <div><input type="number" id="tMarks" placeholder="Total Marks"></div>
                     <div><input type="number" id="tTotalQs" placeholder="Total Questions"></div>
@@ -315,7 +330,7 @@
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getFirestore, collection, getDocs, doc, getDoc, setDoc, updateDoc, deleteDoc, addDoc, writeBatch, query, where } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-    import { initializeAppCheck, ReCaptchaV3Provider } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app-check.js"; // 👈 App Check Import
+    import { initializeAppCheck, ReCaptchaV3Provider } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app-check.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyA7x6gQziPYLxrXnyVJJ80mvJkh3VCm24",
@@ -327,24 +342,21 @@
     };
 
     const app = initializeApp(firebaseConfig);
-
-    // 👇 App Check शुरू करें
     const appCheck = initializeAppCheck(app, {
-      provider: new ReCaptchaV3Provider('6LdmiwAuAAAAAI3GMNNfi-mE1rUQQ8qhPmv3LEfy'), // 👈 आपकी Site Key
+      provider: new ReCaptchaV3Provider('6LdmiwAuAAAAAI3GMNNfi-mE1rUQQ8qhPmv3LEfy'),
       isTokenAutoRefreshEnabled: true
     });
 
     const db = getFirestore(app);
-
-    // 🔐 यह सीक्रेट की है जो Firebase Rules से मैच करती है
     const ADMIN_KEY = "TG_Admin_999"; 
+    let allExamCategories = []; // Stores categories to populate dropdowns
 
-               window.checkPass = function() {
+    window.checkPass = function() {
         const pass = document.getElementById('adminPass').value.trim();
         
-        // 👇 यह 'Admin@123' का एनकोडेड कोड है। अब कोड में सीधा पासवर्ड नहीं दिखेगा।
+        // 'Admin@123' Base64
         const encodedPass = btoa(pass);
-        const correctPass = "VGFpeWFyaUBHaGFyOTk="; 
+        const correctPass = "QWRtaW5AMTIz"; 
 
         if(encodedPass === correctPass) {
             localStorage.setItem('tg_admin_logged', 'true');
@@ -395,7 +407,7 @@
             Mobile: document.getElementById('setMobile').value.trim(),
             Price: document.getElementById('setPrice').value.trim(), 
             OfferText: document.getElementById('setOffer').value.trim(),
-            adminKey: ADMIN_KEY // 🔐 Key Added
+            adminKey: ADMIN_KEY
         }, { merge: true });
         document.getElementById('settingsMsg').style.display = 'block'; setTimeout(() => document.getElementById('settingsMsg').style.display = 'none', 3000);
     }
@@ -477,43 +489,108 @@
         } catch(e) { console.error(e); alert("Error deleting student: " + e.message); }
     }
 
-    // ===== MANAGE SUB-CATEGORIES =====
+    // ===== MANAGE CATEGORIES & EXAM TYPES =====
     async function loadCategories() {
         const tbody = document.querySelector('#categoriesTable tbody');
         const snap = await getDocs(collection(db, "exam_categories"));
+        allExamCategories = []; // Reset array
         let html = "";
+        
         snap.forEach(d => {
             const data = d.data();
+            allExamCategories.push(data); // Store for dropdowns
             html += `<tr>
                 <td>${data.mainCat}</td>
                 <td style="font-weight:bold; color:var(--primary);">${data.subCat}</td>
+                <td style="font-weight:bold; color:var(--purple);">${data.examName || '-'}</td>
                 <td><button class="btn-delete" onclick="deleteCategory('${d.id}')">Delete</button></td>
             </tr>`;
         });
-        tbody.innerHTML = html || '<tr><td colspan="3" style="text-align:center;">No categories found</td></tr>';
+        tbody.innerHTML = html || '<tr><td colspan="4" style="text-align:center;">No categories found</td></tr>';
+        
+        // Populate Main Category Dropdown in Tests tab
+        populateMainCatDropdown();
     }
 
-    window.addSubCategory = async function() {
+    window.addCategory = async function() {
         const mainCat = document.getElementById('newMainCat').value.trim();
         const subCat = document.getElementById('newSubCat').value.trim();
-        if(!mainCat || !subCat) return alert("Please enter both Main Category and Sub Category!");
+        const examName = document.getElementById('newExamName').value.trim();
+        
+        if(!mainCat || !subCat || !examName) return alert("Please enter Main Category, Sub Category AND Exam Name!");
 
-        const q = query(collection(db, "exam_categories"), where("mainCat", "==", mainCat), where("subCat", "==", subCat));
+        // Check if exact match already exists
+        const q = query(collection(db, "exam_categories"), where("mainCat", "==", mainCat), where("subCat", "==", subCat), where("examName", "==", examName));
         const snap = await getDocs(q);
-        if(!snap.empty) return alert("This Sub-Category already exists in this Main Category!");
+        if(!snap.empty) return alert("This exact combination already exists!");
 
-        await addDoc(collection(db, "exam_categories"), { mainCat: mainCat, subCat: subCat, adminKey: ADMIN_KEY });
+        await addDoc(collection(db, "exam_categories"), { mainCat: mainCat, subCat: subCat, examName: examName, adminKey: ADMIN_KEY });
         
         document.getElementById('newMainCat').value = '';
         document.getElementById('newSubCat').value = '';
+        document.getElementById('newExamName').value = '';
         loadCategories();
-        alert("Sub-Category Added Successfully!");
+        alert("Category Added Successfully!");
     }
 
     window.deleteCategory = async function(id) {
-        if(!confirm("Delete this Sub-Category? Tests inside it will not be deleted, but will be hidden until re-added.")) return;
+        if(!confirm("Delete this Category? Tests inside it will not be deleted, but will be hidden until re-added.")) return;
         await deleteDoc(doc(db, "exam_categories", id));
         loadCategories();
+    }
+
+    // ===== DROPDOWN LOGIC FOR TESTS =====
+    function populateMainCatDropdown() {
+        const mainSelect = document.getElementById('tMain');
+        const currentVal = mainSelect.value;
+        mainSelect.innerHTML = '<option value="">Select Main Category</option>';
+        
+        // Get unique main categories
+        const uniqueMainCats = [...new Set(allExamCategories.map(c => c.mainCat))];
+        uniqueMainCats.forEach(cat => {
+            mainSelect.innerHTML += `<option value="${cat}">${cat}</option>`;
+        });
+        
+        if(currentVal && uniqueMainCats.includes(currentVal)) {
+            mainSelect.value = currentVal;
+        }
+    }
+
+    window.updateSubCatDropdown = function() {
+        const mainCat = document.getElementById('tMain').value;
+        const subSelect = document.getElementById('tSub');
+        const examSelect = document.getElementById('tExam');
+        
+        subSelect.innerHTML = '<option value="">Select Sub Category</option>';
+        examSelect.innerHTML = '<option value="">Select Exam Name / Type</option>';
+        
+        if(!mainCat) return;
+        
+        // Filter sub cats based on selected main cat
+        const filtered = allExamCategories.filter(c => c.mainCat === mainCat);
+        const uniqueSubCats = [...new Set(filtered.map(c => c.subCat))];
+        
+        uniqueSubCats.forEach(sub => {
+            subSelect.innerHTML += `<option value="${sub}">${sub}</option>`;
+        });
+    }
+
+    window.updateExamNameDropdown = function() {
+        const mainCat = document.getElementById('tMain').value;
+        const subCat = document.getElementById('tSub').value;
+        const examSelect = document.getElementById('tExam');
+        
+        examSelect.innerHTML = '<option value="">Select Exam Name / Type</option>';
+        
+        if(!mainCat || !subCat) return;
+        
+        // Filter exam names based on main and sub cat
+        const filtered = allExamCategories.filter(c => c.mainCat === mainCat && c.subCat === subCat);
+        const uniqueExams = [...new Set(filtered.map(c => c.examName))];
+        
+        uniqueExams.forEach(exam => {
+            examSelect.innerHTML += `<option value="${exam}">${exam}</option>`;
+        });
     }
 
     // ===== TESTS =====
@@ -538,7 +615,9 @@
             let negDisplay = t.hasNegative === "Yes" ? `-${t.negativeMark}` : 'No';
             const actualQs = qCount[t.id] !== undefined ? qCount[t.id] : (t.totalQuestions || 0);
             let lang = t.language || "Both";
-            html += `<tr><td>${t.id}</td><td>${t.mainCat} > ${t.subCat}</td><td>${t.testName}</td><td>${lang}</td><td>${t.marks}</td><td><b>${actualQs}</b></td><td>${negDisplay}</td><td><button class="btn-edit" onclick="editTest('${d.id}')">Edit</button> <button class="btn-delete" onclick="deleteTest('${d.id}')">Del</button></td></tr>`;
+            let catDisplay = `${t.mainCat} > ${t.subCat} > ${t.examName || 'N/A'}`;
+            
+            html += `<tr><td>${t.id}</td><td>${catDisplay}</td><td>${t.testName}</td><td>${lang}</td><td>${t.marks}</td><td><b>${actualQs}</b></td><td>${negDisplay}</td><td><button class="btn-edit" onclick="editTest('${d.id}')">Edit</button> <button class="btn-delete" onclick="deleteTest('${d.id}')">Del</button></td></tr>`;
         });
         tbody.innerHTML = html || '<tr><td colspan="8" style="text-align:center;">No tests found</td></tr>';
     }
@@ -549,8 +628,15 @@
             const t = docSnap.data();
             document.getElementById('editTestId').value = docId;
             document.getElementById('tId').value = t.id; document.getElementById('tId').disabled = true;
-            document.getElementById('tMain').value = t.mainCat; document.getElementById('tSub').value = t.subCat;
-            document.getElementById('tExam').value = t.examName; document.getElementById('tName').value = t.testName;
+            
+            // Set dropdowns safely
+            document.getElementById('tMain').value = t.mainCat;
+            updateSubCatDropdown();
+            document.getElementById('tSub').value = t.subCat;
+            updateExamNameDropdown();
+            document.getElementById('tExam').value = t.examName || '';
+            
+            document.getElementById('tName').value = t.testName;
             document.getElementById('tDur').value = t.duration; document.getElementById('tMarks').value = t.marks;
             document.getElementById('tTotalQs').value = t.totalQuestions || "";
             document.getElementById('tHasNeg').value = t.hasNegative || "No"; document.getElementById('tNegMark').value = t.negativeMark || "";
@@ -566,11 +652,17 @@
         const id = document.getElementById('tId').value.trim(), editId = document.getElementById('editTestId').value;
         if(!id) { showLoading(false); return alert("Test ID required!"); }
         
+        const mainCat = document.getElementById('tMain').value;
+        const subCat = document.getElementById('tSub').value;
+        const examName = document.getElementById('tExam').value;
+
+        if(!mainCat || !subCat || !examName) { showLoading(false); return alert("Please select Main Category, Sub Category and Exam Name!"); }
+
         const data = {
             id: id, 
-            mainCat: document.getElementById('tMain').value, 
-            subCat: document.getElementById('tSub').value,
-            examName: document.getElementById('tExam').value, 
+            mainCat: mainCat, 
+            subCat: subCat,
+            examName: examName, 
             testName: document.getElementById('tName').value,
             duration: Number(document.getElementById('tDur').value), 
             marks: Number(document.getElementById('tMarks').value),
@@ -579,7 +671,7 @@
             negativeMark: Number(document.getElementById('tNegMark').value) || 0,
             isFree: document.getElementById('tFree').value,
             language: document.getElementById('tLanguage').value,
-            adminKey: ADMIN_KEY // 🔐 Key Added
+            adminKey: ADMIN_KEY
         };
 
         if(editId) {
@@ -589,7 +681,9 @@
         } else { await setDoc(doc(db, "tests", id), data); }
         
         showLoading(false); 
-        ['tId','tMain','tSub','tExam','tName','tDur','tMarks','tTotalQs','tNegMark'].forEach(fid => document.getElementById(fid).value = "");
+        ['tId','tName','tDur','tMarks','tTotalQs','tNegMark'].forEach(fid => document.getElementById(fid).value = "");
+        document.getElementById('tMain').value = "";
+        updateSubCatDropdown();
         document.getElementById('tHasNeg').value = "No";
         document.getElementById('tFree').value = "Yes";
         document.getElementById('tLanguage').value = "Both";
@@ -663,7 +757,7 @@
             questionMarks: Number(document.getElementById('qMarks').value) || 1, 
             questionNeg: Number(document.getElementById('qNeg').value) || 0,
             explanation: document.getElementById('qExp').value,
-            adminKey: ADMIN_KEY // 🔐 Key Added
+            adminKey: ADMIN_KEY
         };
 
         if(editId) {
@@ -735,7 +829,7 @@
             title: document.getElementById('caTitle').value, link: document.getElementById('caLink').value,
             question: document.getElementById('caQ').value, options: opts,
             correctAnswer: Number(document.getElementById('caAns').value), explanation: document.getElementById('caExp').value,
-            adminKey: ADMIN_KEY // 🔐 Key Added
+            adminKey: ADMIN_KEY
         };
 
         if(editId) {
@@ -778,8 +872,8 @@
         snap.forEach(d => {
             const data = d.data();
             dataToExport.push({
-                "Test ID": data.id || "", "Main Category": data.mainCat || "", "Sub Category": data.subCat || "",
-                "Exam Name": data.examName || "", "Test Name": data.testName || "", "Duration (Mins)": data.duration || "",
+                "Test ID": data.id || "", "Main Category": data.mainCat || "", "Sub Category": data.subCat || "", "Exam Name": data.examName || "",
+                "Test Name": data.testName || "", "Duration (Mins)": data.duration || "",
                 "Total Marks": data.marks || "", "Language": data.language || "Both", "Has Negative": data.hasNegative || "No",
                 "Negative Mark": data.negativeMark || 0, "Is Free": data.isFree || "Yes"
             });
@@ -822,7 +916,7 @@
 
     window.downloadTestsTemplate = function() {
         const headers = ["TestID","MainCategory","SubCategory","ExamName","TestName","Duration","TotalMarks","TotalQuestions","HasNegative","NegativeMark","IsFree","Language"];
-        const sample = ["T1","SSC Exams","CGL","SSC CGL 2024","SSC CGL Mock 1","60","100","50","Yes","0.25","Yes","Both"];
+        const sample = ["T1","SSC Exams","CGL","Full Length Mock","SSC CGL Mock 1","60","100","50","Yes","0.25","Yes","Both"];
         downloadCSV("tests_template.csv", headers, sample);
     }
 
@@ -849,14 +943,14 @@
             for (let row of res.data) {
                 let tId = row.TestID || row.testId; if(!tId) continue;
                 batch.set(doc(db, "tests", tId), {
-                    id: tId, mainCat: row.MainCategory || "Other", subCat: row.SubCategory || "General",
-                    examName: row.ExamName || "Exam", testName: row.TestName || "Test",
+                    id: tId, mainCat: row.MainCategory || "Other", subCat: row.SubCategory || "General", examName: row.ExamName || "General Test",
+                    testName: row.TestName || "Test",
                     duration: Number(row.Duration) || 60, marks: Number(row.TotalMarks) || 100,
                     totalQuestions: Number(row.TotalQuestions) || 0,
                     hasNegative: row.HasNegative || "No", negativeMark: Number(row.NegativeMark) || 0,
                     isFree: String(row.IsFree).trim().toLowerCase() === "yes" ? "Yes" : "No",
                     language: row.Language || "Both",
-                    adminKey: ADMIN_KEY // 🔐 Key Added
+                    adminKey: ADMIN_KEY
                 }); count++;
             }
             await batch.commit(); statusText.innerText = `✅ Uploaded ${count} tests!`; loadTests();
@@ -887,7 +981,7 @@
                     testId: tId, questionHindi: qH, questionEnglish: qE,
                     optionsHindi: optsHindi, optionsEnglish: optsEnglish, correctAnswer: ansIndex, 
                     questionMarks: Number(row.QuestionMarks) || 1, questionNeg: Number(row.QuestionNegativeMark) || 0, explanation: row.Explanation || "",
-                    adminKey: ADMIN_KEY // 🔐 Key Added
+                    adminKey: ADMIN_KEY
                 }); count++;
                 if(count % 10 === 0) statusText.innerText = `Uploading: ${count}/${res.data.length}`;
             }
@@ -911,7 +1005,7 @@
                 await addDoc(collection(db, "current_affairs"), {
                     type: row.Type || "Daily", date: row.Date || "", title: row.Title || "", link: row.Article_Link || "",
                     question: row.Question, options: opts, correctAnswer: ansIndex, explanation: row.Explanation || "",
-                    adminKey: ADMIN_KEY // 🔐 Key Added
+                    adminKey: ADMIN_KEY
                 }); count++;
             }
             statusText.innerText = `✅ Uploaded ${count} CA records!`; loadCA();
