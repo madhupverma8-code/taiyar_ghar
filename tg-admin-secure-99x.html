@@ -336,7 +336,7 @@
     import { getFirestore, collection, getDocs, doc, getDoc, setDoc, updateDoc, deleteDoc, addDoc, writeBatch, query, where } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
     import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
     
-    // App Check को फिलहाल के लिए बंद कर दिया गया है ताकि लॉगिन में दिक्कत न आए
+    // App Check सुरक्षित रूप से बंद है
     // import { initializeAppCheck, ReCaptchaV3Provider } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app-check.js";
 
     const firebaseConfig = {
@@ -349,13 +349,6 @@
     };
 
     const app = initializeApp(firebaseConfig);
-    
-    // App Check को बंद कर दिया गया है
-    // const appCheck = initializeAppCheck(app, {
-    //   provider: new ReCaptchaV3Provider('6LdmiwAuAAAAAI3GMNNfi-mE1rUQQ8qhPmv3LEfy'),
-    //   isTokenAutoRefreshEnabled: true
-    // });
-
     const db = getFirestore(app);
     const auth = getAuth(app); 
     let allExamCategories = [];
