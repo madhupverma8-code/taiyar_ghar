@@ -11,7 +11,7 @@
     <meta name="theme-color" content="#1a3a6b">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     
-    <!-- यहाँ हमने CSS फाइल लिंक कर दी है -->
+    <!-- यहाँ CSS फाइल लिंक की है -->
     <link rel="stylesheet" href="student-style.css">
 </head>
 <body>
@@ -100,6 +100,7 @@
         </div>
     </div>
 
+    <!-- 🛠️ यहाँ Forgot Password और Register के लिंक्स फिक्स कर दिए गए हैं 🛠️ -->
     <div id="loginScreen" class="section hide" style="max-width: 450px; margin: 30px auto;">
         <div style="background: white; padding: 30px 20px; border-radius: 16px; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.05);">
             <h2 style="color: var(--primary); margin-bottom: 20px; font-size: 20px;" data-translate="login_h2">Login to Your Account</h2>
@@ -107,11 +108,14 @@
             <input type="password" id="loginPass" placeholder="Password" style="width:100%; padding:12px; margin-bottom: 10px; border:2px solid #E5E7EB; border-radius:8px; outline:none;">
             
             <div style="text-align: right; margin-bottom: 15px;">
-                <a href="#" onclick="showForgotPassword()" style="color: var(--danger); font-size: 13px; text-decoration: none;">Forgot Password?</a>
+                <a href="javascript:void(0);" onclick="showForgotPassword()" style="color: var(--danger); font-size: 13px; text-decoration: none;">Forgot Password?</a>
             </div>
 
             <button class="btn btn-primary" style="width:100%; padding:12px;" onclick="doLogin()" data-translate="login_btn">Login</button>
-            <p style="margin-top: 15px; font-size: 14px;"><span data-translate="login_new">New user?</span> <a href="#" onclick="showRegister()" style="color: var(--primary);" data-translate="login_reg">Register Here</a></p>
+            <p style="margin-top: 15px; font-size: 14px;">
+                <span data-translate="login_new">New user?</span> 
+                <a href="javascript:void(0);" onclick="showRegister()" style="color: var(--primary);" data-translate="login_reg">Register Here</a>
+            </p>
         </div>
     </div>
     
@@ -162,7 +166,9 @@
             <p style="margin-top: 15px; font-size: 13px;">
                 <a href="https://wa.me/919140281870?text=Hello%20Admin,%20I%20forgot%20my%20password%20and%20recovery%20details.%20Please%20help%20me." target="_blank" style="color: var(--accent); font-weight: bold; text-decoration: none;">कुछ और भूल गए? WhatsApp पर संपर्क करें</a>
             </p>
-            <p style="margin-top: 10px; font-size: 14px;"><a href="#" onclick="showLogin()" style="color: var(--primary);">← Back to Login</a></p>
+            <p style="margin-top: 10px; font-size: 14px;">
+                <a href="javascript:void(0);" onclick="showLogin()" style="color: var(--primary);">← Back to Login</a>
+            </p>
         </div>
     </div>
 
@@ -455,7 +461,7 @@
         <p>© 2024 TaiyariGhar. All rights reserved. Made with ❤️ for Govt Job Aspirants.</p>
     </footer>
 
-    <!-- यहाँ हमने JS फाइल लिंक कर दी है -->
+    <!-- यहाँ JS फाइल लिंक की है -->
     <script type="module" src="student-app.js"></script>
 </body>
 </html>
