@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About Us - TaiyariGhar</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="student-style.css">
+    
+    <style>
+        /* About Us पेज का खास डिज़ाइन */
+        .about-container {
+            max-width: 800px;
+            margin: 40px auto;
+            background: white;
+            padding: 40px 30px;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+            text-align: center;
+        }
+
+        .founder-img {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 4px solid var(--primary);
+            box-shadow: 0 4px 15px rgba(79, 70, 229, 0.3);
+            margin-bottom: 15px;
+        }
+
+        .founder-name {
+            font-size: 28px;
+            font-weight: 800; /* Fort style bold */
+            color: #1E1B4B;
+            margin-bottom: 5px;
+            letter-spacing: 0.5px;
+        }
+
+        .founder-title {
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--primary);
+            margin-bottom: 30px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .about-section {
+            text-align: left;
+            margin-bottom: 25px;
+            background: #F8FAFC;
+            padding: 20px;
+            border-radius: 10px;
+            border-left: 5px solid var(--primary);
+        }
+
+        .about-section h3 {
+            font-size: 18px;
+            color: var(--primary);
+            margin-bottom: 10px;
+        }
+
+        .about-section p {
+            font-size: 15px;
+            color: #4B5563;
+            line-height: 1.7;
+        }
+
+        .closing-note {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--accent);
+            margin-top: 30px;
+            padding: 15px;
+            background: #ECFDF5;
+            border-radius: 8px;
+        }
+
+        @media (max-width: 768px) {
+            .about-container { padding: 25px 15px; margin: 20px 15px; }
+            .founder-name { font-size: 24px; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- हेडर (वही जो मुख्य वेबसाइट पर है) -->
+    <header class="header" id="mainHeader">
+        <div class="logo" onclick="window.location.href='index.html'">
+            <img src="logo.png" alt="TaiyariGhar" onerror="this.outerHTML='<span style=\'font-size:24px; font-weight:800; color:var(--primary);\'>🏠 TaiyariGhar</span>'">
+        </div>
+        <div class="header-right">
+            <a href="index.html" class="btn btn-outline">← Back to Home</a>
+        </div>
+    </header>
+
+    <!-- मुख्य About Us कंटेंट -->
+    <div class="about-container">
+        
+        <!-- फोटो -->
+        <img src="founder.png" alt="Madhup Verma" class="founder-img" onerror="this.src='https://cdn-icons-png.flaticon.com/512/3135/3135715.png'">
+        
+        <!-- नाम और पद -->
+        <h1 class="founder-name">Madhup Verma</h1>
+        <div class="founder-title">Founder, TaiyariGhar</div>
+
+        <!-- हमारा मकसद -->
+        <div class="about-section">
+            <h3>🎯 हमारा मकसद (Our Mission)</h3>
+            <p>मेरा मकसद हर उस छात्र की मदद करना है जो सरकारी नौकरी की तैयारी कर रहा है और महंगी कोचिंग का खर्च नहीं उठा सकता। TaiyariGhar का जन्म इसी सोच के साथ हुआ है, ताकि हर छात्र तक बेहतरीन मॉक टेस्ट और स्टडी मटेरियल बिल्कुल मुफ्त या बहुत ही किफायती दाम में पहुँच सके।</p>
+        </div>
+
+        <!-- टीम और सपोर्ट -->
+        <div class="about-section">
+            <h3>🤝 हमारी टीम और सपोर्ट (Our Team & Support)</h3>
+            <p>हम और हमारी टीम मिलकर आपको बेहतरीन तकनीकी (Technical) और परीक्षा (Exam) सहायता प्रदान करेंगे। इसमें <b>लेटेस्ट एग्जाम पैटर्न (Latest Exam Pattern)</b> और <b>करंट अफेयर्स (Current Affairs)</b> से जुड़े <b>डेली, वीकली, मंथली और ईयरली (Daily, Weekly, Monthly, Yearly)</b> आधारित प्रश्न शामिल होंगे। आपको किसी भी प्रकार की कोई समस्या नहीं होगी। SSC, Railway, Bank और State Exams के अनुभव के साथ, मेरे साथी (Friends) और मेरी टीम इस प्लेटफॉर्म को सफल बनाने में मेरी मदद कर रहे हैं।</p>
+        </div>
+
+        <!-- प्रोफेशनल बैकग्राउंड -->
+        <div class="about-section">
+            <h3>💼 प्रोफेशनल बैकग्राउंड (Professional Background)</h3>
+            <p>मैं (Madhup Verma) एक MIS Executive, Data Analyst और Web Developer के रूप में काम करता हूँ। मेरे इस तकनीकी अनुभव का इस्तेमाल मैंने TaiyariGhar को एक सुरक्षित, तेज़ और बेहतरीन प्लेटफॉर्म बनाने में किया है।</p>
+        </div>
+
+        <!-- अंतिम संदेश -->
+        <div class="closing-note">
+            "आपकी मेहनत और हमारी तकनीक—मिलकर आपकी सरकारी नौकरी का सपना पूरा करेंगे।"
+        </div>
+
+        <div style="margin-top: 30px;">
+            <a href="index.html" class="btn btn-primary" style="padding: 12px 30px; font-size: 16px;">Start Preparing Now</a>
+        </div>
+
+    </div>
+
+    <!-- फुटर -->
+    <footer class="footer" id="mainFooter" style="margin-top: auto;">
+        <p>© 2024 TaiyariGhar. All rights reserved. Made with ❤️ for Govt Job Aspirants.</p>
+    </footer>
+
+</body>
+</html>
