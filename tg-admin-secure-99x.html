@@ -181,37 +181,50 @@
             </div>
 
             <div id="tabQuestions" class="section">
-                <h2 class="title">Manage Questions (Dual Language)</h2>
+                <h2 class="title">Manage Questions (Search & Edit)</h2>
                 <input type="hidden" id="editQId">
-                <div class="row"><div><input type="text" id="qTestId" placeholder="Test ID (e.g., T1)"></div></div>
                 
-                <h3 class="sub-title">Question Text</h3>
-                <div class="row">
-                    <div style="flex:2;"><input type="text" id="qTextHindi" placeholder="Question in Hindi"></div>
-                    <div style="flex:2;"><input type="text" id="qTextEnglish" placeholder="Question in English"></div>
+                <div style="background: #f8fafc; padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #e2e8f0;">
+                    <h3 style="margin-bottom: 10px; font-size: 15px; color: var(--primary);">🔍 Search & Download Questions</h3>
+                    <div class="row">
+                        <div style="flex: 2;"><input type="text" id="searchTestId" placeholder="Enter Test ID (e.g., RRB001)" style="margin-bottom:0;"></div>
+                        <div style="flex: 1;"><button class="save-btn" style="margin-bottom:0; background: var(--primary);" onclick="searchQuestions()">Search</button></div>
+                        <div style="flex: 1;"><button class="save-btn" style="margin-bottom:0; background: var(--success);" onclick="downloadTestQuestions()">📥 Download</button></div>
+                    </div>
                 </div>
 
-                <h3 class="sub-title">Options</h3>
-                <div class="row"><div><input type="text" id="qOptAHindi" placeholder="Option A (Hindi)"></div><div><input type="text" id="qOptAEnglish" placeholder="Option A (English)"></div></div>
-                <div class="row"><div><input type="text" id="qOptBHindi" placeholder="Option B (Hindi)"></div><div><input type="text" id="qOptBEnglish" placeholder="Option B (English)"></div></div>
-                <div class="row"><div><input type="text" id="qOptCHindi" placeholder="Option C (Hindi)"></div><div><input type="text" id="qOptCEnglish" placeholder="Option C (English)"></div></div>
-                <div class="row"><div><input type="text" id="qOptDHindi" placeholder="Option D (Hindi)"></div><div><input type="text" id="qOptDEnglish" placeholder="Option D (English)"></div></div>
-                <div class="row"><div><input type="text" id="qOptEHindi" placeholder="Option E (Hindi - Optional)"></div><div><input type="text" id="qOptEEnglish" placeholder="Option E (English - Optional)"></div></div>
-
-                <h3 class="sub-title">Answer & Explanation</h3>
-                <div class="row">
-                    <div><select id="qAns"><option value="0">Correct: A</option><option value="1">Correct: B</option><option value="2">Correct: C</option><option value="3">Correct: D</option><option value="4">Correct: E</option></select></div>
-                    <div><input type="number" step="0.01" id="qMarks" placeholder="Marks (e.g., 1)"></div>
-                    <div><input type="number" step="0.01" id="qNeg" placeholder="Neg Marks (e.g., 0.33)"></div>
+                <div id="questionListContainer" style="display: none;">
+                    <h3 style="margin-bottom: 10px; font-size: 15px; color: var(--purple);">Showing Questions for Test ID: <span id="displaySearchTestId" style="font-weight:bold;"></span></h3>
+                    <div class="table-wrapper">
+                        <table id="questionsTable">
+                            <thead><tr><th>Q-ID</th><th>Question (Hindi)</th><th>Question (English)</th><th>Marks</th><th>Action</th></tr></thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
                 </div>
-                <div class="row"><div style="flex:1;"><input type="text" id="qExp" placeholder="Explanation (Optional)"></div></div>
-                
-                <button class="save-btn" id="qBtn" onclick="saveQuestion()">Add Question</button>
-                <div class="table-wrapper">
-                    <table id="questionsTable">
-                        <thead><tr><th>Test ID</th><th>Question (Hindi)</th><th>Question (English)</th><th>Marks</th><th>Action</th></tr></thead>
-                        <tbody><tr><td colspan="5" style="text-align:center;">Loading...</td></tr></tbody>
-                    </table>
+
+                <div style="border-top: 2px dashed #ccc; padding-top: 20px; margin-top: 20px;">
+                    <h3 class="sub-title">Add / Edit Question Manually</h3>
+                    <div class="row"><div><input type="text" id="qTestId" placeholder="Test ID (e.g., T1)"></div></div>
+                    
+                    <div class="row">
+                        <div style="flex:2;"><input type="text" id="qTextHindi" placeholder="Question in Hindi"></div>
+                        <div style="flex:2;"><input type="text" id="qTextEnglish" placeholder="Question in English"></div>
+                    </div>
+                    <div class="row"><div><input type="text" id="qOptAHindi" placeholder="Option A (Hindi)"></div><div><input type="text" id="qOptAEnglish" placeholder="Option A (English)"></div></div>
+                    <div class="row"><div><input type="text" id="qOptBHindi" placeholder="Option B (Hindi)"></div><div><input type="text" id="qOptBEnglish" placeholder="Option B (English)"></div></div>
+                    <div class="row"><div><input type="text" id="qOptCHindi" placeholder="Option C (Hindi)"></div><div><input type="text" id="qOptCEnglish" placeholder="Option C (English)"></div></div>
+                    <div class="row"><div><input type="text" id="qOptDHindi" placeholder="Option D (Hindi)"></div><div><input type="text" id="qOptDEnglish" placeholder="Option D (English)"></div></div>
+                    <div class="row"><div><input type="text" id="qOptEHindi" placeholder="Option E (Hindi - Optional)"></div><div><input type="text" id="qOptEEnglish" placeholder="Option E (English - Optional)"></div></div>
+
+                    <div class="row">
+                        <div><select id="qAns"><option value="0">Correct: A</option><option value="1">Correct: B</option><option value="2">Correct: C</option><option value="3">Correct: D</option><option value="4">Correct: E</option></select></div>
+                        <div><input type="number" step="0.01" id="qMarks" placeholder="Marks (e.g., 1)"></div>
+                        <div><input type="number" step="0.01" id="qNeg" placeholder="Neg Marks (e.g., 0.33)"></div>
+                    </div>
+                    <div class="row"><div style="flex:1;"><input type="text" id="qExp" placeholder="Explanation (Optional)"></div></div>
+                    
+                    <button class="save-btn" id="qBtn" onclick="saveQuestion()">Add Question</button>
                 </div>
             </div>
 
@@ -290,8 +303,9 @@
     import { getFirestore, collection, getDocs, doc, getDoc, setDoc, updateDoc, deleteDoc, addDoc, writeBatch, query, where } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
     import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
+    // यहाँ पुरानी API Key डाल दी गई है
     const firebaseConfig = {
-        apiKey: "AIzaSyD98AuZs7e-Z66aLIZyanQ6o-QRztWts_U", 
+        apiKey: "AIzaSyA7x6gQziPYLxrXnyVJJ80mvJkh3VCm24", 
         authDomain: "taiyarighar.firebaseapp.com",
         projectId: "taiyarighar",
         storageBucket: "taiyarighar.firebasestorage.app",
@@ -303,6 +317,7 @@
     const db = getFirestore(app);
     const auth = getAuth(app); 
     let allExamCategories = [];
+    let currentSearchedQs = [];
 
     window.checkPass = function() {
         const email = document.getElementById('adminEmail').value.trim();
@@ -337,7 +352,7 @@
     }
 
     function showLoading(show) { document.getElementById('loading').style.display = show ? 'flex' : 'none'; }
-    function loadAllData() { loadSettings(); loadStudents(); loadCategories(); loadTests(); loadQuestions(); loadResults(); loadCA(); }
+    function loadAllData() { loadSettings(); loadStudents(); loadCategories(); loadTests(); loadResults(); loadCA(); }
 
     // ===== SETTINGS =====
     async function loadSettings() {
@@ -569,19 +584,79 @@
         await deleteDoc(doc(db, "tests", id)); loadTests(); 
     }
 
-    // ===== QUESTIONS =====
-    async function loadQuestions() {
-        const tbody = document.querySelector('#questionsTable tbody');
-        const snap = await getDocs(collection(db, "questions"));
-        let html = "";
-        snap.forEach(d => {
-            const q = d.data(); let qH = q.questionHindi || q.question || "-"; let qE = q.questionEnglish || "-";
-            html += `<tr><td>${q.testId}</td><td>${qH}</td><td>${qE}</td><td>${q.questionMarks || 1}</td><td><button class="btn-edit" onclick="editQuestion('${d.id}')">Edit</button> <button class="btn-delete" onclick="deleteQuestion('${d.id}')">Del</button></td></tr>`;
-        });
-        tbody.innerHTML = html || '<tr><td colspan="5" style="text-align:center;">No questions found</td></tr>';
+    // ===== QUESTIONS SEARCH & EDIT =====
+    window.searchQuestions = async function() {
+        const tId = document.getElementById('searchTestId').value.trim();
+        if(!tId) return alert("Please enter a Test ID to search.");
+        
+        showLoading(true);
+        try {
+            const q = query(collection(db, "questions"), where("testId", "==", tId));
+            const snap = await getDocs(q);
+            const tbody = document.querySelector('#questionsTable tbody');
+            currentSearchedQs = [];
+            let html = "";
+            
+            if(!snap.empty) {
+                snap.forEach(d => {
+                    const qData = d.data();
+                    qData.docId = d.id; // Save Firestore doc ID for editing
+                    currentSearchedQs.push(qData);
+                    let qH = qData.questionHindi || qData.question || "-"; 
+                    let qE = qData.questionEnglish || "-";
+                    let uId = qData.uniqueId || d.id; // Unique ID
+                    
+                    html += `<tr>
+                        <td style="font-weight:bold; color:var(--primary);">${uId}</td>
+                        <td>${qH}</td>
+                        <td>${qE}</td>
+                        <td>${qData.questionMarks || 1}</td>
+                        <td>
+                            <button class="btn-edit" onclick="editQuestionByDocId('${d.id}')">Edit</button> 
+                            <button class="btn-delete" onclick="deleteQuestion('${d.id}')">Del</button>
+                        </td>
+                    </tr>`;
+                });
+                tbody.innerHTML = html;
+                document.getElementById('displaySearchTestId').innerText = tId;
+                document.getElementById('questionListContainer').style.display = 'block';
+            } else {
+                tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;">No questions found for this Test ID.</td></tr>`;
+                document.getElementById('displaySearchTestId').innerText = tId;
+                document.getElementById('questionListContainer').style.display = 'block';
+            }
+        } catch (e) { console.error(e); alert("Error: " + e.message); }
+        showLoading(false);
     }
 
-    window.editQuestion = async function(docId) {
+    window.downloadTestQuestions = function() {
+        if(currentSearchedQs.length === 0) return alert("Please search for a Test ID first. No questions to download.");
+        
+        const headers = ["TestID","QuestionHindi","QuestionEnglish","OptionA_Hindi","OptionB_Hindi","OptionC_Hindi","OptionD_Hindi","OptionE_Hindi","OptionA_English","OptionB_English","OptionC_English","OptionD_English","OptionE_English","CorrectAnswer","QuestionMarks","QuestionNegativeMark","Explanation"];
+        const ansMap = { 0:'A', 1:'B', 2:'C', 3:'D', 4:'E' };
+        
+        let dataToExport = currentSearchedQs.map(q => {
+            return {
+                "TestID": q.testId,
+                "QuestionHindi": q.questionHindi || "",
+                "QuestionEnglish": q.questionEnglish || "",
+                "OptionA_Hindi": q.optionsHindi ? q.optionsHindi[0] : "", "OptionB_Hindi": q.optionsHindi ? q.optionsHindi[1] : "", "OptionC_Hindi": q.optionsHindi ? q.optionsHindi[2] : "", "OptionD_Hindi": q.optionsHindi ? q.optionsHindi[3] : "", "OptionE_Hindi": q.optionsHindi && q.optionsHindi[4] ? q.optionsHindi[4] : "",
+                "OptionA_English": q.optionsEnglish ? q.optionsEnglish[0] : "", "OptionB_English": q.optionsEnglish ? q.optionsEnglish[1] : "", "OptionC_English": q.optionsEnglish ? q.optionsEnglish[2] : "", "OptionD_English": q.optionsEnglish ? q.optionsEnglish[3] : "", "OptionE_English": q.optionsEnglish && q.optionsEnglish[4] ? q.optionsEnglish[4] : "",
+                "CorrectAnswer": ansMap[q.correctAnswer] || "A",
+                "QuestionMarks": q.questionMarks || 1,
+                "QuestionNegativeMark": q.questionNeg || 0,
+                "Explanation": q.explanation || ""
+            };
+        });
+
+        const csv = Papa.unparse({ fields: headers, data: dataToExport });
+        const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' }); 
+        const link = document.createElement("a"); link.href = URL.createObjectURL(blob);
+        link.download = `Questions_${document.getElementById('searchTestId').value.trim()}.csv`; 
+        link.click(); URL.revokeObjectURL(link.href);
+    }
+
+    window.editQuestionByDocId = async function(docId) {
         const docSnap = await getDoc(doc(db, "questions", docId));
         if(docSnap.exists()) {
             const q = docSnap.data();
@@ -594,7 +669,9 @@
             document.getElementById('qOptDHindi').value = oH[3] || ""; document.getElementById('qOptDEnglish').value = oE[3] || "";
             document.getElementById('qOptEHindi').value = oH[4] || ""; document.getElementById('qOptEEnglish').value = oE[4] || "";
             document.getElementById('qAns').value = q.correctAnswer; document.getElementById('qMarks').value = q.questionMarks || 1; document.getElementById('qNeg').value = q.questionNeg || 0; document.getElementById('qExp').value = q.explanation || "";
-            document.getElementById('qBtn').innerText = "Update Question"; document.getElementById('qBtn').style.background = "var(--warning)"; window.scrollTo(0,0);
+            
+            document.getElementById('qBtn').innerText = "Update Question"; document.getElementById('qBtn').style.background = "var(--warning)"; 
+            document.getElementById('qTextHindi').focus();
         }
     }
 
@@ -606,7 +683,24 @@
         let optsEnglish = [document.getElementById('qOptAEnglish').value, document.getElementById('qOptBEnglish').value, document.getElementById('qOptCEnglish').value, document.getElementById('qOptDEnglish').value];
         if(document.getElementById('qOptEEnglish').value.trim()) optsEnglish.push(document.getElementById('qOptEEnglish').value);
 
-        const data = { testId: document.getElementById('qTestId').value, questionHindi: document.getElementById('qTextHindi').value, questionEnglish: document.getElementById('qTextEnglish').value, optionsHindi: optsHindi, optionsEnglish: optsEnglish, correctAnswer: Number(document.getElementById('qAns').value), questionMarks: Number(document.getElementById('qMarks').value) || 1, questionNeg: Number(document.getElementById('qNeg').value) || 0, explanation: document.getElementById('qExp').value };
+        const testId = document.getElementById('qTestId').value;
+        const uniqueId = "Q-" + testId + "-" + Math.floor(100000 + Math.random() * 900000);
+
+        const data = { 
+            testId: testId, 
+            uniqueId: editId ? undefined : uniqueId, // Don't overwrite uniqueId on edit
+            questionHindi: document.getElementById('qTextHindi').value, 
+            questionEnglish: document.getElementById('qTextEnglish').value, 
+            optionsHindi: optsHindi, 
+            optionsEnglish: optsEnglish, 
+            correctAnswer: Number(document.getElementById('qAns').value), 
+            questionMarks: Number(document.getElementById('qMarks').value) || 1, 
+            questionNeg: Number(document.getElementById('qNeg').value) || 0, 
+            explanation: document.getElementById('qExp').value 
+        };
+        
+        // Remove undefined uniqueId for update
+        if(editId) delete data.uniqueId;
 
         if(editId) {
             await updateDoc(doc(db, "questions", editId), data);
@@ -615,10 +709,15 @@
         
         showLoading(false); 
         ['qTextHindi','qTextEnglish','qOptAHindi','qOptAEnglish','qOptBHindi','qOptBEnglish','qOptCHindi','qOptCEnglish','qOptDHindi','qOptDEnglish','qOptEHindi','qOptEEnglish'].forEach(id => document.getElementById(id).value = "");
-        loadQuestions(); loadTests(); alert("Question Saved!");
+        alert("Question Saved!");
+        if(document.getElementById('searchTestId').value) searchQuestions();
     }
     
-    window.deleteQuestion = async function(id) { if(!confirm("Delete?")) return; await deleteDoc(doc(db, "questions", id)); loadQuestions(); loadTests(); }
+    window.deleteQuestion = async function(id) { 
+        if(!confirm("Delete?")) return; 
+        await deleteDoc(doc(db, "questions", id)); 
+        searchQuestions();
+    }
 
     // ===== RESULTS =====
     async function loadResults() {
@@ -764,10 +863,13 @@
                 let optsHindi = [row.OptionA_Hindi || "", row.OptionB_Hindi || "", row.OptionC_Hindi || "", row.OptionD_Hindi || ""]; if(row.OptionE_Hindi) optsHindi.push(row.OptionE_Hindi);
                 let optsEnglish = [row.OptionA_English || "", row.OptionB_English || "", row.OptionC_English || "", row.OptionD_English || ""]; if(row.OptionE_English) optsEnglish.push(row.OptionE_English);
                 let ansStr = String(row.CorrectAnswer || "A").trim().toUpperCase(); let ansIndex = ansMap[ansStr] !== undefined ? ansMap[ansStr] : 0;
-                await addDoc(collection(db, "questions"), { testId: tId, questionHindi: qH, questionEnglish: qE, optionsHindi: optsHindi, optionsEnglish: optsEnglish, correctAnswer: ansIndex, questionMarks: Number(row.QuestionMarks) || 1, questionNeg: Number(row.QuestionNegativeMark) || 0, explanation: row.Explanation || "" }); count++;
+                let uniqueId = "Q-" + tId + "-" + Math.floor(100000 + Math.random() * 900000);
+                
+                await addDoc(collection(db, "questions"), { testId: tId, uniqueId: uniqueId, questionHindi: qH, questionEnglish: qE, optionsHindi: optsHindi, optionsEnglish: optsEnglish, correctAnswer: ansIndex, questionMarks: Number(row.QuestionMarks) || 1, questionNeg: Number(row.QuestionNegativeMark) || 0, explanation: row.Explanation || "" }); count++;
                 if(count % 10 === 0) statusText.innerText = `Uploading: ${count}/${res.data.length}`;
             }
-            statusText.innerText = `✅ Uploaded ${count} questions!`; loadQuestions(); loadTests(); 
+            statusText.innerText = `✅ Uploaded ${count} questions!`;
+            if(document.getElementById('searchTestId').value) searchQuestions();
         }});
     }
 
