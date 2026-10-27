@@ -1,0 +1,49 @@
+:root { --primary: #4F46E5; --bg: #f3f4f6; --text: #1f2937; --white: #ffffff; --danger: #EF4444; --success: #10B981; --warning: #F59E0B; --purple: #8B5CF6; }
+* { box-sizing: border-box; font-family: 'Poppins', sans-serif; margin: 0; padding: 0; }
+body { background-color: var(--bg); color: var(--text); padding-bottom: 50px; }
+
+#lockScreen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #1a3a6b; display: flex; justify-content: center; align-items: center; z-index: 9999; }
+.lock-box { background: white; padding: 40px; border-radius: 16px; text-align: center; width: 90%; max-width: 400px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
+.lock-box h2 { color: #1a3a6b; margin-bottom: 20px; }
+.lock-box input { width: 100%; padding: 15px; margin-bottom: 15px; border: 2px solid #ccc; border-radius: 8px; font-size: 16px; }
+.lock-box button { width: 100%; padding: 15px; background: var(--primary); color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: 600; cursor: pointer; }
+.err-msg { color: red; font-size: 14px; display: none; margin-top: 10px; }
+
+.header { background: var(--primary); color: white; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+.header h1 { font-size: 20px; }
+.header button { background: white; color: var(--primary); border: none; padding: 8px 15px; border-radius: 8px; cursor: pointer; font-weight: 600; }
+
+.tabs { display: flex; overflow-x: auto; background: white; margin: 15px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+.tab-btn { flex: 1; padding: 15px 20px; border: none; background: none; font-size: 14px; font-weight: 600; cursor: pointer; color: #666; border-bottom: 3px solid transparent; white-space: nowrap; }
+.tab-btn.active { color: var(--primary); border-bottom-color: var(--primary); }
+
+.container { padding: 0 15px; max-width: 1200px; margin: 0 auto; }
+.section { display: none; background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 20px; }
+.section.active { display: block; }
+h2.title { color: var(--primary); font-size: 18px; margin-bottom: 20px; border-bottom: 2px solid #eee; padding-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
+h3.sub-title { font-size: 14px; color: #555; margin-bottom: 10px; background: #f8fafc; padding: 5px 10px; border-radius: 5px; display: inline-block;}
+
+input, select, textarea { width: 100%; padding: 10px; margin-bottom: 10px; border: 1px solid #ccc; border-radius: 8px; font-family: 'Poppins', sans-serif; font-size: 13px; }
+button.save-btn { background: var(--primary); color: white; border: none; padding: 12px 20px; border-radius: 8px; cursor: pointer; font-size: 15px; font-weight: 600; width: 100%; transition: 0.3s; margin-bottom: 15px;}
+button.save-btn:hover { background: #4338CA; }
+.row { display: flex; gap: 10px; flex-wrap: wrap;}
+.row > div { flex: 1; min-width: 150px; }
+
+.table-wrapper { overflow-x: auto; width: 100%; }
+table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 13px; }
+th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+th { background: #f8fafc; color: var(--primary); }
+
+.btn-approve { background: var(--success); color: white; border: none; padding: 6px 10px; border-radius: 5px; cursor: pointer; font-weight: 600; font-size:11px; margin-bottom: 3px;}
+.btn-unpaid { background: var(--danger); color: white; border: none; padding: 6px 10px; border-radius: 5px; cursor: pointer; font-weight: 600; font-size:11px; margin-bottom: 3px;}
+.btn-edit { background: var(--warning); color: white; border: none; padding: 6px 12px; border-radius: 5px; cursor: pointer; font-weight: 600; font-size:12px;}
+.btn-delete { background: var(--danger); color: white; border: none; padding: 6px 12px; border-radius: 5px; cursor: pointer; font-weight: 600; font-size:12px;}
+.btn-reset { background: #6366f1; color: white; border: none; padding: 6px 10px; border-radius: 5px; cursor: pointer; font-weight: 600; font-size:11px; margin-bottom: 3px;}
+.btn-reset-pass { background: var(--purple); color: white; border: none; padding: 6px 10px; border-radius: 5px; cursor: pointer; font-weight: 600; font-size:11px; margin-bottom: 3px;}
+
+.btn-export { background: #10B981; color: white; border: none; padding: 8px 15px; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 12px; display: flex; align-items: center; gap: 5px; }
+
+.status-paid { color: var(--success); font-weight: bold; }
+.status-free { color: var(--danger); font-weight: bold; }
+.msg { color: var(--success); font-weight: bold; margin-top: 10px; text-align: center; }
+#loading { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.8); display: none; justify-content: center; align-items: center; z-index: 10000; font-size: 20px; font-weight: bold; color: var(--primary); }
