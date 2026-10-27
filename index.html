@@ -37,7 +37,6 @@
         .header { background: var(--white); padding: 12px 5%; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 10px rgba(0,0,0,0.05); position: sticky; top: 0; z-index: 100; flex-wrap: wrap; gap: 10px; transition: all 0.3s ease; }
         .header.scrolled { padding: 8px 5%; background: rgba(255, 255, 255, 0.98); backdrop-filter: blur(5px); box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
         
-        /* Logo Image CSS */
         .logo { display: flex; align-items: center; gap: 8px; transition: 0.3s; cursor: pointer; }
         .logo img { height: 45px; width: auto; object-fit: contain; }
         
@@ -150,9 +149,11 @@
         .badge.negative { background: #FEE2E2; color: #991B1B; }
 
         .question-content { padding: 25px; overflow-y: auto; flex: 1; }
-        .question-text { font-size: 16px; font-weight: 500; line-height: 1.6; margin-bottom: 25px; }
+        .question-text { font-size: 16px; font-weight: 500; line-height: 1.6; margin-bottom: 15px; }
         .q-lang-en { display: block; margin-top: 15px; color: #4B5563; font-weight: 400; font-size: 15px; border-top: 1px dashed #ddd; padding-top: 10px;}
         
+        .q-id-tag { font-size: 12px; color: #6B7280; margin-bottom: 10px; display: inline-block; background: #F3F4F6; padding: 4px 8px; border-radius: 4px; border: 1px solid #E5E7EB;}
+
         .options-list { display: flex; flex-direction: column; gap: 12px; }
         .option-label { display: flex; align-items: flex-start; gap: 12px; padding: 15px; border: 2px solid #E5E7EB; border-radius: 8px; cursor: pointer; transition: 0.2s; font-size: 15px; }
         .option-label:hover { background: #F9FAFB; border-color: #D1D5DB; }
@@ -227,10 +228,17 @@
         .modal-overlay-payment { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(17, 24, 39, 0.7); display: flex; justify-content: center; align-items: center; z-index: 1000; }
         .modal-box { background: white; padding: 30px; border-radius: 16px; max-width: 420px; width: 90%; text-align: center; }
         
-        /* Forgot Password Tabs */
         .forgot-tabs { display: flex; gap: 10px; margin-bottom: 15px; }
         .forgot-tab { flex: 1; padding: 10px; text-align: center; background: #F3F4F6; border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: 600; border: 2px solid transparent; }
         .forgot-tab.active { background: #EEF2FF; border-color: var(--primary); color: var(--primary); }
+
+        /* Support Modal CSS */
+        .support-btn-group { display: flex; flex-direction: column; gap: 10px; margin: 20px 0; }
+        .support-btn { display: flex; align-items: center; gap: 10px; padding: 15px; border-radius: 8px; font-weight: 600; text-decoration: none; color: white; transition: 0.2s; border: none; cursor: pointer; font-size: 15px;}
+        .support-btn:hover { transform: translateY(-2px); box-shadow: 0 4px 10px rgba(0,0,0,0.15); }
+        .support-q { background: #4F46E5; }
+        .support-l { background: #F59E0B; }
+        .support-p { background: #10B981; }
 
         @media (max-width: 768px) {
             .hero { flex-direction: column; text-align: center; padding: 20px 5%; }
@@ -266,7 +274,6 @@
 
     <header class="header" id="mainHeader">
         <div class="logo" onclick="goHome()">
-            <!-- YAHAN LOGO LAGAYA HAI -->
             <img src="logo.png" alt="TaiyariGhar Mock Test" onerror="this.outerHTML='<span style=\'font-size:24px; font-weight:800; color:var(--primary);\'>🏠 TaiyariGhar</span>'">
         </div>
         <div class="nav-links" id="mainNav">
@@ -396,12 +403,10 @@
 
             <input type="tel" id="forgotMobile" placeholder="WhatsApp Number" style="width:100%; padding:12px; margin-bottom: 12px; border:2px solid #E5E7EB; border-radius:8px; outline:none;">
             
-            <!-- Recovery Code Input -->
             <div id="boxRecoveryCode">
                 <input type="text" id="forgotCode" placeholder="Recovery Code (e.g. A1B2C3)" style="width:100%; padding:12px; margin-bottom: 12px; border:2px solid #E5E7EB; border-radius:8px; outline:none; text-transform: uppercase;">
             </div>
 
-            <!-- Security Answer Input -->
             <div id="boxSecAnswer" class="hide">
                 <input type="text" id="forgotSecAns" placeholder="Your Security Answer" style="width:100%; padding:12px; margin-bottom: 12px; border:2px solid #E5E7EB; border-radius:8px; outline:none;">
             </div>
@@ -544,6 +549,7 @@
                     </div>
                 </div>
                 <div class="question-content">
+                    <div class="q-id-tag" id="questionUniqueId">Q-ID: Loading...</div>
                     <div class="question-text" id="questionText">Loading...</div>
                     <div class="options-list" id="optionsContainer"></div>
                 </div>
@@ -670,6 +676,21 @@
         </div>
     </div>
 
+    <!-- Support Modal -->
+    <div id="supportModal" class="modal-overlay-payment hide">
+        <div class="modal-box" style="max-width: 380px;">
+            <h2 style="color: var(--primary); margin-bottom: 10px; font-size: 20px;">📞 Help & Support</h2>
+            <p style="font-size: 13px; color: #6B7280; margin-bottom: 15px;">कृपया अपनी समस्या बताने के लिए नीचे दिए गए विकल्पों में से चुनें। <br><b style="color:var(--danger);">⚠️ स्क्रीनशॉट भेजना न भूलें!</b></p>
+            
+            <div class="support-btn-group">
+                <a href="#" id="waSupportQuestion" target="_blank" class="support-btn support-q">❓ Question Problem / Report</a>
+                <a href="#" id="waSupportLogin" target="_blank" class="support-btn support-l">🔐 Login Issue / Forgot Pass</a>
+                <a href="#" id="waSupportPayment" target="_blank" class="support-btn support-p">💳 Payment Issue</a>
+            </div>
+            <button class="btn" style="width: 100%; background:#F3F4F6;" onclick="closeSupportModal()">Close</button>
+        </div>
+    </div>
+
     <div id="popupSuccess" class="game-popup success">
         <h2 style="color: var(--success);">🎉 शानदार!</h2>
         <p>आपने लगातार 3 सही जवाब दिए हैं। आप तो कमाल कर रहे हैं!</p>
@@ -682,7 +703,7 @@
     <footer class="footer" id="mainFooter">
         <div class="footer-links">
             <a onclick="alert('About Us page coming soon!')">About Us</a>
-            <a href="https://wa.me/919140281870?text=Hello%20Admin,%20I%20need%20help%20regarding%20TaiyariGhar." target="_blank">Contact Us (WhatsApp)</a>
+            <a onclick="openSupportModal()" style="font-weight: bold; color: var(--accent);">Contact Us / Support</a>
             <a onclick="alert('Privacy Policy page coming soon!')">Privacy Policy</a>
             <a onclick="alert('Terms & Conditions page coming soon!')">Terms & Conditions</a>
             <a onclick="alert('Refund Policy page coming soon!')">Refund Policy</a>
@@ -695,6 +716,7 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getFirestore, collection, getDocs, getDoc, setDoc, addDoc, query, where, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
+    // यहाँ पुरानी API Key डाल दी गई है
     const firebaseConfig = {
         apiKey: "AIzaSyA7x6gQziPYLxrXnyVJJ80mvJkh3VCm24", 
         authDomain: "taiyarighar.firebaseapp.com",
@@ -849,6 +871,27 @@
             document.getElementById('boxSecAnswer').classList.remove('hide');
         }
     }
+
+    // --- SUPPORT MODAL LOGIC ---
+    window.openSupportModal = function() {
+        let mobile = (appSettings.Mobile || "9140281870").toString().trim();
+        let cleanMobile = mobile.replace(/[^0-9]/g, '');
+        if(cleanMobile.length === 10) cleanMobile = "91" + cleanMobile;
+        
+        let examName = nav.examName ? ` (${nav.mainCat} > ${nav.subCat} > ${nav.examName})` : (nav.mainCat ? ` (${nav.mainCat})` : '');
+        
+        let qMsg = `Hello Admin, Mujhe ek Question mein problem aa rahi hai.${examName}\nQuestion ID: \n\n⚠️ Maine iska screenshot attach kiya hai, please check karein.`;
+        let lMsg = `Hello Admin, Mujhe Login mein problem aa rahi hai. Meri Login ID / Mobile Number hai: \n\n⚠️ Maine iska screenshot attach kiya hai, please check karein.`;
+        let pMsg = `Hello Admin, Mera Payment cut ho gaya hai lekin test unlock nahi hua. Meri Login ID hai: \n\n⚠️ Maine iska screenshot attach kiya hai, please check karein.`;
+
+        document.getElementById('waSupportQuestion').href = `https://wa.me/${cleanMobile}?text=${encodeURIComponent(qMsg)}`;
+        document.getElementById('waSupportLogin').href = `https://wa.me/${cleanMobile}?text=${encodeURIComponent(lMsg)}`;
+        document.getElementById('waSupportPayment').href = `https://wa.me/${cleanMobile}?text=${encodeURIComponent(pMsg)}`;
+        
+        document.getElementById('supportModal').classList.remove('hide');
+    }
+    
+    window.closeSupportModal = function() { document.getElementById('supportModal').classList.add('hide'); }
 
     function updateHeaderUI() {
         if(isLoggedIn) {
@@ -1273,7 +1316,7 @@
         const upiString = `upi://pay?pa=${upi}&pn=${encodeURIComponent("TaiyariGhar")}&am=${parseFloat(price).toFixed(2)}&cu=INR`;
         document.getElementById("qrcode").innerHTML = `<img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(upiString)}" alt="Payment QR" style="width: 180px; height: 180px; border-radius: 10px; border: 2px solid #E5E7EB; padding: 5px; background: white;">`;
 
-        const waMsg = `Hello Sir, I am ${currentStudent.name} (ID: ${currentStudent.loginId}). I have paid Rs.${price}. Please unlock my tests.`;
+        const waMsg = `Hello Sir, I am ${currentStudent.name} (ID: ${currentStudent.loginId}). I have paid Rs.${price}. Please unlock my tests.\n\n⚠️ Screenshot attached.`;
         document.getElementById('whatsappBtn').href = `https://wa.me/91${mobile.replace(/[^0-9]/g, '').slice(-10)}?text=${encodeURIComponent(waMsg)}`;
     }
 
@@ -1375,7 +1418,7 @@
                         optsArray.sort(() => Math.random() - 0.5);
                         let newAnsIndex = optsArray.findIndex(o => o.h === correctObj.h && o.e === correctObj.e);
                         
-                        return { qH: qData.questionHindi || qData.question, qE: qData.questionEnglish, opts: optsArray, ans: newAnsIndex, exp: qData.explanation || "No explanation provided.", marks: qData.questionMarks || 1, neg: qData.questionNeg || 0 };
+                        return { qH: qData.questionHindi || qData.question, qE: qData.questionEnglish, uniqueId: qData.uniqueId || "N/A", opts: optsArray, ans: newAnsIndex, exp: qData.explanation || "No explanation provided.", marks: qData.questionMarks || 1, neg: qData.questionNeg || 0 };
                     });
 
                     totalTime = duration * 60; timeLeft = totalTime; currentQIndex = 0; userAnswers = {}; markedForReview = {}; visitedQuestions = {};
@@ -1410,6 +1453,8 @@
     function loadQuestion() {
         const q = testQuestions[currentQIndex]; visitedQuestions[currentQIndex] = true;
         document.getElementById('currentQNum').innerText = currentQIndex + 1;
+        
+        document.getElementById('questionUniqueId').innerText = "Q-ID: " + (q.uniqueId || "N/A");
         
         let qHtml = "";
         if(currentTestLanguage === "Hindi") qHtml = `<div>${q.qH}</div>`;
@@ -1533,7 +1578,7 @@
             else if(currentTestLanguage === "English") qHtml = `<div>${q.qE}</div>`;
             else qHtml = `<div>${q.qH}</div><div style="color:#6B7280; font-size:14px; margin-top:5px;">${q.qE}</div>`;
 
-            html += `<div style="background: white; padding: 25px; border-radius: 12px; margin-bottom: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); border-left: 5px solid ${isCorrect ? 'var(--accent)' : (uAns !== undefined ? 'var(--danger)' : 'var(--grey)')};"><div style="font-weight: 600; font-size: 16px; margin-bottom: 15px;">Q${i+1}. ${qHtml}</div>`;
+            html += `<div style="background: white; padding: 25px; border-radius: 12px; margin-bottom: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); border-left: 5px solid ${isCorrect ? 'var(--accent)' : (uAns !== undefined ? 'var(--danger)' : 'var(--grey)')};"><div style="font-size: 12px; color: #6B7280; margin-bottom: 5px;">Q-ID: ${q.uniqueId}</div><div style="font-weight: 600; font-size: 16px; margin-bottom: 15px;">Q${i+1}. ${qHtml}</div>`;
             
             q.opts.forEach((opt, j) => {
                 let labelHtml = currentTestLanguage === "Hindi" ? opt.h : (currentTestLanguage === "English" ? opt.e : `${opt.h} <span style="font-size:12px; color:#6B7280;">(${opt.e})</span>`);
@@ -1582,12 +1627,12 @@
 
     window.downloadQuestionPaper = function() {
         if(!testQuestions || testQuestions.length === 0) return alert("No questions available!");
-        let html = `<html><head><title>Question Paper - TaiyariGhar</title><style>body{font-family:sans-serif; padding:30px;} .q{margin-bottom:20px; border-bottom:1px solid #eee; padding-bottom:15px;} .correct{color:green; font-weight:bold;} .wrong{color:red; font-weight:bold;} .exp{background:#f0fdf4; padding:10px; border-radius:5px; font-size:14px; margin-top:8px;}</style></head><body><h1 style="text-align:center;">🏠 TaiyariGhar - Question Paper</h1><h3>Test: ${currentTestName} | Student: ${currentStudent.name}</h3><hr>`;
+        let html = `<html><head><title>Question Paper - TaiyariGhar</title><style>body{font-family:sans-serif; padding:30px;} .q{margin-bottom:20px; border-bottom:1px solid #eee; padding-bottom:15px;} .correct{color:green; font-weight:bold;} .wrong{color:red; font-weight:bold;} .exp{background:#f0fdf4; padding:10px; border-radius:5px; font-size:14px; margin-top:8px;} .uid{font-size:12px; color:#666;}</style></head><body><h1 style="text-align:center;">🏠 TaiyariGhar - Question Paper</h1><h3>Test: ${currentTestName} | Student: ${currentStudent.name}</h3><hr>`;
         
         testQuestions.forEach((q, i) => {
             let userAns = userAnswers[i];
             let qText = (currentTestLanguage === "English") ? q.qE : (currentTestLanguage === "Hindi" ? q.qH : `${q.qH} <br><span style="font-size:14px; color:#555;">${q.qE}</span>`);
-            html += `<div class="q"><p><b>Q${i+1}. ${qText}</b></p>`;
+            html += `<div class="q"><div class="uid">Q-ID: ${q.uniqueId}</div><p><b>Q${i+1}. ${qText}</b></p>`;
             q.opts.forEach((opt, j) => {
                 let labelHtml = (currentTestLanguage === "English") ? opt.e : (currentTestLanguage === "Hindi" ? opt.h : `${opt.h} (${opt.e})`);
                 if(labelHtml && labelHtml.trim() !== "") {
