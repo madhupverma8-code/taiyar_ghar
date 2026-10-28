@@ -72,7 +72,6 @@ function showScreen(screenId, pushHistory = true) {
     }
 }
 
-// 🔥 SEO UPDATE: URL Parameters Handling
 window.onpopstate = function(event) {
     if (event.state && event.state.screen) {
         if (currentScreen === 'testScreen' && event.state.screen !== 'testScreen') {
@@ -85,19 +84,16 @@ window.onpopstate = function(event) {
         }
         showScreen(event.state.screen, false);
     } else {
-        // If no state, check URL for routing
         checkUrlRouting();
     }
 };
 
-// 🔥 SEO UPDATE: Function to check URL and open correct category
 async function checkUrlRouting() {
     const urlParams = new URLSearchParams(window.location.search);
     const catSlug = urlParams.get('category');
     const subCatSlug = urlParams.get('subcat');
 
     if (catSlug) {
-        // Find the actual category name by matching slug
         let targetCat = allTests.map(t => t.mainCat).find(c => c.toLowerCase().replace(/\s+/g, '-') === catSlug);
         if (!targetCat) {
             targetCat = defaultMainCategories.map(c => c.name).find(c => c.toLowerCase().replace(/\s+/g, '-') === catSlug);
@@ -105,13 +101,11 @@ async function checkUrlRouting() {
         
         if (targetCat) {
             if(!isLoggedIn) {
-                // If not logged in, save the intended category and show login
                 sessionStorage.setItem('pendingCat', targetCat);
                 showLogin();
             } else {
-                openCategory(targetCat, true); // true means don't push state again
+                openCategory(targetCat, true); 
                 if (subCatSlug) {
-                    // Try to open subcategory
                     let normalizedMain = targetCat.toLowerCase().replace("exams", "").trim();
                     let targetSub = allTests.map(t => t.subCat).find(sc => 
                         allTests.some(t => t.mainCat.toLowerCase().replace("exams", "").trim() === normalizedMain && t.subCat.toLowerCase().replace(/\s+/g, '-') === subCatSlug)
@@ -292,7 +286,6 @@ window.doLogin = async function() {
             localStorage.setItem('tg_user', JSON.stringify(currentStudent));
             await fetchSettingsAndTests();
             
-            // 🔥 SEO UPDATE: Check if user logged in from a specific category link
             let pendingCat = sessionStorage.getItem('pendingCat');
             if(pendingCat) {
                 sessionStorage.removeItem('pendingCat');
@@ -416,7 +409,6 @@ async function fetchSettingsAndTests() {
             });
         }
         
-        // 🔥 SEO UPDATE: After data is loaded, check if URL has parameters
         checkUrlRouting();
         
     } catch (e) { console.log("Data load error", e); }
@@ -460,7 +452,6 @@ window.startRecommendedTest = function() {
     else scrollToCategories(); 
 }
 
-// 🔥 SEO UPDATE: Convert div to anchor tag for Google crawling
 function renderMainCategories() {
     let finalMainCats = [...defaultMainCategories];
     
@@ -476,15 +467,14 @@ function renderMainCategories() {
 
     let gridHtml = "";
     finalMainCats.forEach(cat => {
-        // Generate a URL-friendly slug e.g. "SSC Exams" -> "ssc-exams"
         let slug = cat.name.toLowerCase().replace(/\s+/g, '-');
         
-        // We use an <a> tag for SEO, but prevent default so page doesn't reload
-        gridHtml += `<a href="?category=${slug}" class="cat-card" style="background: ${cat.gradient}; text-decoration: none; color: inherit; display: block;" 
+        // 🔥 FIX: color: #ffffff; lagaya gaya hai taaki text black na dikhe
+        gridHtml += `<a href="?category=${slug}" class="cat-card" style="background: ${cat.gradient}; text-decoration: none; color: #ffffff; display: block;" 
                         onclick="event.preventDefault(); openCategory('${cat.name}');">
             <div class="cat-icon">${cat.icon}</div>
-            <div class="cat-title">${cat.name}</div>
-            <div class="cat-sub-text">${cat.subText || ''}</div>
+            <div class="cat-title" style="color: #ffffff;">${cat.name}</div>
+            <div class="cat-sub-text" style="color: #ffffff;">${cat.subText || ''}</div>
         </a>`;
     });
 
@@ -493,7 +483,6 @@ function renderMainCategories() {
     document.getElementById('dashCatContainer').innerHTML = finalHtml;
 }
 
-// 🔥 SEO UPDATE: Update URL when category is opened
 window.openCategory = function(mainCat, fromUrl = false) {
     if(!isLoggedIn) return showLogin();
     nav.mainCat = mainCat;
@@ -513,7 +502,6 @@ window.openCategory = function(mainCat, fromUrl = false) {
     document.getElementById('examNamePills').innerHTML = ""; 
     document.getElementById('testListContainer').innerHTML = ""; 
     
-    // Update URL without reloading page
     if(!fromUrl) {
         let slug = mainCat.toLowerCase().replace(/\s+/g, '-');
         window.history.pushState({ screen: 'subCatScreen' }, '', `?category=${slug}`);
@@ -522,7 +510,6 @@ window.openCategory = function(mainCat, fromUrl = false) {
     showScreen('subCatScreen', false);
 }
 
-// 🔥 SEO UPDATE: Update URL when sub-category is opened
 window.loadTestsForSubCat = function(subCat, pillElement, fromUrl = false) {
     document.querySelectorAll('#subCatPills .sub-cat-pill').forEach(p => p.classList.remove('active'));
     if(pillElement) pillElement.classList.add('active');
@@ -560,7 +547,6 @@ window.loadTestsForSubCat = function(subCat, pillElement, fromUrl = false) {
         renderTestList(filteredTests);
     }
     
-    // Update URL without reloading page
     if(!fromUrl) {
         let mainSlug = nav.mainCat.toLowerCase().replace(/\s+/g, '-');
         let subSlug = subCat.toLowerCase().replace(/\s+/g, '-');
