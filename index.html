@@ -11,19 +11,16 @@
     <meta name="theme-color" content="#1a3a6b">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     
-    <!-- यहाँ CSS फाइल लिंक की है -->
     <link rel="stylesheet" href="student-style.css">
 </head>
 <body>
 
     <header class="header" id="mainHeader">
-        <!-- 🔥 SEO UPDATE: Logo ko <a> tag me badla gaya hai -->
         <a href="/" class="logo" style="text-decoration: none; color: inherit; cursor: pointer;" onclick="goHome(); return false;">
             <img src="logo.png" alt="TaiyariGhar Mock Test" onerror="this.outerHTML='<span style=\'font-size:24px; font-weight:800; color:var(--primary);\'>🏠 TaiyariGhar</span>'">
         </a>
         
         <div class="nav-links" id="mainNav">
-            <!-- 🔥 SEO UPDATE: Nav links me href joda gaya hai -->
             <a href="?page=home" onclick="goHome(); return false;" data-translate="nav_home" style="cursor: pointer;">Home</a>
             <a href="?page=exams" onclick="scrollToCategories(); return false;" data-translate="nav_exams" style="cursor: pointer;">All Exams</a>
             <a href="?screen=current-affairs" onclick="showCurrentAffairs(); return false;" data-translate="nav_ca" style="cursor: pointer;">Current Affairs</a>
@@ -60,11 +57,10 @@
         </div>
 
         <div class="section" style="padding-bottom: 0;">
-            <!-- 🔥 SEO UPDATE: Free Test Banner ko <a> tag banaya gaya hai -->
-            <a href="?filter=free" class="wide-cat-banner" style="display: flex; text-decoration: none; color: inherit; background: linear-gradient(135deg, #10B981 0%, #059669 100%);" onclick="scrollToCategories(); return false;">
+            <a href="?filter=free" class="wide-cat-banner" style="display: flex; text-decoration: none; color: #ffffff; background: linear-gradient(135deg, #10B981 0%, #059669 100%);" onclick="scrollToCategories(); return false;">
                 <div>
-                    <h2>🎁 Free Mock Tests</h2>
-                    <p>New here? Try our free mock tests before subscribing. No payment required!</p>
+                    <h2 style="color: #ffffff;">🎁 Free Mock Tests</h2>
+                    <p style="color: #ffffff;">New here? Try our free mock tests before subscribing. No payment required!</p>
                 </div>
                 <button class="btn" style="background: white; color: #059669; font-weight: bold;">Try for Free</button>
             </a>
@@ -97,9 +93,8 @@
         </div>
 
         <div class="section" style="padding-top: 0;">
-            <!-- 🔥 SEO UPDATE: Current Affairs Banner ko <a> tag banaya gaya hai -->
-            <a href="?screen=current-affairs" class="wide-cat-banner" style="display: flex; text-decoration: none; color: inherit; background: linear-gradient(135deg, #F59E0B 0%, #EA580C 100%);" onclick="showCurrentAffairs(); return false;">
-                <div><h2>📰 Current Affairs Hub</h2><p>Daily Article & Instant Quiz. Stay updated!</p></div>
+            <a href="?screen=current-affairs" class="wide-cat-banner" style="display: flex; text-decoration: none; color: #ffffff; background: linear-gradient(135deg, #F59E0B 0%, #EA580C 100%);" onclick="showCurrentAffairs(); return false;">
+                <div><h2 style="color: #ffffff;">📰 Current Affairs Hub</h2><p style="color: #ffffff;">Daily Article & Instant Quiz. Stay updated!</p></div>
                 <button class="btn" style="background: white; color: #EA580C; font-weight: bold;">Explore Now</button>
             </a>
         </div>
@@ -465,7 +460,6 @@
         <p>© 2024 TaiyariGhar. All rights reserved. Made with ❤️ for Govt Job Aspirants.</p>
     </footer>
 
-    <!-- यहाँ JS फाइल लिंक की है -->
     <script type="module" src="student-app.js"></script>
 </body>
 </html>
