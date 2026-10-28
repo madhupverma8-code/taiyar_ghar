@@ -17,13 +17,16 @@
 <body>
 
     <header class="header" id="mainHeader">
-        <div class="logo" onclick="goHome()">
+        <!-- 🔥 SEO UPDATE: Logo ko <a> tag me badla gaya hai -->
+        <a href="/" class="logo" style="text-decoration: none; color: inherit; cursor: pointer;" onclick="goHome(); return false;">
             <img src="logo.png" alt="TaiyariGhar Mock Test" onerror="this.outerHTML='<span style=\'font-size:24px; font-weight:800; color:var(--primary);\'>🏠 TaiyariGhar</span>'">
-        </div>
+        </a>
+        
         <div class="nav-links" id="mainNav">
-            <a onclick="goHome()" data-translate="nav_home">Home</a>
-            <a onclick="scrollToCategories()" data-translate="nav_exams">All Exams</a>
-            <a onclick="showCurrentAffairs()" data-translate="nav_ca">Current Affairs</a>
+            <!-- 🔥 SEO UPDATE: Nav links me href joda gaya hai -->
+            <a href="?page=home" onclick="goHome(); return false;" data-translate="nav_home" style="cursor: pointer;">Home</a>
+            <a href="?page=exams" onclick="scrollToCategories(); return false;" data-translate="nav_exams" style="cursor: pointer;">All Exams</a>
+            <a href="?screen=current-affairs" onclick="showCurrentAffairs(); return false;" data-translate="nav_ca" style="cursor: pointer;">Current Affairs</a>
         </div>
         <div class="header-right" id="headerAuth">
             <button class="lang-btn" onclick="toggleLanguage()" id="langBtn">हिंदी</button>
@@ -57,13 +60,14 @@
         </div>
 
         <div class="section" style="padding-bottom: 0;">
-            <div class="wide-cat-banner" style="background: linear-gradient(135deg, #10B981 0%, #059669 100%);" onclick="scrollToCategories()">
+            <!-- 🔥 SEO UPDATE: Free Test Banner ko <a> tag banaya gaya hai -->
+            <a href="?filter=free" class="wide-cat-banner" style="display: flex; text-decoration: none; color: inherit; background: linear-gradient(135deg, #10B981 0%, #059669 100%);" onclick="scrollToCategories(); return false;">
                 <div>
                     <h2>🎁 Free Mock Tests</h2>
                     <p>New here? Try our free mock tests before subscribing. No payment required!</p>
                 </div>
                 <button class="btn" style="background: white; color: #059669; font-weight: bold;">Try for Free</button>
-            </div>
+            </a>
         </div>
 
         <div class="section" id="homeCategories">
@@ -93,14 +97,14 @@
         </div>
 
         <div class="section" style="padding-top: 0;">
-            <div class="wide-cat-banner" style="background: linear-gradient(135deg, #F59E0B 0%, #EA580C 100%);" onclick="showCurrentAffairs()">
+            <!-- 🔥 SEO UPDATE: Current Affairs Banner ko <a> tag banaya gaya hai -->
+            <a href="?screen=current-affairs" class="wide-cat-banner" style="display: flex; text-decoration: none; color: inherit; background: linear-gradient(135deg, #F59E0B 0%, #EA580C 100%);" onclick="showCurrentAffairs(); return false;">
                 <div><h2>📰 Current Affairs Hub</h2><p>Daily Article & Instant Quiz. Stay updated!</p></div>
                 <button class="btn" style="background: white; color: #EA580C; font-weight: bold;">Explore Now</button>
-            </div>
+            </a>
         </div>
     </div>
 
-    <!-- 🛠️ यहाँ Forgot Password और Register के लिंक्स फिक्स कर दिए गए हैं 🛠️ -->
     <div id="loginScreen" class="section hide" style="max-width: 450px; margin: 30px auto;">
         <div style="background: white; padding: 30px 20px; border-radius: 16px; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.05);">
             <h2 style="color: var(--primary); margin-bottom: 20px; font-size: 20px;" data-translate="login_h2">Login to Your Account</h2>
@@ -452,11 +456,11 @@
     <footer class="footer" id="mainFooter">
         <div class="footer-links">
             <a href="about.html">About Us</a>
-            <a onclick="openSupportModal()" style="font-weight: bold; color: var(--accent);">Contact Us / Support</a>
-            <a onclick="alert('Privacy Policy page coming soon!')">Privacy Policy</a>
-            <a onclick="alert('Terms & Conditions page coming soon!')">Terms & Conditions</a>
-            <a onclick="alert('Refund Policy page coming soon!')">Refund Policy</a>
-            <a onclick="alert('Disclaimer page coming soon!')">Disclaimer</a>
+            <a href="javascript:void(0);" onclick="openSupportModal()" style="font-weight: bold; color: var(--accent);">Contact Us / Support</a>
+            <a href="javascript:void(0);" onclick="alert('Privacy Policy page coming soon!')">Privacy Policy</a>
+            <a href="javascript:void(0);" onclick="alert('Terms & Conditions page coming soon!')">Terms & Conditions</a>
+            <a href="javascript:void(0);" onclick="alert('Refund Policy page coming soon!')">Refund Policy</a>
+            <a href="javascript:void(0);" onclick="alert('Disclaimer page coming soon!')">Disclaimer</a>
         </div>
         <p>© 2024 TaiyariGhar. All rights reserved. Made with ❤️ for Govt Job Aspirants.</p>
     </footer>
