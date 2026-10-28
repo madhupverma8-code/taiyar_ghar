@@ -7,19 +7,22 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="student-style.css">
     
-    <!-- 🛠️ यह Schema Markup Google को बताता है कि आप फाउंडर हैं 🛠️ -->
+    <!-- 🛠️ Google के लिए Schema Markup (यह Google को बताता है कि आप फाउंडर हैं) 🛠️ -->
     <script type="application/ld+json">
     {
       "@context": "https://schema.org",
-      "@type": "Person",
-      "name": "Madhup Verma",
-      "jobTitle": "Founder",
-      "image": "https://taiyarighar.in/founder.png",
-      "url": "https://taiyarighar.in/about.html",
-      "worksFor": {
-        "@type": "Organization",
-        "name": "TaiyariGhar",
-        "url": "https://taiyarighar.in"
+      "@type": "AboutPage",
+      "mainEntity": {
+        "@type": "Person",
+        "name": "Madhup Verma",
+        "jobTitle": "Founder, MIS Executive, Data Analyst & Web Developer",
+        "image": "https://taiyarighar.in/founder.png",
+        "url": "https://taiyarighar.in/about.html",
+        "worksFor": {
+          "@type": "Organization",
+          "name": "TaiyariGhar",
+          "url": "https://taiyarighar.in"
+        }
       }
     }
     </script>
@@ -54,13 +57,25 @@
             letter-spacing: 0.5px;
         }
 
+        /* 🔥 नया डिज़ाइन: पद और नाम सुंदर दिखे */
         .founder-title {
-            font-size: 15px;
+            font-size: 16px;
             font-weight: 600;
             color: var(--primary);
+            margin-bottom: 10px;
+        }
+
+        /* 🔥 नया डिज़ाइन: क्वालिफिकेशन का बैज */
+        .qualification-badge {
+            display: inline-block;
+            background: #EEF2FF;
+            color: var(--primary);
+            font-size: 13px;
+            font-weight: 600;
+            padding: 6px 15px;
+            border-radius: 20px;
             margin-bottom: 30px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
+            border: 1px solid #C7D2FE;
         }
 
         .about-section {
@@ -112,7 +127,7 @@
         </div>
     </header>
 
-    <!-- मुख्य About Us कंटेंट (Only English) -->
+    <!-- मुख्य About Us कंटेंट -->
     <div class="about-container">
         
         <!-- फोटो -->
@@ -120,7 +135,11 @@
         
         <!-- नाम और पद -->
         <h1 class="founder-name">Madhup Verma</h1>
-        <div class="founder-title">Founder, TaiyariGhar</div>
+        <!-- 🔥 यहाँ & का इस्तेमाल किया गया है -->
+        <div class="founder-title">Founder &amp; Web Developer, TaiyariGhar</div>
+        
+        <!-- 🔥 नया क्वालिफिकेशन बैज -->
+        <div class="qualification-badge">💼 MIS Executive | Data Analyst | Tech Enthusiast</div>
 
         <!-- हमारा मकसद -->
         <div class="about-section">
@@ -134,10 +153,10 @@
             <p>We and our team will provide you with excellent technical and exam support. This will include the <b>Latest Exam Pattern</b> and questions based on <b>Current Affairs (Daily, Weekly, Monthly, and Yearly)</b>. You will not face any kind of problem. With experience in SSC, Railway, Bank, and State Exams, my friends and my team are helping me make this platform successful.</p>
         </div>
 
-        <!-- प्रोफेशनल बैकग्राउंड -->
+        <!-- प्रोफेशनल बैकग्राउंड (थोड़ा अपडेट किया गया) -->
         <div class="about-section">
-            <h3>💼 Professional Background</h3>
-            <p>I (Madhup Verma) work as an MIS Executive, Data Analyst, and Web Developer. I have used my technical experience to build TaiyariGhar as a secure, fast, and excellent platform.</p>
+            <h3>💼 Professional Background & Qualifications</h3>
+            <p>I (Madhup Verma) am an experienced MIS Executive and Data Analyst. Along with my data skills, I am also a passionate Web Developer. I have utilized my technical expertise and data management skills to build TaiyariGhar as a secure, fast, and highly reliable platform for students. My goal is to make technology work for your success.</p>
         </div>
 
         <!-- अंतिम संदेश -->
