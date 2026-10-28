@@ -49,7 +49,10 @@ const translations = {
 let currentLang = localStorage.getItem('tg_lang') || 'en';
 
 function showScreen(screenId, pushHistory = true) {
-    ['homeScreen', 'loginScreen', 'registerScreen', 'forgotPasswordScreen', 'dashboardScreen', 'subCatScreen', 'caScreen', 'instructionsScreen', 'testScreen', 'resultScreen', 'solutionsScreen'].forEach(s => document.getElementById(s).classList.add('hide'));
+    ['homeScreen', 'loginScreen', 'registerScreen', 'forgotPasswordScreen', 'dashboardScreen', 'subCatScreen', 'caScreen', 'instructionsScreen', 'testScreen', 'resultScreen', 'solutionsScreen'].forEach(s => {
+        const el = document.getElementById(s);
+        if(el) el.classList.add('hide');
+    });
     
     if (screenId === 'testScreen') {
         document.getElementById('mainHeader').classList.add('hide');
@@ -59,20 +62,22 @@ function showScreen(screenId, pushHistory = true) {
         document.getElementById('mainFooter').classList.remove('hide');
     }
     
-    document.getElementById(screenId).classList.remove('hide');
+    const target = document.getElementById(screenId);
+    if(target) target.classList.remove('hide');
     currentScreen = screenId;
     window.scrollTo(0, 0);
 
     if (pushHistory && history.state?.screen !== screenId) {
-        history.pushState({ screen: screenId }, '', '');
+        history.pushState({ screen: screenId }, '', window.location.search);
     }
 }
 
+// 🔥 SEO UPDATE: URL Parameters Handling
 window.onpopstate = function(event) {
     if (event.state && event.state.screen) {
         if (currentScreen === 'testScreen' && event.state.screen !== 'testScreen') {
             if (!confirm("Are you sure you want to leave the test? Your progress will be saved automatically.")) {
-                history.pushState({ screen: 'testScreen' }, '', '');
+                history.pushState({ screen: 'testScreen' }, '', window.location.search);
                 return;
             }
             saveProgress();
@@ -80,9 +85,47 @@ window.onpopstate = function(event) {
         }
         showScreen(event.state.screen, false);
     } else {
-        showScreen('homeScreen', false);
+        // If no state, check URL for routing
+        checkUrlRouting();
     }
 };
+
+// 🔥 SEO UPDATE: Function to check URL and open correct category
+async function checkUrlRouting() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const catSlug = urlParams.get('category');
+    const subCatSlug = urlParams.get('subcat');
+
+    if (catSlug) {
+        // Find the actual category name by matching slug
+        let targetCat = allTests.map(t => t.mainCat).find(c => c.toLowerCase().replace(/\s+/g, '-') === catSlug);
+        if (!targetCat) {
+            targetCat = defaultMainCategories.map(c => c.name).find(c => c.toLowerCase().replace(/\s+/g, '-') === catSlug);
+        }
+        
+        if (targetCat) {
+            if(!isLoggedIn) {
+                // If not logged in, save the intended category and show login
+                sessionStorage.setItem('pendingCat', targetCat);
+                showLogin();
+            } else {
+                openCategory(targetCat, true); // true means don't push state again
+                if (subCatSlug) {
+                    // Try to open subcategory
+                    let normalizedMain = targetCat.toLowerCase().replace("exams", "").trim();
+                    let targetSub = allTests.map(t => t.subCat).find(sc => 
+                        allTests.some(t => t.mainCat.toLowerCase().replace("exams", "").trim() === normalizedMain && t.subCat.toLowerCase().replace(/\s+/g, '-') === subCatSlug)
+                    );
+                    if(targetSub) {
+                         loadTestsForSubCat(targetSub, null, true);
+                    }
+                }
+            }
+        }
+    } else if (window.location.pathname.endsWith('/') || window.location.pathname.endsWith('index.html')) {
+        goHome();
+    }
+}
 
 window.addEventListener('scroll', () => {
     const header = document.getElementById('mainHeader');
@@ -134,8 +177,21 @@ function getDeviceId() {
     return devId;
 }
 
-window.goHome = function() { showScreen('homeScreen'); updateHeaderUI(); }
-window.goDashboard = function() { if(!isLoggedIn) return showLogin(); showScreen('dashboardScreen'); updateHeaderUI(); fetchDashboardData(); updateWelcomeMessage(isFirstLoginSession); }
+window.goHome = function() { 
+    window.history.pushState({ screen: 'homeScreen' }, '', window.location.pathname); 
+    showScreen('homeScreen', false); 
+    updateHeaderUI(); 
+}
+
+window.goDashboard = function() { 
+    if(!isLoggedIn) return showLogin(); 
+    window.history.pushState({ screen: 'dashboardScreen' }, '', window.location.pathname);
+    showScreen('dashboardScreen', false); 
+    updateHeaderUI(); 
+    fetchDashboardData(); 
+    updateWelcomeMessage(isFirstLoginSession); 
+}
+
 window.showLogin = function() { showScreen('loginScreen'); }
 window.showRegister = function() { showScreen('registerScreen'); }
 window.showForgotPassword = function() { showScreen('forgotPasswordScreen'); }
@@ -194,7 +250,17 @@ function updateWelcomeMessage(isFirst) {
     else msgEl.innerHTML = currentLang === 'en' ? `💪 Welcome back, ${firstName}! Consistency is the key to success.` : `💪 वापसी पर स्वागत है, ${firstName}! सफलता उन्हीं को मिलती है जो रोज़ मेहनत करते हैं।`;
 }
 
-window.scrollToCategories = function() { if(!isLoggedIn) { alert("Please login first!"); showLogin(); } else { document.getElementById('dashCategories').scrollIntoView({behavior: 'smooth'}); } }
+window.scrollToCategories = function() { 
+    if(!isLoggedIn) { alert("Please login first!"); showLogin(); } 
+    else if (currentScreen === 'dashboardScreen') {
+        document.getElementById('dashCategories').scrollIntoView({behavior: 'smooth'}); 
+    } else {
+        goDashboard();
+        setTimeout(() => {
+            document.getElementById('dashCategories').scrollIntoView({behavior: 'smooth'}); 
+        }, 500);
+    }
+}
 window.showPurchases = function() { if(!isLoggedIn) return; let status = currentStudent.isPaid ? "Paid (All Access)" : "Free User"; alert(`--- MY PURCHASES ---\n\nPlan: ${status}\nExpiry Date: ${currentStudent.expiry || "N/A"}`); }
 
 window.doLogin = async function() {
@@ -225,7 +291,15 @@ window.doLogin = async function() {
 
             localStorage.setItem('tg_user', JSON.stringify(currentStudent));
             await fetchSettingsAndTests();
-            goDashboard();
+            
+            // 🔥 SEO UPDATE: Check if user logged in from a specific category link
+            let pendingCat = sessionStorage.getItem('pendingCat');
+            if(pendingCat) {
+                sessionStorage.removeItem('pendingCat');
+                openCategory(pendingCat);
+            } else {
+                goDashboard();
+            }
         } else { alert("Invalid Login ID / Mobile or Password!"); }
     } catch (e) { console.error(e); alert("Database Error: " + e.message); }
 }
@@ -341,6 +415,10 @@ async function fetchSettingsAndTests() {
                 if(!userPastResults[data.testId] || new Date(data.timestamp) > new Date(userPastResults[data.testId].timestamp)) userPastResults[data.testId] = data;
             });
         }
+        
+        // 🔥 SEO UPDATE: After data is loaded, check if URL has parameters
+        checkUrlRouting();
+        
     } catch (e) { console.log("Data load error", e); }
 }
 
@@ -382,6 +460,7 @@ window.startRecommendedTest = function() {
     else scrollToCategories(); 
 }
 
+// 🔥 SEO UPDATE: Convert div to anchor tag for Google crawling
 function renderMainCategories() {
     let finalMainCats = [...defaultMainCategories];
     
@@ -397,11 +476,16 @@ function renderMainCategories() {
 
     let gridHtml = "";
     finalMainCats.forEach(cat => {
-        gridHtml += `<div class="cat-card" style="background: ${cat.gradient};" onclick="openCategory('${cat.name}')">
+        // Generate a URL-friendly slug e.g. "SSC Exams" -> "ssc-exams"
+        let slug = cat.name.toLowerCase().replace(/\s+/g, '-');
+        
+        // We use an <a> tag for SEO, but prevent default so page doesn't reload
+        gridHtml += `<a href="?category=${slug}" class="cat-card" style="background: ${cat.gradient}; text-decoration: none; color: inherit; display: block;" 
+                        onclick="event.preventDefault(); openCategory('${cat.name}');">
             <div class="cat-icon">${cat.icon}</div>
             <div class="cat-title">${cat.name}</div>
             <div class="cat-sub-text">${cat.subText || ''}</div>
-        </div>`;
+        </a>`;
     });
 
     const finalHtml = `<div class="category-grid">${gridHtml}</div>`;
@@ -409,7 +493,8 @@ function renderMainCategories() {
     document.getElementById('dashCatContainer').innerHTML = finalHtml;
 }
 
-window.openCategory = function(mainCat) {
+// 🔥 SEO UPDATE: Update URL when category is opened
+window.openCategory = function(mainCat, fromUrl = false) {
     if(!isLoggedIn) return showLogin();
     nav.mainCat = mainCat;
     
@@ -427,10 +512,18 @@ window.openCategory = function(mainCat) {
     document.getElementById('subCatPills').innerHTML = pillsHtml;
     document.getElementById('examNamePills').innerHTML = ""; 
     document.getElementById('testListContainer').innerHTML = ""; 
-    showScreen('subCatScreen');
+    
+    // Update URL without reloading page
+    if(!fromUrl) {
+        let slug = mainCat.toLowerCase().replace(/\s+/g, '-');
+        window.history.pushState({ screen: 'subCatScreen' }, '', `?category=${slug}`);
+    }
+    
+    showScreen('subCatScreen', false);
 }
 
-window.loadTestsForSubCat = function(subCat, pillElement) {
+// 🔥 SEO UPDATE: Update URL when sub-category is opened
+window.loadTestsForSubCat = function(subCat, pillElement, fromUrl = false) {
     document.querySelectorAll('#subCatPills .sub-cat-pill').forEach(p => p.classList.remove('active'));
     if(pillElement) pillElement.classList.add('active');
 
@@ -465,6 +558,13 @@ window.loadTestsForSubCat = function(subCat, pillElement) {
         document.getElementById('testListContainer').innerHTML = `<p style="text-align:center; color:#666; padding:20px;">Select a Test Type above to view tests.</p>`;
     } else {
         renderTestList(filteredTests);
+    }
+    
+    // Update URL without reloading page
+    if(!fromUrl) {
+        let mainSlug = nav.mainCat.toLowerCase().replace(/\s+/g, '-');
+        let subSlug = subCat.toLowerCase().replace(/\s+/g, '-');
+        window.history.pushState({ screen: 'subCatScreen' }, '', `?category=${mainSlug}&subcat=${subSlug}`);
     }
 }
 
@@ -947,6 +1047,6 @@ window.onload = () => {
     applyLanguage(); 
     let savedUser = localStorage.getItem('tg_user');
     if(savedUser) { 
-        currentStudent = JSON.parse(savedUser); isLoggedIn = true; isFirstLoginSession = false; fetchSettingsAndTests(); goDashboard(); 
-    } else { fetchSettingsAndTests(); goHome(); }
+        currentStudent = JSON.parse(savedUser); isLoggedIn = true; isFirstLoginSession = false; fetchSettingsAndTests(); 
+    } else { fetchSettingsAndTests(); }
 }
