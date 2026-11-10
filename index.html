@@ -12,6 +12,68 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     
     <link rel="stylesheet" href="student-style.css">
+
+    <!-- Razorpay Checkout SDK Script -->
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+
+    <style>
+        /* Hero Section Adjustments for Centered Text & Full Image */
+        .hero {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 24px;
+            padding: 30px 5%;
+        }
+
+        .hero .hero-text {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+
+        .hero .hero-text h1 {
+            margin-bottom: 12px;
+            text-align: center;
+        }
+
+        .hero .hero-text p {
+            margin-bottom: 0;
+            text-align: center;
+        }
+
+        .hero .hero-img {
+            flex: 1;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .hero .hero-img img {
+            width: 100%;
+            height: 100%;
+            max-height: 320px;
+            object-fit: cover;
+            border-radius: 16px;
+            display: block;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        }
+
+        @media (max-width: 768px) {
+            .hero {
+                flex-direction: column;
+                text-align: center;
+            }
+            .hero .hero-img img {
+                max-height: 240px;
+            }
+        }
+    </style>
 </head>
 <body>
 
@@ -76,7 +138,7 @@
             <div class="steps-container">
                 <div class="step-box"><div class="step-num">1</div><h4>Register</h4><p>Sign up with your WhatsApp number.</p></div>
                 <div class="step-box"><div class="step-num">2</div><h4>Free Test</h4><p>Attempt a free mock test to experience the platform.</p></div>
-                <div class="step-box"><div class="step-num">3</div><h4>Subscription</h4><p>Pay a one-time fee to unlock all premium tests.</p></div>
+                <div class="step-box"><div class="step-num">3</div><h4>Subscription</h4><p>Pay online securely to unlock all premium tests.</p></div>
                 <div class="step-box"><div class="step-num">4</div><h4>Full Access</h4><p>Enjoy unlimited access to all tests & analysis.</p></div>
             </div>
         </div>
@@ -86,7 +148,7 @@
             <div class="faq-container">
                 <details><summary>What is the price of the subscription?</summary><p>Our subscription is very affordable. You can check the exact price by clicking on any locked test or in the "My Purchases" section.</p></details>
                 <details><summary>What are the subscription plans available?</summary><p>We offer flexible Monthly and Quarterly (3 months) subscription plans. You can choose the plan that best suits your preparation timeline.</p></details>
-                <details><summary>How can I make the payment?</summary><p>We accept payments via UPI (GPay, PhonePe, Paytm). You just need to scan the QR code shown on the payment screen and send a screenshot on WhatsApp for instant activation.</p></details>
+                <details><summary>How can I make the payment?</summary><p>We accept all online payment modes via Razorpay including UPI (GPay, PhonePe, Paytm), Debit/Credit Cards, and Net Banking.</p></details>
                 <details><summary>What if I forget my password?</summary><p>Don't worry! We provide a secure Recovery Code and Security Question when you register. You can use either of them to reset your password.</p></details>
                 <details><summary>Can I use my account on multiple devices?</summary><p>Your account can be used on up to 2 devices simultaneously. If you want to switch to a new device, you can log in, and it will automatically replace the oldest device.</p></details>
             </div>
@@ -172,14 +234,14 @@
     </div>
 
     <div id="dashboardScreen" class="hide">
-        <div class="hero" style="padding: 20px 5%;">
+        <div class="hero">
             <div class="hero-text">
                 <h1 style="font-size: 24px; color: #1E1B4B; margin-bottom: 5px;" id="welcomeMessage"></h1>
                 <h2 style="font-size: 18px; color: #1E1B4B; margin-top: 10px;" data-translate="dash_h2">Crack Your Dream Govt Job with Confidence.</h2>
                 <p style="font-size: 14px; color: #4B5563; margin-top: 5px;">All-in-one mock test platform for SSC, Railway, Police & All State Exams.</p>
             </div>
             <div class="hero-img">
-                <img src="YOUR_IMAGE_LINK_HERE" style="max-width: 100%; max-height: 160px;" onerror="this.src='https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=600&auto=format&fit=crop'">
+                <img src="YOUR_IMAGE_LINK_HERE" onerror="this.src='https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=600&auto=format&fit=crop'">
             </div>
         </div>
 
@@ -398,15 +460,16 @@
         <div id="solutionsContainer"></div>
     </div>
 
+    <!-- Razorpay Payment Modal -->
     <div id="paymentModal" class="modal-overlay-payment hide">
         <div class="modal-box">
-            <h2 style="color: var(--danger); margin-bottom: 10px; font-size: 20px;" data-translate="pay_lock">🔒 Test Locked</h2>
-            <p style="margin-bottom: 15px; font-size: 14px;"><span data-translate="pay_unlock">Unlock all tests with a one-time payment of</span> <b>₹<span id="modalPrice"></span></b>. <span id="modalOffer" style="color: var(--success); font-weight: bold;"></span></p>
-            <div id="qrcode" style="margin: 15px auto; display: flex; justify-content: center;"></div>
-            <p style="font-size: 14px; margin-bottom: 15px;"><span data-translate="pay_upi">UPI ID:</span> <b id="modalUpi"></b></p>
-            <a href="#" id="whatsappBtn" target="_blank" class="btn btn-accent" style="width: 100%; margin-bottom: 10px; display:block;" data-translate="pay_wa">📲 Send Screenshot on WhatsApp</a>
-            <button class="btn btn-outline" style="width: 100%; margin-bottom: 10px;" onclick="checkPaymentStatus()" data-translate="pay_check">🔄 Check Status</button>
-            <button class="btn" style="width: 100%; background:#F3F4F6;" onclick="closeModal()" data-translate="pay_close">Close</button>
+            <h2 style="color: var(--primary); margin-bottom: 10px; font-size: 20px;">💳 Complete Your Payment</h2>
+            <p style="margin-bottom: 15px; font-size: 14px;">Unlock all premium tests for <b>₹<span id="modalPrice">99</span></b></p>
+            <div style="background: #F8FAFC; border: 1px solid #E2E8F0; padding: 15px; border-radius: 12px; margin-bottom: 20px;">
+                <p style="font-size: 13px; color: #64748B; margin: 0;">Instant activation via UPI, Debit/Credit Card, Net Banking & Wallets.</p>
+            </div>
+            <button class="btn btn-primary" style="width: 100%; padding: 14px; margin-bottom: 10px; font-weight: bold;" onclick="initiateRazorpayPayment()">💳 Pay with Razorpay</button>
+            <button class="btn" style="width: 100%; background:#F3F4F6;" onclick="closeModal()">Close</button>
         </div>
     </div>
 
@@ -459,6 +522,43 @@
         </div>
         <p>© 2024 TaiyariGhar. All rights reserved. Made with ❤️ for Govt Job Aspirants.</p>
     </footer>
+
+    <!-- Razorpay Checkout Handler Script -->
+    <script>
+        function initiateRazorpayPayment() {
+            const priceElement = document.getElementById("modalPrice");
+            const amountInRupees = priceElement ? parseFloat(priceElement.innerText) || 99 : 99;
+
+            const options = {
+                // Razorpay Dashboard se apni Key ID yahan paste karein:
+                "key": "CA18VP6BXze7f4lXL7avXDXN", 
+                "amount": amountInRupees * 100, // paise me (e.g. 9900 = ₹99)
+                "currency": "INR",
+                "name": "TaiyariGhar",
+                "description": "Premium Mock Test Subscription",
+                "image": "logo.png",
+                "handler": function (response) {
+                    alert("Payment Successful! Payment ID: " + response.razorpay_payment_id);
+                    if (typeof closeModal === "function") closeModal();
+                    // Payment ke baad access unlock ya dashboard refresh trigger karein:
+                    if (typeof checkPaymentStatus === "function") checkPaymentStatus();
+                },
+                "prefill": {
+                    "name": document.getElementById("navStudentName")?.innerText || "",
+                    "contact": document.getElementById("loginId")?.value || ""
+                },
+                "theme": {
+                    "color": "#1a3a6b"
+                }
+            };
+
+            const rzp = new Razorpay(options);
+            rzp.on('payment.failed', function (response){
+                alert("Payment Failed: " + response.error.description);
+            });
+            rzp.open();
+        }
+    </script>
 
     <script type="module" src="student-app.js"></script>
 </body>
