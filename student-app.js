@@ -4,8 +4,8 @@ import { getFirestore, collection, getDocs, getDoc, setDoc, addDoc, query, where
 // =========================================================================
 // 🔧 CONFIGURATION (Yahan apni Razorpay Key aur Google Apps Script URL dalein)
 // =========================================================================
-const RAZORPAY_KEY_ID = "rzp_test_YOUR_KEY_HERE"; // <-- Yahan apni Razorpay Key ID paste karein
-const APPS_SCRIPT_URL = "YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL"; // <-- Yahan apna Google Apps Script Web App URL paste karein
+const RAZORPAY_KEY_ID = "rzp_live_Ttffsg1nwh5gBU"; // <-- Yahan apni Razorpay Key ID paste karein
+const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwR5qMVwV6yM43wl7uLrsCLPNHIWn9FpiSbB3heEh-bCbJ5CRzLxzpj8vvep9NpPTg3/exec"; // <-- Yahan apna Google Apps Script Web App URL paste karein
 
 // Firebase Configuration
 const firebaseConfig = {
