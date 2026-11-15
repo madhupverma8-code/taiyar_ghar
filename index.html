@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TaiyariGhar | Crack Your Dream Govt Job with Confidence</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css?v=4.0">
     <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
     <style>
         /* Strict Modal & Screen Visibility Control */
@@ -15,48 +15,54 @@
             display: flex !important;
         }
 
-        /* Compact Split Hero Section Styles */
-        .hero-split-section {
-            background: linear-gradient(135deg, #F8FAFC 0%, #EEF2FF 100%);
-            padding: 45px 5% 55px;
-            border-bottom: 1px solid #E2E8F0;
-        }
-        .hero-split-container {
-            max-width: 1200px;
-            margin: 0 auto;
+        /* Full-Screen Banner Hero with Text Overlay */
+        .hero-banner-section {
+            position: relative;
+            width: 100%;
+            min-height: 440px;
+            background-image: linear-gradient(90deg, rgba(15, 23, 42, 0.90) 0%, rgba(15, 23, 42, 0.72) 48%, rgba(15, 23, 42, 0.25) 100%), url('hero-laptop.jpg');
+            background-size: cover;
+            background-position: right center;
+            background-repeat: no-repeat;
             display: flex;
             align-items: center;
-            justify-content: space-between;
-            gap: 40px;
-            flex-wrap: wrap;
+            padding: 55px 5%;
+            border-bottom: 1px solid #E2E8F0;
         }
-        .hero-left-content {
-            flex: 1.2;
-            min-width: 300px;
+        .hero-banner-container {
+            max-width: 1200px;
+            width: 100%;
+            margin: 0 auto;
+        }
+        .hero-overlay-content {
+            max-width: 600px;
+            color: #ffffff;
         }
         .hero-badge {
             display: inline-block;
-            background: #E0E7FF;
-            color: #4338CA;
+            background: rgba(99, 102, 241, 0.25);
+            border: 1px solid rgba(165, 180, 252, 0.45);
+            color: #E0E7FF;
             font-size: 13px;
             font-weight: 700;
-            padding: 6px 14px;
+            padding: 6px 15px;
             border-radius: 20px;
-            margin-bottom: 14px;
+            margin-bottom: 16px;
+            backdrop-filter: blur(4px);
         }
-        .hero-left-content h1 {
-            font-size: 38px;
+        .hero-overlay-content h1 {
+            font-size: 40px;
             line-height: 1.2;
             font-weight: 800;
-            color: #1E1B4B;
-            margin-bottom: 14px;
+            color: #ffffff;
+            margin-bottom: 16px;
+            text-shadow: 0 2px 12px rgba(0, 0, 0, 0.35);
         }
-        .hero-left-content p {
+        .hero-overlay-content p {
             font-size: 16px;
             line-height: 1.65;
-            color: #4B5563;
-            margin-bottom: 26px;
-            max-width: 580px;
+            color: #E2E8F0;
+            margin-bottom: 28px;
         }
         .hero-cta-group {
             display: flex;
@@ -67,12 +73,12 @@
             background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%);
             color: #ffffff;
             border: none;
-            padding: 14px 24px;
+            padding: 14px 25px;
             border-radius: 12px;
             font-size: 15px;
             font-weight: 700;
             cursor: pointer;
-            box-shadow: 0 10px 25px rgba(79, 70, 229, 0.3);
+            box-shadow: 0 10px 25px rgba(79, 70, 229, 0.45);
             transition: transform 0.2s, box-shadow 0.2s;
             display: inline-flex;
             align-items: center;
@@ -80,13 +86,13 @@
         }
         .btn-hero-primary:hover {
             transform: translateY(-2px);
-            box-shadow: 0 14px 30px rgba(79, 70, 229, 0.4);
+            box-shadow: 0 14px 30px rgba(79, 70, 229, 0.55);
         }
         .btn-hero-secondary {
-            background: #ffffff;
+            background: rgba(255, 255, 255, 0.95);
             color: #1E1B4B;
-            border: 2px solid #CBD5E1;
-            padding: 13px 22px;
+            border: none;
+            padding: 14px 23px;
             border-radius: 12px;
             font-size: 15px;
             font-weight: 700;
@@ -97,54 +103,17 @@
             gap: 8px;
         }
         .btn-hero-secondary:hover {
-            border-color: #4F46E5;
-            color: #4F46E5;
-            background: #F5F3FF;
+            background: #ffffff;
+            transform: translateY(-2px);
         }
         .hero-trust-row {
-            margin-top: 22px;
+            margin-top: 24px;
             display: flex;
             gap: 18px;
             flex-wrap: wrap;
             font-size: 13px;
-            color: #6B7280;
+            color: #CBD5E1;
             font-weight: 500;
-        }
-        .hero-right-visual {
-            flex: 0.9;
-            min-width: 280px;
-            display: flex;
-            justify-content: center;
-        }
-        .hero-image-frame {
-            width: 100%;
-            max-width: 430px;
-            background: #ffffff;
-            padding: 12px;
-            border-radius: 20px;
-            box-shadow: 0 20px 45px rgba(30, 27, 75, 0.14);
-            border: 1px solid #E2E8F0;
-            position: relative;
-        }
-        .hero-image-frame img {
-            width: 100%;
-            height: auto;
-            max-height: 275px;
-            object-fit: cover;
-            border-radius: 14px;
-            display: block;
-        }
-        .hero-floating-stat {
-            position: absolute;
-            bottom: -14px;
-            left: 20px;
-            background: #10B981;
-            color: #ffffff;
-            padding: 7px 14px;
-            border-radius: 10px;
-            font-size: 12px;
-            font-weight: 700;
-            box-shadow: 0 6px 15px rgba(16, 185, 129, 0.35);
         }
 
         /* Integrated About Us & Info Sections inside index.html */
@@ -193,9 +162,13 @@
             margin: 20px 0 8px;
         }
         @media (max-width: 768px) {
-            .hero-left-content h1 { font-size: 27px; }
-            .hero-split-section { padding: 28px 5% 40px; }
-            .hero-image-frame { max-width: 100%; }
+            .hero-banner-section {
+                min-height: 380px;
+                padding: 38px 5%;
+                background-image: linear-gradient(180deg, rgba(15, 23, 42, 0.88) 0%, rgba(15, 23, 42, 0.78) 100%), url('hero-laptop.jpg');
+                background-position: center;
+            }
+            .hero-overlay-content h1 { font-size: 28px; }
             .info-page-card { padding: 22px; margin: 20px 15px; }
         }
     </style>
@@ -232,10 +205,10 @@
 
     <!-- HOME SCREEN -->
     <div id="homeScreen">
-        <!-- Compact Split Hero Section -->
-        <section class="hero-split-section">
-            <div class="hero-split-container">
-                <div class="hero-left-content">
+        <!-- Full-Width Hero Banner with Text Overlay directly on hero-laptop.jpg -->
+        <section class="hero-banner-section">
+            <div class="hero-banner-container">
+                <div class="hero-overlay-content">
                     <span class="hero-badge">🎯 India's Trusted Exam Preparation Portal</span>
                     <h1 data-translate="hero_h1">Crack Your Dream Govt Job with Confidence.</h1>
                     <p data-translate="hero_p">All-in-one mock test platform for SSC, Railway, Police & All State Exams. Latest syllabus, real-time rankings, and unlimited tests in one subscription.</p>
@@ -247,12 +220,6 @@
                         <span>✅ Bilingual (Hindi & English)</span>
                         <span>✅ All-India Live Rank</span>
                         <span>✅ Detailed Solutions</span>
-                    </div>
-                </div>
-                <div class="hero-right-visual">
-                    <div class="hero-image-frame">
-                        <img src="hero-laptop.jpg" alt="TaiyariGhar Mock Test Dashboard" onerror="this.src='logo.png'; this.style.objectFit='contain';">
-                        <div class="hero-floating-stat">⚡ 10,000+ Exam Questions Ready</div>
                     </div>
                 </div>
             </div>
@@ -623,7 +590,7 @@
         <div id="solutionsContainer"></div>
     </div>
 
-    <!-- 3-TIER SUBSCRIPTION PAYMENT MODAL (Hidden by default via .hide !important) -->
+    <!-- 3-TIER SUBSCRIPTION PAYMENT MODAL -->
     <div id="paymentModal" class="hide" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(15,23,42,0.75); align-items:center; justify-content:center; z-index:10000; padding:15px;">
         <div style="background:white; max-width:650px; width:100%; border-radius:18px; padding:28px; position:relative; max-height:92vh; overflow-y:auto;">
             <h2 style="text-align:center; color:#1E1B4B; margin-bottom:6px;">🚀 Unlock All-Access Subscription Pass</h2>
