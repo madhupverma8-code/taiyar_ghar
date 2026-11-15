@@ -1,691 +1,772 @@
-<!-- Copyright (c) 2026 TaiyariGhar. All Rights Reserved. Unauthorized copying is strictly prohibited. -->
+<!-- Copyright (c) 2026 TaiyariGhar. All Rights Reserved. -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TaiyariGhar - Free SSC, Railway & Police Mock Tests in Hindi</title>
-    <meta name="description" content="Prepare for SSC, Railway, Police & State Govt exams with TaiyariGhar. Attempt free mock tests, live all-India tests, real-time rank, detailed analysis, and daily current affairs.">
-    <link rel="icon" href="logo.png">
-    <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#1a3a6b">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    
-    <!-- Razorpay Checkout SDK -->
+    <title>TaiyariGhar | Crack Your Dream Govt Job with Confidence</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
     <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
-    
-    <link rel="stylesheet" href="student-style.css">
+    <style>
+        /* Compact Split Hero Section Styles */
+        .hero-split-section {
+            background: linear-gradient(135deg, #F8FAFC 0%, #EEF2FF 100%);
+            padding: 45px 5% 55px;
+            border-bottom: 1px solid #E2E8F0;
+        }
+        .hero-split-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 40px;
+            flex-wrap: wrap;
+        }
+        .hero-left-content {
+            flex: 1.2;
+            min-width: 300px;
+        }
+        .hero-badge {
+            display: inline-block;
+            background: #E0E7FF;
+            color: #4338CA;
+            font-size: 13px;
+            font-weight: 700;
+            padding: 6px 14px;
+            border-radius: 20px;
+            margin-bottom: 14px;
+        }
+        .hero-left-content h1 {
+            font-size: 38px;
+            line-height: 1.2;
+            font-weight: 800;
+            color: #1E1B4B;
+            margin-bottom: 14px;
+        }
+        .hero-left-content p {
+            font-size: 16px;
+            line-height: 1.65;
+            color: #4B5563;
+            margin-bottom: 26px;
+            max-width: 580px;
+        }
+        .hero-cta-group {
+            display: flex;
+            gap: 14px;
+            flex-wrap: wrap;
+        }
+        .btn-hero-primary {
+            background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%);
+            color: #ffffff;
+            border: none;
+            padding: 14px 24px;
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 10px 25px rgba(79, 70, 229, 0.3);
+            transition: transform 0.2s, box-shadow 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .btn-hero-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 14px 30px rgba(79, 70, 229, 0.4);
+        }
+        .btn-hero-secondary {
+            background: #ffffff;
+            color: #1E1B4B;
+            border: 2px solid #CBD5E1;
+            padding: 13px 22px;
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .btn-hero-secondary:hover {
+            border-color: #4F46E5;
+            color: #4F46E5;
+            background: #F5F3FF;
+        }
+        .hero-trust-row {
+            margin-top: 22px;
+            display: flex;
+            gap: 18px;
+            flex-wrap: wrap;
+            font-size: 13px;
+            color: #6B7280;
+            font-weight: 500;
+        }
+        .hero-right-visual {
+            flex: 0.9;
+            min-width: 280px;
+            display: flex;
+            justify-content: center;
+        }
+        .hero-image-frame {
+            width: 100%;
+            max-width: 430px;
+            background: #ffffff;
+            padding: 12px;
+            border-radius: 20px;
+            box-shadow: 0 20px 45px rgba(30, 27, 75, 0.14);
+            border: 1px solid #E2E8F0;
+            position: relative;
+        }
+        .hero-image-frame img {
+            width: 100%;
+            height: auto;
+            max-height: 275px;
+            object-fit: cover;
+            border-radius: 14px;
+            display: block;
+        }
+        .hero-floating-stat {
+            position: absolute;
+            bottom: -14px;
+            left: 20px;
+            background: #10B981;
+            color: #ffffff;
+            padding: 7px 14px;
+            border-radius: 10px;
+            font-size: 12px;
+            font-weight: 700;
+            box-shadow: 0 6px 15px rgba(16, 185, 129, 0.35);
+        }
+
+        /* Integrated About Us & Info Sections inside index.html */
+        .info-page-card {
+            max-width: 960px;
+            margin: 35px auto;
+            background: #ffffff;
+            padding: 35px;
+            border-radius: 16px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.05);
+            border: 1px solid #E2E8F0;
+            line-height: 1.75;
+        }
+        .founder-flex {
+            display: flex;
+            align-items: center;
+            gap: 30px;
+            flex-wrap: wrap;
+            padding-bottom: 25px;
+            border-bottom: 1px solid #E5E7EB;
+            margin-bottom: 25px;
+        }
+        .founder-photo {
+            width: 175px;
+            height: 175px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 4px solid #EEF2FF;
+            box-shadow: 0 8px 20px rgba(79, 70, 229, 0.2);
+        }
+        .policy-heading {
+            color: #1E1B4B;
+            font-size: 28px;
+            margin-bottom: 6px;
+        }
+        .policy-sub {
+            color: #6B7280;
+            font-size: 13px;
+            margin-bottom: 22px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid #E5E7EB;
+        }
+        .policy-sec-title {
+            color: #4F46E5;
+            font-size: 18px;
+            margin: 20px 0 8px;
+        }
+        @media (max-width: 768px) {
+            .hero-left-content h1 { font-size: 27px; }
+            .hero-split-section { padding: 28px 5% 40px; }
+            .hero-image-frame { max-width: 100%; }
+            .info-page-card { padding: 22px; margin: 20px 15px; }
+        }
+    </style>
 </head>
 <body>
 
-    <header class="header" id="mainHeader">
-        <a href="/" class="logo" style="text-decoration: none; color: inherit; cursor: pointer;" onclick="goHome(); return false;">
-            <img src="logo.png" alt="TaiyariGhar Mock Test" onerror="this.outerHTML='<span style=\'font-size:24px; font-weight:800; color:var(--primary);\'>🏠 TaiyariGhar</span>'">
-        </a>
-        
-        <div class="nav-links" id="mainNav">
-            <a href="?page=home" onclick="goHome(); return false;" data-translate="nav_home" style="cursor: pointer;">Home</a>
-            <a href="?page=exams" onclick="scrollToCategories(); return false;" data-translate="nav_exams" style="cursor: pointer;">All Exams</a>
-            <a href="?page=live-tests" onclick="scrollToLiveTests(); return false;" style="cursor: pointer; display: inline-flex; align-items: center; gap: 6px; font-weight: 700; color: #DC2626;">
-                <span class="live-dot-nav"></span> Live Tests
-            </a>
-            <a href="?screen=current-affairs" onclick="showCurrentAffairs(); return false;" data-translate="nav_ca" style="cursor: pointer;">Current Affairs</a>
+    <!-- Top Navigation Header -->
+    <header id="mainHeader" class="navbar">
+        <div class="nav-brand" onclick="goHome()" style="cursor:pointer; display:flex; align-items:center; gap:10px;">
+            <img src="logo.png" alt="TaiyariGhar" style="height:38px;">
+            <span style="font-weight:800; font-size:20px; color:#1E1B4B;">TaiyariGhar</span>
         </div>
-        <div class="header-right" id="headerAuth">
-            <button class="lang-btn" onclick="toggleLanguage()" id="langBtn">हिंदी</button>
-            <button id="installBtn" class="install-btn" onclick="installPWA()">📲 Install App</button>
-            <button class="btn btn-outline" onclick="showLogin()" data-translate="nav_login">Login</button>
-            <button class="btn btn-primary" onclick="showRegister()" data-translate="nav_register">Register</button>
-        </div>
-        <div class="header-right hide" id="headerProfile">
-            <button class="lang-btn" onclick="toggleLanguage()" id="langBtnProfile">हिंदी</button>
-            <button id="installBtnProfile" class="install-btn" onclick="installPWA()">📲 Install App</button>
-            <div class="profile-menu">
-                <span>👤 <span id="navStudentName">User</span> ▼</span>
-                <div class="profile-dropdown">
-                    <a onclick="goDashboard()" data-translate="nav_dash">Dashboard</a>
-                    <a onclick="showPurchases()" data-translate="nav_purchase">My Purchases</a>
-                    <a onclick="logout()" style="color: var(--danger);" data-translate="nav_logout">Logout</a>
-                </div>
+        <nav class="nav-links">
+            <a href="javascript:void(0)" onclick="goHome()" data-translate="nav_home">Home</a>
+            <a href="javascript:void(0)" onclick="scrollToCategories()" data-translate="nav_exams">All Exams</a>
+            <a href="javascript:void(0)" onclick="scrollToLiveTests()" style="color:#DC2626; font-weight:700;"><span class="live-dot-nav"></span> Live Tests</a>
+            <a href="javascript:void(0)" onclick="showCurrentAffairs()" data-translate="nav_ca">Current Affairs</a>
+            <a href="javascript:void(0)" onclick="openInfoSection('aboutScreen')">About Us</a>
+            <a href="javascript:void(0)" onclick="openInfoSection('contactScreen')">Contact Us</a>
+        </nav>
+        <div class="nav-actions">
+            <button id="langBtn" class="btn-lang" onclick="toggleLanguage()">हिंदी</button>
+            <button class="btn-install" onclick="installPWA()">📲 Install App</button>
+            <div id="headerAuth" style="display:flex; gap:8px;">
+                <button class="btn btn-outline" onclick="showLogin()" data-translate="nav_login">Login</button>
+                <button class="btn btn-primary" onclick="showRegister()" data-translate="nav_register">Register</button>
+            </div>
+            <div id="headerProfile" class="hide" style="display:flex; align-items:center; gap:10px;">
+                <button class="btn btn-outline" onclick="goDashboard()">👤 <span id="navStudentName">Student</span></button>
+                <button class="btn" style="background:#FEE2E2; color:#DC2626;" onclick="logout()" data-translate="nav_logout">Logout</button>
             </div>
         </div>
     </header>
 
+    <!-- HOME SCREEN -->
     <div id="homeScreen">
-        <!-- Compact Clean Hero Section with Side-by-Side Laptop Mockup -->
-        <div class="hero-section-clean">
-            <div class="hero-left-content">
-                <h1>Crack Your Dream Govt Job with Confidence.</h1>
-                <p data-translate="hero_p">All-in-one mock test platform for SSC, Railway, Police & All State Exams. Latest syllabus, real-time rankings, and unlimited tests in one subscription.</p>
-                <div class="hero-cta-group">
-                    <button class="btn hero-btn-sub" onclick="openPaymentModal()">🚀 Get All-Access Subscription</button>
-                    <button class="btn hero-btn-free" onclick="scrollToCategories()">🌟 Try Free Mock Tests</button>
+        <!-- Compact Split Hero Section -->
+        <section class="hero-split-section">
+            <div class="hero-split-container">
+                <div class="hero-left-content">
+                    <span class="hero-badge">🎯 India's Trusted Exam Preparation Portal</span>
+                    <h1 data-translate="hero_h1">Crack Your Dream Govt Job with Confidence.</h1>
+                    <p data-translate="hero_p">All-in-one mock test platform for SSC, Railway, Police & All State Exams. Latest syllabus, real-time rankings, and unlimited tests in one subscription.</p>
+                    <div class="hero-cta-group">
+                        <button class="btn-hero-primary" onclick="openPaymentModal()">🚀 Get All-Access Subscription</button>
+                        <button class="btn-hero-secondary" onclick="scrollToCategories()">🌟 Try Free Mock Tests</button>
+                    </div>
+                    <div class="hero-trust-row">
+                        <span>✅ Bilingual (Hindi & English)</span>
+                        <span>✅ All-India Live Rank</span>
+                        <span>✅ Detailed Solutions</span>
+                    </div>
+                </div>
+                <div class="hero-right-visual">
+                    <div class="hero-image-frame">
+                        <img src="hero-laptop.jpg" alt="TaiyariGhar Mock Test Dashboard" onerror="this.src='logo.png'; this.style.objectFit='contain';">
+                        <div class="hero-floating-stat">⚡ 10,000+ Exam Questions Ready</div>
+                    </div>
                 </div>
             </div>
-            <div class="hero-right-mockup">
-                <img src="hero-bg.png" alt="TaiyariGhar Platform Mockup" onerror="this.src='https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=800&auto=format&fit=crop'">
-            </div>
-        </div>
+        </section>
 
-        <!-- Live Tests Showcase Section (Home) -->
-        <div class="section" id="homeLiveTestsSection" style="padding-bottom: 0;">
+        <!-- Live Tests Showcase -->
+        <section id="homeLiveTestsSection" class="container" style="margin-top:30px;">
             <div id="homeLiveTestsContainer"></div>
-        </div>
+        </section>
 
-        <div class="section" style="padding-bottom: 0;">
-            <a href="?filter=free" class="wide-cat-banner" style="display: flex; text-decoration: none; color: #ffffff; background: linear-gradient(135deg, #10B981 0%, #059669 100%);" onclick="scrollToCategories(); return false;">
-                <div>
-                    <h2 style="color: #ffffff;">🎁 Free Mock Tests</h2>
-                    <p style="color: #ffffff;">New here? Try our free mock tests before subscribing. No payment required!</p>
-                </div>
-                <button class="btn" style="background: white; color: #059669; font-weight: bold;">Try for Free</button>
-            </a>
-        </div>
-
-        <div class="section" id="homeCategories">
+        <!-- Exam Categories -->
+        <section id="homeCategories" class="container" style="padding: 40px 5%;">
             <h2 class="section-title" data-translate="sec_cats">🎯 Exam Categories</h2>
             <div id="homeCatContainer"></div>
-        </div>
+        </section>
+    </div>
 
-        <div class="section">
-            <h2 class="section-title" style="text-align: center;">How It Works</h2>
-            <div class="steps-container">
-                <div class="step-box"><div class="step-num">1</div><h4>Register</h4><p>Sign up with your Email ID & Mobile Number.</p></div>
-                <div class="step-box"><div class="step-num">2</div><h4>Free Test</h4><p>Attempt a free mock test to experience the platform.</p></div>
-                <div class="step-box"><div class="step-num">3</div><h4>Subscription</h4><p>Choose a 3, 6, or 12-month plan to unlock all tests.</p></div>
-                <div class="step-box"><div class="step-num">4</div><h4>Full Access</h4><p>Enjoy unlimited access to all tests, live ranks & analysis.</p></div>
+    <!-- ===================================================================== -->
+    <!-- SINGLE-PAGE INTEGRATED SECTIONS: ABOUT, CONTACT, PRIVACY, TERMS, REFUND -->
+    <!-- ===================================================================== -->
+
+    <!-- 1. ABOUT US SECTION (Inside index.html) -->
+    <div id="aboutScreen" class="hide">
+        <div class="info-page-card">
+            <button class="btn btn-outline" onclick="goHome()" style="margin-bottom:20px;">← Back to Home</button>
+            <div class="founder-flex">
+                <img src="founder.jpg" alt="Madhup Verma - Founder" class="founder-photo" onerror="this.src='madhup.jpg'; this.onerror=function(){this.src='logo.png';};">
+                <div style="flex:1; min-width:260px;">
+                    <span style="background:#EEF2FF; color:#4F46E5; font-size:12px; font-weight:700; padding:4px 12px; border-radius:20px;">Founder & Educator</span>
+                    <h2 style="font-size:28px; color:#1E1B4B; margin:8px 0 4px;">Madhup Verma</h2>
+                    <p style="font-size:14px; color:#6B7280; margin-bottom:12px;">Founder, TaiyariGhar (www.taiyarighar.in)</p>
+                    <p style="font-size:14px; color:#374151; margin-bottom:10px;">
+                        Welcome to <b>TaiyariGhar</b>! My mission behind creating this platform is to ensure that every government job aspirant—whether from a village, kasba, or metro city—gets access to real-exam-pattern mock tests at an affordable price.
+                    </p>
+                    <p style="font-size:14px; color:#374151;">
+                        With bilingual (Hindi + English) test series, All-India Live Ranking exams, instant scorecards, and flexible 3, 6, and 12-month subscription passes, TaiyariGhar is built to help you turn your hard work into selection.
+                    </p>
+                </div>
+            </div>
+            <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(240px, 1fr)); gap:18px;">
+                <div style="background:#F8FAFC; padding:20px; border-radius:12px; border:1px solid #E2E8F0;">
+                    <h4 style="color:#4F46E5; margin-bottom:6px;">🎯 Latest Exam Pattern</h4>
+                    <p style="font-size:13px; color:#4B5563;">Updated mock tests for SSC, Railway, UP Police, Banking, and State PSC exams.</p>
+                </div>
+                <div style="background:#F8FAFC; padding:20px; border-radius:12px; border:1px solid #E2E8F0;">
+                    <h4 style="color:#4F46E5; margin-bottom:6px;">🏆 All-India Live Exams</h4>
+                    <p style="font-size:13px; color:#4B5563;">Scheduled nationwide live tests with anti-cheating protection and real-time rank.</p>
+                </div>
+                <div style="background:#F8FAFC; padding:20px; border-radius:12px; border:1px solid #E2E8F0;">
+                    <h4 style="color:#4F46E5; margin-bottom:6px;">💳 Pocket-Friendly Passes</h4>
+                    <p style="font-size:13px; color:#4B5563;">Unlimited access to all test series under one simple 3, 6, or 12-month pass.</p>
+                </div>
             </div>
         </div>
+    </div>
 
-        <div class="section">
-            <h2 class="section-title" style="text-align: center;">Frequently Asked Questions (FAQ)</h2>
-            <div class="faq-container">
-                <details><summary>What are the subscription plans and discounts?</summary><p>We offer flexible 3-Month, 6-Month, and 12-Month All-Access passes with special festival/launch discounts. Click on "Get All-Access Subscription" or any locked test to view active offers.</p></details>
-                <details><summary>How do Live Tests work?</summary><p>Live Tests are scheduled for a specific time window for subscribed members. Just like real exams, your result and All-India Rank are published after the live window ends (12:00 AM) and sent directly to your registered Email ID.</p></details>
-                <details><summary>How can I make the payment?</summary><p>We accept instant online payments via Razorpay (UPI, GPay, PhonePe, Paytm, Cards, and Net Banking). Your account unlocks automatically upon payment and an official PDF invoice is emailed to you.</p></details>
-                <details><summary>What if I forget my password?</summary><p>Don't worry! You can easily reset your password using a 6-digit OTP sent to your registered Email ID.</p></details>
-                <details><summary>Can I use my account on multiple devices?</summary><p>Your account can be used on up to 2 devices simultaneously. If you want to switch to a new device, you can log in, and it will automatically replace the oldest device.</p></details>
+    <!-- 2. CONTACT US SECTION (Inside index.html) -->
+    <div id="contactScreen" class="hide">
+        <div class="info-page-card">
+            <button class="btn btn-outline" onclick="goHome()" style="margin-bottom:20px;">← Back to Home</button>
+            <h1 class="policy-heading">Contact & Student Support</h1>
+            <p class="policy-sub">Need help with Subscriptions, Invoices, Login OTP, or Mock Tests? Reach out to us directly.</p>
+            <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(280px, 1fr)); gap:25px;">
+                <div style="background:#F8FAFC; padding:22px; border-radius:12px; border:1px solid #E2E8F0; font-size:14px;">
+                    <h3 style="color:#4F46E5; margin-bottom:14px;">📬 Official Support Details</h3>
+                    <p style="margin-bottom:12px;"><b>Student Support Email:</b><br><a href="mailto:support@taiyarighar.in" style="color:#4F46E5; font-weight:600;">support@taiyarighar.in</a></p>
+                    <p style="margin-bottom:12px;"><b>General Inquiries:</b><br><a href="mailto:info@taiyarighar.in" style="color:#4F46E5; font-weight:600;">info@taiyarighar.in</a></p>
+                    <p style="margin-bottom:12px;"><b>Support Hours:</b><br>Mon – Sat, 10:00 AM to 6:00 PM IST<br><span style="font-size:12px; color:#6B7280;">(Response within 24 hours)</span></p>
+                    <p><b>Website:</b> www.taiyarighar.in</p>
+                </div>
+                <div>
+                    <h3 style="color:#1E1B4B; margin-bottom:12px; font-size:18px;">✉️ Send Quick Support Message</h3>
+                    <input type="text" id="contactName" placeholder="Your Full Name / Student ID" style="width:100%; padding:11px; margin-bottom:10px; border:1px solid #CBD5E1; border-radius:8px;">
+                    <input type="email" id="contactEmail" placeholder="Your Registered Email" style="width:100%; padding:11px; margin-bottom:10px; border:1px solid #CBD5E1; border-radius:8px;">
+                    <textarea id="contactMessage" rows="4" placeholder="Write your query or payment ID here..." style="width:100%; padding:11px; margin-bottom:12px; border:1px solid #CBD5E1; border-radius:8px;"></textarea>
+                    <button class="btn btn-primary" style="width:100%; padding:12px;" onclick="submitContactForm()">Send Email to Support</button>
+                </div>
             </div>
         </div>
+    </div>
 
-        <div class="section" style="padding-top: 0;">
-            <a href="?screen=current-affairs" class="wide-cat-banner" style="display: flex; text-decoration: none; color: #ffffff; background: linear-gradient(135deg, #F59E0B 0%, #EA580C 100%);" onclick="showCurrentAffairs(); return false;">
-                <div><h2 style="color: #ffffff;">📰 Current Affairs Hub</h2><p style="color: #ffffff;">Daily Article & Instant Quiz. Stay updated!</p></div>
-                <button class="btn" style="background: white; color: #EA580C; font-weight: bold;">Explore Now</button>
-            </a>
+    <!-- 3. PRIVACY POLICY SECTION (Inside index.html) -->
+    <div id="privacyScreen" class="hide">
+        <div class="info-page-card">
+            <button class="btn btn-outline" onclick="goHome()" style="margin-bottom:20px;">← Back to Home</button>
+            <h1 class="policy-heading">Privacy Policy</h1>
+            <p class="policy-sub">Last Updated: November 2026 | Applicable to www.taiyarighar.in</p>
+            <p style="font-size:14px; color:#374151; margin-bottom:12px;">At <b>TaiyariGhar</b>, protecting your personal privacy is our top priority. This policy outlines how we collect, protect, and use your information.</p>
+            <h3 class="policy-sec-title">1. Information We Collect</h3>
+            <p style="font-size:14px; color:#374151;">We collect your Full Name, Email Address, Mobile Number, and test performance records (scores, accuracy, and ranks) solely to provide mock test services and personalized analytics.</p>
+            <h3 class="policy-sec-title">2. Razorpay Payment Security</h3>
+            <p style="font-size:14px; color:#374151;">All payments are processed securely via <b>Razorpay</b>. TaiyariGhar never stores your card details, CVV, or UPI PIN. We only store your Razorpay Payment ID and Invoice Number to activate your pass and email your PDF receipt.</p>
+            <h3 class="policy-sec-title">3. Email OTP & Communication</h3>
+            <p style="font-size:14px; color:#374151;">Your email is used for 6-digit OTP verification, account credentials, PDF invoice delivery, and All-India Live Test scorecards. We never sell or rent student data to third parties.</p>
+        </div>
+    </div>
+
+    <!-- 4. TERMS & CONDITIONS SECTION (Inside index.html) -->
+    <div id="termsScreen" class="hide">
+        <div class="info-page-card">
+            <button class="btn btn-outline" onclick="goHome()" style="margin-bottom:20px;">← Back to Home</button>
+            <h1 class="policy-heading">Terms & Conditions</h1>
+            <p class="policy-sub">Effective Date: November 2026 | Platform: www.taiyarighar.in</p>
+            <h3 class="policy-sec-title">1. Personal Account & 2-Device Limit</h3>
+            <p style="font-size:14px; color:#374151;">Each subscription pass is strictly for individual use and may be accessed on a <b>maximum of 2 devices</b>. Sharing login credentials publicly may lead to account suspension.</p>
+            <h3 class="policy-sec-title">2. Live Exam Fair-Play Rules</h3>
+            <p style="font-size:14px; color:#374151;">Tab switching, exiting full-screen mode, or taking screenshots during All-India Live Exams is strictly prohibited. Three warnings will trigger automatic test submission.</p>
+            <h3 class="policy-sec-title">3. Intellectual Property</h3>
+            <p style="font-size:14px; color:#374151;">All test questions, explanations, and study materials on TaiyariGhar are protected by copyright. Unauthorized copying or redistribution is prohibited.</p>
+        </div>
+    </div>
+
+    <!-- 5. REFUND POLICY SECTION (Inside index.html) -->
+    <div id="refundScreen" class="hide">
+        <div class="info-page-card">
+            <button class="btn btn-outline" onclick="goHome()" style="margin-bottom:20px;">← Back to Home</button>
+            <h1 class="policy-heading">Refund & Cancellation Policy</h1>
+            <p class="policy-sub">Last Updated: November 2026 | Platform: www.taiyarighar.in</p>
+            <div style="background:#FEF2F2; border-left:4px solid #DC2626; padding:14px 18px; border-radius:8px; color:#991B1B; font-size:14px; margin-bottom:18px;">
+                <b>Important Policy:</b> All subscription passes (3-Month, 6-Month, and 12-Month) are digital educational products that unlock immediately upon payment. Therefore, <b>all purchases are final and strictly non-refundable.</b>
+            </div>
+            <h3 class="policy-sec-title">1. Free Mock Tests Before Purchase</h3>
+            <p style="font-size:14px; color:#374151;">Students are encouraged to attempt our Free Mock Tests to evaluate the platform before purchasing any paid subscription pass.</p>
+            <h3 class="policy-sec-title">2. Duplicate Payment or Activation Delay</h3>
+            <p style="font-size:14px; color:#374151;">In case of a duplicate bank debit for the same order, the extra amount is refunded within 5–7 business days. If your pass is not activated after payment, email your Razorpay Payment ID to <b>support@taiyarighar.in</b> for immediate activation.</p>
         </div>
     </div>
 
     <!-- LOGIN SCREEN -->
-    <div id="loginScreen" class="section hide" style="max-width: 450px; margin: 30px auto;">
-        <div style="background: white; padding: 30px 24px; border-radius: 16px; text-align: center; box-shadow: 0 4px 20px rgba(0,0,0,0.06);">
-            <h2 style="color: var(--primary); margin-bottom: 20px; font-size: 22px;" data-translate="login_h2">Login to Your Account</h2>
-            <input type="text" id="loginId" placeholder="Email ID, Mobile Number or Login ID" style="width:100%; padding:12px; margin-bottom: 12px; border:2px solid #E5E7EB; border-radius:8px; outline:none;">
-            <input type="password" id="loginPass" placeholder="Password" onkeypress="if(event.key==='Enter') doLogin()" style="width:100%; padding:12px; margin-bottom: 10px; border:2px solid #E5E7EB; border-radius:8px; outline:none;">
-            
-            <div style="text-align: right; margin-bottom: 15px;">
-                <a href="javascript:void(0);" onclick="showForgotPassword()" style="color: var(--danger); font-size: 13px; text-decoration: none; font-weight: 500;">Forgot Password?</a>
-            </div>
-
-            <button class="btn btn-primary" style="width:100%; padding:12px;" onclick="doLogin()" data-translate="login_btn">Login</button>
-            <p style="margin-top: 15px; font-size: 14px;">
-                <span data-translate="login_new">New user?</span> 
-                <a href="javascript:void(0);" onclick="showRegister()" style="color: var(--primary); font-weight: 600;" data-translate="login_reg">Register Here</a>
-            </p>
-        </div>
-    </div>
-    
-    <!-- REGISTER SCREEN (2-Step Professional Flow: Step 1: Email & Mobile -> Send OTP -> Step 2: Verify & Enter Name/Password) -->
-    <div id="registerScreen" class="section hide" style="max-width: 460px; margin: 30px auto;">
-        <div style="background: white; padding: 30px 24px; border-radius: 16px; text-align: center; box-shadow: 0 4px 20px rgba(0,0,0,0.06);">
-            <h2 style="color: var(--primary); margin-bottom: 6px; font-size: 22px;" data-translate="reg_h2">Create an Account</h2>
-            <p style="font-size: 13px; color: #6B7280; margin-bottom: 20px;">Verify your Email ID with a 6-digit OTP to continue</p>
-
-            <!-- Step 1: Email & Mobile Input -->
-            <div id="regStep1Box">
-                <input type="tel" id="regMobile" placeholder="WhatsApp / Mobile Number (10 digits)" maxlength="10" style="width:100%; padding:12px; margin-bottom: 12px; border:2px solid #E5E7EB; border-radius:8px; outline:none;">
-                <div style="display: flex; gap: 8px; margin-bottom: 12px;">
-                    <input type="email" id="regEmail" placeholder="Email ID (e.g., name@gmail.com)" style="flex: 1; padding:12px; border:2px solid #E5E7EB; border-radius:8px; outline:none;">
-                    <button type="button" id="btnSendRegOtp" class="btn btn-primary" style="padding: 10px 14px; white-space: nowrap; font-size: 13px;" onclick="sendRegisterOtp()">Send OTP</button>
-                </div>
-            </div>
-
-            <!-- Step 2: OTP Verification Box -->
-            <div id="regOtpBox" class="hide" style="background: #F8FAFC; padding: 14px; border-radius: 10px; border: 1px dashed #CBD5E1; margin-bottom: 14px;">
-                <p style="font-size: 12px; color: #475569; margin-bottom: 8px;">Enter the 6-digit OTP sent to your Email ID:</p>
-                <div style="display: flex; gap: 8px;">
-                    <input type="text" id="regOtpInput" placeholder="6-Digit OTP" maxlength="6" style="flex: 1; padding: 10px; border: 2px solid #CBD5E1; border-radius: 8px; text-align: center; font-weight: 700; letter-spacing: 3px; outline: none;">
-                    <button type="button" id="btnVerifyRegOtp" class="btn btn-accent" style="padding: 10px 16px; font-size: 13px;" onclick="verifyRegisterOtp()">Verify OTP</button>
-                </div>
-            </div>
-
-            <!-- Step 3: Name & Password Setup (Unlocked after Email OTP Verification) -->
-            <div id="regPasswordBox" class="hide">
-                <div style="background: #ECFDF5; color: #065F46; padding: 8px; border-radius: 8px; font-size: 13px; font-weight: 600; margin-bottom: 12px;">
-                    ✅ Email Verified! Now enter your name and password.
-                </div>
-                <input type="text" id="regName" placeholder="Full Name" style="width:100%; padding:12px; margin-bottom: 12px; border:2px solid #E5E7EB; border-radius:8px; outline:none;">
-                <input type="password" id="regPass" placeholder="Create Password" style="width:100%; padding:12px; margin-bottom: 12px; border:2px solid #E5E7EB; border-radius:8px; outline:none;">
-                <input type="password" id="regPassConfirm" placeholder="Confirm Password" style="width:100%; padding:12px; margin-bottom: 16px; border:2px solid #E5E7EB; border-radius:8px; outline:none;">
-                <button class="btn btn-accent" style="width:100%; padding:12px; font-size: 15px;" onclick="doRegister()" data-translate="reg_btn">Complete Registration</button>
-            </div>
-
-            <p style="margin-top: 15px; font-size: 14px;">
-                Already have an account? <a href="javascript:void(0);" onclick="showLogin()" style="color: var(--primary); font-weight: 600;">Login Here</a>
-            </p>
+    <div id="loginScreen" class="hide container" style="max-width:440px; margin:50px auto; background:white; padding:35px; border-radius:16px; box-shadow:0 10px 30px rgba(0,0,0,0.08);">
+        <h2 style="text-align:center; color:#1E1B4B; margin-bottom:20px;" data-translate="login_h2">Login to Your Account</h2>
+        <input type="text" id="loginId" placeholder="Email ID, Mobile Number, or Login ID" style="width:100%; padding:12px; margin-bottom:14px; border:1px solid #CBD5E1; border-radius:8px;">
+        <input type="password" id="loginPass" placeholder="Password" style="width:100%; padding:12px; margin-bottom:14px; border:1px solid #CBD5E1; border-radius:8px;">
+        <button class="btn btn-primary" style="width:100%; padding:13px;" onclick="doLogin()" data-translate="login_btn">Login</button>
+        <div style="display:flex; justify-content:space-between; margin-top:15px; font-size:13px;">
+            <a href="javascript:void(0)" onclick="showForgotPassword()" style="color:#4F46E5;">Forgot Password?</a>
+            <span><span data-translate="login_new">New user?</span> <a href="javascript:void(0)" onclick="showRegister()" style="color:#4F46E5; font-weight:600;" data-translate="login_reg">Register Here</a></span>
         </div>
     </div>
 
-    <!-- FORGOT PASSWORD SCREEN (100% Email OTP Based) -->
-    <div id="forgotPasswordScreen" class="section hide" style="max-width: 450px; margin: 30px auto;">
-        <div style="background: white; padding: 30px 24px; border-radius: 16px; text-align: center; box-shadow: 0 4px 20px rgba(0,0,0,0.06);">
-            <h2 style="color: var(--primary); margin-bottom: 8px; font-size: 22px;">Reset Password</h2>
-            <p style="font-size: 13px; color: #6B7280; margin-bottom: 18px;">Enter your registered Email ID to receive a 6-digit OTP.</p>
-
-            <div style="display: flex; gap: 8px; margin-bottom: 12px;">
-                <input type="email" id="forgotEmail" placeholder="Registered Email ID" style="flex: 1; padding:12px; border:2px solid #E5E7EB; border-radius:8px; outline:none;">
-                <button type="button" id="btnSendForgotOtp" class="btn btn-primary" style="padding: 10px 14px; white-space: nowrap; font-size: 13px;" onclick="sendForgotOtp()">Send OTP</button>
-            </div>
-
-            <div id="forgotOtpStepBox" class="hide">
-                <input type="text" id="forgotOtpInput" placeholder="Enter 6-Digit Email OTP" maxlength="6" style="width:100%; padding:12px; margin-bottom: 12px; border:2px solid #E5E7EB; border-radius:8px; text-align: center; font-weight: 700; letter-spacing: 3px; outline:none;">
-                <input type="password" id="forgotNewPass" placeholder="Enter New Password" style="width:100%; padding:12px; margin-bottom: 16px; border:2px solid #E5E7EB; border-radius:8px; outline:none;">
-                <button class="btn btn-accent" style="width:100%; padding:12px;" onclick="doResetPassword()">Verify OTP & Reset Password</button>
-            </div>
-            
-            <p style="margin-top: 15px; font-size: 13px;">
-                Need help? <a href="mailto:support@taiyarighar.in" style="color: var(--primary); font-weight: 600; text-decoration: none;">support@taiyarighar.in</a>
-            </p>
-            <p style="margin-top: 10px; font-size: 14px;">
-                <a href="javascript:void(0);" onclick="showLogin()" style="color: var(--primary);">← Back to Login</a>
-            </p>
+    <!-- REGISTER SCREEN -->
+    <div id="registerScreen" class="hide container" style="max-width:460px; margin:40px auto; background:white; padding:35px; border-radius:16px; box-shadow:0 10px 30px rgba(0,0,0,0.08);">
+        <h2 style="text-align:center; color:#1E1B4B; margin-bottom:20px;" data-translate="reg_h2">Create an Account</h2>
+        <input type="text" id="regName" placeholder="Full Name" style="width:100%; padding:12px; margin-bottom:12px; border:1px solid #CBD5E1; border-radius:8px;">
+        <input type="tel" id="regMobile" placeholder="10-Digit Mobile Number" style="width:100%; padding:12px; margin-bottom:12px; border:1px solid #CBD5E1; border-radius:8px;">
+        <div style="display:flex; gap:8px; margin-bottom:12px;">
+            <input type="email" id="regEmail" placeholder="Valid Email ID" style="flex:1; padding:12px; border:1px solid #CBD5E1; border-radius:8px;">
+            <button id="btnSendRegOtp" class="btn btn-primary" onclick="sendRegisterOtp()">Send OTP</button>
         </div>
+        <div id="regOtpBox" class="hide" style="background:#EEF2FF; padding:14px; border-radius:8px; margin-bottom:12px;">
+            <input type="text" id="regOtpInput" placeholder="Enter 6-Digit Email OTP" style="width:100%; padding:10px; margin-bottom:8px; border:1px solid #818CF8; border-radius:6px;">
+            <button class="btn btn-accent" style="width:100%;" onclick="verifyRegisterOtp()">Verify OTP</button>
+        </div>
+        <div id="regPasswordBox" class="hide">
+            <input type="password" id="regPass" placeholder="Create Password (min 4 chars)" style="width:100%; padding:12px; margin-bottom:12px; border:1px solid #CBD5E1; border-radius:8px;">
+            <input type="password" id="regPassConfirm" placeholder="Confirm Password" style="width:100%; padding:12px; margin-bottom:14px; border:1px solid #CBD5E1; border-radius:8px;">
+            <button class="btn btn-primary" style="width:100%; padding:13px;" onclick="doRegister()" data-translate="reg_btn">Complete Registration</button>
+        </div>
+        <p style="text-align:center; margin-top:15px; font-size:13px;">Already have an account? <a href="javascript:void(0)" onclick="showLogin()" style="color:#4F46E5; font-weight:600;">Login</a></p>
     </div>
 
-    <!-- CANDIDATE PERSONAL DASHBOARD -->
-    <div id="dashboardScreen" class="hide">
-        <div class="hero-section-clean" style="min-height: 240px; padding: 25px 5%;">
-            <div class="hero-left-content">
-                <div id="welcomeMessage" style="font-size: 15px; font-weight: 600; color: #4F46E5; margin-bottom: 6px;"></div>
-                <h1 style="font-size: 28px;">Crack Your Dream Govt Job with Confidence.</h1>
-                <p style="font-size: 14px; margin-bottom: 0;">All-in-one mock test platform for SSC, Railway, Police & All State Exams.</p>
+    <!-- FORGOT PASSWORD SCREEN -->
+    <div id="forgotPasswordScreen" class="hide container" style="max-width:440px; margin:50px auto; background:white; padding:35px; border-radius:16px; box-shadow:0 10px 30px rgba(0,0,0,0.08);">
+        <h2 style="text-align:center; color:#1E1B4B; margin-bottom:15px;">Reset Password</h2>
+        <div style="display:flex; gap:8px; margin-bottom:12px;">
+            <input type="email" id="forgotEmail" placeholder="Registered Email ID" style="flex:1; padding:12px; border:1px solid #CBD5E1; border-radius:8px;">
+            <button id="btnSendForgotOtp" class="btn btn-primary" onclick="sendForgotOtp()">Send OTP</button>
+        </div>
+        <div id="forgotOtpStepBox" class="hide">
+            <input type="text" id="forgotOtpInput" placeholder="Enter 6-Digit OTP" style="width:100%; padding:12px; margin-bottom:12px; border:1px solid #CBD5E1; border-radius:8px;">
+            <input type="password" id="forgotNewPass" placeholder="New Password" style="width:100%; padding:12px; margin-bottom:14px; border:1px solid #CBD5E1; border-radius:8px;">
+            <button class="btn btn-accent" style="width:100%; padding:13px;" onclick="doResetPassword()">Update Password</button>
+        </div>
+        <p style="text-align:center; margin-top:15px; font-size:13px;"><a href="javascript:void(0)" onclick="showLogin()">← Back to Login</a></p>
+    </div>
+
+    <!-- DASHBOARD SCREEN -->
+    <div id="dashboardScreen" class="hide container" style="padding:30px 5%;">
+        <div id="welcomeMessage" style="background:#EEF2FF; color:#1E1B4B; padding:14px 20px; border-radius:10px; font-weight:600; margin-bottom:20px;"></div>
+        <div class="profile-card" style="background:white; padding:22px; border-radius:14px; box-shadow:0 4px 15px rgba(0,0,0,0.05); display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:15px; margin-bottom:25px;">
+            <div style="display:flex; align-items:center; gap:15px;">
+                <div id="dashProfileAvatar" style="width:54px; height:54px; border-radius:50%; background:#4F46E5; color:white; display:flex; align-items:center; justify-content:center; font-size:22px; font-weight:700;">S</div>
+                <div>
+                    <h3 id="dashProfileName" style="color:#1E1B4B;">Student Name</h3>
+                    <p style="font-size:13px; color:#6B7280;">ID: <b id="dashProfileId">TG0001</b> | 📧 <span id="dashProfileEmail">-</span> | 📱 <span id="dashProfileMobile">-</span></p>
+                </div>
+            </div>
+            <div style="text-align:right;">
+                <span id="dashSubBadge" class="sub-badge free">FREE PLAN</span>
+                <p id="dashSubExpiry" style="font-size:12px; color:#6B7280; margin-top:5px;"></p>
+                <button id="dashUpgradeBtn" class="btn btn-primary" style="margin-top:8px;" onclick="openPaymentModal()">🚀 Upgrade to Pro</button>
             </div>
         </div>
 
-        <!-- Live Tests Showcase Section (Dashboard) -->
-        <div class="section" id="dashLiveTestsSection" style="padding-bottom: 0;">
+        <div id="dashLiveTestsSection" style="margin-bottom:25px;">
             <div id="dashLiveTestsContainer"></div>
         </div>
 
-        <!-- Candidate Read-Only Profile & Subscription Summary Bar -->
-        <div class="section" style="padding-top: 15px; padding-bottom: 0;">
-            <div class="candidate-profile-card">
-                <div class="cp-left">
-                    <div class="cp-avatar" id="dashProfileAvatar">U</div>
-                    <div>
-                        <h3 id="dashProfileName" style="font-size: 18px; color: #1E1B4B; margin-bottom: 2px;">Student Name</h3>
-                        <p style="font-size: 13px; color: #4B5563; margin: 0;">
-                            <b>ID:</b> <span id="dashProfileId">-</span> | 
-                            <b>Email:</b> <span id="dashProfileEmail">-</span> | 
-                            <b>Mobile:</b> <span id="dashProfileMobile">-</span>
-                        </p>
-                    </div>
-                </div>
-                <div class="cp-right">
-                    <span id="dashSubBadge" class="sub-badge free">FREE PLAN</span>
-                    <p id="dashSubExpiry" style="font-size: 12px; color: #6B7280; margin-top: 4px;">Valid till: N/A</p>
-                    <button id="dashUpgradeBtn" class="btn btn-primary" style="padding: 6px 14px; font-size: 12px; margin-top: 6px;" onclick="openPaymentModal()">⚡ Upgrade to Pro</button>
-                </div>
+        <h3 style="margin-bottom:15px; color:#1E1B4B;" data-translate="dash_qv">📊 Dashboard Quick View</h3>
+        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(250px, 1fr)); gap:18px; margin-bottom:30px;">
+            <div style="background:white; padding:20px; border-radius:12px; border:1px solid #E5E7EB;">
+                <h4 data-translate="qv_explore">Explore Tests</h4>
+                <p style="font-size:13px; color:#6B7280; margin:8px 0 14px;" data-translate="qv_browse">Browse all available tests</p>
+                <button class="btn btn-outline" onclick="scrollToCategories()" data-translate="qv_view">View Tests</button>
+            </div>
+            <div style="background:white; padding:20px; border-radius:12px; border:1px solid #E5E7EB;">
+                <h4 data-translate="qv_rec">Recommended Next</h4>
+                <p id="recTestName" style="font-weight:600; color:#4F46E5; margin-top:8px;">Loading...</p>
+                <p id="recTestDetails" style="font-size:12px; color:#6B7280; margin-bottom:12px;"></p>
+                <button class="btn btn-accent" onclick="startRecommendedTest()" data-translate="qv_start">Start Now</button>
+            </div>
+            <div style="background:white; padding:20px; border-radius:12px; border:1px solid #E5E7EB;">
+                <h4 data-translate="qv_recent">Recent Performance</h4>
+                <p id="recentTestName" style="font-weight:600; margin-top:8px;">Not Attempted Yet</p>
+                <p id="recentTestScore" style="font-size:13px; color:#10B981; margin-top:4px;"></p>
             </div>
         </div>
 
-        <!-- Dashboard Quick Stats & Performance -->
-        <div class="section" style="padding-top: 15px;">
-            <h2 class="section-title" data-translate="dash_qv">📊 Dashboard Quick View</h2>
-            <div class="quick-view">
-                <div class="qv-card">
-                    <h3 data-translate="qv_explore">Explore Tests</h3>
-                    <p data-translate="qv_browse">Browse all available tests</p>
-                    <button class="btn btn-outline" style="width:100%;" onclick="scrollToCategories()" data-translate="qv_view">View Tests</button>
-                </div>
-                <div class="qv-card" style="border-left-color: var(--accent);">
-                    <h3 data-translate="qv_rec">Recommended Next</h3>
-                    <p id="recTestName" data-translate="qv_loading">Loading...</p>
-                    <p id="recTestDetails" style="font-size: 13px; color: #666; margin-top: -10px; margin-bottom: 15px;"></p>
-                    <button class="btn btn-accent" style="width:100%;" onclick="startRecommendedTest()" data-translate="qv_start">Start Now</button>
-                </div>
-                <div class="qv-card" style="border-left-color: var(--purple);">
-                    <h3 data-translate="qv_recent">Recent Performance</h3>
-                    <p id="recentTestName" data-translate="qv_not_att">Not Attempted Yet</p>
-                    <p id="recentTestScore" style="font-size: 13px; color: #666; margin-top: -10px; margin-bottom: 15px;" data-translate="qv_take">Take a test to see your score</p>
-                </div>
-            </div>
-        </div>
-
-        <!-- Attempted Tests & Live Test Results History (Read-Only) -->
-        <div class="section" style="padding-top: 0;">
-            <h2 class="section-title">📜 My Attempt History & Live Test Results</h2>
-            <div id="dashHistoryContainer" class="history-list">
-                <p style="color: #6B7280; font-size: 14px;">Loading your attempt history...</p>
-            </div>
-        </div>
-
-        <div class="section" id="dashCategories">
+        <div id="dashCategories" style="margin-bottom:35px;">
             <h2 class="section-title" data-translate="sec_cats">🎯 Exam Categories</h2>
             <div id="dashCatContainer"></div>
         </div>
+
+        <h3 style="margin-bottom:15px; color:#1E1B4B;">📜 Attempted Test History</h3>
+        <div id="dashHistoryContainer"></div>
     </div>
 
-    <div id="subCatScreen" class="section hide">
-        <button class="btn btn-outline" style="margin-bottom: 20px;" onclick="history.back()" data-translate="btn_back_cat">← Back to Categories</button>
-        <h2 class="section-title" id="subCatTitle"></h2>
-        <div id="subCatPills" class="sub-cat-container"></div>
-        <div id="examNamePills" class="exam-type-grid"></div>
-        <div id="testListContainer" class="test-list"></div>
+    <!-- SUB-CATEGORIES & TEST LIST SCREEN -->
+    <div id="subCatScreen" class="hide container" style="padding:30px 5%;">
+        <button class="btn btn-outline" onclick="goDashboard()" style="margin-bottom:15px;" data-translate="btn_back_cat">← Back</button>
+        <h2 id="subCatTitle" style="color:#1E1B4B; margin-bottom:15px;">Select Exam</h2>
+        <div id="subCatPills" style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:20px;"></div>
+        <div id="examNamePills" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(180px, 1fr)); gap:12px; margin-bottom:25px;"></div>
+        <div id="testListContainer"></div>
     </div>
 
-    <div id="caScreen" class="section hide" style="max-width: 900px; margin: 0 auto;">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-            <button class="btn btn-outline" onclick="history.back()" data-translate="btn_back_home">← Back</button>
-            <div style="background: #EEF2FF; padding: 8px 16px; border-radius: 20px; font-weight: 700; color: var(--primary);">
-                Score: <span id="caLiveScoreCorrect">0</span> ✅ / <span id="caLiveScoreWrong">0</span> ❌
+    <!-- CURRENT AFFAIRS SCREEN -->
+    <div id="caScreen" class="hide container" style="padding:30px 5%;">
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:20px;">
+            <h2 style="color:#1E1B4B;">📰 Current Affairs Hub</h2>
+            <div>
+                <span style="background:#D1FAE5; color:#065F46; padding:6px 12px; border-radius:8px; font-weight:700; margin-right:8px;">✅ <span id="caLiveScoreCorrect">0</span></span>
+                <span style="background:#FEE2E2; color:#991B1B; padding:6px 12px; border-radius:8px; font-weight:700;">❌ <span id="caLiveScoreWrong">0</span></span>
             </div>
         </div>
-        <h2 class="section-title" style="text-align: center;">📰 Current Affairs</h2>
-        <div class="ca-tabs">
-            <div class="ca-tab active" onclick="filterCA('Daily', this)">Daily</div>
-            <div class="ca-tab" onclick="filterCA('Monthly', this)">Monthly</div>
+        <div style="display:flex; gap:10px; margin-bottom:20px;">
+            <button class="ca-tab active btn btn-primary" onclick="filterCA('Daily', this)">Daily CA</button>
+            <button class="ca-tab btn btn-outline" onclick="filterCA('Monthly', this)">Monthly CA</button>
         </div>
         <div id="caContentContainer"></div>
     </div>
 
-    <div id="instructionsScreen" class="hide">
-        <div class="instruction-container">
-            <div class="inst-header">
-                <div>
-                    <div id="instLiveBadge" class="hide" style="display:inline-block; background:#FEE2E2; color:#DC2626; font-weight:700; font-size:12px; padding:4px 10px; border-radius:20px; margin-bottom:6px;">🔴 ALL-INDIA LIVE EXAM</div>
-                    <h2 id="instTestName">Test Name</h2>
-                    <p style="color: #6B7280; font-size: 14px; margin-top:5px;">Duration: <b id="instDuration"></b> Mins | Max Marks: <b id="instMarks"></b></p>
-                </div>
-                <div style="font-size: 40px;">📝</div>
-            </div>
-            <div class="inst-rules">
-                <h3 style="margin-bottom: 10px;">General Instructions & Exam Rules:</h3>
-                <ul>
-                    <li>The clock will be set at the server. The countdown timer at the top right corner of the screen will display the remaining time available for you to complete the examination.</li>
-                    <li>You have to finish the test in <b id="instDuration2"></b> minutes.</li>
-                    <li id="instPosRule" style="color: var(--accent); font-weight: 600;"></li>
-                    <li id="instNegRule" style="color: var(--danger); font-weight: 600;"></li>
-                    <li>There is no negative marking for the questions that you have not attempted.</li>
-                </ul>
-                <div id="instAntiCheatBox" class="hide" style="background: #FEF2F2; border: 1px solid #FECACA; padding: 14px; border-radius: 10px; margin-top: 12px; color: #991B1B; font-size: 13px;">
-                    <b>⚠️ Strict Anti-Cheating Protocol (Live Exam Mode):</b>
-                    <ul style="margin-top: 6px; margin-left: 18px;">
-                        <li>The test runs strictly in <b>Full-Screen Mode</b>. Exiting full-screen will trigger a violation warning.</li>
-                        <li><b>Tab switching, minimizing, or opening other apps/windows</b> is strictly prohibited. After <b>3 warnings</b>, your test will be auto-submitted immediately.</li>
-                        <li>Browser Back button, Copy-Paste, Right-Click, and PrintScreen shortcuts are disabled.</li>
-                        <li>Result & All-India Rank will be released automatically after <b id="instLiveEndTime">12:00 AM</b> and sent to your Email ID.</li>
-                    </ul>
-                </div>
-                <h3 style="margin-top: 15px; margin-bottom: 10px;">Question Palette Legend:</h3>
-                <div style="display: flex; flex-wrap: wrap; gap: 15px; margin-bottom: 10px; font-size: 13px;">
-                    <div><span style="display:inline-block; width:15px; height:15px; background:var(--accent); border-radius:50% 50% 50% 0; margin-right:5px;"></span> Answered</div>
-                    <div><span style="display:inline-block; width:15px; height:15px; background:var(--danger); border-radius:50% 50% 0 50%; margin-right:5px;"></span> Not Answered</div>
-                    <div><span style="display:inline-block; width:15px; height:15px; background:var(--purple); border-radius:50%; margin-right:5px;"></span> Marked for Review</div>
-                    <div><span style="display:inline-block; width:15px; height:15px; background:#E5E7EB; margin-right:5px;"></span> Not Visited</div>
-                </div>
-            </div>
-            <div class="lang-select-box hide" id="langSelectBox">
-                <h3 style="margin-bottom: 10px; font-size: 15px;">Choose your default language:</h3>
-                <select id="instLangSelect">
-                    <option value="Both">Hindi + English</option>
-                    <option value="Hindi">Hindi Only</option>
-                    <option value="English">English Only</option>
-                </select>
-            </div>
-            <div class="declaration-box">
-                <input type="checkbox" id="instCheckbox" onchange="toggleStartButton()" style="transform: scale(1.5); cursor:pointer;">
-                <label for="instCheckbox" style="cursor:pointer;">I have understood and agree to all the instructions & exam rules.</label>
-            </div>
-            <div style="display: flex; justify-content: space-between; margin-top: 20px;">
-                <button class="btn btn-outline" onclick="history.back()">Previous</button>
-                <button class="btn btn-primary" id="btnStartActualTest" onclick="startActualTest()" disabled style="opacity: 0.5; cursor: not-allowed;">I am ready to begin</button>
-            </div>
+    <!-- INSTRUCTIONS SCREEN -->
+    <div id="instructionsScreen" class="hide container" style="max-width:750px; margin:30px auto; background:white; padding:30px; border-radius:14px; box-shadow:0 6px 25px rgba(0,0,0,0.06);">
+        <span id="instLiveBadge" class="hide" style="background:#FEE2E2; color:#DC2626; padding:4px 12px; border-radius:20px; font-size:12px; font-weight:700;">🔴 ALL-INDIA LIVE EXAM</span>
+        <h2 id="instTestName" style="color:#1E1B4B; margin:10px 0;">Test Instructions</h2>
+        <p style="font-size:14px; color:#4B5563; margin-bottom:15px;">Duration: <b id="instDuration">60</b> Mins | Total Marks: <b id="instMarks">100</b></p>
+        <ul style="font-size:14px; line-height:1.8; color:#374151; padding-left:20px; margin-bottom:20px;">
+            <li>Total duration of the test is <span id="instDuration2">60</span> minutes.</li>
+            <li id="instPosRule">You will be awarded +1 mark for each correct answer.</li>
+            <li id="instNegRule">Negative marking applies as per exam rules.</li>
+        </ul>
+        <div id="instAntiCheatBox" class="hide" style="background:#FEF2F2; border:1px solid #FECACA; padding:14px; border-radius:8px; margin-bottom:18px; font-size:13px; color:#991B1B;">
+            ⚠️ <b>Strict Anti-Cheating Active:</b> Do not switch tabs, minimize browser, or exit full-screen. Results release at <b id="instLiveEndTime">12:00 AM</b>.
+        </div>
+        <div id="langSelectBox" class="hide" style="margin-bottom:18px;">
+            <label style="font-weight:600; font-size:14px;">Choose Default Language: </label>
+            <select id="instLangSelect" style="padding:8px 12px; border-radius:6px; border:1px solid #CBD5E1;">
+                <option value="Both">Hindi + English (Bilingual)</option>
+                <option value="Hindi">Only Hindi</option>
+                <option value="English">Only English</option>
+            </select>
+        </div>
+        <label style="display:flex; align-items:center; gap:10px; font-size:14px; margin-bottom:20px; cursor:pointer;">
+            <input type="checkbox" id="instCheckbox" onchange="toggleStartButton()"> I have read and understood all instructions.
+        </label>
+        <div style="display:flex; gap:12px;">
+            <button class="btn btn-outline" onclick="history.back()">Cancel</button>
+            <button id="btnStartActualTest" class="btn btn-accent" disabled style="opacity:0.5; cursor:not-allowed;" onclick="startActualTest()">I am ready to begin →</button>
         </div>
     </div>
 
-    <div id="testScreen" class="hide" style="position: relative; user-select: none;">
-        <div id="antiCheatWatermark" class="ac-watermark"></div>
-
-        <div class="test-header">
-            <div style="display: flex; align-items: center; gap: 10px;">
-                <span id="testLiveTag" class="hide" style="background: #DC2626; color: white; font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 4px;">LIVE</span>
-                <h2 id="examHeaderName">Test Name</h2>
+    <!-- LIVE EXAM SCREEN -->
+    <div id="testScreen" class="hide" style="padding:15px;">
+        <div id="antiCheatWatermark" style="position:fixed; top:50%; left:50%; transform:translate(-50%,-50%) rotate(-25deg); font-size:22px; color:rgba(0,0,0,0.04); pointer-events:none; z-index:9999; white-space:nowrap;"></div>
+        <div style="background:#1E1B4B; color:white; padding:12px 20px; border-radius:10px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:15px;">
+            <div>
+                <span id="testLiveTag" class="hide" style="background:#DC2626; padding:2px 8px; border-radius:6px; font-size:11px; margin-right:8px;">LIVE</span>
+                <b id="examHeaderName">Mock Test</b>
             </div>
-            <div class="timer-box">
-                <span id="warningCounterBadge" class="hide" style="background: #7F1D1D; color: #FCA5A5; padding: 5px 10px; border-radius: 6px; font-size: 12px; font-weight: 700;">Warnings: 0/3</span>
-                <span style="font-size: 14px; color: #94A3B8;">Time Left:</span>
-                <div class="timer" id="timerDisplay">00:00</div>
-                <button class="btn" style="padding: 5px 10px; font-size: 12px; background: transparent; border: 1px solid #475569; color: #E2E8F0;" onclick="toggleFullScreen()">⛶ Full Screen</button>
+            <div style="display:flex; align-items:center; gap:14px;">
+                <span id="warningCounterBadge" class="hide" style="background:#F59E0B; color:#1E1B4B; padding:4px 10px; border-radius:6px; font-size:12px; font-weight:700;">Warnings: 0/3</span>
+                <span style="background:rgba(255,255,255,0.15); padding:6px 14px; border-radius:8px; font-weight:700;">⏱️ <span id="timerDisplay">00:00</span></span>
+                <button class="btn" style="background:#10B981; color:white; font-weight:700;" onclick="showSubmitModal()">Submit Test</button>
             </div>
         </div>
-        <div class="test-body">
-            <div class="question-section">
-                <div class="question-top-bar">
-                    <div class="q-num">Question No. <span id="currentQNum">1</span></div>
-                    <div class="marks-badges">
-                        <span class="badge positive">+<span id="markPositive">1</span></span>
-                        <span class="badge negative" id="negBadge">-<span id="markNegative">0.33</span></span>
-                    </div>
-                </div>
-                <div class="question-content">
-                    <div class="q-id-tag" id="questionUniqueId">Q-ID: Loading...</div>
-                    <div class="question-text" id="questionText">Loading...</div>
-                    <div class="options-list" id="optionsContainer"></div>
-                </div>
-                <div class="question-bottom-bar">
+        <div style="display:flex; gap:20px; flex-wrap:wrap;">
+            <div style="flex:2.5; min-width:300px; background:white; padding:25px; border-radius:12px; box-shadow:0 4px 15px rgba(0,0,0,0.05);">
+                <div style="display:flex; justify-content:space-between; border-bottom:1px solid #E5E7EB; padding-bottom:10px; margin-bottom:18px; font-size:13px;">
+                    <b>Question No. <span id="currentQNum">1</span></b>
                     <div>
-                        <button class="btn btn-mark" id="markBtn" onclick="toggleMark()">⭐ Mark for Review & Next</button>
-                        <button class="btn" style="background: #F3F4F6; color: #374151; margin-left:10px;" onclick="clearResponse()">Clear Response</button>
+                        <span id="questionUniqueId" style="color:#6B7280; margin-right:10px;"></span>
+                        <span style="color:#10B981; font-weight:700;">+<span id="markPositive">1</span></span>
+                        <span id="negBadge" style="color:#EF4444; font-weight:700; margin-left:6px;">-<span id="markNegative">0.33</span></span>
                     </div>
+                </div>
+                <div id="questionText" style="font-size:16px; line-height:1.6; margin-bottom:20px;"></div>
+                <div id="optionsContainer" style="display:flex; flex-direction:column; gap:10px; margin-bottom:25px;"></div>
+                <div style="display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px; border-top:1px solid #E5E7EB; padding-top:15px;">
+                    <div style="display:flex; gap:8px;">
+                        <button id="markBtn" class="btn btn-outline" onclick="toggleMark()">⭐ Mark for Review & Next</button>
+                        <button class="btn btn-outline" onclick="clearResponse()">Clear Response</button>
+                    </div>
+                    <div style="display:flex; gap:8px;">
+                        <button id="btnPrev" class="btn btn-outline" onclick="prevQuestion()">← Previous</button>
+                        <button id="btnNext" class="btn btn-primary" onclick="nextQuestion()">Save & Next →</button>
+                    </div>
+                </div>
+            </div>
+            <div style="flex:1; min-width:250px; background:white; padding:20px; border-radius:12px; box-shadow:0 4px 15px rgba(0,0,0,0.05);">
+                <div style="display:flex; align-items:center; gap:10px; margin-bottom:15px; border-bottom:1px solid #E5E7EB; padding-bottom:12px;">
+                    <div id="paletteAvatar" style="width:38px; height:38px; border-radius:50%; background:#4F46E5; color:white; display:flex; align-items:center; justify-content:center; font-weight:700;">S</div>
                     <div>
-                        <button class="btn btn-outline" onclick="prevQuestion()" id="btnPrev">← Previous</button>
-                        <button class="btn btn-primary" onclick="nextQuestion()" id="btnNext">Save & Next →</button>
+                        <div id="paletteName" style="font-weight:700; font-size:14px;">Student</div>
+                        <div id="paletteId" style="font-size:12px; color:#6B7280;">TG0001</div>
                     </div>
                 </div>
-            </div>
-            <div class="sidebar-section">
-                <div class="profile-palette-header">
-                    <div class="avatar" id="paletteAvatar">M</div>
-                    <div>
-                        <h4 style="margin:0; font-size:14px;" id="paletteName">Student</h4>
-                        <span style="font-size:12px; color:#6B7280;" id="paletteId">ID</span>
-                    </div>
-                </div>
-                <div class="palette-legend">
-                    <div class="legend-item"><div class="legend-box" style="background: var(--accent); border-radius:50% 50% 50% 0;"></div> Answered</div>
-                    <div class="legend-item"><div class="legend-box" style="background: var(--danger); border-radius:50% 50% 0 50%;"></div> Not Answered</div>
-                    <div class="legend-item"><div class="legend-box" style="background: var(--purple); border-radius:50%;"></div> Marked</div>
-                    <div class="legend-item"><div class="legend-box" style="background: #E5E7EB;"></div> Not Visited</div>
-                </div>
-                <div class="palette-area">
-                    <div class="palette-grid" id="paletteContainer"></div>
-                </div>
-                <div class="sidebar-bottom">
-                    <button class="btn btn-accent" style="width:100%; margin-bottom:10px;" onclick="showSubmitModal()">Submit Test</button>
-                </div>
+                <div id="paletteContainer" style="display:grid; grid-template-columns:repeat(5, 1fr); gap:8px;"></div>
             </div>
         </div>
     </div>
 
-    <div id="submitModal" class="modal-overlay hide">
-        <div class="submit-modal">
-            <h2 style="color: var(--primary); margin-bottom: 10px;">Submit your test</h2>
-            <table class="submit-table">
-                <thead>
-                    <tr><th>Section</th><th>No. of questions</th><th>Answered</th><th>Not Answered</th><th>Marked for Review</th><th>Not Visited</th></tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td>Test</td><td id="smTotal">0</td><td style="color:var(--accent); font-weight:bold;" id="smAnswered">0</td><td style="color:var(--danger); font-weight:bold;" id="smNotAnswered">0</td><td style="color:var(--purple); font-weight:bold;" id="smMarked">0</td><td style="color:#6B7280; font-weight:bold;" id="smNotVisited">0</td>
-                    </tr>
-                </tbody>
-            </table>
-            <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:20px;">
-                <button class="btn" style="background:#E5E7EB; color:#374151;" onclick="closeSubmitModal()">Close</button>
-                <button class="btn btn-primary" onclick="finalSubmitTest()">Submit</button>
+    <!-- LIVE SUBMITTED SCREEN -->
+    <div id="liveSubmittedScreen" class="hide container" style="max-width:540px; margin:50px auto; background:white; padding:35px; border-radius:16px; text-align:center; box-shadow:0 10px 30px rgba(0,0,0,0.08);">
+        <div style="font-size:48px; margin-bottom:12px;">🎉</div>
+        <h2 style="color:#1E1B4B; margin-bottom:10px;">Live Exam Submitted Successfully!</h2>
+        <p style="font-size:14px; color:#4B5563; line-height:1.6; margin-bottom:20px;">Your All-India Live Test responses have been recorded securely. Your scorecard and All-India Rank will be released at <b id="liveReleaseTimeDisplay">12:00 AM</b> and sent to <b id="liveUserEmailDisplay">your email</b>.</p>
+        <button class="btn btn-primary" onclick="goDashboard()">Go to Dashboard</button>
+    </div>
+
+    <!-- RESULT SCREEN -->
+    <div id="resultScreen" class="hide container" style="max-width:750px; margin:30px auto; background:white; padding:30px; border-radius:16px; box-shadow:0 8px 25px rgba(0,0,0,0.06); text-align:center;">
+        <h2 id="resTestName" style="color:#1E1B4B; margin-bottom:8px;">Test Result</h2>
+        <p id="rankText" style="color:#4F46E5; font-weight:700; margin-bottom:20px;">Calculating Rank...</p>
+        <div id="scoreCircle" style="width:130px; height:130px; border-radius:50%; margin:0 auto 20px; display:flex; align-items:center; justify-content:center;">
+            <div style="width:106px; height:106px; border-radius:50%; background:white; display:flex; flex-direction:column; align-items:center; justify-content:center;">
+                <b id="finalScore" style="font-size:22px; color:#1E1B4B;">0</b>
+                <span style="font-size:12px; color:#6B7280;">out of <span id="totalScore">100</span></span>
             </div>
+        </div>
+        <div style="display:grid; grid-template-columns:repeat(4, 1fr); gap:10px; margin-bottom:25px;">
+            <div style="background:#D1FAE5; padding:12px; border-radius:10px;"><b id="statCorrect" style="color:#065F46; font-size:18px;">0</b><div style="font-size:12px;">Correct</div></div>
+            <div style="background:#FEE2E2; padding:12px; border-radius:10px;"><b id="statWrong" style="color:#991B1B; font-size:18px;">0</b><div style="font-size:12px;">Wrong</div></div>
+            <div style="background:#F3F4F6; padding:12px; border-radius:10px;"><b id="statSkipped" style="color:#374151; font-size:18px;">0</b><div style="font-size:12px;">Skipped</div></div>
+            <div style="background:#FEF3C7; padding:12px; border-radius:10px;"><b id="statNeg" style="color:#92400E; font-size:18px;">0</b><div style="font-size:12px;">Neg Marks</div></div>
+        </div>
+        <div style="display:flex; justify-content:center; gap:12px; flex-wrap:wrap;">
+            <button class="btn btn-primary" onclick="viewSolutions()">📖 View Detailed Solutions</button>
+            <button class="btn btn-outline" onclick="downloadScorecard()">📥 Print Scorecard</button>
+            <button class="btn btn-outline" onclick="downloadQuestionPaper()">📄 Download Paper</button>
+            <button class="btn btn-accent" onclick="goDashboard()">Dashboard</button>
         </div>
     </div>
 
-    <!-- LIVE TEST SUBMITTED / RESULT PENDING SCREEN -->
-    <div id="liveSubmittedScreen" class="hide">
-        <div class="analysis-container" style="max-width: 650px;">
-            <div style="font-size: 56px; margin-bottom: 10px;">⏳</div>
-            <h2 style="color: var(--primary); font-size: 24px; margin-bottom: 8px;">Live Test Submitted Successfully!</h2>
-            <p style="color: #4B5563; font-size: 15px; line-height: 1.6; margin-bottom: 20px;" id="liveSubmittedMsg">
-                Your responses have been securely recorded. Just like real government examinations, your final score, detailed solutions, and All-India Rank will be released once the Live Test window closes.
-            </p>
-            <div style="background: #EEF2FF; border: 1px solid #C7D2FE; padding: 16px; border-radius: 12px; margin-bottom: 20px;">
-                <p style="font-size: 14px; color: #1E1B4B; margin-bottom: 4px;"><b>Result Release Time:</b> <span id="liveReleaseTimeDisplay" style="color: var(--primary); font-weight: 700;">12:00 AM</span></p>
-                <p style="font-size: 13px; color: #4338CA; margin: 0;">📧 Your scorecard will also be sent automatically to your Email ID: <b id="liveUserEmailDisplay"></b></p>
-            </div>
-            <button class="btn btn-primary" style="width: 100%;" onclick="goDashboard()">🏠 Back to Dashboard</button>
-        </div>
-    </div>
-
-    <div id="resultScreen" class="hide">
-        <div class="analysis-container">
-            <h2 style="color: var(--text); font-size: 24px;">Test Analysis Report</h2>
-            <p style="color: #6B7280; font-size: 14px;" id="resTestName">Test Name</p>
-            <div class="score-circle" id="scoreCircle">
-                <div class="score-text">
-                    <h1 id="finalScore">0</h1>
-                    <p>out of <span id="totalScore">0</span></p>
-                </div>
-            </div>
-            <h3 id="rankText" style="color: var(--primary); font-size: 18px; margin-bottom: 20px;">Rank: Calculating...</h3>
-            <div class="stats-grid">
-                <div class="stat-card correct"><h3>Correct Answers</h3><p id="statCorrect">0</p></div>
-                <div class="stat-card wrong"><h3>Wrong Answers</h3><p id="statWrong">0</p></div>
-                <div class="stat-card skipped"><h3>Skipped (Not Answered)</h3><p id="statSkipped">0</p></div>
-            </div>
-            <div style="background: #FEF2F2; color: #991B1B; padding: 15px; border-radius: 8px; margin-bottom: 20px; font-weight: 600;">
-                Negative Marks Deducted: -<span id="statNeg">0</span>
-            </div>
-            <div style="display: flex; gap: 10px; margin-bottom: 15px;">
-                <button class="btn btn-primary" style="flex: 1;" onclick="viewSolutions()">📝 View Solutions</button>
-                <button class="btn btn-outline" style="flex: 1;" onclick="goDashboard()">🏠 Back to Dashboard</button>
-            </div>
-            <div style="display: flex; gap: 10px; margin-bottom: 15px;">
-                <button class="btn btn-primary" onclick="downloadScorecard()" style="flex: 1; background: #F59E0B; box-shadow: none;">📄 Scorecard PDF</button>
-                <button class="btn btn-primary" onclick="downloadQuestionPaper()" style="flex: 1; background: #8B5CF6; box-shadow: none;">📝 Question Paper</button>
-            </div>
-        </div>
-    </div>
-
-    <div id="solutionsScreen" class="section hide" style="max-width: 900px; margin: 0 auto;">
-        <button class="btn btn-outline" style="margin-bottom: 20px;" onclick="history.back()">← Back</button>
-        <h2 class="section-title">Detailed Solutions</h2>
+    <!-- SOLUTIONS SCREEN -->
+    <div id="solutionsScreen" class="hide container" style="max-width:850px; margin:30px auto; padding:0 15px;">
+        <button class="btn btn-outline" onclick="showScreen('resultScreen')" style="margin-bottom:15px;">← Back to Scorecard</button>
         <div id="solutionsContainer"></div>
     </div>
 
-    <!-- 3-TIER SUBSCRIPTION & DISCOUNT PAYMENT MODAL -->
-    <div id="paymentModal" class="modal-overlay-payment hide">
-        <div class="modal-box" style="max-width: 660px; padding: 26px;">
-            <h2 style="color: var(--primary); margin-bottom: 6px; font-size: 22px;">🔓 Choose Your All-Access Pass</h2>
-            <p style="margin-bottom: 16px; font-size: 13px; color: #4B5563;">
-                Unlock Unlimited Mock Tests, Live All-India Exams & Instant PDF Invoice
-            </p>
-
-            <!-- 3 Plan Cards Grid -->
-            <div class="plan-cards-grid">
-                <!-- Plan 1: 3 Months -->
-                <div class="plan-card" id="planCard3" onclick="selectSubscriptionPlan(3)">
-                    <div class="plan-save-tag" id="planSave3">SAVE ₹50</div>
-                    <h4 style="font-size: 15px; color: #1E1B4B; margin-bottom: 4px;">3 Months</h4>
-                    <div class="plan-price-row">
-                        <span class="plan-mrp">₹<span id="planMrp3">149</span></span>
-                        <span class="plan-offer">₹<span id="planPrice3">99</span></span>
-                    </div>
-                    <p style="font-size: 11px; color: #6B7280; margin-top: 4px;">90 Days Validity</p>
+    <!-- 3-TIER SUBSCRIPTION PAYMENT MODAL -->
+    <div id="paymentModal" class="hide" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(15,23,42,0.75); display:flex; align-items:center; justify-content:center; z-index:10000; padding:15px;">
+        <div style="background:white; max-width:650px; width:100%; border-radius:18px; padding:28px; position:relative; max-height:92vh; overflow-y:auto;">
+            <h2 style="text-align:center; color:#1E1B4B; margin-bottom:6px;">🚀 Unlock All-Access Subscription Pass</h2>
+            <p style="text-align:center; font-size:13px; color:#6B7280; margin-bottom:20px;">Unlimited Mock Tests, All-India Live Exams & Detailed Analytics</p>
+            
+            <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(170px, 1fr)); gap:12px; margin-bottom:20px;">
+                <div id="planCard3" class="plan-card" onclick="selectSubscriptionPlan(3)" style="border:2px solid #E2E8F0; border-radius:12px; padding:16px; text-align:center; cursor:pointer;">
+                    <span id="planSave3" style="background:#EEF2FF; color:#4F46E5; font-size:11px; font-weight:700; padding:3px 8px; border-radius:10px;">SAVE ₹50</span>
+                    <h3 style="margin:10px 0 4px; font-size:16px;">3 Months Pass</h3>
+                    <div style="font-size:13px; color:#9CA3AF; text-decoration:line-through;">₹<span id="planMrp3">149</span></div>
+                    <div style="font-size:26px; font-weight:800; color:#1E1B4B;">₹<span id="planPrice3">99</span></div>
                 </div>
-
-                <!-- Plan 2: 6 Months -->
-                <div class="plan-card" id="planCard6" onclick="selectSubscriptionPlan(6)">
-                    <div class="plan-save-tag" id="planSave6">SAVE ₹50</div>
-                    <h4 style="font-size: 15px; color: #1E1B4B; margin-bottom: 4px;">6 Months</h4>
-                    <div class="plan-price-row">
-                        <span class="plan-mrp">₹<span id="planMrp6">249</span></span>
-                        <span class="plan-offer">₹<span id="planPrice6">199</span></span>
-                    </div>
-                    <p style="font-size: 11px; color: #6B7280; margin-top: 4px;">180 Days Validity</p>
+                <div id="planCard6" class="plan-card" onclick="selectSubscriptionPlan(6)" style="border:2px solid #E2E8F0; border-radius:12px; padding:16px; text-align:center; cursor:pointer;">
+                    <span id="planSave6" style="background:#EEF2FF; color:#4F46E5; font-size:11px; font-weight:700; padding:3px 8px; border-radius:10px;">SAVE ₹50</span>
+                    <h3 style="margin:10px 0 4px; font-size:16px;">6 Months Pass</h3>
+                    <div style="font-size:13px; color:#9CA3AF; text-decoration:line-through;">₹<span id="planMrp6">249</span></div>
+                    <div style="font-size:26px; font-weight:800; color:#1E1B4B;">₹<span id="planPrice6">199</span></div>
                 </div>
-
-                <!-- Plan 3: 12 Months (Default Selected) -->
-                <div class="plan-card selected" id="planCard12" onclick="selectSubscriptionPlan(12)">
-                    <div class="plan-best-badge">BEST VALUE</div>
-                    <div class="plan-save-tag" id="planSave12">SAVE ₹150</div>
-                    <h4 style="font-size: 15px; color: #1E1B4B; margin-bottom: 4px;">12 Months</h4>
-                    <div class="plan-price-row">
-                        <span class="plan-mrp">₹<span id="planMrp12">399</span></span>
-                        <span class="plan-offer">₹<span id="planPrice12">249</span></span>
-                    </div>
-                    <p style="font-size: 11px; color: #6B7280; margin-top: 4px;">365 Days Validity</p>
+                <div id="planCard12" class="plan-card selected" onclick="selectSubscriptionPlan(12)" style="border:2px solid #4F46E5; background:#F5F3FF; border-radius:12px; padding:16px; text-align:center; cursor:pointer;">
+                    <span id="planSave12" style="background:#10B981; color:white; font-size:11px; font-weight:700; padding:3px 8px; border-radius:10px;">BEST VALUE • SAVE ₹150</span>
+                    <h3 style="margin:10px 0 4px; font-size:16px;">12 Months Pass</h3>
+                    <div style="font-size:13px; color:#9CA3AF; text-decoration:line-through;">₹<span id="planMrp12">399</span></div>
+                    <div style="font-size:26px; font-weight:800; color:#4F46E5;">₹<span id="planPrice12">249</span></div>
                 </div>
             </div>
 
-            <!-- Selected Plan Price & Discount Breakdown Box -->
-            <div class="plan-summary-box">
-                <div class="ps-row">
-                    <span>Selected Plan (<b id="selPlanLabel">12 Months Pass</b>):</span>
-                    <span>₹<span id="selPlanMrp">399</span></span>
-                </div>
-                <div class="ps-row" style="color: #059669; font-weight: 600;">
-                    <span>Special Offer Discount:</span>
-                    <span>- ₹<span id="selPlanDiscount">150</span></span>
-                </div>
-                <div class="ps-row ps-total">
-                    <span>Final Payable Amount:</span>
-                    <span>₹<span id="selPlanFinal">249</span></span>
-                </div>
+            <div style="background:#F8FAFC; padding:14px; border-radius:10px; font-size:13px; margin-bottom:18px; border:1px solid #E2E8F0;">
+                <div style="display:flex; justify-content:space-between; margin-bottom:4px;"><span>Selected Plan:</span><b id="selPlanLabel">12 Months Pass</b></div>
+                <div style="display:flex; justify-content:space-between; margin-bottom:4px;"><span>Plan MRP:</span><span>₹<span id="selPlanMrp">399</span></span></div>
+                <div style="display:flex; justify-content:space-between; margin-bottom:4px; color:#059669;"><span>Offer Discount:</span><span>- ₹<span id="selPlanDiscount">150</span></span></div>
+                <div style="display:flex; justify-content:space-between; font-size:15px; font-weight:700; border-top:1px dashed #CBD5E1; padding-top:6px; margin-top:6px;"><span>Total Payable:</span><span style="color:#4F46E5;">₹<span id="selPlanFinal">249</span></span></div>
             </div>
 
-            <button class="btn btn-primary" style="width: 100%; padding: 14px; margin-bottom: 10px; font-size: 15px;" onclick="initiateRazorpayPayment()">
-                💳 Pay ₹<span id="payBtnAmount">249</span> Now via Razorpay
-            </button>
-            <button class="btn" style="width: 100%; background:#F3F4F6; color: #374151;" onclick="closeModal()" data-translate="pay_close">Close</button>
+            <button class="btn btn-primary" style="width:100%; padding:14px; font-size:16px; font-weight:700;" onclick="initiateRazorpayPayment()">💳 Pay ₹<span id="payBtnAmount">249</span> Securely via Razorpay</button>
+            <p style="text-align:center; font-size:11px; color:#6B7280; margin-top:10px;">Instant activation + Automatic PDF Invoice sent to your email. Subscription passes are non-refundable.</p>
+            <button onclick="closeModal()" style="display:block; margin:14px auto 0; background:none; border:none; color:#6B7280; cursor:pointer; font-weight:600;" data-translate="pay_close">Close</button>
+        </div>
+    </div>
+
+    <!-- SUBMIT CONFIRMATION MODAL -->
+    <div id="submitModal" class="hide" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); display:flex; align-items:center; justify-content:center; z-index:10000;">
+        <div style="background:white; padding:25px; border-radius:14px; max-width:400px; width:90%; text-align:center;">
+            <h3 style="margin-bottom:15px;">Submit Test Summary</h3>
+            <p style="font-size:14px; margin-bottom:6px;">Total Questions: <b id="smTotal">0</b></p>
+            <p style="font-size:14px; color:#10B981; margin-bottom:6px;">Answered: <b id="smAnswered">0</b></p>
+            <p style="font-size:14px; color:#EF4444; margin-bottom:6px;">Not Answered: <b id="smNotAnswered">0</b></p>
+            <p style="font-size:14px; color:#8B5CF6; margin-bottom:6px;">Marked for Review: <b id="smMarked">0</b></p>
+            <p style="font-size:14px; color:#6B7280; margin-bottom:18px;">Not Visited: <b id="smNotVisited">0</b></p>
+            <div style="display:flex; gap:10px;">
+                <button class="btn btn-outline" style="flex:1;" onclick="closeSubmitModal()">Resume Test</button>
+                <button class="btn btn-accent" style="flex:1;" onclick="finalSubmitTest()">Confirm Submit</button>
+            </div>
         </div>
     </div>
 
     <!-- REGISTRATION SUCCESS MODAL -->
-    <div id="registerSuccessModal" class="modal-overlay-payment hide">
-        <div class="modal-box">
-            <h2 style="color: var(--accent); margin-bottom: 10px; font-size: 22px;">🎉 Registration Successful!</h2>
-            <p style="margin-bottom: 15px; color: #4B5563; font-size: 14px;">Your account is ready. Details have also been sent to your Email ID.</p>
-            <div style="background: #F3F4F6; padding: 15px; border-radius: 10px; margin-bottom: 15px; text-align: left; border: 1px dashed #D1D5DB;">
-                <p style="margin-bottom: 8px; font-size: 15px;"><b>Login ID:</b> <span id="newLoginId" style="color: var(--primary); font-weight: 700;"></span></p>
-                <p style="margin-bottom: 8px; font-size: 15px;"><b>Email ID:</b> <span id="newLoginEmail" style="color: var(--primary); font-weight: 700;"></span></p>
-                <p style="font-size: 15px;"><b>Password:</b> <span id="newLoginPass" style="color: var(--primary); font-weight: 700;"></span></p>
+    <div id="registerSuccessModal" class="hide" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); display:flex; align-items:center; justify-content:center; z-index:10000;">
+        <div style="background:white; padding:30px; border-radius:14px; max-width:420px; width:90%; text-align:center;">
+            <h2 style="color:#10B981; margin-bottom:10px;">🎉 Registration Successful!</h2>
+            <p style="font-size:13px; color:#4B5563; margin-bottom:15px;">Save your login credentials below (also sent to your email):</p>
+            <div style="background:#F8FAFC; padding:14px; border-radius:8px; text-align:left; font-size:14px; margin-bottom:18px;">
+                <p><b>Student ID:</b> <span id="newLoginId" style="color:#4F46E5; font-weight:700;"></span></p>
+                <p><b>Email:</b> <span id="newLoginEmail"></span></p>
+                <p><b>Password:</b> <span id="newLoginPass"></span></p>
             </div>
-            <button class="btn btn-primary" style="width: 100%;" onclick="closeRegModal()">Proceed to Login</button>
+            <button class="btn btn-primary" style="width:100%;" onclick="closeRegModal()">Proceed to Login</button>
         </div>
     </div>
 
-    <!-- ABOUT US MODAL -->
-    <div id="aboutModal" class="modal-overlay-payment hide">
-        <div class="modal-box" style="max-width: 500px; text-align: left;">
-            <h2 style="color: var(--primary); margin-bottom: 12px; font-size: 22px; text-align: center;">📖 About TaiyariGhar</h2>
-            <p style="font-size: 14px; color: #374151; line-height: 1.6; margin-bottom: 12px;">
-                <b>TaiyariGhar (`taiyarighar.in`)</b> is India's premier online mock test and exam preparation platform designed specifically for aspirants preparing for SSC, Railway, Banking, UP State, and Police examinations.
-            </p>
-            <p style="font-size: 14px; color: #374151; line-height: 1.6; margin-bottom: 12px;">
-                <b>Key Features & Highlights:</b>
-            </p>
-            <ul style="font-size: 13px; color: #4B5563; line-height: 1.6; margin-left: 20px; margin-bottom: 20px;">
-                <li><b>All-India Live Exams:</b> Real-time competitive exams with strict anti-cheating full-screen protocols, auto-submissions, and All-India Ranks.</li>
-                <li><b>Automated Midnight Results:</b> Scorecards and detailed PDF performance reports delivered automatically to registered emails at 12:00 AM.</li>
-                <li><b>Bilingual Practice Tests:</b> High-quality questions in Hindi and English with step-by-step explanations.</li>
-                <li><b>Instant PDF Invoices:</b> Automated GST/tax invoices sent upon successful Razorpay subscription activation.</li>
-            </ul>
-            <button class="btn btn-primary" style="width: 100%;" onclick="closeAboutModal()">Close</button>
-        </div>
-    </div>
+    <!-- POPUPS -->
+    <div id="popupSuccess" class="streak-popup">🔥 3 in a row! Awesome accuracy!</div>
+    <div id="popupWarning" class="streak-popup warning">⚠️ 3 wrong in a row! Read carefully!</div>
 
-    <!-- PRIVACY POLICY MODAL -->
-    <div id="privacyModal" class="modal-overlay-payment hide">
-        <div class="modal-box" style="max-width: 500px; text-align: left;">
-            <h2 style="color: var(--primary); margin-bottom: 12px; font-size: 22px; text-align: center;">🔒 Privacy Policy</h2>
-            <p style="font-size: 14px; color: #374151; line-height: 1.6; margin-bottom: 12px;">
-                At TaiyariGhar, we respect your privacy and are committed to protecting your personal information.
-            </p>
-            <ul style="font-size: 13px; color: #4B5563; line-height: 1.6; margin-left: 20px; margin-bottom: 20px;">
-                <li><b>Data Collection:</b> We collect your name, email ID, and mobile number strictly for account authentication, exam notifications, and subscription invoices.</li>
-                <li><b>Data Security:</b> Your password and credentials are securely encrypted and stored on Firebase Firestore. We never sell or share user data with third parties.</li>
-                <li><b>Device Security:</b> Account access is restricted to a maximum of 2 concurrent devices to prevent unauthorized sharing.</li>
-            </ul>
-            <button class="btn btn-primary" style="width: 100%;" onclick="closePrivacyModal()">Close</button>
-        </div>
-    </div>
-
-    <!-- TERMS & CONDITIONS MODAL -->
-    <div id="termsModal" class="modal-overlay-payment hide">
-        <div class="modal-box" style="max-width: 500px; text-align: left;">
-            <h2 style="color: var(--primary); margin-bottom: 12px; font-size: 22px; text-align: center;">📜 Terms & Conditions</h2>
-            <ul style="font-size: 13px; color: #4B5563; line-height: 1.6; margin-left: 20px; margin-bottom: 20px;">
-                <li><b>Account Usage:</b> Each account is meant for individual candidate preparation. Sharing credentials beyond 2 devices will trigger session restrictions.</li>
-                <li><b>Live Exam Protocol:</b> All-India Live Tests operate under strict anti-cheating guidelines. Exiting full-screen or switching browser tabs repeatedly will result in automated test submission.</li>
-                <li><b>Intellectual Property:</b> All test questions, solutions, and platform graphics are copyrighted properties of TaiyariGhar. Unauthorized copying or redistribution is strictly prohibited.</li>
-            </ul>
-            <button class="btn btn-primary" style="width: 100%;" onclick="closeTermsModal()">Close</button>
-        </div>
-    </div>
-
-    <!-- REFUND POLICY MODAL -->
-    <div id="refundModal" class="modal-overlay-payment hide">
-        <div class="modal-box" style="max-width: 500px; text-align: left;">
-            <h2 style="color: var(--primary); margin-bottom: 12px; font-size: 22px; text-align: center;">💳 Refund & Cancellation Policy</h2>
-            <p style="font-size: 14px; color: #374151; line-height: 1.6; margin-bottom: 12px;">
-                <b>Strictly Non-Refundable:</b>
-            </p>
-            <p style="font-size: 13px; color: #4B5563; line-height: 1.6; margin-bottom: 20px;">
-                Once a subscription pass (3, 6, or 12 Months All-Access) has been successfully purchased and activated via Razorpay, <b>no refunds, cancellations, or plan transfers will be entertained under any circumstances</b>. Users are advised to attempt our free mock tests before upgrading to pro.
-            </p>
-            <button class="btn btn-primary" style="width: 100%;" onclick="closeRefundModal()">Close</button>
-        </div>
-    </div>
-
-    <!-- OFFICIAL EMAIL SUPPORT MODAL WITH ALL 3 EMAILS -->
-    <div id="supportModal" class="modal-overlay-payment hide">
-        <div class="modal-box" style="max-width: 420px;">
-            <h2 style="color: var(--primary); margin-bottom: 8px; font-size: 20px;">📧 Contact Us & Support</h2>
-            <p style="font-size: 13px; color: #6B7280; margin-bottom: 12px;">
-                Reach out to our official support team anytime:
-            </p>
-            <div style="background: #F8FAFC; padding: 10px; border-radius: 8px; font-size: 13px; color: #1E1B4B; margin-bottom: 15px; text-align: left; border: 1px solid #E2E8F0;">
-                📧 <b>Email 1:</b> info@taiyarighar.in<br>
-                📧 <b>Email 2:</b> support@taiyarighar.in<br>
-                📧 <b>Email 3:</b> madhup@taiyarighar.in
+    <!-- PROFESSIONAL FOOTER (All Links Stay Inside index.html) -->
+    <footer id="mainFooter" style="background:#1E1B4B; color:#CBD5E1; padding:45px 5% 25px; margin-top:60px;">
+        <div style="max-width:1200px; margin:0 auto; display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:30px; margin-bottom:30px;">
+            <div>
+                <h3 style="color:#ffffff; margin-bottom:10px;">TaiyariGhar</h3>
+                <p style="font-size:13px; line-height:1.6;">India's modern exam preparation and mock test platform for SSC, Railway, Banking, UP Police, and State Government Exams.</p>
             </div>
-            
-            <div class="support-btn-group">
-                <a href="#" id="mailSupportQuestion" class="support-btn support-q">❓ Question Problem / Report</a>
-                <a href="#" id="mailSupportLogin" class="support-btn support-l">🔐 Login / Account Issue</a>
-                <a href="#" id="mailSupportPayment" class="support-btn support-p">💳 Payment / Invoice Issue</a>
+            <div>
+                <h4 style="color:#ffffff; margin-bottom:10px;">Quick Links</h4>
+                <ul style="list-style:none; font-size:13px; line-height:2;">
+                    <li><a href="javascript:void(0)" onclick="goHome()" style="color:#CBD5E1; text-decoration:none;">Home</a></li>
+                    <li><a href="javascript:void(0)" onclick="openInfoSection('aboutScreen')" style="color:#CBD5E1; text-decoration:none;">About Us</a></li>
+                    <li><a href="javascript:void(0)" onclick="openInfoSection('contactScreen')" style="color:#CBD5E1; text-decoration:none;">Contact Us</a></li>
+                </ul>
             </div>
-            <button class="btn" style="width: 100%; background:#F3F4F6; color: #374151;" onclick="closeSupportModal()">Close</button>
+            <div>
+                <h4 style="color:#ffffff; margin-bottom:10px;">Legal & Policies</h4>
+                <ul style="list-style:none; font-size:13px; line-height:2;">
+                    <li><a href="javascript:void(0)" onclick="openInfoSection('privacyScreen')" style="color:#CBD5E1; text-decoration:none;">Privacy Policy</a></li>
+                    <li><a href="javascript:void(0)" onclick="openInfoSection('termsScreen')" style="color:#CBD5E1; text-decoration:none;">Terms & Conditions</a></li>
+                    <li><a href="javascript:void(0)" onclick="openInfoSection('refundScreen')" style="color:#CBD5E1; text-decoration:none;">Refund Policy</a></li>
+                </ul>
+            </div>
+            <div>
+                <h4 style="color:#ffffff; margin-bottom:10px;">Official Support</h4>
+                <p style="font-size:13px; line-height:1.8;">📧 support@taiyarighar.in<br>📧 info@taiyarighar.in<br>🌐 www.taiyarighar.in</p>
+            </div>
         </div>
-    </div>
-
-    <div id="popupSuccess" class="game-popup success">
-        <h2 style="color: var(--success);">🎉 शानदार!</h2>
-        <p>आपने लगातार 3 सही जवाब दिए हैं। आप तो कमाल कर रहे हैं!</p>
-    </div>
-    <div id="popupWarning" class="game-popup warning">
-        <h2 style="color: var(--danger);">⚠️ ध्यान दें!</h2>
-        <p>आप लगातार 3 सवालों के गलत जवाब दे रहे हैं। कृपया ध्यान से पढ़ें।</p>
-    </div>
-
-    <footer class="footer" id="mainFooter">
-        <div class="footer-links">
-            <a href="javascript:void(0);" onclick="showAboutModal()">About Us</a>
-            <a href="javascript:void(0);" onclick="openSupportModal()" style="font-weight: bold; color: var(--accent);">Contact Us</a>
-            <a href="javascript:void(0);" onclick="showPrivacyModal()">Privacy Policy</a>
-            <a href="javascript:void(0);" onclick="showTermsModal()">Terms & Conditions</a>
-            <a href="javascript:void(0);" onclick="showRefundModal()">Refund Policy</a>
+        <div style="text-align:center; border-top:1px solid rgba(255,255,255,0.1); padding-top:20px; font-size:12px;">
+            © 2026 TaiyariGhar. All Rights Reserved.
         </div>
-        <p>© 2026 TaiyariGhar. All rights reserved. Official Emails: info@taiyarighar.in | support@taiyarighar.in | madhup@taiyarighar.in</p>
     </footer>
 
+    <!-- Helper Script for Single-Page Info Sections (Works seamlessly alongside student-app.js) -->
     <script>
-        window.showAboutModal = function() { document.getElementById('aboutModal').classList.remove('hide'); }
-        window.closeAboutModal = function() { document.getElementById('aboutModal').classList.add('hide'); }
-        window.showPrivacyModal = function() { document.getElementById('privacyModal').classList.remove('hide'); }
-        window.closePrivacyModal = function() { document.getElementById('privacyModal').classList.add('hide'); }
-        window.showTermsModal = function() { document.getElementById('termsModal').classList.remove('hide'); }
-        window.closeTermsModal = function() { document.getElementById('termsModal').classList.add('hide'); }
-        window.showRefundModal = function() { document.getElementById('refundModal').classList.remove('hide'); }
-        window.closeRefundModal = function() { document.getElementById('refundModal').classList.add('hide'); }
+        window.openInfoSection = function(sectionId) {
+            const allScreens = [
+                'homeScreen', 'loginScreen', 'registerScreen', 'forgotPasswordScreen',
+                'dashboardScreen', 'subCatScreen', 'caScreen', 'instructionsScreen',
+                'testScreen', 'liveSubmittedScreen', 'resultScreen', 'solutionsScreen',
+                'aboutScreen', 'contactScreen', 'privacyScreen', 'termsScreen', 'refundScreen'
+            ];
+            allScreens.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.classList.add('hide');
+            });
+            const target = document.getElementById(sectionId);
+            if (target) target.classList.remove('hide');
+            window.scrollTo(0, 0);
+        };
+
+        // Ensure goHome also hides the 5 info sections
+        const origGoHomeInterval = setInterval(() => {
+            if (typeof window.goHome === 'function' && !window.goHome._patched) {
+                const originalGoHome = window.goHome;
+                window.goHome = function() {
+                    ['aboutScreen', 'contactScreen', 'privacyScreen', 'termsScreen', 'refundScreen'].forEach(id => {
+                        const el = document.getElementById(id);
+                        if (el) el.classList.add('hide');
+                    });
+                    originalGoHome();
+                };
+                window.goHome._patched = true;
+                clearInterval(origGoHomeInterval);
+            }
+        }, 200);
+
+        window.submitContactForm = function() {
+            const name = document.getElementById('contactName').value.trim();
+            const email = document.getElementById('contactEmail').value.trim();
+            const msg = document.getElementById('contactMessage').value.trim();
+            if (!name || !msg) { alert("Please enter your name and message."); return; }
+            const sub = encodeURIComponent("Support Query from " + name);
+            const body = encodeURIComponent("Name/ID: " + name + "\nEmail: " + email + "\n\nMessage:\n" + msg);
+            window.location.href = "mailto:support@taiyarighar.in?subject=" + sub + "&body=" + body;
+        };
     </script>
 
     <script type="module" src="student-app.js"></script>
