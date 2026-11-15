@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TaiyariGhar Complete Admin Panel</title>
+    <title>TaiyariGhar | Complete Admin Panel</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
     <link rel="stylesheet" href="admin-style.css">
@@ -17,14 +17,15 @@
     <div id="lockScreen">
         <div class="lock-box">
             <h2>🔐 Admin Secure Login</h2>
+            <p style="font-size: 12px; color: #6B7280; margin-bottom: 15px;">Sign in with your Admin Credentials</p>
             <input type="email" id="adminEmail" value="madhupverma8@gmail.com" placeholder="Admin Email">
             <input type="password" id="adminPass" placeholder="Password" onkeypress="if(event.key==='Enter') checkPass()">
-            <button onclick="checkPass()">Unlock Panel</button>
+            <button id="btnUnlock" onclick="checkPass()">Unlock Panel</button>
             <p id="errMsg" class="err-msg">❌ Incorrect Email or Password!</p>
         </div>
     </div>
 
-    <!-- Admin Panel Container (All 8 Tabs) -->
+    <!-- Main Admin Dashboard -->
     <div id="adminPanel" style="display: none;">
         <div class="header">
             <h1>TaiyariGhar Admin Control Panel</h1>
@@ -44,13 +45,12 @@
 
         <div class="container">
             
-            <!-- TAB 1: Settings & 3-Tier Subscription Pricing -->
+            <!-- TAB 1: Settings & 3-Tier Pricing -->
             <div id="tabSettings" class="section active">
                 <h2 class="title">3-Tier Subscription Pricing & Payment Settings</h2>
                 
                 <div style="background: #F8FAFC; padding: 20px; border-radius: 10px; border: 1px solid #E2E8F0; margin-bottom: 20px;">
                     <h3 style="margin-bottom: 15px; color: var(--primary); font-size: 15px;">💳 Subscription Plans (MRP & Offer Price)</h3>
-                    
                     <div class="row" style="margin-bottom: 12px;">
                         <div><label>3 Months MRP (₹)</label><input type="number" id="plan3Mrp" value="149"></div>
                         <div><label>3 Months Offer Price (₹)</label><input type="number" id="plan3Price" value="99"></div>
@@ -69,12 +69,11 @@
                     <div><label>UPI ID / Razorpay Handle</label><input type="text" id="setUpi" value="taiyarighar@ptye"></div>
                     <div><label>WhatsApp Support Number</label><input type="text" id="setMobile" value="9140281870"></div>
                 </div>
-
                 <button class="save-btn" onclick="saveSettings()">Save Settings & Prices</button>
                 <p id="settingsMsg" class="msg" style="display: none;">✅ Settings Saved Successfully!</p>
             </div>
 
-            <!-- TAB 2: Students -->
+            <!-- TAB 2: Students & Payments -->
             <div id="tabStudents" class="section">
                 <h2 class="title">Students & Payments <button class="btn-export" onclick="exportStudents()">📥 Export to Excel</button></h2>
                 <div class="table-wrapper">
@@ -91,7 +90,7 @@
                                 <th>Action</th>
                             </tr>
                         </thead>
-                        <tbody><tr><td colspan="8" style="text-align:center;">Loading students...</td></tr></tbody>
+                        <tbody><tr><td colspan="8" style="text-align:center;">Loading...</td></tr></tbody>
                     </table>
                 </div>
             </div>
@@ -106,10 +105,17 @@
                     <div><input type="text" id="newExamName" placeholder="Exam Name/Type (e.g., Full Length Mock)"></div>
                     <div><button class="save-btn" id="catBtn" style="margin-bottom:0; background:var(--success);" onclick="saveCategory()">Add Category</button></div>
                 </div>
+
+                <div class="row" style="margin-top: 15px; background: #f8fafc; padding: 15px; border-radius: 8px; border: 1px dashed #cbd5e1;">
+                    <div style="flex: 2;"><input type="file" id="categoriesCsvFile" accept=".csv" style="margin-bottom:0; background:white;"></div>
+                    <div style="flex: 1;"><button class="save-btn" style="background:var(--purple); margin-bottom:0;" onclick="uploadCategoriesCsv()">Bulk Upload</button></div>
+                    <div style="flex: 1;"><button onclick="downloadCategoriesTemplate()" style="background:none; border:1px solid var(--purple); color:var(--purple); padding:10px; border-radius:8px; cursor:pointer; font-size:13px; width:100%; font-weight:600;">📥 Download Template</button></div>
+                </div>
+
                 <div class="table-wrapper">
                     <table id="categoriesTable">
-                        <thead><tr><th>Main Category</th><th>Sub-Category</th><th>Exam Name</th><th>Action</th></tr></thead>
-                        <tbody><tr><td colspan="4" style="text-align:center;">Loading categories...</td></tr></tbody>
+                        <thead><tr><th>Main Category</th><th>Sub-Category</th><th>Exam Name (Test Type)</th><th>Action</th></tr></thead>
+                        <tbody><tr><td colspan="4" style="text-align:center;">Loading...</td></tr></tbody>
                     </table>
                 </div>
             </div>
@@ -131,43 +137,73 @@
                     <div><input type="number" id="tTotalQs" placeholder="Total Questions"></div>
                 </div>
                 <div class="row">
-                    <div><select id="tLanguage"><option value="Both">Language: Hindi + English</option><option value="Hindi">Only Hindi</option><option value="English">Only English</option></select></div>
+                    <div><select id="tLanguage"><option value="Both">Language: Hindi + English</option><option value="Hindi">Language: Only Hindi</option><option value="English">Language: Only English</option></select></div>
                     <div><select id="tHasNeg" onchange="toggleTestNeg()"><option value="No">Negative Marking? No</option><option value="Yes">Negative Marking? Yes</option></select></div>
                     <div id="tNegBox" style="display:none;"><input type="number" step="0.01" id="tNegMark" placeholder="Neg Mark (e.g., 0.33)"></div>
                     <div><select id="tFree"><option value="Yes">Is Free? Yes</option><option value="No">Is Free? No</option></select></div>
                 </div>
-                <!-- Live Exam Settings Toggle -->
-                <div class="row" style="background: #FEF2F2; padding: 12px; border-radius: 8px; border: 1px solid #FECACA; margin-bottom: 10px;">
-                    <div><label style="color: #991B1B; font-weight:700;">Is All-India Live Test?</label><select id="tIsLive"><option value="No">No (Normal Practice Test)</option><option value="Yes">Yes (Live Exam Mode)</option></select></div>
-                    <div><label style="color: #991B1B; font-weight:700;">Live Result Release Time</label><input type="text" id="tLiveReleaseTime" value="12:00 AM"></div>
+                
+                <!-- Live Exam Controls -->
+                <div class="row" style="background: #FEF2F2; padding: 12px; border-radius: 8px; border: 1px solid #FECACA; margin-bottom: 12px;">
+                    <div><label style="color: #991B1B; font-weight:700;">Is All-India Live Test?</label><select id="tIsLive"><option value="No">No (Normal Practice Test)</option><option value="Yes">Yes (All-India Live Exam)</option></select></div>
+                    <div><label style="color: #991B1B; font-weight:700;">Result Release Time</label><input type="text" id="tLiveReleaseTime" value="12:00 AM"></div>
                 </div>
+
                 <button class="save-btn" id="testBtn" onclick="saveTest()">Add Test</button>
                 <div class="table-wrapper">
                     <table id="testsTable">
-                        <thead><tr><th>ID</th><th>Category</th><th>Test Name</th><th>Live?</th><th>Marks</th><th>Qs</th><th>Action</th></tr></thead>
-                        <tbody><tr><td colspan="7" style="text-align:center;">Loading tests...</td></tr></tbody>
+                        <thead><tr><th>ID</th><th>Category</th><th>Test Name</th><th>Live?</th><th>Marks</th><th>Qs</th><th>Neg</th><th>Action</th></tr></thead>
+                        <tbody><tr><td colspan="8" style="text-align:center;">Loading...</td></tr></tbody>
                     </table>
                 </div>
             </div>
 
             <!-- TAB 5: Questions -->
             <div id="tabQuestions" class="section">
-                <h2 class="title">Manage Questions</h2>
+                <h2 class="title">Manage Questions (Search & Edit)</h2>
                 <input type="hidden" id="editQId">
+                
                 <div style="background: #f8fafc; padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #e2e8f0;">
-                    <h3 style="margin-bottom: 10px; font-size: 15px; color: var(--primary);">🔍 Search Test Questions</h3>
+                    <h3 style="margin-bottom: 10px; font-size: 15px; color: var(--primary);">🔍 Search & Download Questions</h3>
                     <div class="row">
-                        <div style="flex: 2;"><input type="text" id="searchTestId" placeholder="Enter Test ID (e.g., T1)" style="margin-bottom:0;"></div>
-                        <div style="flex: 1;"><button class="save-btn" style="margin-bottom:0;" onclick="searchQuestions()">Search</button></div>
+                        <div style="flex: 2;"><input type="text" id="searchTestId" placeholder="Enter Test ID (e.g., RRB001)" style="margin-bottom:0;"></div>
+                        <div style="flex: 1;"><button class="save-btn" style="margin-bottom:0; background: var(--primary);" onclick="searchQuestions()">Search</button></div>
+                        <div style="flex: 1;"><button class="save-btn" style="margin-bottom:0; background: var(--success);" onclick="downloadTestQuestions()">📥 Download</button></div>
                     </div>
                 </div>
+
                 <div id="questionListContainer" style="display: none;">
+                    <h3 style="margin-bottom: 10px; font-size: 15px; color: var(--purple);">Showing Questions for Test ID: <span id="displaySearchTestId" style="font-weight:bold;"></span></h3>
                     <div class="table-wrapper">
                         <table id="questionsTable">
                             <thead><tr><th>Q-ID</th><th>Question (Hindi)</th><th>Question (English)</th><th>Marks</th><th>Action</th></tr></thead>
                             <tbody></tbody>
                         </table>
                     </div>
+                </div>
+
+                <div style="border-top: 2px dashed #ccc; padding-top: 20px; margin-top: 20px;">
+                    <h3 class="sub-title">Add / Edit Question Manually</h3>
+                    <div class="row"><div><input type="text" id="qTestId" placeholder="Test ID (e.g., T1)"></div></div>
+                    
+                    <div class="row">
+                        <div style="flex:2;"><input type="text" id="qTextHindi" placeholder="Question in Hindi"></div>
+                        <div style="flex:2;"><input type="text" id="qTextEnglish" placeholder="Question in English"></div>
+                    </div>
+                    <div class="row"><div><input type="text" id="qOptAHindi" placeholder="Option A (Hindi)"></div><div><input type="text" id="qOptAEnglish" placeholder="Option A (English)"></div></div>
+                    <div class="row"><div><input type="text" id="qOptBHindi" placeholder="Option B (Hindi)"></div><div><input type="text" id="qOptBEnglish" placeholder="Option B (English)"></div></div>
+                    <div class="row"><div><input type="text" id="qOptCHindi" placeholder="Option C (Hindi)"></div><div><input type="text" id="qOptCEnglish" placeholder="Option C (English)"></div></div>
+                    <div class="row"><div><input type="text" id="qOptDHindi" placeholder="Option D (Hindi)"></div><div><input type="text" id="qOptDEnglish" placeholder="Option D (English)"></div></div>
+                    <div class="row"><div><input type="text" id="qOptEHindi" placeholder="Option E (Hindi - Optional)"></div><div><input type="text" id="qOptEEnglish" placeholder="Option E (English - Optional)"></div></div>
+
+                    <div class="row">
+                        <div><select id="qAns"><option value="0">Correct: A</option><option value="1">Correct: B</option><option value="2">Correct: C</option><option value="3">Correct: D</option><option value="4">Correct: E</option></select></div>
+                        <div><input type="number" step="0.01" id="qMarks" placeholder="Marks (e.g., 1)"></div>
+                        <div><input type="number" step="0.01" id="qNeg" placeholder="Neg Marks (e.g., 0.33)"></div>
+                    </div>
+                    <div class="row"><div style="flex:1;"><input type="text" id="qExp" placeholder="Explanation (Optional)"></div></div>
+                    
+                    <button class="save-btn" id="qBtn" onclick="saveQuestion()">Add Question</button>
                 </div>
             </div>
 
@@ -176,8 +212,8 @@
                 <h2 class="title">Student Results <button class="btn-export" onclick="exportResults()">📥 Export to Excel</button></h2>
                 <div class="table-wrapper">
                     <table id="resultsTable">
-                        <thead><tr><th>Date</th><th>Student</th><th>Test</th><th>Correct</th><th>Wrong</th><th>Score</th></tr></thead>
-                        <tbody><tr><td colspan="6" style="text-align:center;">Loading results...</td></tr></tbody>
+                        <thead><tr><th>Date</th><th>Student</th><th>Test</th><th>Correct</th><th>Wrong</th><th>Neg</th><th>Score</th></tr></thead>
+                        <tbody><tr><td colspan="7" style="text-align:center;">Loading...</td></tr></tbody>
                     </table>
                 </div>
             </div>
@@ -192,11 +228,23 @@
                     <div><input type="text" id="caTitle" placeholder="Title"></div>
                     <div><input type="url" id="caLink" placeholder="Article/PDF Link"></div>
                 </div>
+                <div class="row">
+                    <div style="flex:2;"><input type="text" id="caQ" placeholder="Question"></div>
+                    <div><input type="text" id="caOptA" placeholder="Option A"></div>
+                    <div><input type="text" id="caOptB" placeholder="Option B"></div>
+                    <div><input type="text" id="caOptC" placeholder="Option C"></div>
+                    <div><input type="text" id="caOptD" placeholder="Option D"></div>
+                    <div><input type="text" id="caOptE" placeholder="Option E (Optional)"></div>
+                </div>
+                <div class="row">
+                    <div><select id="caAns"><option value="0">Correct: A</option><option value="1">Correct: B</option><option value="2">Correct: C</option><option value="3">Correct: D</option><option value="4">Correct: E</option></select></div>
+                    <div style="flex:2;"><input type="text" id="caExp" placeholder="Explanation (For Monthly only)"></div>
+                </div>
                 <button class="save-btn" id="caBtn" onclick="saveCA()">Add Current Affairs</button>
                 <div class="table-wrapper">
                     <table id="caTable">
-                        <thead><tr><th>Type</th><th>Date</th><th>Title</th><th>Action</th></tr></thead>
-                        <tbody><tr><td colspan="4" style="text-align:center;">Loading Current Affairs...</td></tr></tbody>
+                        <thead><tr><th>Type</th><th>Date</th><th>Title</th><th>Question</th><th>Action</th></tr></thead>
+                        <tbody><tr><td colspan="5" style="text-align:center;">Loading...</td></tr></tbody>
                     </table>
                 </div>
             </div>
@@ -206,14 +254,24 @@
                 <h2 class="title">Bulk Upload (CSV)</h2>
                 <div class="row">
                     <div style="border: 2px dashed #ccc; padding: 15px; border-radius: 10px; text-align: center;">
-                        <h3 style="font-size: 14px; margin-bottom: 10px;">Upload Tests CSV</h3>
+                        <h3 style="font-size: 14px; margin-bottom: 10px;">1. Upload Tests</h3>
                         <input type="file" id="testsCsvFile" accept=".csv" style="border: none; margin-bottom: 10px;">
                         <button class="save-btn" style="background: #8B5CF6;" onclick="uploadTestsCsv()">Upload Tests</button>
+                        <button onclick="downloadTestsTemplate()" style="background:none; border:1px solid #8B5CF6; color:#8B5CF6; padding:6px 12px; border-radius:6px; cursor:pointer; font-size:12px; margin-top:5px; width:100%;">📥 Download Test Template</button>
                     </div>
+                    
                     <div style="border: 2px dashed #ccc; padding: 15px; border-radius: 10px; text-align: center;">
-                        <h3 style="font-size: 14px; margin-bottom: 10px;">Upload Questions CSV</h3>
+                        <h3 style="font-size: 14px; margin-bottom: 10px;">2. Upload Questions</h3>
                         <input type="file" id="questionsCsvFile" accept=".csv" style="border: none; margin-bottom: 10px;">
                         <button class="save-btn" style="background: #EC4899;" onclick="uploadQuestionsCsv()">Upload Questions</button>
+                        <button onclick="downloadQuestionsTemplate()" style="background:none; border:1px solid #EC4899; color:#EC4899; padding:6px 12px; border-radius:6px; cursor:pointer; font-size:12px; margin-top:5px; width:100%;">📥 Download Question Template</button>
+                    </div>
+
+                    <div style="border: 2px dashed #ccc; padding: 15px; border-radius: 10px; text-align: center;">
+                        <h3 style="font-size: 14px; margin-bottom: 10px;">3. Upload Current Affairs</h3>
+                        <input type="file" id="caCsvFile" accept=".csv" style="border: none; margin-bottom: 10px;">
+                        <button class="save-btn" style="background: #F59E0B;" onclick="uploadCaCsv()">Upload CA</button>
+                        <button onclick="downloadCaTemplate()" style="background:none; border:1px solid #F59E0B; color:#F59E0B; padding:6px 12px; border-radius:6px; cursor:pointer; font-size:12px; margin-top:5px; width:100%;">📥 Download CA Template</button>
                     </div>
                 </div>
                 <p id="bulkStatus" style="text-align: center; font-weight: bold; margin-top: 20px; color: var(--primary);"></p>
