@@ -4,14 +4,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TaiyariGhar Secure Admin Panel</title>
+    <title>TaiyariGhar Complete Admin Panel</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root { --primary: #4F46E5; --bg: #F3F4F6; --text: #1F2937; --white: #FFFFFF; --danger: #EF4444; --accent: #10B981; }
         * { box-sizing: border-box; font-family: 'Poppins', sans-serif; margin: 0; padding: 0; }
         body { background: var(--bg); color: var(--text); padding: 20px; }
         .hide { display: none !important; }
-        .container { max-width: 900px; margin: 0 auto; background: var(--white); padding: 30px; border-radius: 14px; box-shadow: 0 4px 20px rgba(0,0,0,0.06); }
+        .container { max-width: 1000px; margin: 0 auto; background: var(--white); padding: 30px; border-radius: 14px; box-shadow: 0 4px 20px rgba(0,0,0,0.06); }
         h2 { color: var(--primary); margin-bottom: 20px; }
         .form-group { margin-bottom: 15px; }
         label { display: block; font-weight: 600; font-size: 13px; margin-bottom: 6px; color: #374151; }
@@ -20,70 +20,119 @@
         .btn { padding: 10px 20px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; color: white; background: var(--primary); }
         .btn-accent { background: var(--accent); }
         .login-box { max-width: 400px; margin: 80px auto; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); text-align: center; }
+        
+        /* Admin Navigation Tabs */
+        .admin-tabs { display: flex; gap: 10px; margin-bottom: 25px; border-bottom: 2px solid #E5E7EB; padding-bottom: 10px; flex-wrap: wrap; }
+        .admin-tab-btn { padding: 8px 16px; background: #E5E7EB; color: #374151; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 13px; }
+        .admin-tab-btn.active { background: var(--primary); color: white; }
     </style>
 </head>
 <body>
 
-    <!-- Admin Login Screen with Email & Password -->
+    <!-- Admin Login Screen -->
     <div id="adminLoginScreen" class="login-box">
         <h2>🔒 Admin Secure Login</h2>
-        <p style="font-size: 12px; color: #6B7280; margin-bottom: 15px;">Enter your admin email and password</p>
-        <input type="email" id="adminEmailInput" placeholder="Admin Email ID (e.g., madhup@taiyarighar.in)" style="margin-bottom: 12px;">
+        <p style="font-size: 12px; color: #6B7280; margin-bottom: 15px;">Enter admin credentials</p>
+        <input type="email" id="adminEmailInput" value="madhupverma8@gmail.com" placeholder="Admin Email ID" style="margin-bottom: 12px;">
         <input type="password" id="adminPassInput" placeholder="Admin Password" style="margin-bottom: 15px;" onkeypress="if(event.key==='Enter') verifyAdminLogin()">
         <button class="btn" style="width: 100%;" onclick="verifyAdminLogin()">Login to Panel</button>
     </div>
 
-    <!-- Admin Dashboard Container -->
+    <!-- Admin Dashboard Container with All Tabs Restored -->
     <div id="adminDashboard" class="container hide">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; border-bottom: 2px solid #E5E7EB; padding-bottom: 15px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
             <h2>🛠️ TaiyariGhar Admin Control Panel</h2>
             <button class="btn" style="background: var(--danger); padding: 6px 14px; font-size: 12px;" onclick="adminLogout()">Logout</button>
         </div>
 
-        <!-- Settings Section -->
-        <div style="background: #F8FAFC; padding: 20px; border-radius: 10px; border: 1px solid #E2E8F0;">
-            <h3 style="margin-bottom: 15px; color: var(--primary);">⚙️ Subscription Pricing & Settings</h3>
-            
-            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 15px;">
-                <div class="form-group">
-                    <label>3 Months MRP (₹)</label>
-                    <input type="number" id="plan3Mrp" value="149">
-                </div>
-                <div class="form-group">
-                    <label>3 Months Offer Price (₹)</label>
-                    <input type="number" id="plan3Price" value="99">
-                </div>
-                <div class="form-group">
-                    <label>6 Months MRP (₹)</label>
-                    <input type="number" id="plan6Mrp" value="249">
-                </div>
-                <div class="form-group">
-                    <label>6 Months Offer Price (₹)</label>
-                    <input type="number" id="plan6Price" value="199">
-                </div>
-                <div class="form-group">
-                    <label>12 Months MRP (₹)</label>
-                    <input type="number" id="plan12Mrp" value="399">
-                </div>
-                <div class="form-group">
-                    <label>12 Months Offer Price (₹)</label>
-                    <input type="number" id="plan12Price" value="249">
-                </div>
-            </div>
-
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
-                <div class="form-group">
-                    <label>Support WhatsApp Number</label>
-                    <input type="text" id="supportMobile" value="9140281870">
-                </div>
-                <div class="form-group">
-                    <label>Razorpay / UPI ID</label>
-                    <input type="text" id="upiId" value="taiyarighar@ptye">
-                </div>
-            </div>
-
-            <button class="btn btn-accent" onclick="saveSettings()">💾 Save Settings & Prices</button>
+        <!-- Navigation Tabs -->
+        <div class="admin-tabs">
+            <button class="admin-tab-btn active" onclick="switchAdminTab('settingsTab', this)">⚙️ Pricing & Settings</button>
+            <button class="admin-tab-btn" onclick="switchAdminTab('testsTab', this)">📝 Manage Tests</button>
+            <button class="admin-tab-btn" onclick="switchAdminTab('studentsTab', this)">👥 Students & Subscriptions</button>
+            <button class="admin-tab-btn" onclick="switchAdminTab('liveTab', this)">🔴 Live Exams</button>
         </div>
+
+        <!-- TAB 1: Pricing & Settings -->
+        <div id="settingsTab" class="admin-tab-content">
+            <div style="background: #F8FAFC; padding: 20px; border-radius: 10px; border: 1px solid #E2E8F0;">
+                <h3 style="margin-bottom: 15px; color: var(--primary);">⚙️ 3-Tier Subscription Pricing & Settings</h3>
+                
+                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 15px;">
+                    <div class="form-group">
+                        <label>3 Months MRP (₹)</label>
+                        <input type="number" id="plan3Mrp" value="149">
+                    </div>
+                    <div class="form-group">
+                        <label>3 Months Offer Price (₹)</label>
+                        <input type="number" id="plan3Price" value="99">
+                    </div>
+                    <div class="form-group">
+                        <label>6 Months MRP (₹)</label>
+                        <input type="number" id="plan6Mrp" value="249">
+                    </div>
+                    <div class="form-group">
+                        <label>6 Months Offer Price (₹)</label>
+                        <input type="number" id="plan6Price" value="199">
+                    </div>
+                    <div class="form-group">
+                        <label>12 Months MRP (₹)</label>
+                        <input type="number" id="plan12Mrp" value="399">
+                    </div>
+                    <div class="form-group">
+                        <label>12 Months Offer Price (₹)</label>
+                        <input type="number" id="plan12Price" value="249">
+                    </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
+                    <div class="form-group">
+                        <label>Support WhatsApp Number</label>
+                        <input type="text" id="supportMobile" value="9140281870">
+                    </div>
+                    <div class="form-group">
+                        <label>Razorpay / UPI ID</label>
+                        <input type="text" id="upiId" value="taiyarighar@ptye">
+                    </div>
+                </div>
+
+                <button class="btn btn-accent" onclick="saveSettings()">💾 Save Settings & Prices</button>
+            </div>
+        </div>
+
+        <!-- TAB 2: Manage Tests -->
+        <div id="testsTab" class="admin-tab-content hide">
+            <div style="background: #F8FAFC; padding: 20px; border-radius: 10px; border: 1px solid #E2E8F0;">
+                <h3 style="margin-bottom: 10px; color: var(--primary);">📝 Mock Tests Directory</h3>
+                <p style="font-size: 13px; color: #6B7280; margin-bottom: 15px;">Manage or create new question sets for exams.</p>
+                <div id="adminTestsListContainer">
+                    <p style="font-size: 14px; color: #4B5563;">Tests list loaded from Firestore database.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 3: Students & Subscriptions -->
+        <div id="studentsTab" class="admin-tab-content hide">
+            <div style="background: #F8FAFC; padding: 20px; border-radius: 10px; border: 1px solid #E2E8F0;">
+                <h3 style="margin-bottom: 10px; color: var(--primary);">👥 Registered Students Database</h3>
+                <p style="font-size: 13px; color: #6B7280; margin-bottom: 15px;">View active candidates and subscription statuses.</p>
+                <div id="adminStudentsListContainer">
+                    <p style="font-size: 14px; color: #4B5563;">Loading registered students...</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 4: Live Exams -->
+        <div id="liveTab" class="admin-tab-content hide">
+            <div style="background: #F8FAFC; padding: 20px; border-radius: 10px; border: 1px solid #E2E8F0;">
+                <h3 style="margin-bottom: 10px; color: var(--primary);">🔴 All-India Live Tests Control</h3>
+                <p style="font-size: 13px; color: #6B7280; margin-bottom: 15px;">Schedule live tests and manage auto-score release timings.</p>
+                <div id="adminLiveTestsContainer">
+                    <p style="font-size: 14px; color: #4B5563;">Live test windows are active.</p>
+                </div>
+            </div>
+        </div>
+
     </div>
 
     <script type="module" src="admin-app.js"></script>
