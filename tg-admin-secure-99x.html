@@ -7,7 +7,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
     
-    <!-- यहाँ CSS फाइल लिंक की है -->
+    <!-- CSS File Link -->
     <link rel="stylesheet" href="admin-style.css">
 </head>
 <body>
@@ -31,10 +31,11 @@
         </div>
 
         <div class="tabs">
-            <button class="tab-btn active" onclick="openTab('tabSettings', this)">⚙️ Settings</button>
+            <button class="tab-btn active" onclick="openTab('tabSettings', this)">⚙️ Settings & GST</button>
             <button class="tab-btn" onclick="openTab('tabStudents', this)">👨‍🎓 Students</button>
+            <button class="tab-btn" onclick="openTab('tabPayments', this)">💳 Payments</button>
             <button class="tab-btn" onclick="openTab('tabCategories', this)">🗂️ Exam Types</button>
-            <button class="tab-btn" onclick="openTab('tabTests', this)">📝 Tests</button>
+            <button class="tab-btn" onclick="openTab('tabTests', this)">📝 Tests & Live</button>
             <button class="tab-btn" onclick="openTab('tabQuestions', this)">❓ Questions</button>
             <button class="tab-btn" onclick="openTab('tabResults', this)">📊 Results</button>
             <button class="tab-btn" onclick="openTab('tabCA', this)">📰 Current Affairs</button>
@@ -43,29 +44,58 @@
 
         <div class="container">
             
+            <!-- SETTINGS & FUTURE GST CONFIGURATION -->
             <div id="tabSettings" class="section active">
-                <h2 class="title">Payment & Settings</h2>
+                <h2 class="title">Subscription, Invoice & GST Settings</h2>
                 <div class="row">
-                    <div><label>UPI ID</label><input type="text" id="setUpi"></div>
-                    <div><label>WhatsApp Number</label><input type="text" id="setMobile"></div>
-                    <div><label>Price (₹)</label><input type="number" id="setPrice"></div>
-                    <div><label>Offer Text</label><input type="text" id="setOffer"></div>
+                    <div>
+                        <label>Subscription Price (₹)</label>
+                        <input type="number" id="setPrice" placeholder="e.g., 99">
+                    </div>
+                    <div>
+                        <label>Validity (Days)</label>
+                        <input type="number" id="setValidity" placeholder="e.g., 365">
+                    </div>
+                    <div>
+                        <label>Offer Text (Optional)</label>
+                        <input type="text" id="setOffer" placeholder="e.g., 50% OFF Today">
+                    </div>
                 </div>
+
+                <div style="background: #F8FAFC; border: 1px dashed #CBD5E1; padding: 15px; border-radius: 10px; margin: 15px 0;">
+                    <h3 style="font-size: 14px; color: var(--primary); margin-bottom: 10px;">🧾 Invoice & GST Configuration (Future Ready)</h3>
+                    <div class="row">
+                        <div>
+                            <label>Enable GST on Email Invoice?</label>
+                            <select id="setGstEnabled" onchange="toggleGstInput()">
+                                <option value="No">No (Without GST - Simple Receipt)</option>
+                                <option value="Yes">Yes (Tax Invoice with 18% GST)</option>
+                            </select>
+                        </div>
+                        <div id="gstNumberBox" style="display: none;">
+                            <label>Company GSTIN Number</label>
+                            <input type="text" id="setGstNumber" placeholder="e.g., 09ABCDE1234F1Z5" style="text-transform: uppercase;">
+                        </div>
+                    </div>
+                    <p style="font-size: 12px; color: #64748B; margin: 0;">Note: Keep this set to "No" until you obtain a GST number. Whenever you get a GST number in the future, simply select "Yes", enter your GSTIN, and click Save.</p>
+                </div>
+
                 <button class="save-btn" onclick="saveSettings()">Save Settings</button>
-                <p id="settingsMsg" class="msg" style="display: none;">✅ Settings Saved!</p>
+                <p id="settingsMsg" class="msg" style="display: none;">✅ Settings Saved Successfully!</p>
             </div>
 
+            <!-- STUDENTS TAB -->
             <div id="tabStudents" class="section">
-                <h2 class="title">Students & Payments <button class="btn-export" onclick="exportStudents()">📥 Export to Excel</button></h2>
+                <h2 class="title">Registered Students <button class="btn-export" onclick="exportStudents()">📥 Export to Excel</button></h2>
                 <div class="table-wrapper">
                     <table id="studentsTable">
                         <thead>
                             <tr>
                                 <th>Name</th>
-                                <th>Mobile (Login)</th>
-                                <th>ID</th>
-                                <th>Pass</th>
-                                <th>Recovery Details</th>
+                                <th>Email ID</th>
+                                <th>Mobile</th>
+                                <th>Login ID</th>
+                                <th>Password</th>
                                 <th>Status</th>
                                 <th>Expiry</th>
                                 <th>Devices</th>
@@ -77,13 +107,35 @@
                 </div>
             </div>
 
+            <!-- PAYMENTS & INVOICES TAB -->
+            <div id="tabPayments" class="section">
+                <h2 class="title">Razorpay Payments & Invoices <button class="btn-export" onclick="exportPayments()">📥 Export Invoices</button></h2>
+                <div class="table-wrapper">
+                    <table id="paymentsTable">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Invoice No.</th>
+                                <th>Razorpay ID</th>
+                                <th>Student</th>
+                                <th>Email / Mobile</th>
+                                <th>Amount (₹)</th>
+                                <th>Valid Till</th>
+                            </tr>
+                        </thead>
+                        <tbody><tr><td colspan="7" style="text-align:center;">Loading...</td></tr></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- CATEGORIES & EXAM TYPES -->
             <div id="tabCategories" class="section">
                 <h2 class="title">Manage Categories & Exam Types</h2>
                 
                 <input type="hidden" id="editCatId">
                 <div class="row">
                     <div><input type="text" id="newMainCat" placeholder="Main Category (e.g., Railway Exams)"></div>
-                    <div><input type="text" id="newSubCat" placeholder="Sub Category (e.g., RPF)"></div>
+                    <div><input type="text" id="newSubCat" placeholder="Sub Category (e.g., Group D)"></div>
                     <div><input type="text" id="newExamName" placeholder="Exam Name/Type (e.g., Full Length Mock)"></div>
                     <div><button class="save-btn" id="catBtn" style="margin-bottom:0; background:var(--success);" onclick="saveCategory()">Add Category</button></div>
                 </div>
@@ -102,36 +154,70 @@
                 </div>
             </div>
 
+            <!-- MANAGE TESTS (INCLUDING SCHEDULED LIVE TESTS & CUSTOM MARKING) -->
             <div id="tabTests" class="section">
-                <h2 class="title">Manage Tests <button class="btn-export" onclick="exportTests()">📥 Export to Excel</button></h2>
+                <h2 class="title">Manage Normal & Live Tests <button class="btn-export" onclick="exportTests()">📥 Export to Excel</button></h2>
                 <input type="hidden" id="editTestId">
                 <div class="row">
-                    <div><input type="text" id="tId" placeholder="Test ID (e.g., T1)"></div>
+                    <div><input type="text" id="tId" placeholder="Test ID (e.g., RRB01)"></div>
                     <div><select id="tMain" onchange="updateSubCatDropdown()"><option value="">Select Main Category</option></select></div>
                     <div><select id="tSub" onchange="updateExamNameDropdown()"><option value="">Select Sub Category</option></select></div>
                     <div><select id="tExam"><option value="">Select Exam Name / Type</option></select></div>
                 </div>
                 <div class="row">
-                    <div><input type="text" id="tName" placeholder="Test Name (e.g., Mock Test 01)"></div>
+                    <div><input type="text" id="tName" placeholder="Test Name (e.g., Group D All-India Live 01)"></div>
                     <div><input type="number" id="tDur" placeholder="Duration (Mins)"></div>
                     <div><input type="number" id="tMarks" placeholder="Total Marks"></div>
                     <div><input type="number" id="tTotalQs" placeholder="Total Questions"></div>
                 </div>
                 <div class="row">
-                    <div><select id="tLanguage"><option value="Both">Language: Hindi + English</option><option value="Hindi">Language: Only Hindi</option><option value="English">Language: Only English</option></select></div>
+                    <div><input type="number" step="0.01" id="tPosMark" placeholder="Positive Mark per Q (Default: 1)"></div>
                     <div><select id="tHasNeg" onchange="toggleTestNeg()"><option value="No">Negative Marking? No</option><option value="Yes">Negative Marking? Yes</option></select></div>
                     <div id="tNegBox" style="display:none;"><input type="number" step="0.01" id="tNegMark" placeholder="Neg Mark (e.g., 0.33)"></div>
-                    <div><select id="tFree"><option value="Yes">Is Free? Yes</option><option value="No">Is Free? No</option></select></div>
+                    <div><select id="tLanguage"><option value="Both">Language: Hindi + English</option><option value="Hindi">Language: Only Hindi</option><option value="English">Language: Only English</option></select></div>
                 </div>
+
+                <!-- Live Test Schedule & Access Row -->
+                <div style="background: #FEF2F2; border: 1px solid #FECACA; padding: 14px; border-radius: 10px; margin-bottom: 12px;">
+                    <div class="row" style="align-items: center;">
+                        <div>
+                            <label style="font-size: 12px; font-weight: 600; color: #991B1B;">Test Mode</label>
+                            <select id="tIsLive" onchange="toggleLiveTestFields()" style="margin-bottom: 0;">
+                                <option value="No">Normal Mock Test</option>
+                                <option value="Yes">🔴 All-India Live Exam (Subscribers Only)</option>
+                            </select>
+                        </div>
+                        <div id="tFreeBox">
+                            <label style="font-size: 12px; font-weight: 600; color: #374151;">Is Free? (Normal Test)</label>
+                            <select id="tFree" style="margin-bottom: 0;">
+                                <option value="Yes">Yes (Free for All)</option>
+                                <option value="No">No (Subscribers Only)</option>
+                            </select>
+                        </div>
+                        <div id="liveStartBox" style="display: none;">
+                            <label style="font-size: 12px; font-weight: 600; color: #991B1B;">Live Start Date & Time</label>
+                            <input type="datetime-local" id="tLiveStart" style="margin-bottom: 0;">
+                        </div>
+                        <div id="liveEndBox" style="display: none;">
+                            <label style="font-size: 12px; font-weight: 600; color: #991B1B;">Live End / Result Time (e.g. 12:00 AM)</label>
+                            <input type="datetime-local" id="tLiveEnd" style="margin-bottom: 0;">
+                        </div>
+                    </div>
+                    <p id="liveHelpText" style="display: none; font-size: 11px; color: #991B1B; margin-top: 8px; margin-bottom: 0;">
+                        * Live Exams are strictly for Paid Subscribers. Results remain hidden until the Live End Time, after which they are released automatically & emailed, and the test moves into its regular category.
+                    </p>
+                </div>
+
                 <button class="save-btn" id="testBtn" onclick="saveTest()">Add Test</button>
                 <div class="table-wrapper">
                     <table id="testsTable">
-                        <thead><tr><th>ID</th><th>Category</th><th>Test Name</th><th>Lang</th><th>Marks</th><th>Qs</th><th>Neg</th><th>Action</th></tr></thead>
-                        <tbody><tr><td colspan="8" style="text-align:center;">Loading...</td></tr></tbody>
+                        <thead><tr><th>ID</th><th>Mode</th><th>Category</th><th>Test Name</th><th>Marking</th><th>Schedule / Access</th><th>Action</th></tr></thead>
+                        <tbody><tr><td colspan="7" style="text-align:center;">Loading...</td></tr></tbody>
                     </table>
                 </div>
             </div>
 
+            <!-- QUESTIONS TAB -->
             <div id="tabQuestions" class="section">
                 <h2 class="title">Manage Questions (Search & Edit)</h2>
                 <input type="hidden" id="editQId">
@@ -139,7 +225,7 @@
                 <div style="background: #f8fafc; padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #e2e8f0;">
                     <h3 style="margin-bottom: 10px; font-size: 15px; color: var(--primary);">🔍 Search & Download Questions</h3>
                     <div class="row">
-                        <div style="flex: 2;"><input type="text" id="searchTestId" placeholder="Enter Test ID (e.g., RRB001)" style="margin-bottom:0;"></div>
+                        <div style="flex: 2;"><input type="text" id="searchTestId" placeholder="Enter Test ID (e.g., RRB01)" style="margin-bottom:0;"></div>
                         <div style="flex: 1;"><button class="save-btn" style="margin-bottom:0; background: var(--primary);" onclick="searchQuestions()">Search</button></div>
                         <div style="flex: 1;"><button class="save-btn" style="margin-bottom:0; background: var(--success);" onclick="downloadTestQuestions()">📥 Download</button></div>
                     </div>
@@ -149,7 +235,7 @@
                     <h3 style="margin-bottom: 10px; font-size: 15px; color: var(--purple);">Showing Questions for Test ID: <span id="displaySearchTestId" style="font-weight:bold;"></span></h3>
                     <div class="table-wrapper">
                         <table id="questionsTable">
-                            <thead><tr><th>Q-ID</th><th>Question (Hindi)</th><th>Question (English)</th><th>Marks</th><th>Action</th></tr></thead>
+                            <thead><tr><th>Q-ID</th><th>Question (Hindi)</th><th>Question (English)</th><th>Marks (+ / -)</th><th>Action</th></tr></thead>
                             <tbody></tbody>
                         </table>
                     </div>
@@ -157,7 +243,7 @@
 
                 <div style="border-top: 2px dashed #ccc; padding-top: 20px; margin-top: 20px;">
                     <h3 class="sub-title">Add / Edit Question Manually</h3>
-                    <div class="row"><div><input type="text" id="qTestId" placeholder="Test ID (e.g., T1)"></div></div>
+                    <div class="row"><div><input type="text" id="qTestId" placeholder="Test ID (e.g., RRB01)"></div></div>
                     
                     <div class="row">
                         <div style="flex:2;"><input type="text" id="qTextHindi" placeholder="Question in Hindi"></div>
@@ -171,8 +257,8 @@
 
                     <div class="row">
                         <div><select id="qAns"><option value="0">Correct: A</option><option value="1">Correct: B</option><option value="2">Correct: C</option><option value="3">Correct: D</option><option value="4">Correct: E</option></select></div>
-                        <div><input type="number" step="0.01" id="qMarks" placeholder="Marks (e.g., 1)"></div>
-                        <div><input type="number" step="0.01" id="qNeg" placeholder="Neg Marks (e.g., 0.33)"></div>
+                        <div><input type="number" step="0.01" id="qMarks" placeholder="Positive Marks (e.g., 1)"></div>
+                        <div><input type="number" step="0.01" id="qNeg" placeholder="Negative Marks (e.g., 0.33)"></div>
                     </div>
                     <div class="row"><div style="flex:1;"><input type="text" id="qExp" placeholder="Explanation (Optional)"></div></div>
                     
@@ -180,16 +266,18 @@
                 </div>
             </div>
 
+            <!-- RESULTS TAB -->
             <div id="tabResults" class="section">
                 <h2 class="title">Student Results <button class="btn-export" onclick="exportResults()">📥 Export to Excel</button></h2>
                 <div class="table-wrapper">
                     <table id="resultsTable">
-                        <thead><tr><th>Date</th><th>Student</th><th>Test</th><th>Correct</th><th>Wrong</th><th>Neg</th><th>Score</th></tr></thead>
-                        <tbody><tr><td colspan="7" style="text-align:center;">Loading...</td></tr></tbody>
+                        <thead><tr><th>Date</th><th>Student</th><th>Test</th><th>Mode</th><th>Correct</th><th>Wrong</th><th>Neg</th><th>Score</th></tr></thead>
+                        <tbody><tr><td colspan="8" style="text-align:center;">Loading...</td></tr></tbody>
                     </table>
                 </div>
             </div>
 
+            <!-- CURRENT AFFAIRS TAB -->
             <div id="tabCA" class="section">
                 <h2 class="title">Manage Current Affairs</h2>
                 <input type="hidden" id="editCaId">
@@ -220,6 +308,7 @@
                 </div>
             </div>
 
+            <!-- BULK UPLOAD TAB -->
             <div id="tabUpload" class="section">
                 <h2 class="title">Bulk Upload (CSV)</h2>
                 <div class="row">
@@ -250,7 +339,7 @@
         </div>
     </div>
 
-    <!-- यहाँ JS फाइल लिंक की है -->
+    <!-- JS File Link -->
     <script type="module" src="admin-app.js"></script>
 </body>
 </html>
