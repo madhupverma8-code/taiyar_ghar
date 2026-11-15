@@ -1,345 +1,454 @@
+<!-- Copyright (c) 2026 TaiyariGhar. All Rights Reserved. Secure Admin Panel. -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TaiyariGhar | Admin Panel</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+    <title>Secure Admin Panel - TaiyariGhar</title>
+    <link rel="icon" href="logo.png">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     
-    <!-- CSS File Link -->
-    <link rel="stylesheet" href="admin-style.css">
+    <!-- PapaParse for CSV handling -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/Papa.min.js"></script>
+
+    <style>
+        :root {
+            --primary: #4F46E5;
+            --primary-hover: #4338CA;
+            --success: #10B981;
+            --warning: #F59E0B;
+            --danger: #EF4444;
+            --purple: #8B5CF6;
+            --bg: #F3F4F6;
+            --text: #1F2937;
+            --white: #FFFFFF;
+        }
+        * { box-sizing: border-box; font-family: 'Poppins', sans-serif; margin: 0; padding: 0; }
+        body { background-color: var(--bg); color: var(--text); min-height: 100vh; }
+        .hide { display: none !important; }
+
+        /* Lock Screen */
+        #lockScreen { position: fixed; inset: 0; background: #0F172A; display: flex; justify-content: center; align-items: center; z-index: 9999; }
+        .lock-box { background: white; padding: 35px 30px; border-radius: 16px; width: 90%; max-width: 400px; text-align: center; box-shadow: 0 20px 40px rgba(0,0,0,0.3); }
+        .lock-box h2 { color: var(--primary); margin-bottom: 8px; font-size: 24px; }
+        .lock-box p { font-size: 13px; color: #6B7280; margin-bottom: 20px; }
+        .lock-box input { width: 100%; padding: 12px; margin-bottom: 12px; border: 2px solid #E5E7EB; border-radius: 8px; outline: none; font-size: 14px; }
+        .lock-box input:focus { border-color: var(--primary); }
+        .lock-box button { width: 100%; padding: 12px; background: var(--primary); color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 15px; }
+        .lock-box button:hover { background: var(--primary-hover); }
+
+        /* Admin Navbar */
+        .admin-nav { background: #1E1B4B; color: white; padding: 12px 3%; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; position: sticky; top: 0; z-index: 1000; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        .admin-nav h1 { font-size: 18px; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+        .admin-nav button { background: var(--danger); color: white; border: none; padding: 6px 14px; border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 13px; }
+
+        /* Tabs Header */
+        .admin-tabs { background: white; padding: 10px 3%; display: flex; gap: 8px; overflow-x: auto; box-shadow: 0 2px 10px rgba(0,0,0,0.05); border-bottom: 1px solid #E5E7EB; white-space: nowrap; }
+        .tab-btn { padding: 8px 16px; border: none; background: #F3F4F6; color: #4B5563; font-weight: 600; font-size: 13px; border-radius: 8px; cursor: pointer; transition: 0.2s; }
+        .tab-btn:hover { background: #E0E7FF; color: var(--primary); }
+        .tab-btn.active { background: var(--primary); color: white; box-shadow: 0 4px 12px rgba(79,70,229,0.3); }
+
+        /* Content Sections */
+        .section { padding: 25px 3%; display: none; }
+        .section.active { display: block; }
+        .card { background: white; padding: 22px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.04); margin-bottom: 20px; border: 1px solid #E5E7EB; }
+        .card h3 { font-size: 18px; color: var(--primary); margin-bottom: 15px; font-weight: 700; }
+
+        /* Tables */
+        .table-responsive { width: 100%; overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 13px; text-align: left; }
+        th, td { border: 1px solid #E5E7EB; padding: 10px 12px; }
+        th { background: #F8FAFC; color: var(--primary); font-weight: 700; }
+        tr:nth-child(even) { background: #F9FAFB; }
+
+        /* Form Controls */
+        .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 15px; margin-bottom: 15px; }
+        .form-group { display: flex; flex-direction: column; gap: 5px; }
+        .form-group label { font-size: 12px; font-weight: 600; color: #4B5563; }
+        .form-group input, .form-group select, .form-group textarea { padding: 10px; border: 1px solid #CBD5E1; border-radius: 8px; font-size: 13px; outline: none; }
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus { border-color: var(--primary); }
+
+        /* Action Buttons in Tables */
+        .btn-edit { background: var(--warning); color: white; border: none; padding: 4px 10px; border-radius: 4px; font-size: 11px; font-weight: 600; cursor: pointer; }
+        .btn-delete { background: var(--danger); color: white; border: none; padding: 4px 10px; border-radius: 4px; font-size: 11px; font-weight: 600; cursor: pointer; }
+        .btn-approve { background: var(--success); color: white; border: none; padding: 5px 12px; border-radius: 4px; font-size: 12px; font-weight: 600; cursor: pointer; }
+        .btn-unpaid { background: #64748B; color: white; border: none; padding: 5px 12px; border-radius: 4px; font-size: 12px; font-weight: 600; cursor: pointer; margin-bottom: 4px; }
+        .btn-reset { background: var(--purple); color: white; border: none; padding: 4px 10px; border-radius: 4px; font-size: 11px; font-weight: 600; cursor: pointer; margin-bottom: 4px; }
+        .btn-reset-pass { background: #0284C7; color: white; border: none; padding: 4px 10px; border-radius: 4px; font-size: 11px; font-weight: 600; cursor: pointer; }
+
+        .status-paid { background: #D1FAE5; color: #065F46; padding: 3px 8px; border-radius: 10px; font-weight: 700; font-size: 11px; }
+        .status-free { background: #FEF3C7; color: #92400E; padding: 3px 8px; border-radius: 10px; font-weight: 700; font-size: 11px; }
+
+        /* Loading Spinner */
+        #loading { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: none; justify-content: center; align-items: center; z-index: 10000; color: white; font-size: 18px; font-weight: bold; }
+    </style>
 </head>
 <body>
 
-    <div id="loading">Processing... Please wait.</div>
+    <!-- LOADING OVERLAY -->
+    <div id="loading">Processing... Please wait...</div>
 
+    <!-- FIREBASE AUTH LOCK SCREEN -->
     <div id="lockScreen">
         <div class="lock-box">
-            <h2>🔐 Admin Login</h2>
-            <input type="email" id="adminEmail" placeholder="Admin Email">
-            <input type="password" id="adminPass" placeholder="Password" onkeypress="if(event.key==='Enter') checkPass()">
-            <button onclick="checkPass()">Unlock Panel</button>
-            <p id="errMsg" class="err-msg">❌ Incorrect Email or Password!</p>
+            <h2>🔒 Admin Secure Login</h2>
+            <p>Enter your Firebase Admin credentials to access the management portal.</p>
+            <input type="email" id="adminEmail" placeholder="Admin Email ID (e.g. madhupverma8@gmail.com)">
+            <input type="password" id="adminPass" placeholder="Admin Password" onkeypress="if(event.key==='Enter') checkPass()">
+            <button onclick="checkPass()">Unlock Admin Panel</button>
+            <p id="errMsg" style="color: var(--danger); font-size: 12px; margin-top: 12px; display: none;">❌ Invalid Admin Credentials!</p>
+            <p style="margin-top: 15px; font-size: 12px;"><a href="/" style="color: var(--primary); text-decoration: none;">← Back to Website Home</a></p>
         </div>
     </div>
 
+    <!-- MAIN ADMIN PANEL (Visible after Auth) -->
     <div id="adminPanel" style="display: none;">
-        <div class="header">
-            <h1>TaiyariGhar Admin</h1>
-            <button onclick="logoutAdmin()">Logout</button>
+        
+        <header class="admin-nav">
+            <h1>🏠 TaiyariGhar • Secure Admin Control Center</h1>
+            <button onclick="logoutAdmin()">🔒 Logout Admin</button>
+        </header>
+
+        <div class="admin-tabs">
+            <button class="tab-btn active" onclick="openTab('settingsTab', this)">⚙️ Settings & GST</button>
+            <button class="tab-btn" onclick="openTab('studentsTab', this)">👥 Students</button>
+            <button class="tab-btn" onclick="openTab('paymentsTab', this)">💳 Payments & Invoices</button>
+            <button class="tab-btn" onclick="openTab('categoriesTab', this)">📂 Categories</button>
+            <button class="tab-btn" onclick="openTab('testsTab', this)">📝 Tests & Live</button>
+            <button class="tab-btn" onclick="openTab('questionsTab', this)">❓ Questions</button>
+            <button class="tab-btn" onclick="openTab('resultsTab', this)">📊 Results</button>
+            <button class="tab-btn" onclick="openTab('caTab', this)">📰 Current Affairs</button>
+            <button class="tab-btn" onclick="openTab('bulkTab', this)">📥 Bulk Uploads</button>
         </div>
 
-        <div class="tabs">
-            <button class="tab-btn active" onclick="openTab('tabSettings', this)">⚙️ Settings & GST</button>
-            <button class="tab-btn" onclick="openTab('tabStudents', this)">👨‍🎓 Students</button>
-            <button class="tab-btn" onclick="openTab('tabPayments', this)">💳 Payments</button>
-            <button class="tab-btn" onclick="openTab('tabCategories', this)">🗂️ Exam Types</button>
-            <button class="tab-btn" onclick="openTab('tabTests', this)">📝 Tests & Live</button>
-            <button class="tab-btn" onclick="openTab('tabQuestions', this)">❓ Questions</button>
-            <button class="tab-btn" onclick="openTab('tabResults', this)">📊 Results</button>
-            <button class="tab-btn" onclick="openTab('tabCA', this)">📰 Current Affairs</button>
-            <button class="tab-btn" onclick="openTab('tabUpload', this)">🚀 Bulk Upload</button>
-        </div>
+        <!-- TAB 1: SETTINGS & SUBSCRIPTION PRICING -->
+        <div id="settingsTab" class="section active">
+            <div class="card" style="max-width: 800px;">
+                <h3>⚙️ Subscription Plans, Pricing & GST Configuration</h3>
+                <p style="font-size: 13px; color: #6B7280; margin-bottom: 20px;">
+                    Configure the MRP and Discounted Offer Prices for the 3-tier subscription passes shown on the student payment modal.
+                </p>
 
-        <div class="container">
-            
-            <!-- SETTINGS & FUTURE GST CONFIGURATION -->
-            <div id="tabSettings" class="section active">
-                <h2 class="title">Subscription, Invoice & GST Settings</h2>
-                <div class="row">
-                    <div>
-                        <label>Subscription Price (₹)</label>
-                        <input type="number" id="setPrice" placeholder="e.g., 99">
+                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 20px;">
+                    <!-- 3 Months -->
+                    <div style="background: #F8FAFC; padding: 15px; border-radius: 10px; border: 1px solid #E2E8F0;">
+                        <h4 style="color: var(--primary); margin-bottom: 10px; font-size: 14px;">3 Months Pass</h4>
+                        <div class="form-group" style="margin-bottom: 10px;">
+                            <label>MRP (₹)</label>
+                            <input type="number" id="setPlan3Mrp" value="149">
+                        </div>
+                        <div class="form-group">
+                            <label>Offer Price (₹)</label>
+                            <input type="number" id="setPlan3Price" value="99">
+                        </div>
                     </div>
-                    <div>
-                        <label>Validity (Days)</label>
-                        <input type="number" id="setValidity" placeholder="e.g., 365">
+
+                    <!-- 6 Months -->
+                    <div style="background: #F8FAFC; padding: 15px; border-radius: 10px; border: 1px solid #E2E8F0;">
+                        <h4 style="color: var(--primary); margin-bottom: 10px; font-size: 14px;">6 Months Pass</h4>
+                        <div class="form-group" style="margin-bottom: 10px;">
+                            <label>MRP (₹)</label>
+                            <input type="number" id="setPlan6Mrp" value="249">
+                        </div>
+                        <div class="form-group">
+                            <label>Offer Price (₹)</label>
+                            <input type="number" id="setPlan6Price" value="199">
+                        </div>
                     </div>
-                    <div>
-                        <label>Offer Text (Optional)</label>
-                        <input type="text" id="setOffer" placeholder="e.g., 50% OFF Today">
+
+                    <!-- 12 Months -->
+                    <div style="background: #EEF2FF; padding: 15px; border-radius: 10px; border: 2px solid var(--primary);">
+                        <h4 style="color: var(--primary); margin-bottom: 10px; font-size: 14px;">12 Months (Best Value)</h4>
+                        <div class="form-group" style="margin-bottom: 10px;">
+                            <label>MRP (₹)</label>
+                            <input type="number" id="setPlan12Mrp" value="399">
+                        </div>
+                        <div class="form-group">
+                            <label>Offer Price (₹)</label>
+                            <input type="number" id="setPlan12Price" value="249">
+                        </div>
                     </div>
                 </div>
 
-                <div style="background: #F8FAFC; border: 1px dashed #CBD5E1; padding: 15px; border-radius: 10px; margin: 15px 0;">
-                    <h3 style="font-size: 14px; color: var(--primary); margin-bottom: 10px;">🧾 Invoice & GST Configuration (Future Ready)</h3>
-                    <div class="row">
-                        <div>
-                            <label>Enable GST on Email Invoice?</label>
-                            <select id="setGstEnabled" onchange="toggleGstInput()">
-                                <option value="No">No (Without GST - Simple Receipt)</option>
-                                <option value="Yes">Yes (Tax Invoice with 18% GST)</option>
-                            </select>
-                        </div>
-                        <div id="gstNumberBox" style="display: none;">
-                            <label>Company GSTIN Number</label>
-                            <input type="text" id="setGstNumber" placeholder="e.g., 09ABCDE1234F1Z5" style="text-transform: uppercase;">
-                        </div>
+                <div class="form-grid" style="border-top: 1px solid #E5E7EB; padding-top: 20px;">
+                    <div class="form-group">
+                        <label>Enable GST on Invoices?</label>
+                        <select id="setGstEnabled" onchange="toggleGstInput()">
+                            <option value="No">No (Tax-free receipt)</option>
+                            <option value="Yes">Yes (Include 18% GST breakup on Invoice)</option>
+                        </select>
                     </div>
-                    <p style="font-size: 12px; color: #64748B; margin: 0;">Note: Keep this set to "No" until you obtain a GST number. Whenever you get a GST number in the future, simply select "Yes", enter your GSTIN, and click Save.</p>
+                    <div class="form-group" id="gstNumberBox" style="display: none;">
+                        <label>Company GSTIN Number</label>
+                        <input type="text" id="setGstNumber" placeholder="e.g. 09ABCDE1234F1Z5">
+                    </div>
                 </div>
 
-                <button class="save-btn" onclick="saveSettings()">Save Settings</button>
-                <p id="settingsMsg" class="msg" style="display: none;">✅ Settings Saved Successfully!</p>
+                <button class="tab-btn active" style="margin-top: 15px; padding: 12px 24px; font-size: 14px;" onclick="saveSettings()">💾 Save Settings & Prices</button>
+                <p id="settingsMsg" style="color: var(--success); font-weight: 600; font-size: 13px; margin-top: 10px; display: none;">✅ Settings Saved Successfully!</p>
             </div>
+        </div>
 
-            <!-- STUDENTS TAB -->
-            <div id="tabStudents" class="section">
-                <h2 class="title">Registered Students <button class="btn-export" onclick="exportStudents()">📥 Export to Excel</button></h2>
-                <div class="table-wrapper">
+        <!-- TAB 2: STUDENTS -->
+        <div id="studentsTab" class="section">
+            <div class="card">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                    <h3>👥 Registered Students</h3>
+                    <button class="tab-btn" style="background: var(--success); color: white;" onclick="exportStudents()">📥 Export Students CSV</button>
+                </div>
+                <div class="table-responsive">
                     <table id="studentsTable">
                         <thead>
-                            <tr>
-                                <th>Name</th>
-                                <th>Email ID</th>
-                                <th>Mobile</th>
-                                <th>Login ID</th>
-                                <th>Password</th>
-                                <th>Status</th>
-                                <th>Expiry</th>
-                                <th>Devices</th>
-                                <th>Action</th>
-                            </tr>
+                            <tr><th>Name</th><th>Email</th><th>Mobile</th><th>Login ID</th><th>Password</th><th>Status</th><th>Expiry</th><th>Devices</th><th>Actions</th></tr>
                         </thead>
-                        <tbody><tr><td colspan="9" style="text-align:center;">Loading...</td></tr></tbody>
+                        <tbody></tbody>
                     </table>
                 </div>
             </div>
+        </div>
 
-            <!-- PAYMENTS & INVOICES TAB -->
-            <div id="tabPayments" class="section">
-                <h2 class="title">Razorpay Payments & Invoices <button class="btn-export" onclick="exportPayments()">📥 Export Invoices</button></h2>
-                <div class="table-wrapper">
+        <!-- TAB 3: PAYMENTS & INVOICES -->
+        <div id="paymentsTab" class="section">
+            <div class="card">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                    <h3>💳 Payment History & PDF Invoices</h3>
+                    <button class="tab-btn" style="background: var(--success); color: white;" onclick="exportPayments()">📥 Export Payments CSV</button>
+                </div>
+                <div class="table-responsive">
                     <table id="paymentsTable">
                         <thead>
-                            <tr>
-                                <th>Date</th>
-                                <th>Invoice No.</th>
-                                <th>Razorpay ID</th>
-                                <th>Student</th>
-                                <th>Email / Mobile</th>
-                                <th>Amount (₹)</th>
-                                <th>Valid Till</th>
-                            </tr>
+                            <tr><th>Date</th><th>Invoice No</th><th>Razorpay ID / Plan</th><th>Student</th><th>Email / Mobile</th><th>Amount Paid</th><th>Valid Till</th></tr>
                         </thead>
-                        <tbody><tr><td colspan="7" style="text-align:center;">Loading...</td></tr></tbody>
+                        <tbody></tbody>
                     </table>
                 </div>
             </div>
+        </div>
 
-            <!-- CATEGORIES & EXAM TYPES -->
-            <div id="tabCategories" class="section">
-                <h2 class="title">Manage Categories & Exam Types</h2>
-                
+        <!-- TAB 4: CATEGORIES -->
+        <div id="categoriesTab" class="section">
+            <div class="card" style="max-width: 700px;">
+                <h3>📂 Add / Edit Exam Categories</h3>
                 <input type="hidden" id="editCatId">
-                <div class="row">
-                    <div><input type="text" id="newMainCat" placeholder="Main Category (e.g., Railway Exams)"></div>
-                    <div><input type="text" id="newSubCat" placeholder="Sub Category (e.g., Group D)"></div>
-                    <div><input type="text" id="newExamName" placeholder="Exam Name/Type (e.g., Full Length Mock)"></div>
-                    <div><button class="save-btn" id="catBtn" style="margin-bottom:0; background:var(--success);" onclick="saveCategory()">Add Category</button></div>
+                <div class="form-grid">
+                    <div class="form-group"><label>Main Category</label><input type="text" id="newMainCat" placeholder="e.g. Railway Exams"></div>
+                    <div class="form-group"><label>Sub Category</label><input type="text" id="newSubCat" placeholder="e.g. Group D"></div>
+                    <div class="form-group"><label>Exam Name / Test Type</label><input type="text" id="newExamName" placeholder="e.g. Full Length Mock"></div>
                 </div>
+                <button class="tab-btn active" id="catBtn" onclick="saveCategory()">Add Category</button>
+            </div>
 
-                <div class="row" style="margin-top: 15px; background: #f8fafc; padding: 15px; border-radius: 8px; border: 1px dashed #cbd5e1;">
-                    <div style="flex: 2;"><input type="file" id="categoriesCsvFile" accept=".csv" style="margin-bottom:0; background:white;"></div>
-                    <div style="flex: 1;"><button class="save-btn" style="background:var(--purple); margin-bottom:0;" onclick="uploadCategoriesCsv()">Bulk Upload</button></div>
-                    <div style="flex: 1;"><button onclick="downloadCategoriesTemplate()" style="background:none; border:1px solid var(--purple); color:var(--purple); padding:10px; border-radius:8px; cursor:pointer; font-size:13px; width:100%; font-weight:600;">📥 Download Template</button></div>
+            <div class="card">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                    <h3>Existing Categories</h3>
+                    <div>
+                        <button class="tab-btn" onclick="downloadCategoriesTemplate()">⬇️ CSV Template</button>
+                        <input type="file" id="categoriesCsvFile" accept=".csv" style="display:inline-block; width:200px; font-size:12px; margin-left:10px;">
+                        <button class="tab-btn active" onclick="uploadCategoriesCsv()">Upload CSV</button>
+                    </div>
                 </div>
-
-                <div class="table-wrapper">
+                <div class="table-responsive">
                     <table id="categoriesTable">
-                        <thead><tr><th>Main Category</th><th>Sub-Category</th><th>Exam Name (Test Type)</th><th>Action</th></tr></thead>
-                        <tbody><tr><td colspan="4" style="text-align:center;">Loading...</td></tr></tbody>
+                        <thead><tr><th>Main Category</th><th>Sub Category</th><th>Exam Name</th><th>Actions</th></tr></thead>
+                        <tbody></tbody>
                     </table>
                 </div>
             </div>
+        </div>
 
-            <!-- MANAGE TESTS (INCLUDING SCHEDULED LIVE TESTS & CUSTOM MARKING) -->
-            <div id="tabTests" class="section">
-                <h2 class="title">Manage Normal & Live Tests <button class="btn-export" onclick="exportTests()">📥 Export to Excel</button></h2>
+        <!-- TAB 5: TESTS & LIVE EXAMS -->
+        <div id="testsTab" class="section">
+            <div class="card">
+                <h3>📝 Create or Schedule Test / Live Exam</h3>
                 <input type="hidden" id="editTestId">
-                <div class="row">
-                    <div><input type="text" id="tId" placeholder="Test ID (e.g., RRB01)"></div>
-                    <div><select id="tMain" onchange="updateSubCatDropdown()"><option value="">Select Main Category</option></select></div>
-                    <div><select id="tSub" onchange="updateExamNameDropdown()"><option value="">Select Sub Category</option></select></div>
-                    <div><select id="tExam"><option value="">Select Exam Name / Type</option></select></div>
-                </div>
-                <div class="row">
-                    <div><input type="text" id="tName" placeholder="Test Name (e.g., Group D All-India Live 01)"></div>
-                    <div><input type="number" id="tDur" placeholder="Duration (Mins)"></div>
-                    <div><input type="number" id="tMarks" placeholder="Total Marks"></div>
-                    <div><input type="number" id="tTotalQs" placeholder="Total Questions"></div>
-                </div>
-                <div class="row">
-                    <div><input type="number" step="0.01" id="tPosMark" placeholder="Positive Mark per Q (Default: 1)"></div>
-                    <div><select id="tHasNeg" onchange="toggleTestNeg()"><option value="No">Negative Marking? No</option><option value="Yes">Negative Marking? Yes</option></select></div>
-                    <div id="tNegBox" style="display:none;"><input type="number" step="0.01" id="tNegMark" placeholder="Neg Mark (e.g., 0.33)"></div>
-                    <div><select id="tLanguage"><option value="Both">Language: Hindi + English</option><option value="Hindi">Language: Only Hindi</option><option value="English">Language: Only English</option></select></div>
+                <div class="form-grid">
+                    <div class="form-group"><label>Test ID (Unique)</label><input type="text" id="tId" placeholder="e.g. SSC_CGL_01"></div>
+                    <div class="form-group"><label>Main Category</label><select id="tMain" onchange="updateSubCatDropdown()"><option value="">Select Main Category</option></select></div>
+                    <div class="form-group"><label>Sub Category</label><select id="tSub" onchange="updateExamNameDropdown()"><option value="">Select Sub Category</option></select></div>
+                    <div class="form-group"><label>Exam Name / Type</label><select id="tExam"><option value="">Select Exam Name</option></select></div>
+                    <div class="form-group"><label>Test Title</label><input type="text" id="tName" placeholder="e.g. SSC CGL Tier-1 Mock 1"></div>
+                    <div class="form-group"><label>Duration (Mins)</label><input type="number" id="tDur" value="60"></div>
+                    <div class="form-group"><label>Total Marks</label><input type="number" id="tMarks" value="100"></div>
+                    <div class="form-group"><label>Total Questions</label><input type="number" id="tTotalQs" value="100"></div>
+                    <div class="form-group"><label>Positive Marks per Q</label><input type="number" step="0.25" id="tPosMark" value="1"></div>
+                    <div class="form-group"><label>Negative Marking?</label><select id="tHasNeg" onchange="toggleTestNeg()"><option value="No">No</option><option value="Yes">Yes</option></select></div>
+                    <div class="form-group" id="tNegBox" style="display:none;"><label>Negative Deduction</label><input type="number" step="0.01" id="tNegMark" value="0.33"></div>
+                    <div class="form-group" id="tFreeBox"><label>Is Free Test?</label><select id="tFree"><option value="Yes">Yes (Free for all)</option><option value="No">No (Subscribers Only)</option></select></div>
+                    <div class="form-group"><label>Test Language</label><select id="tLanguage"><option value="Both">Hindi + English</option><option value="Hindi">Hindi Only</option><option value="English">English Only</option></select></div>
+                    <div class="form-group"><label>Is All-India Live Exam?</label><select id="tIsLive" onchange="toggleLiveTestFields()"><option value="No">No (Normal Practice Test)</option><option value="Yes">Yes (Scheduled Live Exam)</option></select></div>
                 </div>
 
-                <!-- Live Test Schedule & Access Row -->
-                <div style="background: #FEF2F2; border: 1px solid #FECACA; padding: 14px; border-radius: 10px; margin-bottom: 12px;">
-                    <div class="row" style="align-items: center;">
-                        <div>
-                            <label style="font-size: 12px; font-weight: 600; color: #991B1B;">Test Mode</label>
-                            <select id="tIsLive" onchange="toggleLiveTestFields()" style="margin-bottom: 0;">
-                                <option value="No">Normal Mock Test</option>
-                                <option value="Yes">🔴 All-India Live Exam (Subscribers Only)</option>
-                            </select>
-                        </div>
-                        <div id="tFreeBox">
-                            <label style="font-size: 12px; font-weight: 600; color: #374151;">Is Free? (Normal Test)</label>
-                            <select id="tFree" style="margin-bottom: 0;">
-                                <option value="Yes">Yes (Free for All)</option>
-                                <option value="No">No (Subscribers Only)</option>
-                            </select>
-                        </div>
-                        <div id="liveStartBox" style="display: none;">
-                            <label style="font-size: 12px; font-weight: 600; color: #991B1B;">Live Start Date & Time</label>
-                            <input type="datetime-local" id="tLiveStart" style="margin-bottom: 0;">
-                        </div>
-                        <div id="liveEndBox" style="display: none;">
-                            <label style="font-size: 12px; font-weight: 600; color: #991B1B;">Live End / Result Time (e.g. 12:00 AM)</label>
-                            <input type="datetime-local" id="tLiveEnd" style="margin-bottom: 0;">
-                        </div>
-                    </div>
-                    <p id="liveHelpText" style="display: none; font-size: 11px; color: #991B1B; margin-top: 8px; margin-bottom: 0;">
-                        * Live Exams are strictly for Paid Subscribers. Results remain hidden until the Live End Time, after which they are released automatically & emailed, and the test moves into its regular category.
+                <div class="form-grid" id="liveScheduleBox" style="background: #EEF2FF; padding: 15px; border-radius: 8px; border: 1px dashed #C7D2FE; margin-bottom: 15px;">
+                    <div class="form-group" id="liveStartBox" style="display:none;"><label>Live Start Date & Time</label><input type="datetime-local" id="tLiveStart"></div>
+                    <div class="form-group" id="liveEndBox" style="display:none;"><label>Live End / Result Time (12 AM or Custom)</label><input type="datetime-local" id="tLiveEnd"></div>
+                    <p id="liveHelpText" style="grid-column: 1 / -1; font-size: 12px; color: #4338CA; display:none;">
+                        ℹ️ <b>Live Exam Note:</b> During live hours, subscribers can attempt the test with strict anti-cheating full-screen enforcement. Results and All-India Ranks will be held and released automatically at the specified end time, sending scorecard emails to all candidates.
                     </p>
                 </div>
 
-                <button class="save-btn" id="testBtn" onclick="saveTest()">Add Test</button>
-                <div class="table-wrapper">
+                <button class="tab-btn active" id="testBtn" onclick="saveTest()">Add Test</button>
+            </div>
+
+            <div class="card">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                    <h3>All Tests & Live Exams</h3>
+                    <button class="tab-btn" style="background: var(--success); color: white;" onclick="exportTests()">📥 Export Tests CSV</button>
+                </div>
+                <div class="table-responsive">
                     <table id="testsTable">
-                        <thead><tr><th>ID</th><th>Mode</th><th>Category</th><th>Test Name</th><th>Marking</th><th>Schedule / Access</th><th>Action</th></tr></thead>
-                        <tbody><tr><td colspan="7" style="text-align:center;">Loading...</td></tr></tbody>
+                        <thead><tr><th>Test ID</th><th>Mode</th><th>Category Path</th><th>Test Name</th><th>Marks / Neg</th><th>Access / Schedule</th><th>Actions</th></tr></thead>
+                        <tbody></tbody>
                     </table>
                 </div>
             </div>
-
-            <!-- QUESTIONS TAB -->
-            <div id="tabQuestions" class="section">
-                <h2 class="title">Manage Questions (Search & Edit)</h2>
-                <input type="hidden" id="editQId">
-                
-                <div style="background: #f8fafc; padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #e2e8f0;">
-                    <h3 style="margin-bottom: 10px; font-size: 15px; color: var(--primary);">🔍 Search & Download Questions</h3>
-                    <div class="row">
-                        <div style="flex: 2;"><input type="text" id="searchTestId" placeholder="Enter Test ID (e.g., RRB01)" style="margin-bottom:0;"></div>
-                        <div style="flex: 1;"><button class="save-btn" style="margin-bottom:0; background: var(--primary);" onclick="searchQuestions()">Search</button></div>
-                        <div style="flex: 1;"><button class="save-btn" style="margin-bottom:0; background: var(--success);" onclick="downloadTestQuestions()">📥 Download</button></div>
-                    </div>
-                </div>
-
-                <div id="questionListContainer" style="display: none;">
-                    <h3 style="margin-bottom: 10px; font-size: 15px; color: var(--purple);">Showing Questions for Test ID: <span id="displaySearchTestId" style="font-weight:bold;"></span></h3>
-                    <div class="table-wrapper">
-                        <table id="questionsTable">
-                            <thead><tr><th>Q-ID</th><th>Question (Hindi)</th><th>Question (English)</th><th>Marks (+ / -)</th><th>Action</th></tr></thead>
-                            <tbody></tbody>
-                        </table>
-                    </div>
-                </div>
-
-                <div style="border-top: 2px dashed #ccc; padding-top: 20px; margin-top: 20px;">
-                    <h3 class="sub-title">Add / Edit Question Manually</h3>
-                    <div class="row"><div><input type="text" id="qTestId" placeholder="Test ID (e.g., RRB01)"></div></div>
-                    
-                    <div class="row">
-                        <div style="flex:2;"><input type="text" id="qTextHindi" placeholder="Question in Hindi"></div>
-                        <div style="flex:2;"><input type="text" id="qTextEnglish" placeholder="Question in English"></div>
-                    </div>
-                    <div class="row"><div><input type="text" id="qOptAHindi" placeholder="Option A (Hindi)"></div><div><input type="text" id="qOptAEnglish" placeholder="Option A (English)"></div></div>
-                    <div class="row"><div><input type="text" id="qOptBHindi" placeholder="Option B (Hindi)"></div><div><input type="text" id="qOptBEnglish" placeholder="Option B (English)"></div></div>
-                    <div class="row"><div><input type="text" id="qOptCHindi" placeholder="Option C (Hindi)"></div><div><input type="text" id="qOptCEnglish" placeholder="Option C (English)"></div></div>
-                    <div class="row"><div><input type="text" id="qOptDHindi" placeholder="Option D (Hindi)"></div><div><input type="text" id="qOptDEnglish" placeholder="Option D (English)"></div></div>
-                    <div class="row"><div><input type="text" id="qOptEHindi" placeholder="Option E (Hindi - Optional)"></div><div><input type="text" id="qOptEEnglish" placeholder="Option E (English - Optional)"></div></div>
-
-                    <div class="row">
-                        <div><select id="qAns"><option value="0">Correct: A</option><option value="1">Correct: B</option><option value="2">Correct: C</option><option value="3">Correct: D</option><option value="4">Correct: E</option></select></div>
-                        <div><input type="number" step="0.01" id="qMarks" placeholder="Positive Marks (e.g., 1)"></div>
-                        <div><input type="number" step="0.01" id="qNeg" placeholder="Negative Marks (e.g., 0.33)"></div>
-                    </div>
-                    <div class="row"><div style="flex:1;"><input type="text" id="qExp" placeholder="Explanation (Optional)"></div></div>
-                    
-                    <button class="save-btn" id="qBtn" onclick="saveQuestion()">Add Question</button>
-                </div>
-            </div>
-
-            <!-- RESULTS TAB -->
-            <div id="tabResults" class="section">
-                <h2 class="title">Student Results <button class="btn-export" onclick="exportResults()">📥 Export to Excel</button></h2>
-                <div class="table-wrapper">
-                    <table id="resultsTable">
-                        <thead><tr><th>Date</th><th>Student</th><th>Test</th><th>Mode</th><th>Correct</th><th>Wrong</th><th>Neg</th><th>Score</th></tr></thead>
-                        <tbody><tr><td colspan="8" style="text-align:center;">Loading...</td></tr></tbody>
-                    </table>
-                </div>
-            </div>
-
-            <!-- CURRENT AFFAIRS TAB -->
-            <div id="tabCA" class="section">
-                <h2 class="title">Manage Current Affairs</h2>
-                <input type="hidden" id="editCaId">
-                <div class="row">
-                    <div><select id="caType"><option value="Daily">Daily</option><option value="Monthly">Monthly</option></select></div>
-                    <div><input type="date" id="caDate"></div>
-                    <div><input type="text" id="caTitle" placeholder="Title"></div>
-                    <div><input type="url" id="caLink" placeholder="Article/PDF Link"></div>
-                </div>
-                <div class="row">
-                    <div style="flex:2;"><input type="text" id="caQ" placeholder="Question"></div>
-                    <div><input type="text" id="caOptA" placeholder="Option A"></div>
-                    <div><input type="text" id="caOptB" placeholder="Option B"></div>
-                    <div><input type="text" id="caOptC" placeholder="Option C"></div>
-                    <div><input type="text" id="caOptD" placeholder="Option D"></div>
-                    <div><input type="text" id="caOptE" placeholder="Option E (Optional)"></div>
-                </div>
-                <div class="row">
-                    <div><select id="caAns"><option value="0">Correct: A</option><option value="1">Correct: B</option><option value="2">Correct: C</option><option value="3">Correct: D</option><option value="4">Correct: E</option></select></div>
-                    <div style="flex:2;"><input type="text" id="caExp" placeholder="Explanation (For Monthly only)"></div>
-                </div>
-                <button class="save-btn" id="caBtn" onclick="saveCA()">Add Current Affairs</button>
-                <div class="table-wrapper">
-                    <table id="caTable">
-                        <thead><tr><th>Type</th><th>Date</th><th>Title</th><th>Question</th><th>Action</th></tr></thead>
-                        <tbody><tr><td colspan="5" style="text-align:center;">Loading...</td></tr></tbody>
-                    </table>
-                </div>
-            </div>
-
-            <!-- BULK UPLOAD TAB -->
-            <div id="tabUpload" class="section">
-                <h2 class="title">Bulk Upload (CSV)</h2>
-                <div class="row">
-                    <div style="border: 2px dashed #ccc; padding: 15px; border-radius: 10px; text-align: center;">
-                        <h3 style="font-size: 14px; margin-bottom: 10px;">1. Upload Tests</h3>
-                        <input type="file" id="testsCsvFile" accept=".csv" style="border: none; margin-bottom: 10px;">
-                        <button class="save-btn" style="background: #8B5CF6;" onclick="uploadTestsCsv()">Upload Tests</button>
-                        <button onclick="downloadTestsTemplate()" style="background:none; border:1px solid #8B5CF6; color:#8B5CF6; padding:6px 12px; border-radius:6px; cursor:pointer; font-size:12px; margin-top:5px; width:100%;">📥 Download Test Template</button>
-                    </div>
-                    
-                    <div style="border: 2px dashed #ccc; padding: 15px; border-radius: 10px; text-align: center;">
-                        <h3 style="font-size: 14px; margin-bottom: 10px;">2. Upload Questions</h3>
-                        <input type="file" id="questionsCsvFile" accept=".csv" style="border: none; margin-bottom: 10px;">
-                        <button class="save-btn" style="background: #EC4899;" onclick="uploadQuestionsCsv()">Upload Questions</button>
-                        <button onclick="downloadQuestionsTemplate()" style="background:none; border:1px solid #EC4899; color:#EC4899; padding:6px 12px; border-radius:6px; cursor:pointer; font-size:12px; margin-top:5px; width:100%;">📥 Download Question Template</button>
-                    </div>
-
-                    <div style="border: 2px dashed #ccc; padding: 15px; border-radius: 10px; text-align: center;">
-                        <h3 style="font-size: 14px; margin-bottom: 10px;">3. Upload Current Affairs</h3>
-                        <input type="file" id="caCsvFile" accept=".csv" style="border: none; margin-bottom: 10px;">
-                        <button class="save-btn" style="background: #F59E0B;" onclick="uploadCaCsv()">Upload CA</button>
-                        <button onclick="downloadCaTemplate()" style="background:none; border:1px solid #F59E0B; color:#F59E0B; padding:6px 12px; border-radius:6px; cursor:pointer; font-size:12px; margin-top:5px; width:100%;">📥 Download CA Template</button>
-                    </div>
-                </div>
-                <p id="bulkStatus" style="text-align: center; font-weight: bold; margin-top: 20px; color: var(--primary);"></p>
-            </div>
-
         </div>
+
+        <!-- TAB 6: QUESTIONS -->
+        <div id="questionsTab" class="section">
+            <div class="card">
+                <h3>❓ Search, Add & Edit Questions</h3>
+                <div style="display: flex; gap: 10px; margin-bottom: 20px; align-items: center; flex-wrap: wrap;">
+                    <input type="text" id="searchTestId" placeholder="Enter Test ID (e.g. SSC_CGL_01)" style="padding:10px; border:1px solid #CBD5E1; border-radius:8px; width:250px;">
+                    <button class="tab-btn active" onclick="searchQuestions()">Search Questions</button>
+                    <button class="tab-btn" style="background: var(--purple); color: white;" onclick="downloadTestQuestions()">📥 Export Qs CSV</button>
+                </div>
+
+                <!-- Add/Edit Question Form -->
+                <input type="hidden" id="editQId">
+                <div class="form-grid">
+                    <div class="form-group"><label>Test ID</label><input type="text" id="qTestId" placeholder="Match Test ID"></div>
+                    <div class="form-group"><label>Correct Option Index</label><select id="qAns"><option value="0">Option A</option><option value="1">Option B</option><option value="2">Option C</option><option value="3">Option D</option><option value="4">Option E</option></select></div>
+                    <div class="form-group"><label>Positive Marks</label><input type="number" step="0.25" id="qMarks" value="1"></div>
+                    <div class="form-group"><label>Negative Deduction</label><input type="number" step="0.01" id="qNeg" value="0.33"></div>
+                </div>
+
+                <div class="form-grid">
+                    <div class="form-group"><label>Question (Hindi)</label><textarea id="qTextHindi" rows="3" placeholder="हिंदी में प्रश्न..."></textarea></div>
+                    <div class="form-group"><label>Question (English)</label><textarea id="qTextEnglish" rows="3" placeholder="Question in English..."></textarea></div>
+                </div>
+
+                <h4 style="margin: 15px 0 10px; font-size: 14px; color: var(--primary);">Options (Hindi & English Side-by-Side)</h4>
+                <div class="form-grid">
+                    <div class="form-group"><label>Option A (Hindi)</label><input type="text" id="qOptAHindi"></div>
+                    <div class="form-group"><label>Option A (English)</label><input type="text" id="qOptAEnglish"></div>
+                    <div class="form-group"><label>Option B (Hindi)</label><input type="text" id="qOptBHindi"></div>
+                    <div class="form-group"><label>Option B (English)</label><input type="text" id="qOptBEnglish"></div>
+                    <div class="form-group"><label>Option C (Hindi)</label><input type="text" id="qOptCHindi"></div>
+                    <div class="form-group"><label>Option C (English)</label><input type="text" id="qOptCEnglish"></div>
+                    <div class="form-group"><label>Option D (Hindi)</label><input type="text" id="qOptDHindi"></div>
+                    <div class="form-group"><label>Option D (English)</label><input type="text" id="qOptDEnglish"></div>
+                    <div class="form-group"><label>Option E (Optional Hindi)</label><input type="text" id="qOptEHindi"></div>
+                    <div class="form-group"><label>Option E (Optional English)</label><input type="text" id="qOptEEnglish"></div>
+                </div>
+
+                <div class="form-group" style="margin-bottom: 15px;"><label>Explanation</label><textarea id="qExp" rows="2" placeholder="Detailed solution explanation..."></textarea></div>
+                <button class="tab-btn active" id="qBtn" onclick="saveQuestion()">Add Question</button>
+            </div>
+
+            <div class="card" id="questionListContainer" style="display:none;">
+                <h3>Questions for Test ID: <span id="displaySearchTestId" style="color:var(--primary);"></span></h3>
+                <div class="table-responsive">
+                    <table id="questionsTable">
+                        <thead><tr><th>Q-ID</th><th>Question (Hindi)</th><th>Question (English)</th><th>Marks</th><th>Actions</th></tr></thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 7: RESULTS -->
+        <div id="resultsTab" class="section">
+            <div class="card">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                    <h3>📊 Student Test Results & Leaderboard</h3>
+                    <button class="tab-btn" style="background: var(--success); color: white;" onclick="exportResults()">📥 Export Results CSV</button>
+                </div>
+                <div class="table-responsive">
+                    <table id="resultsTable">
+                        <thead><tr><th>Date</th><th>Student</th><th>Test Name</th><th>Mode</th><th>Correct</th><th>Wrong</th><th>Negative</th><th>Score</th></tr></thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 8: CURRENT AFFAIRS -->
+        <div id="caTab" class="section">
+            <div class="card" style="max-width: 800px;">
+                <h3>📰 Add Current Affairs Article & Quiz</h3>
+                <input type="hidden" id="editCaId">
+                <div class="form-grid">
+                    <div class="form-group"><label>Type</label><select id="caType"><option value="Daily">Daily</option><option value="Monthly">Monthly</option></select></div>
+                    <div class="form-group"><label>Date</label><input type="date" id="caDate"></div>
+                    <div class="form-group" style="grid-column: span 2;"><label>Article Title</label><input type="text" id="caTitle" placeholder="e.g. National Current Affairs - Nov 2026"></div>
+                    <div class="form-group" style="grid-column: span 2;"><label>Article / PDF Link</label><input type="text" id="caLink" placeholder="https://..."></div>
+                    <div class="form-group" style="grid-column: span 2;"><label>Question</label><textarea id="caQ" rows="2" placeholder="Quiz question..."></textarea></div>
+                    <div class="form-group"><label>Option A</label><input type="text" id="caOptA"></div>
+                    <div class="form-group"><label>Option B</label><input type="text" id="caOptB"></div>
+                    <div class="form-group"><label>Option C</label><input type="text" id="caOptC"></div>
+                    <div class="form-group"><label>Option D</label><input type="text" id="caOptD"></div>
+                    <div class="form-group"><label>Option E (Optional)</label><input type="text" id="caOptE"></div>
+                    <div class="form-group"><label>Correct Answer</label><select id="caAns"><option value="0">Option A</option><option value="1">Option B</option><option value="2">Option C</option><option value="3">Option D</option><option value="4">Option E</option></select></div>
+                </div>
+                <div class="form-group" style="margin-bottom: 15px;"><label>Explanation</label><textarea id="caExp" rows="2" placeholder="Explanation..."></textarea></div>
+                <button class="tab-btn active" id="caBtn" onclick="saveCA()">Add Current Affairs</button>
+            </div>
+
+            <div class="card">
+                <h3>All Current Affairs</h3>
+                <div class="table-responsive">
+                    <table id="caTable">
+                        <thead><tr><th>Type</th><th>Date</th><th>Title</th><th>Question</th><th>Actions</th></tr></thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 9: BULK UPLOADS -->
+        <div id="bulkTab" class="section">
+            <div class="card" style="max-width: 700px;">
+                <h3>📥 Bulk CSV Uploads & Templates</h3>
+                <p style="font-size: 13px; color: #6B7280; margin-bottom: 20px;">
+                    Download the sample CSV templates, fill them with your data, and upload them below for instant bulk import.
+                </p>
+
+                <div style="display: flex; flex-direction: column; gap: 15px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; background: #F8FAFC; padding: 12px; border-radius: 8px; border: 1px solid #E2E8F0;">
+                        <div><b>1. Tests & Live Exams CSV</b><br><span style="font-size:12px; color:#666;">Upload test configurations and live schedules</span></div>
+                        <div>
+                            <button class="tab-btn" onclick="downloadTestsTemplate()">⬇️ Template</button>
+                            <input type="file" id="testsCsvFile" accept=".csv" style="width:180px; font-size:11px; margin-left:5px;">
+                            <button class="tab-btn active" onclick="uploadTestsCsv()">Upload</button>
+                        </div>
+                    </div>
+
+                    <div style="display: flex; justify-content: space-between; align-items: center; background: #F8FAFC; padding: 12px; border-radius: 8px; border: 1px solid #E2E8F0;">
+                        <div><b>2. Questions CSV (Dual Hindi/English)</b><br><span style="font-size:12px; color:#666;">Upload bilingual questions for any Test ID</span></div>
+                        <div>
+                            <button class="tab-btn" onclick="downloadQuestionsTemplate()">⬇️ Template</button>
+                            <input type="file" id="questionsCsvFile" accept=".csv" style="width:180px; font-size:11px; margin-left:5px;">
+                            <button class="tab-btn active" onclick="uploadQuestionsCsv()">Upload</button>
+                        </div>
+                    </div>
+
+                    <div style="display: flex; justify-content: space-between; align-items: center; background: #F8FAFC; padding: 12px; border-radius: 8px; border: 1px solid #E2E8F0;">
+                        <div><b>3. Current Affairs CSV</b><br><span style="font-size:12px; color:#666;">Upload daily/monthly CA quizzes</span></div>
+                        <div>
+                            <button class="tab-btn" onclick="downloadCaTemplate()">⬇️ Template</button>
+                            <input type="file" id="caCsvFile" accept=".csv" style="width:180px; font-size:11px; margin-left:5px;">
+                            <button class="tab-btn active" onclick="uploadCaCsv()">Upload</button>
+                        </div>
+                    </div>
+                </div>
+
+                <p id="bulkStatus" style="font-weight: 700; color: var(--primary); margin-top: 15px; font-size: 14px;"></p>
+            </div>
+        </div>
+
     </div>
 
-    <!-- JS File Link -->
+    <!-- Admin App Logic Module -->
     <script type="module" src="admin-app.js"></script>
 </body>
 </html>
