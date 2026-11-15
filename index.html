@@ -52,13 +52,20 @@
     </header>
 
     <div id="homeScreen">
-        <div class="hero">
-            <div class="hero-text">
-                <h1 data-translate="hero_h1">Crack Your Dream Govt Job with Confidence.</h1>
+        <!-- Full-Width Laptop Mockup Hero Banner with Dark Blur Overlay -->
+        <div class="hero-banner-full">
+            <img src="hero-bg.png" alt="TaiyariGhar Platform" class="hero-bg-media" onerror="this.src='https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=1400&auto=format&fit=crop'">
+            <div class="hero-dark-overlay"></div>
+            <div class="hero-banner-content">
+                <h1>
+                    <span class="hero-grad-text">Crack Your Dream Govt</span><br>
+                    <span class="hero-grad-text">Job</span> <span style="color: #ffffff;">with Confidence.</span>
+                </h1>
                 <p data-translate="hero_p">All-in-one mock test platform for SSC, Railway, Police & All State Exams. Latest syllabus, real-time rankings, and unlimited tests in one subscription.</p>
-            </div>
-            <div class="hero-img">
-                <img src="hero-bg.png" alt="Student" onerror="this.src='https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=600&auto=format&fit=crop'">
+                <div class="hero-cta-group">
+                    <button class="btn hero-btn-sub" onclick="openPaymentModal()">🚀 Get All-Access Subscription</button>
+                    <button class="btn hero-btn-free" onclick="scrollToCategories()">🌟 Try Free Mock Tests</button>
+                </div>
             </div>
         </div>
 
@@ -87,7 +94,7 @@
             <div class="steps-container">
                 <div class="step-box"><div class="step-num">1</div><h4>Register</h4><p>Sign up with your Email ID & Mobile Number.</p></div>
                 <div class="step-box"><div class="step-num">2</div><h4>Free Test</h4><p>Attempt a free mock test to experience the platform.</p></div>
-                <div class="step-box"><div class="step-num">3</div><h4>Subscription</h4><p>Pay online securely to unlock all premium & live tests.</p></div>
+                <div class="step-box"><div class="step-num">3</div><h4>Subscription</h4><p>Choose a 3, 6, or 12-month plan to unlock all tests.</p></div>
                 <div class="step-box"><div class="step-num">4</div><h4>Full Access</h4><p>Enjoy unlimited access to all tests, live ranks & analysis.</p></div>
             </div>
         </div>
@@ -95,9 +102,9 @@
         <div class="section">
             <h2 class="section-title" style="text-align: center;">Frequently Asked Questions (FAQ)</h2>
             <div class="faq-container">
-                <details><summary>What is the price of the subscription?</summary><p>Our subscription is very affordable. You can check the exact price by clicking on any locked test or in the "My Purchases" section.</p></details>
-                <details><summary>How do Live Tests work?</summary><p>Live Tests are scheduled for a specific time window (e.g., 24 hours) for subscribed members. Just like real exams, your result and All-India Rank are published after the live window ends (12:00 AM) and sent directly to your registered Email ID.</p></details>
-                <details><summary>How can I make the payment?</summary><p>We accept instant online payments via Razorpay (UPI, GPay, PhonePe, Paytm, Cards, and Net Banking). Your account unlocks automatically upon payment and an invoice is emailed to you.</p></details>
+                <details><summary>What are the subscription plans and discounts?</summary><p>We offer flexible 3-Month, 6-Month, and 12-Month All-Access passes with special festival/launch discounts. Click on "Get All-Access Subscription" or any locked test to view active offers.</p></details>
+                <details><summary>How do Live Tests work?</summary><p>Live Tests are scheduled for a specific time window for subscribed members. Just like real exams, your result and All-India Rank are published after the live window ends (12:00 AM) and sent directly to your registered Email ID.</p></details>
+                <details><summary>How can I make the payment?</summary><p>We accept instant online payments via Razorpay (UPI, GPay, PhonePe, Paytm, Cards, and Net Banking). Your account unlocks automatically upon payment and an official PDF invoice is emailed to you.</p></details>
                 <details><summary>What if I forget my password?</summary><p>Don't worry! You can easily reset your password using a 6-digit OTP sent to your registered Email ID.</p></details>
                 <details><summary>Can I use my account on multiple devices?</summary><p>Your account can be used on up to 2 devices simultaneously. If you want to switch to a new device, you can log in, and it will automatically replace the oldest device.</p></details>
             </div>
@@ -195,16 +202,17 @@
         </div>
     </div>
 
-    <!-- CANDIDATE PERSONAL DASHBOARD (Read-Only Profile, Analytics, Live Tests & History) -->
+    <!-- CANDIDATE PERSONAL DASHBOARD -->
     <div id="dashboardScreen" class="hide">
-        <div class="hero">
-            <div class="hero-text">
-                <h1 style="font-size: 24px; color: #1E1B4B; margin-bottom: 5px;" id="welcomeMessage"></h1>
-                <h2 style="font-size: 18px; color: #1E1B4B; margin-top: 8px;" data-translate="dash_h2">Crack Your Dream Govt Job with Confidence.</h2>
-                <p style="font-size: 14px; color: #4B5563; margin-top: 5px;">All-in-one mock test platform for SSC, Railway, Police & All State Exams.</p>
-            </div>
-            <div class="hero-img">
-                <img src="hero-bg.png" alt="Student" onerror="this.src='https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=600&auto=format&fit=crop'">
+        <div class="hero-banner-full" style="min-height: 290px;">
+            <img src="hero-bg.png" alt="TaiyariGhar Platform" class="hero-bg-media" onerror="this.src='https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=1400&auto=format&fit=crop'">
+            <div class="hero-dark-overlay"></div>
+            <div class="hero-banner-content">
+                <div id="welcomeMessage" style="font-size: 16px; font-weight: 600; color: #FDE047; margin-bottom: 8px;"></div>
+                <h1 style="font-size: 32px;">
+                    <span class="hero-grad-text">Crack Your Dream Govt Job</span> <span style="color: #ffffff;">with Confidence.</span>
+                </h1>
+                <p>All-in-one mock test platform for SSC, Railway, Police & All State Exams.</p>
             </div>
         </div>
 
@@ -351,7 +359,6 @@
     </div>
 
     <div id="testScreen" class="hide" style="position: relative; user-select: none;">
-        <!-- Anti-Cheat Dynamic Watermark -->
         <div id="antiCheatWatermark" class="ac-watermark"></div>
 
         <div class="test-header">
@@ -487,22 +494,70 @@
         <div id="solutionsContainer"></div>
     </div>
 
-    <!-- RAZORPAY PAYMENT MODAL -->
+    <!-- 3-TIER SUBSCRIPTION & DISCOUNT PAYMENT MODAL -->
     <div id="paymentModal" class="modal-overlay-payment hide">
-        <div class="modal-box">
-            <h2 style="color: var(--primary); margin-bottom: 8px; font-size: 22px;">🔓 Unlock All-Access Pass</h2>
-            <p style="margin-bottom: 12px; font-size: 14px; color: #4B5563;">
-                <span data-translate="pay_unlock">Unlock all premium mock tests & Live All-India Exams for</span> 
-                <b style="color: #111827; font-size: 18px;">₹<span id="modalPrice">99</span></b> 
-                <span id="modalOffer" style="color: var(--accent); font-weight: bold;"></span>
+        <div class="modal-box" style="max-width: 660px; padding: 26px;">
+            <h2 style="color: var(--primary); margin-bottom: 6px; font-size: 22px;">🔓 Choose Your All-Access Pass</h2>
+            <p style="margin-bottom: 16px; font-size: 13px; color: #4B5563;">
+                Unlock Unlimited Mock Tests, Live All-India Exams & Instant PDF Invoice
             </p>
-            <div style="background: #F8FAFC; border: 1px solid #E2E8F0; padding: 14px; border-radius: 12px; margin-bottom: 18px; text-align: left; font-size: 13px; color: #334155;">
-                <div style="margin-bottom: 6px;">✅ Unlimited Mock Tests (SSC, Railway, Police, State)</div>
-                <div style="margin-bottom: 6px;">✅ Exclusive Entry to Scheduled Live Exams</div>
-                <div style="margin-bottom: 6px;">✅ Instant Activation & Auto Email Invoice</div>
-                <div>✅ Valid for <b id="modalValidityDays">365</b> Days</div>
+
+            <!-- 3 Plan Cards Grid -->
+            <div class="plan-cards-grid">
+                <!-- Plan 1: 3 Months -->
+                <div class="plan-card" id="planCard3" onclick="selectSubscriptionPlan(3)">
+                    <div class="plan-save-tag" id="planSave3">SAVE ₹50</div>
+                    <h4 style="font-size: 15px; color: #1E1B4B; margin-bottom: 4px;">3 Months</h4>
+                    <div class="plan-price-row">
+                        <span class="plan-mrp">₹<span id="planMrp3">149</span></span>
+                        <span class="plan-offer">₹<span id="planPrice3">99</span></span>
+                    </div>
+                    <p style="font-size: 11px; color: #6B7280; margin-top: 4px;">90 Days Validity</p>
+                </div>
+
+                <!-- Plan 2: 6 Months -->
+                <div class="plan-card" id="planCard6" onclick="selectSubscriptionPlan(6)">
+                    <div class="plan-save-tag" id="planSave6">SAVE ₹50</div>
+                    <h4 style="font-size: 15px; color: #1E1B4B; margin-bottom: 4px;">6 Months</h4>
+                    <div class="plan-price-row">
+                        <span class="plan-mrp">₹<span id="planMrp6">249</span></span>
+                        <span class="plan-offer">₹<span id="planPrice6">199</span></span>
+                    </div>
+                    <p style="font-size: 11px; color: #6B7280; margin-top: 4px;">180 Days Validity</p>
+                </div>
+
+                <!-- Plan 3: 12 Months (Default Selected) -->
+                <div class="plan-card selected" id="planCard12" onclick="selectSubscriptionPlan(12)">
+                    <div class="plan-best-badge">BEST VALUE</div>
+                    <div class="plan-save-tag" id="planSave12">SAVE ₹150</div>
+                    <h4 style="font-size: 15px; color: #1E1B4B; margin-bottom: 4px;">12 Months</h4>
+                    <div class="plan-price-row">
+                        <span class="plan-mrp">₹<span id="planMrp12">399</span></span>
+                        <span class="plan-offer">₹<span id="planPrice12">249</span></span>
+                    </div>
+                    <p style="font-size: 11px; color: #6B7280; margin-top: 4px;">365 Days Validity</p>
+                </div>
             </div>
-            <button class="btn btn-primary" style="width: 100%; padding: 14px; margin-bottom: 10px; font-size: 15px;" onclick="initiateRazorpayPayment()">💳 Pay Now via Razorpay</button>
+
+            <!-- Selected Plan Price & Discount Breakdown Box -->
+            <div class="plan-summary-box">
+                <div class="ps-row">
+                    <span>Selected Plan (<b id="selPlanLabel">12 Months Pass</b>):</span>
+                    <span>₹<span id="selPlanMrp">399</span></span>
+                </div>
+                <div class="ps-row" style="color: #059669; font-weight: 600;">
+                    <span>Special Offer Discount:</span>
+                    <span>- ₹<span id="selPlanDiscount">150</span></span>
+                </div>
+                <div class="ps-row ps-total">
+                    <span>Final Payable Amount:</span>
+                    <span>₹<span id="selPlanFinal">249</span></span>
+                </div>
+            </div>
+
+            <button class="btn btn-primary" style="width: 100%; padding: 14px; margin-bottom: 10px; font-size: 15px;" onclick="initiateRazorpayPayment()">
+                💳 Pay ₹<span id="payBtnAmount">249</span> Now via Razorpay
+            </button>
             <button class="btn" style="width: 100%; background:#F3F4F6; color: #374151;" onclick="closeModal()" data-translate="pay_close">Close</button>
         </div>
     </div>
