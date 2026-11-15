@@ -46,102 +46,80 @@ body { background-color: var(--bg); color: var(--text); min-height: 100vh; displ
 .profile-dropdown a:hover { background: #F3F4F6; color: var(--primary); }
 
 /* =========================================================
-   FULL-WIDTH LAPTOP MOCKUP HERO BANNER WITH BLUR OVERLAY
+   COMPACT CLEAN HERO SECTION (Like image_a1fe85.jpg)
    ========================================================= */
-.hero-banner-full {
-    position: relative;
-    width: 100%;
-    min-height: 410px;
+.hero-section-clean {
+    background: linear-gradient(135deg, #F8FAFC 0%, #EEF2FF 100%);
+    padding: 40px 5%;
     display: flex;
     align-items: center;
-    justify-content: center;
-    text-align: center;
-    overflow: hidden;
-    padding: 45px 5%;
-    background: #0F172A;
+    justify-content: space-between;
+    gap: 30px;
+    border-bottom: 1px solid #E2E8F0;
 }
 
-.hero-bg-media {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    object-position: center;
-    filter: blur(2.5px) brightness(0.88);
-    transform: scale(1.03);
-    z-index: 0;
+.hero-left-content {
+    flex: 1;
+    max-width: 580px;
 }
 
-.hero-dark-overlay {
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(180deg, rgba(15, 23, 42, 0.62) 0%, rgba(15, 23, 42, 0.78) 100%);
-    z-index: 1;
-}
-
-.hero-banner-content {
-    position: relative;
-    z-index: 2;
-    max-width: 860px;
-    margin: 0 auto;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-}
-
-.hero-banner-content h1 {
-    font-size: 44px;
+.hero-left-content h1 {
+    font-size: 36px;
     font-weight: 800;
-    line-height: 1.2;
-    margin-bottom: 16px;
-    text-shadow: 0 4px 20px rgba(0, 0, 0, 0.55);
+    color: var(--text);
+    line-height: 1.25;
+    margin-bottom: 14px;
 }
 
-.hero-grad-text {
-    background: linear-gradient(90deg, #38BDF8 0%, #60A5FA 45%, #818CF8 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
+.hero-left-content p {
+    font-size: 15px;
+    color: #4B5563;
+    line-height: 1.6;
+    margin-bottom: 22px;
 }
 
-.hero-banner-content p {
-    font-size: 16px;
-    color: #F1F5F9;
-    line-height: 1.65;
-    max-width: 680px;
-    margin-bottom: 26px;
-    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.6);
+.hero-right-mockup {
+    flex: 1;
+    max-width: 580px;
+    display: flex;
+    justify-content: center;
+}
+
+.hero-right-mockup img {
+    width: 100%;
+    height: auto;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+    border: 3px solid #FFFFFF;
 }
 
 .hero-cta-group {
     display: flex;
-    gap: 14px;
+    gap: 12px;
     flex-wrap: wrap;
-    justify-content: center;
 }
 
 .hero-btn-sub {
     background: linear-gradient(135deg, #10B981 0%, #06B6D4 100%);
     color: #FFFFFF;
-    padding: 13px 26px;
-    font-size: 15px;
+    padding: 12px 22px;
+    font-size: 14px;
     font-weight: 700;
-    border-radius: 10px;
-    box-shadow: 0 8px 25px rgba(16, 185, 129, 0.4);
+    border-radius: 8px;
+    box-shadow: 0 6px 20px rgba(16, 185, 129, 0.3);
 }
-.hero-btn-sub:hover { transform: translateY(-2px); box-shadow: 0 12px 30px rgba(16, 185, 129, 0.55); }
+.hero-btn-sub:hover { transform: translateY(-2px); }
 
 .hero-btn-free {
-    background: rgba(15, 23, 42, 0.65);
-    color: #FFFFFF;
-    border: 2px solid rgba(255, 255, 255, 0.8);
-    padding: 11px 24px;
-    font-size: 15px;
+    background: #FFFFFF;
+    color: var(--primary);
+    border: 2px solid var(--primary);
+    padding: 10px 20px;
+    font-size: 14px;
     font-weight: 700;
-    border-radius: 10px;
-    backdrop-filter: blur(6px);
+    border-radius: 8px;
 }
-.hero-btn-free:hover { background: #FFFFFF; color: #0F172A; transform: translateY(-2px); }
+.hero-btn-free:hover { background: var(--primary); color: #FFFFFF; transform: translateY(-2px); }
 
 /* =========================================================
    3-TIER SUBSCRIPTION & DISCOUNT PLAN CARDS
@@ -441,10 +419,10 @@ details p { font-size: 14px; color: #6B7280; margin-top: 10px; padding-left: 10p
 .support-p { background: #10B981; }
 
 @media (max-width: 768px) {
-    .hero-banner-full { min-height: 330px; padding: 30px 5%; }
-    .hero-banner-content h1 { font-size: 28px; }
-    .hero-banner-content p { font-size: 14px; }
-    .hero-cta-group { flex-direction: column; width: 100%; }
+    .hero-section-clean { flex-direction: column; text-align: center; padding: 25px 5%; }
+    .hero-left-content h1 { font-size: 26px; }
+    .hero-left-content p { font-size: 13px; }
+    .hero-cta-group { justify-content: center; width: 100%; }
     .hero-btn-sub, .hero-btn-free { width: 100%; }
     .plan-cards-grid { grid-template-columns: 1fr; gap: 14px; }
     .candidate-profile-card { flex-direction: column; align-items: flex-start; }
