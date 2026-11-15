@@ -135,18 +135,19 @@
         </div>
     </div>
     
-    <!-- REGISTER SCREEN (Email OTP Verification First -> Then Set Password) -->
+    <!-- REGISTER SCREEN (2-Step Professional Flow: Step 1: Email & Mobile -> Send OTP -> Step 2: Verify & Enter Name/Password) -->
     <div id="registerScreen" class="section hide" style="max-width: 460px; margin: 30px auto;">
         <div style="background: white; padding: 30px 24px; border-radius: 16px; text-align: center; box-shadow: 0 4px 20px rgba(0,0,0,0.06);">
             <h2 style="color: var(--primary); margin-bottom: 6px; font-size: 22px;" data-translate="reg_h2">Create an Account</h2>
             <p style="font-size: 13px; color: #6B7280; margin-bottom: 20px;">Verify your Email ID with a 6-digit OTP to continue</p>
 
-            <input type="text" id="regName" placeholder="Full Name" style="width:100%; padding:12px; margin-bottom: 12px; border:2px solid #E5E7EB; border-radius:8px; outline:none;">
-            <input type="tel" id="regMobile" placeholder="Mobile Number (10 digits)" maxlength="10" style="width:100%; padding:12px; margin-bottom: 12px; border:2px solid #E5E7EB; border-radius:8px; outline:none;">
-            
-            <div style="display: flex; gap: 8px; margin-bottom: 12px;">
-                <input type="email" id="regEmail" placeholder="Email ID (e.g., name@gmail.com)" style="flex: 1; padding:12px; border:2px solid #E5E7EB; border-radius:8px; outline:none;">
-                <button type="button" id="btnSendRegOtp" class="btn btn-primary" style="padding: 10px 14px; white-space: nowrap; font-size: 13px;" onclick="sendRegisterOtp()">Send OTP</button>
+            <!-- Step 1: Email & Mobile Input -->
+            <div id="regStep1Box">
+                <input type="tel" id="regMobile" placeholder="WhatsApp / Mobile Number (10 digits)" maxlength="10" style="width:100%; padding:12px; margin-bottom: 12px; border:2px solid #E5E7EB; border-radius:8px; outline:none;">
+                <div style="display: flex; gap: 8px; margin-bottom: 12px;">
+                    <input type="email" id="regEmail" placeholder="Email ID (e.g., name@gmail.com)" style="flex: 1; padding:12px; border:2px solid #E5E7EB; border-radius:8px; outline:none;">
+                    <button type="button" id="btnSendRegOtp" class="btn btn-primary" style="padding: 10px 14px; white-space: nowrap; font-size: 13px;" onclick="sendRegisterOtp()">Send OTP</button>
+                </div>
             </div>
 
             <!-- Step 2: OTP Verification Box -->
@@ -158,11 +159,12 @@
                 </div>
             </div>
 
-            <!-- Step 3: Password Setup (Unlocked after Email OTP Verification) -->
+            <!-- Step 3: Name & Password Setup (Unlocked after Email OTP Verification) -->
             <div id="regPasswordBox" class="hide">
                 <div style="background: #ECFDF5; color: #065F46; padding: 8px; border-radius: 8px; font-size: 13px; font-weight: 600; margin-bottom: 12px;">
-                    ✅ Email Verified! Now set your password.
+                    ✅ Email Verified! Now enter your name and password.
                 </div>
+                <input type="text" id="regName" placeholder="Full Name" style="width:100%; padding:12px; margin-bottom: 12px; border:2px solid #E5E7EB; border-radius:8px; outline:none;">
                 <input type="password" id="regPass" placeholder="Create Password" style="width:100%; padding:12px; margin-bottom: 12px; border:2px solid #E5E7EB; border-radius:8px; outline:none;">
                 <input type="password" id="regPassConfirm" placeholder="Confirm Password" style="width:100%; padding:12px; margin-bottom: 16px; border:2px solid #E5E7EB; border-radius:8px; outline:none;">
                 <button class="btn btn-accent" style="width:100%; padding:12px; font-size: 15px;" onclick="doRegister()" data-translate="reg_btn">Complete Registration</button>
@@ -570,13 +572,81 @@
         </div>
     </div>
 
-    <!-- OFFICIAL EMAIL SUPPORT MODAL -->
-    <div id="supportModal" class="modal-overlay-payment hide">
-        <div class="modal-box" style="max-width: 400px;">
-            <h2 style="color: var(--primary); margin-bottom: 8px; font-size: 20px;">📧 Help & Support</h2>
-            <p style="font-size: 13px; color: #6B7280; margin-bottom: 15px;">
-                Need assistance? Reach out to our official support team at <b style="color: var(--primary);">support@taiyarighar.in</b> or choose an issue below:
+    <!-- ABOUT US MODAL -->
+    <div id="aboutModal" class="modal-overlay-payment hide">
+        <div class="modal-box" style="max-width: 500px; text-align: left;">
+            <h2 style="color: var(--primary); margin-bottom: 12px; font-size: 22px; text-align: center;">📖 About TaiyariGhar</h2>
+            <p style="font-size: 14px; color: #374151; line-height: 1.6; margin-bottom: 12px;">
+                <b>TaiyariGhar (`taiyarighar.in`)</b> is India's premier online mock test and exam preparation platform designed specifically for aspirants preparing for SSC, Railway, Banking, UP State, and Police examinations.
             </p>
+            <p style="font-size: 14px; color: #374151; line-height: 1.6; margin-bottom: 12px;">
+                <b>Key Features & Highlights:</b>
+            </p>
+            <ul style="font-size: 13px; color: #4B5563; line-height: 1.6; margin-left: 20px; margin-bottom: 20px;">
+                <li><b>All-India Live Exams:</b> Real-time competitive exams with strict anti-cheating full-screen protocols, auto-submissions, and All-India Ranks.</li>
+                <li><b>Automated Midnight Results:</b> Scorecards and detailed PDF performance reports delivered automatically to registered emails at 12:00 AM.</li>
+                <li><b>Bilingual Practice Tests:</b> High-quality questions in Hindi and English with step-by-step explanations.</li>
+                <li><b>Instant PDF Invoices:</b> Automated GST/tax invoices sent upon successful Razorpay subscription activation.</li>
+            </ul>
+            <button class="btn btn-primary" style="width: 100%;" onclick="closeAboutModal()">Close</button>
+        </div>
+    </div>
+
+    <!-- PRIVACY POLICY MODAL -->
+    <div id="privacyModal" class="modal-overlay-payment hide">
+        <div class="modal-box" style="max-width: 500px; text-align: left;">
+            <h2 style="color: var(--primary); margin-bottom: 12px; font-size: 22px; text-align: center;">🔒 Privacy Policy</h2>
+            <p style="font-size: 14px; color: #374151; line-height: 1.6; margin-bottom: 12px;">
+                At TaiyariGhar, we respect your privacy and are committed to protecting your personal information.
+            </p>
+            <ul style="font-size: 13px; color: #4B5563; line-height: 1.6; margin-left: 20px; margin-bottom: 20px;">
+                <li><b>Data Collection:</b> We collect your name, email ID, and mobile number strictly for account authentication, exam notifications, and subscription invoices.</li>
+                <li><b>Data Security:</b> Your password and credentials are securely encrypted and stored on Firebase Firestore. We never sell or share user data with third parties.</li>
+                <li><b>Device Security:</b> Account access is restricted to a maximum of 2 concurrent devices to prevent unauthorized sharing.</li>
+            </ul>
+            <button class="btn btn-primary" style="width: 100%;" onclick="closePrivacyModal()">Close</button>
+        </div>
+    </div>
+
+    <!-- TERMS & CONDITIONS MODAL -->
+    <div id="termsModal" class="modal-overlay-payment hide">
+        <div class="modal-box" style="max-width: 500px; text-align: left;">
+            <h2 style="color: var(--primary); margin-bottom: 12px; font-size: 22px; text-align: center;">📜 Terms & Conditions</h2>
+            <ul style="font-size: 13px; color: #4B5563; line-height: 1.6; margin-left: 20px; margin-bottom: 20px;">
+                <li><b>Account Usage:</b> Each account is meant for individual candidate preparation. Sharing credentials beyond 2 devices will trigger session restrictions.</li>
+                <li><b>Live Exam Protocol:</b> All-India Live Tests operate under strict anti-cheating guidelines. Exiting full-screen or switching browser tabs repeatedly will result in automated test submission.</li>
+                <li><b>Intellectual Property:</b> All test questions, solutions, and platform graphics are copyrighted properties of TaiyariGhar. Unauthorized copying or redistribution is strictly prohibited.</li>
+            </ul>
+            <button class="btn btn-primary" style="width: 100%;" onclick="closeTermsModal()">Close</button>
+        </div>
+    </div>
+
+    <!-- REFUND POLICY MODAL -->
+    <div id="refundModal" class="modal-overlay-payment hide">
+        <div class="modal-box" style="max-width: 500px; text-align: left;">
+            <h2 style="color: var(--primary); margin-bottom: 12px; font-size: 22px; text-align: center;">💳 Refund & Cancellation Policy</h2>
+            <p style="font-size: 14px; color: #374151; line-height: 1.6; margin-bottom: 12px;">
+                <b>Strictly Non-Refundable:</b>
+            </p>
+            <p style="font-size: 13px; color: #4B5563; line-height: 1.6; margin-bottom: 20px;">
+                Once a subscription pass (3, 6, or 12 Months All-Access) has been successfully purchased and activated via Razorpay, <b>no refunds, cancellations, or plan transfers will be entertained under any circumstances</b>. Users are advised to attempt our free mock tests before upgrading to pro.
+            </p>
+            <button class="btn btn-primary" style="width: 100%;" onclick="closeRefundModal()">Close</button>
+        </div>
+    </div>
+
+    <!-- OFFICIAL EMAIL SUPPORT MODAL WITH ALL 3 EMAILS -->
+    <div id="supportModal" class="modal-overlay-payment hide">
+        <div class="modal-box" style="max-width: 420px;">
+            <h2 style="color: var(--primary); margin-bottom: 8px; font-size: 20px;">📧 Contact Us & Support</h2>
+            <p style="font-size: 13px; color: #6B7280; margin-bottom: 12px;">
+                Reach out to our official support team anytime:
+            </p>
+            <div style="background: #F8FAFC; padding: 10px; border-radius: 8px; font-size: 13px; color: #1E1B4B; margin-bottom: 15px; text-align: left; border: 1px solid #E2E8F0;">
+                📧 <b>Email 1:</b> info@taiyarighar.in<br>
+                📧 <b>Email 2:</b> support@taiyarighar.in<br>
+                📧 <b>Email 3:</b> madhup@taiyarighar.in
+            </div>
             
             <div class="support-btn-group">
                 <a href="#" id="mailSupportQuestion" class="support-btn support-q">❓ Question Problem / Report</a>
@@ -598,14 +668,25 @@
 
     <footer class="footer" id="mainFooter">
         <div class="footer-links">
-            <a href="about.html">About Us</a>
-            <a href="javascript:void(0);" onclick="openSupportModal()" style="font-weight: bold; color: var(--accent);">Contact Us (support@taiyarighar.in)</a>
-            <a href="javascript:void(0);" onclick="alert('Privacy Policy: Your email and mobile data are strictly protected and used only for exam alerts and invoices.')">Privacy Policy</a>
-            <a href="javascript:void(0);" onclick="alert('Terms & Conditions: Account sharing beyond 2 devices or cheating in Live Exams will result in suspension.')">Terms & Conditions</a>
-            <a href="javascript:void(0);" onclick="alert('Refund Policy: Subscriptions once activated are non-refundable.')">Refund Policy</a>
+            <a href="javascript:void(0);" onclick="showAboutModal()">About Us</a>
+            <a href="javascript:void(0);" onclick="openSupportModal()" style="font-weight: bold; color: var(--accent);">Contact Us</a>
+            <a href="javascript:void(0);" onclick="showPrivacyModal()">Privacy Policy</a>
+            <a href="javascript:void(0);" onclick="showTermsModal()">Terms & Conditions</a>
+            <a href="javascript:void(0);" onclick="showRefundModal()">Refund Policy</a>
         </div>
-        <p>© 2026 TaiyariGhar. All rights reserved. Official Support: support@taiyarighar.in</p>
+        <p>© 2026 TaiyariGhar. All rights reserved. Official Emails: info@taiyarighar.in | support@taiyarighar.in | madhup@taiyarighar.in</p>
     </footer>
+
+    <script>
+        window.showAboutModal = function() { document.getElementById('aboutModal').classList.remove('hide'); }
+        window.closeAboutModal = function() { document.getElementById('aboutModal').classList.add('hide'); }
+        window.showPrivacyModal = function() { document.getElementById('privacyModal').classList.remove('hide'); }
+        window.closePrivacyModal = function() { document.getElementById('privacyModal').classList.add('hide'); }
+        window.showTermsModal = function() { document.getElementById('termsModal').classList.remove('hide'); }
+        window.closeTermsModal = function() { document.getElementById('termsModal').classList.add('hide'); }
+        window.showRefundModal = function() { document.getElementById('refundModal').classList.remove('hide'); }
+        window.closeRefundModal = function() { document.getElementById('refundModal').classList.add('hide'); }
+    </script>
 
     <script type="module" src="student-app.js"></script>
 </body>
