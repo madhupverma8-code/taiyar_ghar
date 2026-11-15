@@ -10,41 +10,51 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
 window.verifyAdminLogin = async function() {
+    const emailInput = document.getElementById('adminEmailInput');
     const passInput = document.getElementById('adminPassInput');
-    if (!passInput) return;
+    
+    if (!emailInput || !passInput) return;
+    const email = emailInput.value.trim().toLowerCase();
     const pass = passInput.value.trim();
-    if(!pass) { alert("Please enter admin password"); return; }
+
+    if(!email || !pass) { 
+        alert("Please enter both Admin Email ID and Password"); 
+        return; 
+    }
     
     try {
         const docRef = doc(db, "settings", "global");
         const docSnap = await getDoc(docRef);
         
+        let validEmail = "madhupverma8@gmail.com";
         let savedPass = "admin123";
-        let storedHash = "8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92";
         
         if(docSnap.exists()) {
             const data = docSnap.data();
+            if(data.adminEmail) validEmail = data.adminEmail.toLowerCase();
             if(data.adminPassword) savedPass = data.adminPassword;
-            if(data.adminPasswordHash) storedHash = data.adminPasswordHash;
         }
 
-        if(pass === savedPass || pass === "admin123" || pass === "123456" || btoa(pass) === storedHash || pass.length >= 4) {
+        // Accept madhupverma8@gmail.com or standard admin passwords
+        if ((email === validEmail || email === "madhupverma8@gmail.com") && 
+            (pass === savedPass || pass === "admin123" || pass === "123456" || pass.length >= 4)) {
+            
             const loginScreen = document.getElementById('adminLoginScreen');
             const adminDashboard = document.getElementById('adminDashboard');
             if(loginScreen) loginScreen.classList.add('hide');
             if(adminDashboard) adminDashboard.classList.remove('hide');
             loadSettings();
         } else {
-            alert("Incorrect Admin Password!");
+            alert("Incorrect Admin Email ID or Password!");
         }
     } catch(e) {
         console.error("Login error:", e);
-        if(pass === "admin123" || pass === "123456" || pass.length >= 4) {
+        if(email === "madhupverma8@gmail.com" && pass.length >= 4) {
             document.getElementById('adminLoginScreen').classList.add('hide');
             document.getElementById('adminDashboard').classList.remove('hide');
             loadSettings();
         } else {
-            alert("Login connection error.");
+            alert("Login connection error or incorrect credentials.");
         }
     }
 };
@@ -54,8 +64,8 @@ window.adminLogout = function() {
     const loginScreen = document.getElementById('adminLoginScreen');
     if(adminDashboard) adminDashboard.classList.add('hide');
     if(loginScreen) loginScreen.classList.remove('hide');
-    const passInput = document.getElementById('adminPassInput');
-    if(passInput) passInput.value = "";
+    if(document.getElementById('adminEmailInput')) document.getElementById('adminEmailInput').value = "";
+    if(document.getElementById('adminPassInput')) document.getElementById('adminPassInput').value = "";
 };
 
 window.loadSettings = async function() {
