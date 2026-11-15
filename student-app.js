@@ -1,7 +1,13 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
 import { getFirestore, collection, getDocs, getDoc, setDoc, addDoc, query, where, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-// API Key
+// =========================================================================
+// 🔧 CONFIGURATION (Yahan apni Razorpay Key aur Google Apps Script URL dalein)
+// =========================================================================
+const RAZORPAY_KEY_ID = "rzp_test_YOUR_KEY_HERE"; // <-- Yahan apni Razorpay Key ID paste karein
+const APPS_SCRIPT_URL = "YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL"; // <-- Yahan baad me Google Apps Script Web App URL paste karein
+
+// Firebase Configuration
 const firebaseConfig = {
     apiKey: "AIzaSyA7x6gQziPYLxrXnyVJJ80mvJkh3VCm24", 
     authDomain: "taiyarighar.firebaseapp.com",
@@ -17,18 +23,33 @@ const db = getFirestore(app);
 let allTests = [], appSettings = {}, allCA = [], allExamCategories = [];
 let userPastResults = {}; 
 
-let currentStudent = { name: "", loginId: "", isPaid: false, expiry: "" };
+let currentStudent = { docId: "", name: "", email: "", mobile: "", loginId: "", isPaid: false, expiry: "" };
 let isLoggedIn = false;
 let isFirstLoginSession = false;
 let recommendedTestData = null;
 let nav = { mainCat: "", subCat: "", examName: "" };
 
+// OTP State Variables
+let regGeneratedOtp = "";
+let regOtpExpiry = 0;
+let isRegEmailVerified = false;
+let verifiedRegEmail = "";
+
+let forgotGeneratedOtp = "";
+let forgotOtpExpiry = 0;
+let forgotTargetDocId = "";
+let forgotTargetEmail = "";
+
+// Test & Live Exam State Variables
 let testQuestions = [], currentQIndex = 0, userAnswers = {}, markedForReview = {}, visitedQuestions = {};
-let timerInterval, timeLeft = 0, totalTime = 0;
-let currentTestId = "", currentTestName = "", currentTestMarks = 0, currentTestNegMark = 0, currentTestLanguage = "Both";
+let timerInterval, liveCountdownInterval, timeLeft = 0, totalTime = 0;
+let currentTestId = "", currentTestName = "", currentTestMarks = 0, currentTestNegMark = 0, currentTestPosMark = 1, currentTestLanguage = "Both";
+let isCurrentTestLive = false, currentLiveEndTime = "";
+let tabSwitchWarnings = 0;
+let isTestSubmitting = false;
+
 let pendingTestDetails = null;
 let currentResultData = null;
-let currentForgotMethod = 'code';
 let currentScreen = 'homeScreen'; 
 
 const defaultMainCategories = [
@@ -42,14 +63,38 @@ const defaultMainCategories = [
 ];
 
 const translations = {
-    "en": { "nav_home": "Home", "nav_exams": "All Exams", "nav_ca": "Current Affairs", "nav_login": "Login", "nav_register": "Register", "nav_dash": "Dashboard", "nav_purchase": "My Purchases", "nav_logout": "Logout", "hero_h1": "Crack Your Dream Govt Job with Confidence.", "hero_p": "All-in-one mock test platform for SSC, Railway, Police & All State Exams. Latest syllabus, real-time rankings, and unlimited tests in one subscription.", "sec_cats": "🎯 Exam Categories", "ca_h2": "📰 Current Affairs Hub", "ca_p": "Stay updated with Daily, Weekly, and Monthly Current Affairs.", "btn_explore": "Explore Now", "login_h2": "Login to Your Account", "login_btn": "Login", "login_new": "New user?", "login_reg": "Register Here", "reg_h2": "Create an Account", "reg_btn": "Register Now", "dash_h2": "Crack Your Dream Govt Job with Confidence.", "dash_qv": "📊 Dashboard Quick View", "qv_explore": "Explore Tests", "qv_browse": "Browse all available tests", "qv_view": "View Tests", "qv_rec": "Recommended Next", "qv_loading": "Loading...", "qv_start": "Start Now", "qv_recent": "Recent Performance", "qv_not_att": "Not Attempted Yet", "qv_take": "Take a test to see your score", "btn_back_cat": "← Back", "test_clear": "Clear Response", "test_mark": "⭐ Mark", "test_prev": "← Prev", "test_next": "Save & Next →", "test_palette": "Question Palette", "test_submit": "Submit Test", "res_h2": "Test Result", "res_lb": "🏆 Top 5 Leaderboard", "res_back": "Back to Dashboard", "pay_lock": "🔒 Test Locked", "pay_unlock": "Unlock all tests with a one-time payment of", "pay_upi": "UPI ID:", "pay_wa": "📲 Send Screenshot on WhatsApp", "pay_check": "🔄 Check Status", "pay_close": "Close" },
-    "hi": { "nav_home": "होम", "nav_exams": "सभी परीक्षाएं", "nav_ca": "करंट अफेयर्स", "nav_login": "लॉगिन", "nav_register": "रजिस्टर", "nav_dash": "डैशबोर्ड", "nav_purchase": "मेरी खरीदारी", "nav_logout": "लॉगआउट", "hero_h1": "TayariGhar के साथ पाएं अपनी ड्रीम गवर्नमेंट जॉब।", "hero_p": "SSC, रेलवे, पुलिस और सभी राज्य परीक्षाओं के लिए ऑल-इन-वन मॉक टेस्ट प्लेटफॉर्म। नवीनतम सिलेबस, रियल-टाइम रैंकिंग और वन सब्सक्रिप्शन में अनलिमिटेड टेस्ट।", "sec_cats": "🎯 परीक्षा श्रेणियाँ", "ca_h2": "📰 करंट अफेयर्स हब", "ca_p": "दैनिक, साप्ताहिक और मासिक करंट अफेयर्स के साथ अपडेट रहें।", "btn_explore": "अभी देखें", "login_h2": "अपने खाते में लॉगिन करें", "login_btn": "लॉगिन", "login_new": "नए उपयोगकर्ता हैं?", "login_reg": "यहाँ रजिस्टर करें", "reg_h2": "खाता बनाएँ", "reg_btn": "अभी रजिस्टर करें", "dash_h2": "TayariGhar के साथ पाएं अपनी ड्रीम गवर्नमेंट जॉब।", "dash_qv": "📊 डैशबोर्ड त्वरित दृश्य", "qv_explore": "टेस्ट खोजें", "qv_browse": "सभी उपलब्ध टेस्ट ब्राउज़ करें", "qv_view": "टेस्ट देखें", "qv_rec": "अगला सुझाव", "qv_loading": "लोड हो रहा है...", "qv_start": "अभी शुरू करें", "qv_recent": "हालिया प्रदर्शन", "qv_not_att": "अभी तक प्रयास नहीं किया", "qv_take": "अपना स्कोर देखने के लिए टेस्ट दें", "btn_back_cat": "← पीछे जाएँ", "test_clear": "उत्तर साफ़ करें", "test_mark": "⭐ मार्क करें", "test_prev": "← पिछला", "test_next": "सेव और अगला →", "test_palette": "प्रश्न पैलेट", "test_submit": "टेस्ट सबमिट करें", "res_h2": "टेस्ट परिणाम", "res_lb": "🏆 टॉप 5 लीडरबोर्ड", "res_back": "डैशबोर्ड पर वापस जाएँ", "pay_lock": "🔒 टेस्ट लॉक है", "pay_unlock": "एकमुश्त भुगतान के साथ सभी टेस्ट अनलॉक करें", "pay_upi": "UPI आईडी:", "pay_wa": "📲 व्हाट्सएप पर स्क्रीनशॉट भेजें", "pay_check": "🔄 स्थिति जांचें", "pay_close": "बंद करें" }
+    "en": { "nav_home": "Home", "nav_exams": "All Exams", "nav_ca": "Current Affairs", "nav_login": "Login", "nav_register": "Register", "nav_dash": "Dashboard", "nav_purchase": "My Purchases", "nav_logout": "Logout", "hero_h1": "Crack Your Dream Govt Job with Confidence.", "hero_p": "All-in-one mock test platform for SSC, Railway, Police & All State Exams. Latest syllabus, real-time rankings, and unlimited tests in one subscription.", "sec_cats": "🎯 Exam Categories", "ca_h2": "📰 Current Affairs Hub", "ca_p": "Stay updated with Daily, Weekly, and Monthly Current Affairs.", "btn_explore": "Explore Now", "login_h2": "Login to Your Account", "login_btn": "Login", "login_new": "New user?", "login_reg": "Register Here", "reg_h2": "Create an Account", "reg_btn": "Complete Registration", "dash_h2": "Crack Your Dream Govt Job with Confidence.", "dash_qv": "📊 Dashboard Quick View", "qv_explore": "Explore Tests", "qv_browse": "Browse all available tests", "qv_view": "View Tests", "qv_rec": "Recommended Next", "qv_loading": "Loading...", "qv_start": "Start Now", "qv_recent": "Recent Performance", "qv_not_att": "Not Attempted Yet", "qv_take": "Take a test to see your score", "btn_back_cat": "← Back", "pay_unlock": "Unlock all premium mock tests & Live All-India Exams for", "pay_close": "Close" },
+    "hi": { "nav_home": "होम", "nav_exams": "सभी परीक्षाएं", "nav_ca": "करंट अफेयर्स", "nav_login": "लॉगिन", "nav_register": "रजिस्टर", "nav_dash": "डैशबोर्ड", "nav_purchase": "मेरी खरीदारी", "nav_logout": "लॉगआउट", "hero_h1": "TayariGhar के साथ पाएं अपनी ड्रीम गवर्नमेंट जॉब।", "hero_p": "SSC, रेलवे, पुलिस और सभी राज्य परीक्षाओं के लिए ऑल-इन-वन मॉक टेस्ट प्लेटफॉर्म। नवीनतम सिलेबस, रियल-टाइम रैंकिंग और वन सब्सक्रिप्शन में अनलिमिटेड टेस्ट।", "sec_cats": "🎯 परीक्षा श्रेणियाँ", "ca_h2": "📰 करंट अफेयर्स हब", "ca_p": "दैनिक, साप्ताहिक और मासिक करंट अफेयर्स के साथ अपडेट रहें।", "btn_explore": "अभी देखें", "login_h2": "अपने खाते में लॉगिन करें", "login_btn": "लॉगिन", "login_new": "नए उपयोगकर्ता हैं?", "login_reg": "यहाँ रजिस्टर करें", "reg_h2": "खाता बनाएँ", "reg_btn": "रजिस्ट्रेशन पूरा करें", "dash_h2": "TayariGhar के साथ पाएं अपनी ड्रीम गवर्नमेंट जॉब।", "dash_qv": "📊 डैशबोर्ड त्वरित दृश्य", "qv_explore": "टेस्ट खोजें", "qv_browse": "सभी उपलब्ध टेस्ट ब्राउज़ करें", "qv_view": "टेस्ट देखें", "qv_rec": "अगला सुझाव", "qv_loading": "लोड हो रहा है...", "qv_start": "अभी शुरू करें", "qv_recent": "हालिया प्रदर्शन", "qv_not_att": "अभी तक प्रयास नहीं किया", "qv_take": "अपना स्कोर देखने के लिए टेस्ट दें", "btn_back_cat": "← पीछे जाएँ", "pay_unlock": "सभी प्रीमियम मॉक टेस्ट और लाइव ऑल-इंडिया परीक्षाएं अनलॉक करें", "pay_close": "बंद करें" }
 };
 
 let currentLang = localStorage.getItem('tg_lang') || 'en';
 
+// =========================================================================
+// 📧 GOOGLE APPS SCRIPT EMAIL HELPER (OTP, Invoice & Welcome Mail)
+// =========================================================================
+async function callEmailService(payload) {
+    if (!APPS_SCRIPT_URL || APPS_SCRIPT_URL === "YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL") {
+        console.warn("Google Apps Script URL not configured yet. Payload:", payload);
+        return { status: "not_configured" };
+    }
+    try {
+        const response = await fetch(APPS_SCRIPT_URL, {
+            method: "POST",
+            headers: { "Content-Type": "text/plain;charset=utf-8" },
+            body: JSON.stringify(payload)
+        });
+        return await response.json();
+    } catch (err) {
+        console.error("Email service error:", err);
+        return { status: "error", message: err.message };
+    }
+}
+
+// =========================================================================
+// 🖥️ SCREEN NAVIGATION & HISTORY
+// =========================================================================
 function showScreen(screenId, pushHistory = true) {
-    ['homeScreen', 'loginScreen', 'registerScreen', 'forgotPasswordScreen', 'dashboardScreen', 'subCatScreen', 'caScreen', 'instructionsScreen', 'testScreen', 'resultScreen', 'solutionsScreen'].forEach(s => {
+    ['homeScreen', 'loginScreen', 'registerScreen', 'forgotPasswordScreen', 'dashboardScreen', 'subCatScreen', 'caScreen', 'instructionsScreen', 'testScreen', 'liveSubmittedScreen', 'resultScreen', 'solutionsScreen'].forEach(s => {
         const el = document.getElementById(s);
         if(el) el.classList.add('hide');
     });
@@ -57,9 +102,11 @@ function showScreen(screenId, pushHistory = true) {
     if (screenId === 'testScreen') {
         document.getElementById('mainHeader').classList.add('hide');
         document.getElementById('mainFooter').classList.add('hide');
+        enableAntiCheating();
     } else {
         document.getElementById('mainHeader').classList.remove('hide');
         document.getElementById('mainFooter').classList.remove('hide');
+        disableAntiCheating();
     }
     
     const target = document.getElementById(screenId);
@@ -73,15 +120,19 @@ function showScreen(screenId, pushHistory = true) {
 }
 
 window.onpopstate = function(event) {
-    if (event.state && event.state.screen) {
-        if (currentScreen === 'testScreen' && event.state.screen !== 'testScreen') {
-            if (!confirm("Are you sure you want to leave the test? Your progress will be saved automatically.")) {
-                history.pushState({ screen: 'testScreen' }, '', window.location.search);
-                return;
+    if (currentScreen === 'testScreen') {
+        history.pushState({ screen: 'testScreen' }, '', window.location.search);
+        if (isCurrentTestLive) {
+            handleAntiCheatViolation("Back button navigation is strictly blocked during Live Exam!");
+        } else {
+            if (confirm("Are you sure you want to submit and exit the test?")) {
+                finalSubmitTest();
             }
-            saveProgress();
-            clearInterval(timerInterval);
         }
+        return;
+    }
+
+    if (event.state && event.state.screen) {
         showScreen(event.state.screen, false);
     } else {
         checkUrlRouting();
@@ -110,14 +161,13 @@ async function checkUrlRouting() {
                     let targetSub = allTests.map(t => t.subCat).find(sc => 
                         allTests.some(t => t.mainCat.toLowerCase().replace("exams", "").trim() === normalizedMain && t.subCat.toLowerCase().replace(/\s+/g, '-') === subCatSlug)
                     );
-                    if(targetSub) {
-                         loadTestsForSubCat(targetSub, null, true);
-                    }
+                    if(targetSub) loadTestsForSubCat(targetSub, null, true);
                 }
             }
         }
     } else if (window.location.pathname.endsWith('/') || window.location.pathname.endsWith('index.html')) {
-        goHome();
+        if (isLoggedIn) goDashboard();
+        else goHome();
     }
 }
 
@@ -145,15 +195,6 @@ function applyLanguage() {
             else { el.innerText = translations[currentLang][key]; }
         }
     });
-    const placeholders = { 
-        "loginId": currentLang === 'en' ? "Login ID or WhatsApp Number" : "लॉगिन आईडी या व्हाट्सएप नंबर", 
-        "loginPass": currentLang === 'en' ? "Password" : "पासवर्ड", 
-        "regName": currentLang === 'en' ? "Full Name" : "पूरा नाम", 
-        "regMobile": currentLang === 'en' ? "WhatsApp Number (e.g., 9876543210)" : "व्हाट्सएप नंबर (जैसे 9876543210)", 
-        "regPass": currentLang === 'en' ? "Create Password" : "पासवर्ड बनाएँ", 
-        "regPassConfirm": currentLang === 'en' ? "Confirm Password" : "पासवर्ड की पुष्टि करें" 
-    };
-    for(let id in placeholders) { if(document.getElementById(id)) document.getElementById(id).placeholder = placeholders[id]; }
 }
 
 let deferredPrompt;
@@ -182,44 +223,73 @@ window.goDashboard = function() {
     window.history.pushState({ screen: 'dashboardScreen' }, '', window.location.pathname);
     showScreen('dashboardScreen', false); 
     updateHeaderUI(); 
+    renderCandidateProfileCard();
     fetchDashboardData(); 
     updateWelcomeMessage(isFirstLoginSession); 
 }
 
 window.showLogin = function() { showScreen('loginScreen'); }
-window.showRegister = function() { showScreen('registerScreen'); }
-window.showForgotPassword = function() { showScreen('forgotPasswordScreen'); }
-window.logout = function() { isLoggedIn = false; currentStudent = {}; localStorage.removeItem('tg_user'); goHome(); }
-
-window.toggleForgotMethod = function(method) {
-    currentForgotMethod = method;
-    if(method === 'code') {
-        document.getElementById('tabCode').classList.add('active');
-        document.getElementById('tabSec').classList.remove('active');
-        document.getElementById('boxRecoveryCode').classList.remove('hide');
-        document.getElementById('boxSecAnswer').classList.add('hide');
-    } else {
-        document.getElementById('tabCode').classList.remove('active');
-        document.getElementById('tabSec').classList.add('active');
-        document.getElementById('boxRecoveryCode').classList.add('hide');
-        document.getElementById('boxSecAnswer').classList.remove('hide');
-    }
+window.showRegister = function() { 
+    isRegEmailVerified = false;
+    verifiedRegEmail = "";
+    document.getElementById('regOtpBox').classList.add('hide');
+    document.getElementById('regPasswordBox').classList.add('hide');
+    document.getElementById('regEmail').disabled = false;
+    document.getElementById('btnSendRegOtp').disabled = false;
+    document.getElementById('btnSendRegOtp').innerText = "Send OTP";
+    showScreen('registerScreen'); 
+}
+window.showForgotPassword = function() { 
+    document.getElementById('forgotOtpStepBox').classList.add('hide');
+    document.getElementById('forgotEmail').disabled = false;
+    showScreen('forgotPasswordScreen'); 
+}
+window.logout = function() { 
+    isLoggedIn = false; 
+    currentStudent = {}; 
+    localStorage.removeItem('tg_user'); 
+    goHome(); 
 }
 
+// =========================================================================
+// 📧 OFFICIAL EMAIL SUPPORT MODAL (support@taiyarighar.in)
+// =========================================================================
 window.openSupportModal = function() {
-    let mobile = (appSettings.Mobile || "9140281870").toString().trim();
-    let cleanMobile = mobile.replace(/[^0-9]/g, '');
-    if(cleanMobile.length === 10) cleanMobile = "91" + cleanMobile;
-    
+    const supportEmail = "support@taiyarighar.in";
+    let studentInfo = isLoggedIn ? `Name: ${currentStudent.name} | ID: ${currentStudent.loginId} | Email: ${currentStudent.email}` : "Guest User";
     let examName = nav.examName ? ` (${nav.mainCat} > ${nav.subCat} > ${nav.examName})` : (nav.mainCat ? ` (${nav.mainCat})` : '');
-    
-    let qMsg = `Hello Admin, Mujhe ek Question mein problem aa rahi hai.${examName}\nQuestion ID: \n\n⚠️ Maine iska screenshot attach kiya hai, please check karein.`;
-    let lMsg = `Hello Admin, Mujhe Login mein problem aa rahi hai. Meri Login ID / Mobile Number hai: \n\n⚠️ Maine iska screenshot attach kiya hai, please check karein.`;
-    let pMsg = `Hello Admin, Mera Payment cut ho gaya hai lekin test unlock nahi hua. Meri Login ID hai: \n\n⚠️ Maine iska screenshot attach kiya hai, please check karein.`;
 
-    document.getElementById('waSupportQuestion').href = `https://wa.me/${cleanMobile}?text=${encodeURIComponent(qMsg)}`;
-    document.getElementById('waSupportLogin').href = `https://wa.me/${cleanMobile}?text=${encodeURIComponent(lMsg)}`;
-    document.getElementById('waSupportPayment').href = `https://wa.me/${cleanMobile}?text=${encodeURIComponent(pMsg)}`;
+    let qSub = `Question Report - TaiyariGhar${examName}`;
+    let qBody = `Hello TaiyariGhar Support,
+
+${studentInfo}
+Exam: ${examName}
+Question ID: 
+
+Issue Description:
+(Please attach screenshot if available)`;
+
+    let lSub = `Login / Account Issue - TaiyariGhar`;
+    let lBody = `Hello TaiyariGhar Support,
+
+${studentInfo}
+Registered Email / Mobile: 
+
+Issue Description:
+`;
+
+    let pSub = `Payment / Invoice Support - TaiyariGhar`;
+    let pBody = `Hello TaiyariGhar Support,
+
+${studentInfo}
+Razorpay Payment ID (if any): 
+
+Issue Description:
+`;
+
+    document.getElementById('mailSupportQuestion').href = `mailto:${supportEmail}?subject=${encodeURIComponent(qSub)}&body=${encodeURIComponent(qBody)}`;
+    document.getElementById('mailSupportLogin').href = `mailto:${supportEmail}?subject=${encodeURIComponent(lSub)}&body=${encodeURIComponent(lBody)}`;
+    document.getElementById('mailSupportPayment').href = `mailto:${supportEmail}?subject=${encodeURIComponent(pSub)}&body=${encodeURIComponent(pBody)}`;
     
     document.getElementById('supportModal').classList.remove('hide');
 }
@@ -237,6 +307,31 @@ function updateHeaderUI() {
     }
 }
 
+function renderCandidateProfileCard() {
+    if (!isLoggedIn) return;
+    document.getElementById('dashProfileAvatar').innerText = currentStudent.name.charAt(0).toUpperCase();
+    document.getElementById('dashProfileName').innerText = currentStudent.name;
+    document.getElementById('dashProfileId').innerText = currentStudent.loginId;
+    document.getElementById('dashProfileEmail').innerText = currentStudent.email || "Not Set";
+    document.getElementById('dashProfileMobile').innerText = currentStudent.mobile || "Not Set";
+
+    const badge = document.getElementById('dashSubBadge');
+    const expiryEl = document.getElementById('dashSubExpiry');
+    const upgBtn = document.getElementById('dashUpgradeBtn');
+
+    if (currentStudent.isPaid) {
+        badge.className = "sub-badge pro";
+        badge.innerText = "⭐ PRO ALL-ACCESS";
+        expiryEl.innerText = "Valid till: " + (currentStudent.expiry || "Active");
+        upgBtn.classList.add('hide');
+    } else {
+        badge.className = "sub-badge free";
+        badge.innerText = "FREE PLAN";
+        expiryEl.innerText = "Upgrade to unlock Live Exams & All Tests";
+        upgBtn.classList.remove('hide');
+    }
+}
+
 function updateWelcomeMessage(isFirst) {
     let firstName = currentStudent.name.split(' ')[0];
     let msgEl = document.getElementById('welcomeMessage');
@@ -245,38 +340,80 @@ function updateWelcomeMessage(isFirst) {
 }
 
 window.scrollToCategories = function() { 
-    if(!isLoggedIn) { alert("Please login first!"); showLogin(); } 
-    else if (currentScreen === 'dashboardScreen') {
+    if(!isLoggedIn) { 
+        document.getElementById('homeCategories').scrollIntoView({behavior: 'smooth'});
+    } else if (currentScreen === 'dashboardScreen') {
         document.getElementById('dashCategories').scrollIntoView({behavior: 'smooth'}); 
     } else {
         goDashboard();
-        setTimeout(() => {
-            document.getElementById('dashCategories').scrollIntoView({behavior: 'smooth'}); 
-        }, 500);
+        setTimeout(() => { document.getElementById('dashCategories').scrollIntoView({behavior: 'smooth'}); }, 400);
     }
 }
-window.showPurchases = function() { if(!isLoggedIn) return; let status = currentStudent.isPaid ? "Paid (All Access)" : "Free User"; alert(`--- MY PURCHASES ---\n\nPlan: ${status}\nExpiry Date: ${currentStudent.expiry || "N/A"}`); }
 
+window.scrollToLiveTests = function() {
+    if (!isLoggedIn) {
+        const el = document.getElementById('homeLiveTestsSection');
+        if (el) el.scrollIntoView({ behavior: 'smooth' });
+    } else if (currentScreen === 'dashboardScreen') {
+        const el = document.getElementById('dashLiveTestsSection');
+        if (el) el.scrollIntoView({ behavior: 'smooth' });
+    } else {
+        goDashboard();
+        setTimeout(() => {
+            const el = document.getElementById('dashLiveTestsSection');
+            if (el) el.scrollIntoView({ behavior: 'smooth' });
+        }, 400);
+    }
+}
+
+window.showPurchases = function() { 
+    if(!isLoggedIn) return; 
+    let status = currentStudent.isPaid ? "PRO All-Access (Active)" : "Free Plan"; 
+    alert(`--- MY SUBSCRIPTION ---\n\nName: ${currentStudent.name}\nLogin ID: ${currentStudent.loginId}\nPlan: ${status}\nValid Till: ${currentStudent.expiry || "N/A"}\n\nNote: Payment invoices are sent directly to ${currentStudent.email}.`); 
+}
+
+// =========================================================================
+// 🔐 LOGIN, EMAIL OTP REGISTRATION & EMAIL OTP FORGOT PASSWORD
+// =========================================================================
 window.doLogin = async function() {
     const inputVal = document.getElementById('loginId').value.trim(); 
     const pass = document.getElementById('loginPass').value.trim();
-    if(!inputVal || !pass) return alert("Enter Login ID / Mobile and Password!");
+    if(!inputVal || !pass) return alert("Enter Email ID, Mobile Number, or Login ID and Password!");
     
     try {
-        let snapshot = await getDocs(query(collection(db, "students"), where("loginId", "==", inputVal), where("password", "==", pass)));
+        let snapshot = await getDocs(query(collection(db, "students"), where("email", "==", inputVal.toLowerCase()), where("password", "==", pass)));
         if(snapshot.empty) snapshot = await getDocs(query(collection(db, "students"), where("mobile", "==", inputVal), where("password", "==", pass)));
+        if(snapshot.empty) snapshot = await getDocs(query(collection(db, "students"), where("loginId", "==", inputVal.toUpperCase()), where("password", "==", pass)));
         
         if(!snapshot.empty) {
             const studentDoc = snapshot.docs[0];
             const studentData = studentDoc.data();
             const docRef = doc(db, "students", studentDoc.id);
 
+            // Check Subscription Expiry automatically
+            let isPaidActive = studentData.isPaid || false;
+            if (isPaidActive && studentData.expiryDate) {
+                const expDate = new Date(studentData.expiryDate + "T23:59:59");
+                if (new Date() > expDate) {
+                    isPaidActive = false;
+                    await updateDoc(docRef, { isPaid: false });
+                }
+            }
+
             let dev1 = studentData.device1 || "", dev2 = studentData.device2 || "", myDev = getDeviceId();
             if(dev1 && dev2 && dev1 !== myDev && dev2 !== myDev) await updateDoc(docRef, { device1: dev2, device2: myDev }); 
             else if(!dev1) await updateDoc(docRef, { device1: myDev });
             else if(!dev2 && dev1 !== myDev) await updateDoc(docRef, { device2: myDev });
 
-            currentStudent = { name: studentData.name, loginId: studentData.loginId, isPaid: studentData.isPaid, expiry: studentData.expiryDate || "" };
+            currentStudent = { 
+                docId: studentDoc.id,
+                name: studentData.name, 
+                email: studentData.email || "",
+                mobile: studentData.mobile || "",
+                loginId: studentData.loginId, 
+                isPaid: isPaidActive, 
+                expiry: studentData.expiryDate || "" 
+            };
             isLoggedIn = true;
             
             let hasLoggedInBefore = localStorage.getItem('tg_has_logged_in');
@@ -293,46 +430,128 @@ window.doLogin = async function() {
             } else {
                 goDashboard();
             }
-        } else { alert("Invalid Login ID / Mobile or Password!"); }
+        } else { alert("❌ Invalid Credentials! Please check your Email/Mobile and Password."); }
     } catch (e) { console.error(e); alert("Database Error: " + e.message); }
 }
 
+// Step 1: Send 6-Digit Email OTP for Registration
+window.sendRegisterOtp = async function() {
+    const name = document.getElementById('regName').value.trim();
+    const mobile = document.getElementById('regMobile').value.trim();
+    const email = document.getElementById('regEmail').value.trim().toLowerCase();
+
+    if (!name) return alert("Please enter your Full Name first!");
+    if (!mobile || mobile.length < 10) return alert("Please enter a valid 10-digit Mobile Number!");
+    if (!email || !email.includes("@")) return alert("Please enter a valid Email ID!");
+
+    const btn = document.getElementById('btnSendRegOtp');
+    btn.disabled = true;
+    btn.innerText = "Sending...";
+
+    try {
+        const emailCheck = await getDocs(query(collection(db, "students"), where("email", "==", email)));
+        if (!emailCheck.empty) {
+            btn.disabled = false;
+            btn.innerText = "Send OTP";
+            return alert("❌ This Email ID is already registered! Please login instead.");
+        }
+
+        const mobileCheck = await getDocs(query(collection(db, "students"), where("mobile", "==", mobile)));
+        if (!mobileCheck.empty) {
+            btn.disabled = false;
+            btn.innerText = "Send OTP";
+            return alert("❌ This Mobile Number is already registered! Please login instead.");
+        }
+
+        regGeneratedOtp = Math.floor(100000 + Math.random() * 900000).toString();
+        regOtpExpiry = Date.now() + 10 * 60 * 1000; // 10 mins validity
+
+        const res = await callEmailService({
+            action: "send_otp",
+            email: email,
+            name: name,
+            otp: regGeneratedOtp,
+            purpose: "Registration Verification"
+        });
+
+        if (res.status === "not_configured") {
+            // Fallback preview alert until Apps Script URL is added
+            alert(`[Setup Mode] Google Apps Script URL not linked yet.\nYour Test OTP is: ${regGeneratedOtp}`);
+        } else if (res.status === "success") {
+            alert(`✅ A 6-digit OTP has been sent to ${email}. Please check your Inbox or Spam folder.`);
+        } else {
+            throw new Error(res.message || "Failed to send OTP email");
+        }
+
+        document.getElementById('regOtpBox').classList.remove('hide');
+        btn.innerText = "Resend OTP";
+        btn.disabled = false;
+    } catch (e) {
+        console.error(e);
+        alert("Error sending OTP: " + e.message);
+        btn.disabled = false;
+        btn.innerText = "Send OTP";
+    }
+}
+
+// Step 2: Verify Registration OTP
+window.verifyRegisterOtp = function() {
+    const userOtp = document.getElementById('regOtpInput').value.trim();
+    const email = document.getElementById('regEmail').value.trim().toLowerCase();
+
+    if (!userOtp || userOtp.length !== 6) return alert("Please enter the 6-digit OTP!");
+    if (Date.now() > regOtpExpiry) return alert("❌ OTP has expired! Please click Resend OTP.");
+    if (userOtp !== regGeneratedOtp) return alert("❌ Incorrect OTP! Please check your email and try again.");
+
+    isRegEmailVerified = true;
+    verifiedRegEmail = email;
+
+    document.getElementById('regEmail').disabled = true;
+    document.getElementById('btnSendRegOtp').disabled = true;
+    document.getElementById('regOtpBox').classList.add('hide');
+    document.getElementById('regPasswordBox').classList.remove('hide');
+}
+
+// Step 3: Complete Registration after OTP Verification
 window.doRegister = async function() {
     const name = document.getElementById('regName').value.trim();
     const mobile = document.getElementById('regMobile').value.trim();
     const pass = document.getElementById('regPass').value.trim();
     const passConfirm = document.getElementById('regPassConfirm').value.trim();
-    const secQ = document.getElementById('regSecQ').value;
-    const secA = document.getElementById('regSecA').value.trim();
-    
-    if(!name || !mobile || !pass || !passConfirm || !secA) return alert("Fill all fields including Security Answer!");
-    if(pass !== passConfirm) return alert("Passwords do not match!");
+
+    if (!isRegEmailVerified || !verifiedRegEmail) return alert("Please verify your Email ID with OTP first!");
+    if (!pass || pass.length < 4) return alert("Please create a password (minimum 4 characters)!");
+    if (pass !== passConfirm) return alert("Passwords do not match!");
 
     try {
-        const qCheck = query(collection(db, "students"), where("name", "==", name));
-        const qCheck2 = query(collection(db, "students"), where("mobile", "==", mobile));
-        const snapCheck = await getDocs(qCheck);
-        const snapCheck2 = await getDocs(qCheck2);
-
-        if(!snapCheck.empty || !snapCheck2.empty) return alert("Name or Mobile already registered!");
-
         const allStudentsSnap = await getDocs(collection(db, "students"));
         const newId = "TG" + String(allStudentsSnap.size + 1).padStart(4, '0');
-        const recoveryCode = Math.random().toString(36).substring(2, 8).toUpperCase();
 
         await addDoc(collection(db, "students"), {
-            name: name, mobile: mobile, loginId: newId, password: pass, 
-            recoveryCode: recoveryCode, 
-            securityQuestion: secQ, securityAnswer: secA.toLowerCase(),
-            isPaid: false, expiryDate: "", device1: getDeviceId(), device2: ""
+            name: name, 
+            email: verifiedRegEmail,
+            mobile: mobile, 
+            loginId: newId, 
+            password: pass, 
+            isPaid: false, 
+            expiryDate: "", 
+            createdAt: new Date().toISOString(),
+            device1: getDeviceId(), 
+            device2: ""
+        });
+
+        // Send Welcome Email with Login Details
+        callEmailService({
+            action: "send_welcome",
+            email: verifiedRegEmail,
+            name: name,
+            loginId: newId,
+            mobile: mobile
         });
 
         document.getElementById('newLoginId').innerText = newId;
+        document.getElementById('newLoginEmail').innerText = verifiedRegEmail;
         document.getElementById('newLoginPass').innerText = pass;
-        document.getElementById('newRecoveryCode').innerText = recoveryCode; 
-        
-        const waMsg = `Hello! I have registered on TaiyariGhar.\n\nName: ${name}\nLogin ID: ${newId}\nPassword: ${pass}\nRecovery Code: ${recoveryCode}\n\nLink: https://taiyarighar.in`;
-        document.getElementById('regWhatsappBtn').href = `https://wa.me/?text=${encodeURIComponent(waMsg)}`;
         
         document.getElementById('registerSuccessModal').classList.remove('hide');
     } catch (e) { console.error(e); alert("Database Error: " + e.message); }
@@ -340,54 +559,305 @@ window.doRegister = async function() {
 
 window.closeRegModal = function() {
     document.getElementById('registerSuccessModal').classList.add('hide');
-    document.getElementById('regName').value = ''; document.getElementById('regMobile').value = ''; document.getElementById('regPass').value = ''; document.getElementById('regPassConfirm').value = ''; document.getElementById('regSecA').value = '';
+    document.getElementById('regName').value = ''; 
+    document.getElementById('regMobile').value = ''; 
+    document.getElementById('regEmail').value = '';
+    document.getElementById('regOtpInput').value = '';
+    document.getElementById('regPass').value = ''; 
+    document.getElementById('regPassConfirm').value = '';
     showLogin();
 }
 
-window.doResetPassword = async function() {
-    const mobile = document.getElementById('forgotMobile').value.trim();
-    const newPass = document.getElementById('forgotNewPass').value.trim();
-    
-    if(!mobile || !newPass) return alert("Please enter Mobile and New Password!");
+// Forgot Password - Step 1: Send Email OTP
+window.sendForgotOtp = async function() {
+    const email = document.getElementById('forgotEmail').value.trim().toLowerCase();
+    if (!email || !email.includes("@")) return alert("Please enter your registered Email ID!");
+
+    const btn = document.getElementById('btnSendForgotOtp');
+    btn.disabled = true;
+    btn.innerText = "Checking...";
 
     try {
-        const q = query(collection(db, "students"), where("mobile", "==", mobile));
-        const snap = await getDocs(q);
-
-        if(!snap.empty) {
-            const studentData = snap.docs[0].data();
-            const docRef = doc(db, "students", snap.docs[0].id);
-            let isValid = false;
-
-            if (currentForgotMethod === 'code') {
-                const code = document.getElementById('forgotCode').value.trim().toUpperCase();
-                if(!code) return alert("Enter Recovery Code!");
-                if (studentData.recoveryCode === code) isValid = true;
-            } else {
-                const secAns = document.getElementById('forgotSecAns').value.trim().toLowerCase();
-                if(!secAns) return alert("Enter Security Answer!");
-                if (studentData.securityAnswer && studentData.securityAnswer.toLowerCase() === secAns) isValid = true;
-            }
-
-            if(isValid) {
-                const newCode = Math.random().toString(36).substring(2, 8).toUpperCase(); 
-                await updateDoc(docRef, { password: newPass, recoveryCode: newCode });
-                alert(`✅ Password Reset Successful!\n\nYour NEW Recovery Code is: ${newCode}\nPlease save it safely.`);
-                showLogin();
-            } else {
-                alert("❌ Invalid Recovery Details! Please try again or contact support.");
-            }
-        } else {
-            alert("❌ No account found with this WhatsApp Number!");
+        const snap = await getDocs(query(collection(db, "students"), where("email", "==", email)));
+        if (snap.empty) {
+            btn.disabled = false;
+            btn.innerText = "Send OTP";
+            return alert("❌ No account found with this Email ID!");
         }
-    } catch(e) { console.error(e); alert("Error: " + e.message); }
+
+        const studentDoc = snap.docs[0];
+        forgotTargetDocId = studentDoc.id;
+        forgotTargetEmail = email;
+        forgotGeneratedOtp = Math.floor(100000 + Math.random() * 900000).toString();
+        forgotOtpExpiry = Date.now() + 10 * 60 * 1000;
+
+        const res = await callEmailService({
+            action: "send_otp",
+            email: email,
+            name: studentDoc.data().name || "Student",
+            otp: forgotGeneratedOtp,
+            purpose: "Password Reset"
+        });
+
+        if (res.status === "not_configured") {
+            alert(`[Setup Mode] Your Password Reset OTP is: ${forgotGeneratedOtp}`);
+        } else if (res.status === "success") {
+            alert(`✅ Password Reset OTP sent to ${email}.`);
+        }
+
+        document.getElementById('forgotEmail').disabled = true;
+        document.getElementById('forgotOtpStepBox').classList.remove('hide');
+        btn.innerText = "Resend OTP";
+        btn.disabled = false;
+    } catch (e) {
+        console.error(e);
+        alert("Error: " + e.message);
+        btn.disabled = false;
+        btn.innerText = "Send OTP";
+    }
+}
+
+// Forgot Password - Step 2: Verify OTP & Update Password
+window.doResetPassword = async function() {
+    const otpInput = document.getElementById('forgotOtpInput').value.trim();
+    const newPass = document.getElementById('forgotNewPass').value.trim();
+
+    if (!otpInput || otpInput.length !== 6) return alert("Please enter the 6-digit OTP!");
+    if (Date.now() > forgotOtpExpiry) return alert("❌ OTP expired! Please request a new OTP.");
+    if (otpInput !== forgotGeneratedOtp) return alert("❌ Invalid OTP!");
+    if (!newPass || newPass.length < 4) return alert("Please enter a new password (min 4 characters)!");
+
+    try {
+        await updateDoc(doc(db, "students", forgotTargetDocId), { password: newPass });
+        alert("✅ Password Reset Successful! You can now login with your new password.");
+        document.getElementById('forgotOtpInput').value = '';
+        document.getElementById('forgotNewPass').value = '';
+        showLogin();
+    } catch (e) { console.error(e); alert("Error updating password: " + e.message); }
+}
+
+// =========================================================================
+// 💳 RAZORPAY PAYMENT & AUTOMATIC EMAIL INVOICE
+// =========================================================================
+window.openPaymentModal = function() {
+    if (!isLoggedIn) {
+        alert("Please login or register first to purchase a subscription!");
+        return showLogin();
+    }
+    let price = (appSettings.Price || "99").toString().trim();
+    let offer = (appSettings.OfferText || "").toString().trim();
+    let validityDays = (appSettings.ValidityDays || "365").toString().trim();
+
+    document.getElementById('paymentModal').classList.remove('hide');
+    document.getElementById('modalPrice').innerText = price;
+    document.getElementById('modalOffer').innerText = offer ? `(${offer})` : "";
+    if(document.getElementById('modalValidityDays')) document.getElementById('modalValidityDays').innerText = validityDays;
+}
+
+window.closeModal = function() { document.getElementById('paymentModal').classList.add('hide'); }
+
+window.initiateRazorpayPayment = function() {
+    if (!isLoggedIn) return showLogin();
+    if (!RAZORPAY_KEY_ID || RAZORPAY_KEY_ID === "rzp_test_YOUR_KEY_HERE") {
+        return alert("Razorpay Key ID is not configured yet in student-app.js!");
+    }
+
+    const price = parseFloat(appSettings.Price || "99");
+    const validityDays = parseInt(appSettings.ValidityDays || "365", 10);
+
+    const options = {
+        "key": RAZORPAY_KEY_ID,
+        "amount": Math.round(price * 100), // in paise
+        "currency": "INR",
+        "name": "TaiyariGhar",
+        "description": `All-Access Mock Test & Live Exam Pass (${validityDays} Days)`,
+        "image": "logo.png",
+        "handler": async function (response) {
+            closeModal();
+            await handleSuccessfulRazorpayPayment(response.razorpay_payment_id, price, validityDays);
+        },
+        "prefill": {
+            "name": currentStudent.name,
+            "email": currentStudent.email,
+            "contact": currentStudent.mobile
+        },
+        "notes": {
+            "loginId": currentStudent.loginId,
+            "studentName": currentStudent.name
+        },
+        "theme": {
+            "color": "#4F46E5"
+        }
+    };
+
+    const rzp = new Razorpay(options);
+    rzp.on('payment.failed', function (response) {
+        alert("❌ Payment Failed: " + response.error.description);
+    });
+    rzp.open();
+}
+
+async function handleSuccessfulRazorpayPayment(paymentId, amountPaid, validityDays) {
+    try {
+        const today = new Date();
+        const expiryDateObj = new Date(today.getTime() + validityDays * 24 * 60 * 60 * 1000);
+        const expiryStr = expiryDateObj.toISOString().split('T')[0];
+        const invoiceNumber = "INV-" + Date.now().toString().slice(-6);
+
+        // 1. Activate Subscription in Firestore
+        if (currentStudent.docId) {
+            await updateDoc(doc(db, "students", currentStudent.docId), {
+                isPaid: true,
+                expiryDate: expiryStr,
+                lastPaymentId: paymentId,
+                lastPaymentDate: today.toISOString()
+            });
+        }
+
+        // 2. Save Payment Record in Firestore
+        await addDoc(collection(db, "payments"), {
+            invoiceNumber: invoiceNumber,
+            paymentId: paymentId,
+            loginId: currentStudent.loginId,
+            studentName: currentStudent.name,
+            email: currentStudent.email,
+            mobile: currentStudent.mobile,
+            amount: amountPaid,
+            validityDays: validityDays,
+            expiryDate: expiryStr,
+            timestamp: today.toISOString()
+        });
+
+        // 3. Update Local Session
+        currentStudent.isPaid = true;
+        currentStudent.expiry = expiryStr;
+        localStorage.setItem('tg_user', JSON.stringify(currentStudent));
+
+        // 4. Trigger Automatic Email Invoice via Google Apps Script (Respects GST Settings)
+        callEmailService({
+            action: "send_invoice",
+            invoiceNumber: invoiceNumber,
+            paymentId: paymentId,
+            studentName: currentStudent.name,
+            loginId: currentStudent.loginId,
+            email: currentStudent.email,
+            mobile: currentStudent.mobile,
+            amount: amountPaid,
+            validityDays: validityDays,
+            expiryDate: expiryStr,
+            date: today.toLocaleDateString('en-IN'),
+            gstEnabled: appSettings.GST_Enabled || "No",
+            gstNumber: appSettings.GST_Number || ""
+        });
+
+        alert(`🎉 Payment Successful!\n\nYour All-Access Pass is now ACTIVE till ${expiryStr}.\nAn official receipt (${invoiceNumber}) has been sent to ${currentStudent.email}.`);
+        renderCandidateProfileCard();
+        fetchSettingsAndTests();
+    } catch (e) {
+        console.error("Post-payment error:", e);
+        alert("Payment received (ID: " + paymentId + "), but there was a delay updating your profile. Please refresh or contact support@taiyarighar.in.");
+    }
+}
+
+// =========================================================================
+// 📊 FETCH DATA, LIVE TESTS ENGINE & DASHBOARD HISTORY
+// =========================================================================
+function isLiveTestCurrentlyActive(t) {
+    if (String(t.isLive).trim().toLowerCase() !== "yes") return false;
+    const now = new Date();
+    const start = t.liveStart ? new Date(t.liveStart) : null;
+    const end = t.liveEnd ? new Date(t.liveEnd) : null;
+    if (!start || !end) return false;
+    return now >= start && now <= end;
+}
+
+function isLiveTestEnded(t) {
+    if (String(t.isLive).trim().toLowerCase() !== "yes") return false;
+    const now = new Date();
+    const end = t.liveEnd ? new Date(t.liveEnd) : null;
+    return end ? now > end : false;
+}
+
+function formatDateTimeReadable(isoStr) {
+    if (!isoStr) return "12:00 AM";
+    const d = new Date(isoStr);
+    return d.toLocaleString('en-IN', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit', hour12: true });
+}
+
+function renderLiveTestsShowcase() {
+    const activeLiveTests = allTests.filter(t => isLiveTestCurrentlyActive(t));
+    const homeContainer = document.getElementById('homeLiveTestsContainer');
+    const dashContainer = document.getElementById('dashLiveTestsContainer');
+
+    if (activeLiveTests.length === 0) {
+        if (homeContainer) homeContainer.innerHTML = "";
+        if (dashContainer) dashContainer.innerHTML = "";
+        return;
+    }
+
+    let cardsHtml = `<h2 class="section-title" style="display:flex; align-items:center; gap:8px;"><span class="live-dot-nav"></span> All-India Live Exams (Happening Now)</h2><div class="live-showcase-grid">`;
+    
+    activeLiveTests.forEach(t => {
+        const alreadyAttempted = userPastResults[t.id] !== undefined;
+        let actionBtnHtml = "";
+
+        if (!isLoggedIn) {
+            actionBtnHtml = `<button class="btn" style="background:#FDE047; color:#1E1B4B; font-weight:700;" onclick="showLogin()">Login to Attempt Live Exam</button>`;
+        } else if (!currentStudent.isPaid) {
+            actionBtnHtml = `<button class="btn" style="background:#FDE047; color:#1E1B4B; font-weight:700;" onclick="openPaymentModal()">🔒 Subscribe to Enter Live Exam</button>`;
+        } else if (alreadyAttempted) {
+            actionBtnHtml = `<button class="btn" style="background:rgba(255,255,255,0.2); color:#FFF; cursor:default;">✅ Submitted (Result at ${formatDateTimeReadable(t.liveEnd)})</button>`;
+        } else {
+            actionBtnHtml = `<button class="btn btn-accent" style="font-weight:700;" onclick="showInstructions('${t.id}', '${t.testName.replace(/'/g, "\\'")}', ${t.duration}, ${t.marks}, ${t.negativeMark || 0}, '${t.hasNegative}', '${t.language || 'Both'}', false, true, '${t.liveEnd || ''}', ${t.positiveMark || 1})">🚀 Attempt Live Exam Now</button>`;
+        }
+
+        cardsHtml += `
+            <div class="live-card">
+                <div>
+                    <div class="live-badge-pill"><span class="live-dot-nav" style="background:white;"></span> LIVE EXAM • SUBSCRIBERS ONLY</div>
+                    <h3>${t.testName}</h3>
+                    <p>${t.mainCat} • ${t.subCat} | ⏱️ ${t.duration} Mins | 🏆 ${t.marks} Marks</p>
+                </div>
+                <div class="live-timer-strip">
+                    <span>⏳ Ends: ${formatDateTimeReadable(t.liveEnd)}</span>
+                    <span class="live-countdown-clock" data-endtime="${t.liveEnd}">Active</span>
+                </div>
+                ${actionBtnHtml}
+            </div>
+        `;
+    });
+
+    cardsHtml += `</div>`;
+    if (homeContainer) homeContainer.innerHTML = cardsHtml;
+    if (dashContainer) dashContainer.innerHTML = cardsHtml;
+
+    startLiveShowcaseCountdowns();
+}
+
+function startLiveShowcaseCountdowns() {
+    clearInterval(liveCountdownInterval);
+    liveCountdownInterval = setInterval(() => {
+        document.querySelectorAll('.live-countdown-clock').forEach(el => {
+            const endStr = el.getAttribute('data-endtime');
+            if (!endStr) return;
+            const diff = new Date(endStr) - new Date();
+            if (diff <= 0) {
+                el.innerText = "Ended";
+            } else {
+                const hrs = Math.floor(diff / (1000 * 60 * 60));
+                const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                const secs = Math.floor((diff % (1000 * 60)) / 1000);
+                el.innerText = `${hrs}h ${mins}m ${secs}s left`;
+            }
+        });
+    }, 1000);
 }
 
 async function fetchSettingsAndTests() {
     try {
         const setSnap = await getDoc(doc(db, "settings", "global"));
         if(setSnap.exists()) appSettings = setSnap.data();
-        else appSettings = { UPI_ID: "taiyarighar@ptyes", Price: "99", Mobile: "9140281870", OfferText: "" };
+        else appSettings = { Price: "99", ValidityDays: "365", OfferText: "", GST_Enabled: "No", GST_Number: "" };
 
         const testSnap = await getDocs(collection(db, "tests"));
         allTests = testSnap.docs.map(d => ({ id: d.id, ...d.data() }));
@@ -395,22 +865,24 @@ async function fetchSettingsAndTests() {
         const catSnap = await getDocs(collection(db, "exam_categories"));
         allExamCategories = catSnap.docs.map(d => d.data());
 
+        if(isLoggedIn) {
+            const resSnap = await getDocs(query(collection(db, "results"), where("loginId", "==", currentStudent.loginId)));
+            userPastResults = {};
+            resSnap.forEach(docItem => {
+                let data = docItem.data();
+                if(!userPastResults[data.testId] || new Date(data.timestamp) > new Date(userPastResults[data.testId].timestamp)) {
+                    userPastResults[data.testId] = data;
+                }
+            });
+        }
+
+        renderLiveTestsShowcase();
         renderMainCategories();
 
         const caSnap = await getDocs(collection(db, "current_affairs"));
         allCA = caSnap.docs.map(d => ({ id: d.id, ...d.data() }));
-
-        if(isLoggedIn) {
-            const resSnap = await getDocs(query(collection(db, "results"), where("loginId", "==", currentStudent.loginId)));
-            userPastResults = {};
-            resSnap.forEach(doc => {
-                let data = doc.data();
-                if(!userPastResults[data.testId] || new Date(data.timestamp) > new Date(userPastResults[data.testId].timestamp)) userPastResults[data.testId] = data;
-            });
-        }
         
         checkUrlRouting();
-        
     } catch (e) { console.log("Data load error", e); }
 }
 
@@ -419,11 +891,14 @@ async function fetchDashboardData() {
         const qRes = query(collection(db, "results"), where("loginId", "==", currentStudent.loginId));
         const resSnap = await getDocs(qRes);
         let lastTest = null, attemptedTestIds = [];
+        let results = [];
 
         if(!resSnap.empty) {
-            let results = resSnap.docs.map(d => d.data()).sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp));
-            lastTest = results[0];
+            results = resSnap.docs.map(d => d.data()).sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp));
             attemptedTestIds = results.map(r => r.testId);
+
+            // Find latest released result (exclude unreleased live tests)
+            lastTest = results.find(r => !r.isLivePending || (r.liveEndTime && new Date() > new Date(r.liveEndTime)));
         }
 
         if(lastTest) {
@@ -434,8 +909,41 @@ async function fetchDashboardData() {
             document.getElementById('recentTestScore').innerText = "Take a test to see your score";
         }
 
-        let recTest = allTests.find(t => !attemptedTestIds.includes(t.id));
-        if(!recTest && allTests.length > 0) recTest = allTests[0];
+        // Render Read-Only Attempt History & Live Test Results List
+        const historyContainer = document.getElementById('dashHistoryContainer');
+        if (results.length === 0) {
+            historyContainer.innerHTML = `<div class="history-item"><span style="color:#6B7280; font-size:14px;">You haven't attempted any tests yet. Select a category below to start!</span></div>`;
+        } else {
+            let histHtml = "";
+            results.forEach(r => {
+                const isStillPending = r.isLivePending && r.liveEndTime && (new Date() <= new Date(r.liveEndTime));
+                if (isStillPending) {
+                    histHtml += `
+                        <div class="history-item" style="border-left: 4px solid #F59E0B;">
+                            <div>
+                                <span style="background:#FEF3C7; color:#92400E; font-size:11px; font-weight:700; padding:2px 8px; border-radius:12px;">⏳ LIVE RESULT PENDING</span>
+                                <h4 style="font-size:15px; color:#1E1B4B; margin-top:4px;">${r.testName}</h4>
+                                <p style="font-size:12px; color:#6B7280;">Attempted on ${new Date(r.timestamp).toLocaleDateString()} • Result releases at ${formatDateTimeReadable(r.liveEndTime)}</p>
+                            </div>
+                            <span style="font-size:13px; font-weight:600; color:#D97706;">Locked till 12:00 AM</span>
+                        </div>`;
+                } else {
+                    histHtml += `
+                        <div class="history-item" style="border-left: 4px solid var(--accent);">
+                            <div>
+                                <h4 style="font-size:15px; color:#1E1B4B;">${r.testName}</h4>
+                                <p style="font-size:12px; color:#6B7280;">Date: ${new Date(r.timestamp).toLocaleDateString()} | Score: <b style="color:var(--primary);">${r.finalScore}/${r.totalMarks}</b> (${r.percent}%)</p>
+                            </div>
+                            <button class="btn btn-outline" style="padding:6px 14px; font-size:12px;" onclick="viewPastAnalysis('${r.testId}')">📊 View Result & Rank</button>
+                        </div>`;
+                }
+            });
+            historyContainer.innerHTML = histHtml;
+        }
+
+        // Recommended Next Test (Normal tests only)
+        let recTest = allTests.find(t => !attemptedTestIds.includes(t.id) && !isLiveTestCurrentlyActive(t));
+        if(!recTest && allTests.length > 0) recTest = allTests.find(t => !isLiveTestCurrentlyActive(t)) || allTests[0];
 
         if(recTest) {
             recommendedTestData = recTest;
@@ -448,8 +956,11 @@ async function fetchDashboardData() {
 }
 
 window.startRecommendedTest = function() { 
-    if(recommendedTestData) showInstructions(recommendedTestData.id, recommendedTestData.testName, recommendedTestData.duration, recommendedTestData.marks, recommendedTestData.negativeMark || 0, recommendedTestData.hasNegative, recommendedTestData.language || 'Both', false);
-    else scrollToCategories(); 
+    if(recommendedTestData) {
+        const isLocked = (String(recommendedTestData.isFree).trim().toLowerCase() !== "yes" && !currentStudent.isPaid);
+        if (isLocked) return openPaymentModal();
+        showInstructions(recommendedTestData.id, recommendedTestData.testName, recommendedTestData.duration, recommendedTestData.marks, recommendedTestData.negativeMark || 0, recommendedTestData.hasNegative, recommendedTestData.language || 'Both', false, false, '', recommendedTestData.positiveMark || 1);
+    } else scrollToCategories(); 
 }
 
 function renderMainCategories() {
@@ -468,8 +979,6 @@ function renderMainCategories() {
     let gridHtml = "";
     finalMainCats.forEach(cat => {
         let slug = cat.name.toLowerCase().replace(/\s+/g, '-');
-        
-        // 🔥 FIX: color: #ffffff; lagaya gaya hai taaki text black na dikhe
         gridHtml += `<a href="?category=${slug}" class="cat-card" style="background: ${cat.gradient}; text-decoration: none; color: #ffffff; display: block;" 
                         onclick="event.preventDefault(); openCategory('${cat.name}');">
             <div class="cat-icon">${cat.icon}</div>
@@ -571,19 +1080,41 @@ function renderTestList(filtered) {
     if(filtered.length === 0) html = `<p style="text-align:center; color:#666; padding:20px;">No tests available right now. Please check back later.</p>`;
     else {
         filtered.forEach(t => {
-            let isLocked = (String(t.isFree).trim().toLowerCase() !== "yes" && !currentStudent.isPaid);
-            let hasPastResult = userPastResults[t.id] !== undefined;
-            let inProgressData = localStorage.getItem('tg_resume_' + t.id);
+            // Live test automatically becomes a normal category test once liveEnd passes
+            const currentlyLive = isLiveTestCurrentlyActive(t);
+            const isLocked = (currentlyLive || String(t.isFree).trim().toLowerCase() !== "yes") && !currentStudent.isPaid;
+            const pastRes = userPastResults[t.id];
+            const inProgressData = !currentlyLive ? localStorage.getItem('tg_resume_' + t.id) : null;
+            
             let btnHtml = "";
+            let badgeTag = currentlyLive ? `<span style="background:#FEE2E2; color:#DC2626; font-size:11px; font-weight:700; padding:2px 8px; border-radius:10px; margin-left:6px;">🔴 LIVE NOW</span>` : (isLiveTestEnded(t) ? `<span style="background:#EEF2FF; color:#4F46E5; font-size:11px; font-weight:600; padding:2px 8px; border-radius:10px; margin-left:6px;">Archived Live Test</span>` : "");
 
-            if(isLocked) btnHtml = `<button class="btn" style="background:#F3F4F6; color:#6B7280; border:1px solid #E5E7EB;" onclick="openPaymentModal()">🔒 Unlock</button>`;
-            else {
-                if(inProgressData) btnHtml = `<div style="display:flex; gap:10px;"><button class="btn btn-primary" onclick="showInstructions('${t.id}', '${t.testName}', ${t.duration}, ${t.marks}, ${t.negativeMark || 0}, '${t.hasNegative}', '${t.language || 'Both'}', true)">▶ Resume</button><button class="btn btn-outline" style="color:var(--danger); border-color:var(--danger);" onclick="clearResumeData('${t.id}', '${t.examName}')">Clear</button></div>`;
-                else btnHtml = `<button class="btn btn-accent" onclick="showInstructions('${t.id}', '${t.testName}', ${t.duration}, ${t.marks}, ${t.negativeMark || 0}, '${t.hasNegative}', '${t.language || 'Both'}', false)">Start Test</button>`;
+            if(isLocked) {
+                btnHtml = `<button class="btn" style="background:#F3F4F6; color:#6B7280; border:1px solid #E5E7EB;" onclick="openPaymentModal()">🔒 Unlock</button>`;
+            } else if (currentlyLive && pastRes) {
+                btnHtml = `<span style="font-size:12px; font-weight:600; color:#D97706;">⏳ Result releases at ${formatDateTimeReadable(t.liveEnd)}</span>`;
+            } else {
+                if(inProgressData) {
+                    btnHtml = `<div style="display:flex; gap:10px;"><button class="btn btn-primary" onclick="showInstructions('${t.id}', '${t.testName.replace(/'/g, "\\'")}', ${t.duration}, ${t.marks}, ${t.negativeMark || 0}, '${t.hasNegative}', '${t.language || 'Both'}', true, false, '', ${t.positiveMark || 1})">▶ Resume</button><button class="btn btn-outline" style="color:var(--danger); border-color:var(--danger);" onclick="clearResumeData('${t.id}', '${t.examName}')">Clear</button></div>`;
+                } else {
+                    btnHtml = `<button class="btn btn-accent" onclick="showInstructions('${t.id}', '${t.testName.replace(/'/g, "\\'")}', ${t.duration}, ${t.marks}, ${t.negativeMark || 0}, '${t.hasNegative}', '${t.language || 'Both'}', false, ${currentlyLive}, '${t.liveEnd || ''}', ${t.positiveMark || 1})">${currentlyLive ? '🚀 Start Live Test' : 'Start Test'}</button>`;
+                }
                 
-                if(hasPastResult) btnHtml += `<button class="btn" style="background:#4F46E5; color:white; margin-left:10px;" onclick="viewPastAnalysis('${t.id}')">📊 Analysis</button>`;
+                if(pastRes && !(pastRes.isLivePending && pastRes.liveEndTime && new Date() <= new Date(pastRes.liveEndTime))) {
+                    btnHtml += `<button class="btn" style="background:#4F46E5; color:white; margin-left:10px;" onclick="viewPastAnalysis('${t.id}')">📊 Analysis</button>`;
+                }
             }
-            html += `<div class="test-item ${isLocked ? 'locked' : ''}"><div><h3 style="color: var(--primary); margin-bottom: 5px; font-size:16px;">${t.testName}</h3><p style="font-size: 13px; color: #666;">⏱️ ${t.duration} Mins | ${t.marks} Marks | Lang: ${t.language || 'Both'}</p></div><div style="display:flex; align-items:center;">${btnHtml}</div></div>`;
+
+            let posMarkText = t.positiveMark || 1;
+            let negMarkText = t.hasNegative === "Yes" ? `-${t.negativeMark}` : "No Neg";
+
+            html += `<div class="test-item ${isLocked ? 'locked' : ''}">
+                <div>
+                    <h3 style="color: var(--primary); margin-bottom: 5px; font-size:16px;">${t.testName} ${badgeTag}</h3>
+                    <p style="font-size: 13px; color: #666;">⏱️ ${t.duration} Mins | ${t.marks} Marks | +${posMarkText} / ${negMarkText} | Lang: ${t.language || 'Both'}</p>
+                </div>
+                <div style="display:flex; align-items:center;">${btnHtml}</div>
+            </div>`;
         });
     }
     document.getElementById('testListContainer').innerHTML = html;
@@ -598,6 +1129,9 @@ window.clearResumeData = function(testId, examName) {
 
 window.goBackToSubCat = function() { history.back(); }
 
+// =========================================================================
+// 📰 CURRENT AFFAIRS
+// =========================================================================
 let caStreak = 0, caCorrectCount = 0, caWrongCount = 0;
 
 window.showCurrentAffairs = function() {
@@ -633,7 +1167,7 @@ window.filterCA = function(type, btn) {
         let qHtml = '';
         article.questions.forEach((q, idx) => {
             qHtml += `<div class="ca-question" id="caQ_${q.id}"><p style="font-weight:600; margin-bottom:15px;">Q${idx+1}. ${q.question}</p><div class="ca-options">`;
-            q.options.forEach((opt, i) => { if(opt && opt.trim() !== "") qHtml += `<label class="ca-option" onclick="checkCAAnswer('${q.id}', ${i}, ${q.correctAnswer}, '${type}', '${q.explanation}')">${String.fromCharCode(65+i)}) ${opt}</label>`; });
+            q.options.forEach((opt, i) => { if(opt && opt.trim() !== "") qHtml += `<label class="ca-option" onclick="checkCAAnswer('${q.id}', ${i}, ${q.correctAnswer}, '${type}', '${(q.explanation || '').replace(/'/g, "\\'")}')">${String.fromCharCode(65+i)}) ${opt}</label>`; });
             qHtml += `</div><div class="ca-explanation" id="caExp_${q.id}"><b>Explanation:</b> ${q.explanation || 'N/A'}</div></div>`;
         });
         container.innerHTML += articleHtml + qHtml;
@@ -670,56 +1204,120 @@ function showPopup(id) {
     setTimeout(() => { popup.classList.remove('show'); }, 3000);
 }
 
-window.openPaymentModal = function() {
-    let upi = (appSettings.UPI_ID || "taiyarighar@ptyes").toString().trim();
-    let price = (appSettings.Price || "99").toString().trim();
-    let mobile = (appSettings.Mobile || "9140281870").toString().trim();
-    let offer = (appSettings.OfferText || "").toString().trim();
-    if(!upi.includes("@")) upi = "taiyarighar@ptyes";
-
-    document.getElementById('paymentModal').classList.remove('hide');
-    document.getElementById('modalPrice').innerText = price;
-    document.getElementById('modalOffer').innerText = offer ? `(${offer})` : "";
-    document.getElementById('modalUpi').innerText = upi;
-
-    const upiString = `upi://pay?pa=${upi}&pn=${encodeURIComponent("TaiyariGhar")}&am=${parseFloat(price).toFixed(2)}&cu=INR`;
-    document.getElementById("qrcode").innerHTML = `<img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(upiString)}" alt="Payment QR" style="width: 180px; height: 180px; border-radius: 10px; border: 2px solid #E5E7EB; padding: 5px; background: white;">`;
-
-    const waMsg = `Hello Sir, I am ${currentStudent.name} (ID: ${currentStudent.loginId}). I have paid Rs.${price}. Please unlock my tests.\n\n⚠️ Screenshot attached.`;
-    document.getElementById('whatsappBtn').href = `https://wa.me/91${mobile.replace(/[^0-9]/g, '').slice(-10)}?text=${encodeURIComponent(waMsg)}`;
+// =========================================================================
+// 🛡️ STRICT ANTI-CHEATING ENGINE (Full Screen, Tab Switch, Copy/SS Block)
+// =========================================================================
+function handleVisibilityChange() {
+    if (document.hidden && currentScreen === 'testScreen' && !isTestSubmitting) {
+        handleAntiCheatViolation("Tab switching or minimizing the browser window is strictly prohibited!");
+    }
 }
 
-window.closeModal = function() { document.getElementById('paymentModal').classList.add('hide'); }
+function handleWindowBlur() {
+    if (currentScreen === 'testScreen' && !isTestSubmitting && isCurrentTestLive) {
+        handleAntiCheatViolation("Focus lost! Do not switch apps or open floating windows during Live Exam.");
+    }
+}
 
-window.checkPaymentStatus = async function() {
-    closeModal();
-    try {
-        const snap = await getDocs(query(collection(db, "students"), where("loginId", "==", currentStudent.loginId)));
-        if(!snap.empty) {
-            if(snap.docs[0].data().isPaid) {
-                currentStudent.isPaid = true;
-                localStorage.setItem('tg_user', JSON.stringify(currentStudent));
-                alert("✅ Payment Approved! Tests Unlocked.");
-                location.reload();
-            } else alert("⏳ Payment not approved yet. Please wait 5 mins.");
+function handleFullScreenChange() {
+    if (!document.fullscreenElement && currentScreen === 'testScreen' && !isTestSubmitting && isCurrentTestLive) {
+        handleAntiCheatViolation("You exited Full-Screen mode! Live Exam must be taken in Full-Screen.");
+    }
+}
+
+function handleContextMenu(e) {
+    if (currentScreen === 'testScreen') e.preventDefault();
+}
+
+function handleKeyDownAntiCheat(e) {
+    if (currentScreen !== 'testScreen') return;
+    // Block PrintScreen, Ctrl+C, Ctrl+V, Ctrl+U, Ctrl+S, F12, Alt+Tab
+    if (e.key === 'PrintScreen' || (e.ctrlKey && ['c','v','u','s','p','a'].includes(e.key.toLowerCase())) || e.key === 'F12') {
+        e.preventDefault();
+        if (e.key === 'PrintScreen') {
+            document.body.style.filter = "blur(15px)";
+            setTimeout(() => { document.body.style.filter = "none"; }, 2000);
+            alert("⚠️ Screenshot shortcut detected! This attempt is watermarked with your ID.");
         }
-    } catch(e) { console.error(e); }
+    }
 }
 
-window.showInstructions = function(id, name, duration, marks, negMark, hasNeg, lang, isResume = false) {
-    pendingTestDetails = { id, name, duration, marks, negMark, hasNeg, lang, isResume };
+function handleBeforeUnload(e) {
+    if (currentScreen === 'testScreen' && !isTestSubmitting) {
+        e.preventDefault();
+        e.returnValue = '';
+    }
+}
+
+function enableAntiCheating() {
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    window.addEventListener("blur", handleWindowBlur);
+    document.addEventListener("fullscreenchange", handleFullScreenChange);
+    document.addEventListener("contextmenu", handleContextMenu);
+    document.addEventListener("keydown", handleKeyDownAntiCheat);
+    window.addEventListener("beforeunload", handleBeforeUnload);
+}
+
+function disableAntiCheating() {
+    document.removeEventListener("visibilitychange", handleVisibilityChange);
+    window.removeEventListener("blur", handleWindowBlur);
+    document.removeEventListener("fullscreenchange", handleFullScreenChange);
+    document.removeEventListener("contextmenu", handleContextMenu);
+    document.removeEventListener("keydown", handleKeyDownAntiCheat);
+    window.removeEventListener("beforeunload", handleBeforeUnload);
+}
+
+function handleAntiCheatViolation(reason) {
+    if (isTestSubmitting) return;
+    tabSwitchWarnings++;
+    const badge = document.getElementById('warningCounterBadge');
+    if (badge) {
+        badge.classList.remove('hide');
+        badge.innerText = `Warnings: ${tabSwitchWarnings}/3`;
+    }
+
+    if (tabSwitchWarnings >= 3) {
+        alert(`🚨 FINAL WARNING (3/3): ${reason}\n\nYour test is being auto-submitted immediately due to exam rule violations.`);
+        finalSubmitTest();
+    } else {
+        alert(`⚠️ EXAM WARNING (${tabSwitchWarnings}/3): ${reason}\n\nPlease stay on the test screen. On the 3rd warning, your test will be automatically submitted!`);
+        try {
+            if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(() => {});
+        } catch(e) {}
+    }
+}
+
+// =========================================================================
+// 📝 TEST INSTRUCTIONS & EXECUTION ENGINE
+// =========================================================================
+window.showInstructions = function(id, name, duration, marks, negMark, hasNeg, lang, isResume = false, isLive = false, liveEnd = "", posMark = 1) {
+    pendingTestDetails = { id, name, duration, marks, negMark, hasNeg, lang, isResume, isLive, liveEnd, posMark };
     
     document.getElementById('instTestName').innerText = name;
     document.getElementById('instDuration').innerText = duration;
     document.getElementById('instDuration2').innerText = duration;
     document.getElementById('instMarks').innerText = marks;
+
+    const posEl = document.getElementById('instPosRule');
+    if (posEl) posEl.innerText = `You will be awarded +${posMark} mark(s) for each correct answer.`;
     
     if(hasNeg === "Yes") {
-        document.getElementById('instNegRule').innerText = `You will be awarded 1 mark for each correct answer and ${negMark} will be deducted for each wrong answer.`;
+        document.getElementById('instNegRule').innerText = `There is negative marking: ${negMark} mark(s) will be deducted for each wrong answer.`;
         document.getElementById('instNegRule').style.color = "var(--danger)";
     } else {
         document.getElementById('instNegRule').innerText = "There is NO negative marking for wrong answers.";
         document.getElementById('instNegRule').style.color = "var(--accent)";
+    }
+
+    const liveBadge = document.getElementById('instLiveBadge');
+    const acBox = document.getElementById('instAntiCheatBox');
+    if (isLive) {
+        liveBadge.classList.remove('hide');
+        acBox.classList.remove('hide');
+        document.getElementById('instLiveEndTime').innerText = formatDateTimeReadable(liveEnd);
+    } else {
+        liveBadge.classList.add('hide');
+        acBox.classList.add('hide');
     }
 
     if(lang === "Both") document.getElementById('langSelectBox').classList.remove('hide');
@@ -744,23 +1342,58 @@ window.toggleStartButton = function() {
 window.startActualTest = function() {
     let selectedLang = pendingTestDetails.lang;
     if(selectedLang === "Both") selectedLang = document.getElementById('instLangSelect').value;
-    initTest(pendingTestDetails.id, pendingTestDetails.name, pendingTestDetails.duration, pendingTestDetails.marks, pendingTestDetails.negMark, pendingTestDetails.hasNeg, selectedLang, pendingTestDetails.isResume);
+    
+    // Force Full-Screen on Exam Start
+    try {
+        if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(() => {});
+    } catch(e) {}
+
+    initTest(
+        pendingTestDetails.id, 
+        pendingTestDetails.name, 
+        pendingTestDetails.duration, 
+        pendingTestDetails.marks, 
+        pendingTestDetails.negMark, 
+        pendingTestDetails.hasNeg, 
+        selectedLang, 
+        pendingTestDetails.isResume,
+        pendingTestDetails.isLive,
+        pendingTestDetails.liveEnd,
+        pendingTestDetails.posMark
+    );
 }
 
-async function initTest(testId, testName, duration, marks, negMark, hasNeg, lang, isResume) {
+async function initTest(testId, testName, duration, marks, negMark, hasNeg, lang, isResume, isLive = false, liveEnd = "", posMark = 1) {
+    isTestSubmitting = false;
+    tabSwitchWarnings = 0;
+    isCurrentTestLive = isLive;
+    currentLiveEndTime = liveEnd;
+
     showScreen('testScreen');
     
-    currentTestId = testId; currentTestName = testName; currentTestMarks = marks; 
-    currentTestNegMark = hasNeg === "Yes" ? negMark : 0;
+    currentTestId = testId; 
+    currentTestName = testName; 
+    currentTestMarks = marks; 
+    currentTestPosMark = Number(posMark) || 1;
+    currentTestNegMark = hasNeg === "Yes" ? Number(negMark) : 0;
     currentTestLanguage = lang;
 
-    document.getElementById('examHeaderName').innerText = testName;
-    document.getElementById('markPositive').innerText = "1"; 
-    if(currentTestNegMark > 0) {
-        document.getElementById('negBadge').style.display = 'inline-block';
-        document.getElementById('markNegative').innerText = currentTestNegMark;
-    } else document.getElementById('negBadge').style.display = 'none';
+    // Set Dynamic Watermark with Student Email/Mobile & ID
+    const wm = document.getElementById('antiCheatWatermark');
+    if (wm) wm.innerText = `${currentStudent.name} | ${currentStudent.loginId} | ${currentStudent.email || currentStudent.mobile}`;
 
+    const liveTag = document.getElementById('testLiveTag');
+    const warnBadge = document.getElementById('warningCounterBadge');
+    if (isLive) {
+        liveTag.classList.remove('hide');
+        warnBadge.classList.remove('hide');
+        warnBadge.innerText = "Warnings: 0/3";
+    } else {
+        liveTag.classList.add('hide');
+        warnBadge.classList.add('hide');
+    }
+
+    document.getElementById('examHeaderName').innerText = testName;
     document.getElementById('paletteName').innerText = currentStudent.name;
     document.getElementById('paletteId').innerText = currentStudent.loginId;
     document.getElementById('paletteAvatar').innerText = currentStudent.name.charAt(0).toUpperCase();
@@ -771,7 +1404,7 @@ async function initTest(testId, testName, duration, marks, negMark, hasNeg, lang
         const qSnap = await getDocs(q);
         
         if(!qSnap.empty) {
-            let resumeData = localStorage.getItem('tg_resume_' + testId);
+            let resumeData = !isLive ? localStorage.getItem('tg_resume_' + testId) : null;
             if(isResume && resumeData) {
                 let parsed = JSON.parse(resumeData);
                 testQuestions = parsed.testQuestions; userAnswers = parsed.userAnswers; markedForReview = parsed.markedForReview; visitedQuestions = parsed.visitedQuestions; timeLeft = parsed.timeLeft; currentQIndex = parsed.currentQIndex; totalTime = duration * 60;
@@ -787,7 +1420,20 @@ async function initTest(testId, testName, duration, marks, negMark, hasNeg, lang
                     optsArray.sort(() => Math.random() - 0.5);
                     let newAnsIndex = optsArray.findIndex(o => o.h === correctObj.h && o.e === correctObj.e);
                     
-                    return { qH: qData.questionHindi || qData.question, qE: qData.questionEnglish, uniqueId: qData.uniqueId || "N/A", opts: optsArray, ans: newAnsIndex, exp: qData.explanation || "No explanation provided.", marks: qData.questionMarks || 1, neg: qData.questionNeg || 0 };
+                    // Individual question marking overrides test default if specified (> 0)
+                    let qPos = (qData.questionMarks !== undefined && Number(qData.questionMarks) > 0) ? Number(qData.questionMarks) : currentTestPosMark;
+                    let qNeg = (qData.questionNeg !== undefined && Number(qData.questionNeg) > 0) ? Number(qData.questionNeg) : currentTestNegMark;
+
+                    return { 
+                        qH: qData.questionHindi || qData.question, 
+                        qE: qData.questionEnglish, 
+                        uniqueId: qData.uniqueId || "N/A", 
+                        opts: optsArray, 
+                        ans: newAnsIndex, 
+                        exp: qData.explanation || "No explanation provided.", 
+                        marks: qPos, 
+                        neg: qNeg 
+                    };
                 });
 
                 totalTime = duration * 60; timeLeft = totalTime; currentQIndex = 0; userAnswers = {}; markedForReview = {}; visitedQuestions = {};
@@ -805,7 +1451,9 @@ async function initTest(testId, testName, duration, marks, negMark, hasNeg, lang
 }
 
 function saveProgress() {
-    localStorage.setItem('tg_resume_' + currentTestId, JSON.stringify({ testQuestions, userAnswers, markedForReview, visitedQuestions, timeLeft, currentQIndex }));
+    if (!isCurrentTestLive) {
+        localStorage.setItem('tg_resume_' + currentTestId, JSON.stringify({ testQuestions, userAnswers, markedForReview, visitedQuestions, timeLeft, currentQIndex }));
+    }
 }
 
 function startTimer() {
@@ -823,6 +1471,15 @@ function loadQuestion() {
     const q = testQuestions[currentQIndex]; visitedQuestions[currentQIndex] = true;
     document.getElementById('currentQNum').innerText = currentQIndex + 1;
     
+    // Update Question-Specific Positive & Negative Badges
+    document.getElementById('markPositive').innerText = q.marks || currentTestPosMark;
+    if (q.neg > 0) {
+        document.getElementById('negBadge').style.display = 'inline-block';
+        document.getElementById('markNegative').innerText = q.neg;
+    } else {
+        document.getElementById('negBadge').style.display = 'none';
+    }
+
     document.getElementById('questionUniqueId').innerText = "Q-ID: " + (q.uniqueId || "N/A");
     
     let qHtml = "";
@@ -872,7 +1529,7 @@ window.nextQuestion = function() { saveProgress(); if (currentQIndex < testQuest
 window.prevQuestion = function() { saveProgress(); if (currentQIndex > 0) { currentQIndex--; loadQuestion(); } }
 window.toggleMark = function() { markedForReview[currentQIndex] = !markedForReview[currentQIndex]; saveProgress(); loadQuestion(); }
 window.clearResponse = function() { delete userAnswers[currentQIndex]; saveProgress(); loadQuestion(); }
-window.toggleFullScreen = function() { if (!document.fullscreenElement) document.documentElement.requestFullscreen(); else if (document.exitFullscreen) document.exitFullscreen(); }
+window.toggleFullScreen = function() { if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(()=>{}); else if (document.exitFullscreen) document.exitFullscreen().catch(()=>{}); }
 
 window.showSubmitModal = function() {
     let answered = 0, notAnswered = 0, marked = 0, notVisited = 0;
@@ -894,46 +1551,84 @@ window.showSubmitModal = function() {
 window.closeSubmitModal = function() { document.getElementById('submitModal').classList.add('hide'); }
 
 window.finalSubmitTest = async function() {
-    closeSubmitModal(); clearInterval(timerInterval); localStorage.removeItem('tg_resume_' + currentTestId); 
+    isTestSubmitting = true;
+    closeSubmitModal(); 
+    clearInterval(timerInterval); 
+    localStorage.removeItem('tg_resume_' + currentTestId); 
+
+    if (document.fullscreenElement) {
+        try { document.exitFullscreen().catch(() => {}); } catch(e) {}
+    }
     
     let score = 0, correctCount = 0, wrongCount = 0, skippedCount = 0, negDeducted = 0;
     testQuestions.forEach((q, i) => {
-        if(userAnswers[i] === q.ans) { correctCount++; score += 1; } 
-        else if(userAnswers[i] !== undefined) { wrongCount++; negDeducted += currentTestNegMark; } 
-        else skippedCount++;
+        const qPos = Number(q.marks) || currentTestPosMark;
+        const qNeg = Number(q.neg) || 0;
+        if(userAnswers[i] === q.ans) { 
+            correctCount++; 
+            score += qPos; 
+        } else if(userAnswers[i] !== undefined) { 
+            wrongCount++; 
+            negDeducted += qNeg; 
+        } else {
+            skippedCount++;
+        }
     });
     score = score - negDeducted;
-
-    showScreen('resultScreen');
-    
-    document.getElementById('resTestName').innerText = currentTestName;
-    document.getElementById('finalScore').innerText = score.toFixed(2); 
-    document.getElementById('totalScore').innerText = currentTestMarks;
-    document.getElementById('statCorrect').innerText = correctCount;
-    document.getElementById('statWrong').innerText = wrongCount;
-    document.getElementById('statSkipped').innerText = skippedCount;
-    document.getElementById('statNeg').innerText = negDeducted.toFixed(2);
-    
     let percent = (score / currentTestMarks) * 100; if(percent < 0) percent = 0;
-    document.getElementById('scoreCircle').style.background = `conic-gradient(var(--accent) ${percent}%, #E5E7EB ${percent}%)`;
-    document.getElementById('rankText').innerText = "Calculating Rank...";
+    const percentStr = percent.toFixed(1);
 
     try {
-        const percentStr = percent.toFixed(1);
         await addDoc(collection(db, "results"), {
-            timestamp: new Date().toISOString(), loginId: currentStudent.loginId, studentName: currentStudent.name,
-            testId: currentTestId, testName: currentTestName, correctCount, wrongCount, negDeducted: negDeducted.toFixed(2), finalScore: score.toFixed(2), totalMarks: currentTestMarks, percent: percentStr, userAnswers, testQuestionsState: testQuestions 
+            timestamp: new Date().toISOString(), 
+            loginId: currentStudent.loginId, 
+            studentName: currentStudent.name,
+            studentEmail: currentStudent.email || "",
+            testId: currentTestId, 
+            testName: currentTestName, 
+            correctCount, 
+            wrongCount, 
+            negDeducted: negDeducted.toFixed(2), 
+            finalScore: score.toFixed(2), 
+            totalMarks: currentTestMarks, 
+            percent: percentStr, 
+            isLivePending: isCurrentTestLive,
+            liveEndTime: currentLiveEndTime || "",
+            emailResultSent: false,
+            userAnswers, 
+            testQuestionsState: testQuestions 
         });
 
+        await fetchSettingsAndTests();
+
+        // If Live Test: Hold result until liveEndTime (e.g., 12:00 AM)
+        if (isCurrentTestLive) {
+            showScreen('liveSubmittedScreen');
+            document.getElementById('liveReleaseTimeDisplay').innerText = formatDateTimeReadable(currentLiveEndTime);
+            document.getElementById('liveUserEmailDisplay').innerText = currentStudent.email || "your registered email";
+            return;
+        }
+
+        // Normal Test: Show Result Immediately
+        showScreen('resultScreen');
+        document.getElementById('resTestName').innerText = currentTestName;
+        document.getElementById('finalScore').innerText = score.toFixed(2); 
+        document.getElementById('totalScore').innerText = currentTestMarks;
+        document.getElementById('statCorrect').innerText = correctCount;
+        document.getElementById('statWrong').innerText = wrongCount;
+        document.getElementById('statSkipped').innerText = skippedCount;
+        document.getElementById('statNeg').innerText = negDeducted.toFixed(2);
+        document.getElementById('scoreCircle').style.background = `conic-gradient(var(--accent) ${percent}%, #E5E7EB ${percent}%)`;
+        document.getElementById('rankText').innerText = "Calculating Rank...";
+
         const rankSnap = await getDocs(query(collection(db, "results"), where("testId", "==", currentTestId)));
-        let allResults = rankSnap.docs.map(d => d.data()).sort((a, b) => b.finalScore - a.finalScore);
+        let allResults = rankSnap.docs.map(d => d.data()).sort((a, b) => parseFloat(b.finalScore) - parseFloat(a.finalScore));
         let userRank = 1;
         allResults.forEach((r, index) => { if(r.loginId === currentStudent.loginId && r.finalScore === score.toFixed(2)) userRank = index + 1; });
 
         document.getElementById('rankText').innerText = `Your Rank: ${userRank} out of ${allResults.length} students`;
         currentResultData = { score: score.toFixed(2), total: currentTestMarks, rank: userRank, totalStudents: allResults.length, correct: correctCount, wrong: wrongCount, neg: negDeducted.toFixed(2), percent: percentStr };
-        fetchSettingsAndTests();
-    } catch(e) { console.error(e); document.getElementById('rankText').innerText = "Rank calculation failed."; }
+    } catch(e) { console.error(e); alert("Error saving result: " + e.message); }
 }
 
 window.viewSolutions = function() {
@@ -947,7 +1642,7 @@ window.viewSolutions = function() {
         else if(currentTestLanguage === "English") qHtml = `<div>${q.qE}</div>`;
         else qHtml = `<div>${q.qH}</div><div style="color:#6B7280; font-size:14px; margin-top:5px;">${q.qE}</div>`;
 
-        html += `<div style="background: white; padding: 25px; border-radius: 12px; margin-bottom: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); border-left: 5px solid ${isCorrect ? 'var(--accent)' : (uAns !== undefined ? 'var(--danger)' : 'var(--grey)')};"><div style="font-size: 12px; color: #6B7280; margin-bottom: 5px;">Q-ID: ${q.uniqueId}</div><div style="font-weight: 600; font-size: 16px; margin-bottom: 15px;">Q${i+1}. ${qHtml}</div>`;
+        html += `<div style="background: white; padding: 25px; border-radius: 12px; margin-bottom: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); border-left: 5px solid ${isCorrect ? 'var(--accent)' : (uAns !== undefined ? 'var(--danger)' : 'var(--grey)')};"><div style="font-size: 12px; color: #6B7280; margin-bottom: 5px;">Q-ID: ${q.uniqueId} | Marks: +${q.marks} / -${q.neg}</div><div style="font-weight: 600; font-size: 16px; margin-bottom: 15px;">Q${i+1}. ${qHtml}</div>`;
         
         q.opts.forEach((opt, j) => {
             let labelHtml = currentTestLanguage === "Hindi" ? opt.h : (currentTestLanguage === "English" ? opt.e : `${opt.h} <span style="font-size:12px; color:#6B7280;">(${opt.e})</span>`);
@@ -966,9 +1661,13 @@ window.viewSolutions = function() {
     showScreen('solutionsScreen');
 }
 
-window.viewPastAnalysis = function(testId) {
+window.viewPastAnalysis = async function(testId) {
     let res = userPastResults[testId];
     if(!res) return alert("Result not found!");
+
+    if (res.isLivePending && res.liveEndTime && new Date() <= new Date(res.liveEndTime)) {
+        return alert(`⏳ Live Test results are locked until ${formatDateTimeReadable(res.liveEndTime)}.`);
+    }
     
     testQuestions = res.testQuestionsState || []; userAnswers = res.userAnswers || {}; currentTestLanguage = "Both"; currentTestName = res.testName;
     showScreen('resultScreen');
@@ -984,13 +1683,24 @@ window.viewPastAnalysis = function(testId) {
     
     let percent = parseFloat(res.percent); if(percent < 0) percent = 0;
     document.getElementById('scoreCircle').style.background = `conic-gradient(var(--accent) ${percent}%, #E5E7EB ${percent}%)`;
-    document.getElementById('rankText').innerText = "Previous Attempt Analysis";
-    currentResultData = { score: res.finalScore, total: res.totalMarks, rank: '-', totalStudents: '-', correct: res.correctCount, wrong: res.wrongCount, neg: res.negDeducted, percent: res.percent };
+    document.getElementById('rankText').innerText = "Calculating All-India Rank...";
+
+    try {
+        const rankSnap = await getDocs(query(collection(db, "results"), where("testId", "==", testId)));
+        let allResults = rankSnap.docs.map(d => d.data()).sort((a, b) => parseFloat(b.finalScore) - parseFloat(a.finalScore));
+        let userRank = 1;
+        allResults.forEach((r, index) => { if(r.loginId === currentStudent.loginId) userRank = index + 1; });
+        document.getElementById('rankText').innerText = `All-India Rank: ${userRank} out of ${allResults.length} students`;
+        currentResultData = { score: res.finalScore, total: res.totalMarks, rank: userRank, totalStudents: allResults.length, correct: res.correctCount, wrong: res.wrongCount, neg: res.negDeducted, percent: res.percent };
+    } catch(e) {
+        document.getElementById('rankText').innerText = "Previous Attempt Analysis";
+        currentResultData = { score: res.finalScore, total: res.totalMarks, rank: '-', totalStudents: '-', correct: res.correctCount, wrong: res.wrongCount, neg: res.negDeducted, percent: res.percent };
+    }
 }
 
 window.downloadScorecard = function() {
     if(!currentResultData) return alert("No result data available!");
-    let html = `<html><head><title>Scorecard - TaiyariGhar</title><style>body{font-family:sans-serif; text-align:center; padding:50px;} h1{color:#4F46E5;} table{margin:20px auto; border-collapse:collapse; width:70%;} th,td{border:1px solid #ddd; padding:12px;} .footer{margin-top:30px; font-size:12px; color:#666;}</style></head><body><h1>🏠 TaiyariGhar</h1><h2>Test Scorecard</h2><table><tr><th>Student Name</th><td>${currentStudent.name}</td></tr><tr><th>Login ID</th><td>${currentStudent.loginId}</td></tr><tr><th>Test Name</th><td>${currentTestName}</td></tr><tr><th>Total Questions</th><td>${testQuestions.length}</td></tr><tr><th>Correct Answers</th><td style="color:green; font-weight:bold;">${currentResultData.correct}</td></tr><tr><th>Wrong Answers</th><td style="color:red; font-weight:bold;">${currentResultData.wrong}</td></tr><tr><th>Negative Deducted</th><td style="color:red;">-${currentResultData.neg}</td></tr><tr><th>Final Score</th><td>${currentResultData.score} / ${currentResultData.total}</td></tr><tr><th>Percentage</th><td>${currentResultData.percent}%</td></tr><tr><th>Rank</th><td>${currentResultData.rank} ${currentResultData.totalStudents !== '-' ? '(out of '+currentResultData.totalStudents+')' : ''}</td></tr></table><div class="footer">मेहनत आपकी, साथ हमारा!</div></body></html>`;
+    let html = `<html><head><title>Scorecard - TaiyariGhar</title><style>body{font-family:sans-serif; text-align:center; padding:50px;} h1{color:#4F46E5;} table{margin:20px auto; border-collapse:collapse; width:70%;} th,td{border:1px solid #ddd; padding:12px;} .footer{margin-top:30px; font-size:12px; color:#666;}</style></head><body><h1>🏠 TaiyariGhar</h1><h2>Test Scorecard</h2><table><tr><th>Student Name</th><td>${currentStudent.name}</td></tr><tr><th>Login ID</th><td>${currentStudent.loginId}</td></tr><tr><th>Test Name</th><td>${currentTestName}</td></tr><tr><th>Total Questions</th><td>${testQuestions.length}</td></tr><tr><th>Correct Answers</th><td style="color:green; font-weight:bold;">${currentResultData.correct}</td></tr><tr><th>Wrong Answers</th><td style="color:red; font-weight:bold;">${currentResultData.wrong}</td></tr><tr><th>Negative Deducted</th><td style="color:red;">-${currentResultData.neg}</td></tr><tr><th>Final Score</th><td>${currentResultData.score} / ${currentResultData.total}</td></tr><tr><th>Percentage</th><td>${currentResultData.percent}%</td></tr><tr><th>Rank</th><td>${currentResultData.rank} ${currentResultData.totalStudents !== '-' ? '(out of '+currentResultData.totalStudents+')' : ''}</td></tr></table><div class="footer">मेहनत आपकी, साथ हमारा! | Official Support: support@taiyarighar.in</div></body></html>`;
     let w = window.open('', '_blank'); w.document.write(html); w.document.close(); setTimeout(() => w.print(), 500);
 }
 
@@ -1015,12 +1725,6 @@ window.downloadQuestionPaper = function() {
     });
     html += `</body></html>`;
     let w = window.open('', '_blank'); w.document.write(html); w.document.close(); setTimeout(() => w.print(), 500);
-}
-
-window.shareResultOnWhatsApp = function() {
-    if(!currentResultData) return alert("No result data available!");
-    let msg = `🏆 *TaiyariGhar Result* 🏆\n\n👤 *Name:* ${currentStudent.name}\n📚 *Test:* ${currentTestName}\n📊 *Score:* ${currentResultData.score} / ${currentResultData.total}\n✅ *Correct:* ${currentResultData.correct}\n❌ *Wrong:* ${currentResultData.wrong}\n➖ *Negative:* -${currentResultData.neg}\n📈 *Percentage:* ${currentResultData.percent}%\n🥇 *Rank:* ${currentResultData.rank} ${currentResultData.totalStudents !== '-' ? '(out of '+currentResultData.totalStudents+')' : ''}\n\nमेहनत आपकी, साथ हमारा! 💪\nhttps://taiyarighar.in`;
-    window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
 }
 
 if ('serviceWorker' in navigator) {
