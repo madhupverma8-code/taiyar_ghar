@@ -4,8 +4,8 @@ import { getFirestore, collection, getDocs, getDoc, setDoc, addDoc, query, where
 // =========================================================================
 // 🔧 CONFIGURATION (Yahan apni Razorpay Key aur Google Apps Script URL dalein)
 // =========================================================================
-const RAZORPAY_KEY_ID = "rzp_live_Ttffsg1nwh5gBU"; // <-- Yahan apni Razorpay Key ID paste karein
-const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwR5qMVwV6yM43wl7uLrsCLPNHIWn9FpiSbB3heEh-bCbJ5CRzLxzpj8vvep9NpPTg3/exec"; // <-- Yahan baad me Google Apps Script Web App URL paste karein
+const RAZORPAY_KEY_ID = "rzp_test_YOUR_KEY_HERE"; // <-- Yahan apni Razorpay Key ID paste karein
+const APPS_SCRIPT_URL = "YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL"; // <-- Yahan apna Google Apps Script Web App URL paste karein
 
 // Firebase Configuration
 const firebaseConfig = {
@@ -28,6 +28,14 @@ let isLoggedIn = false;
 let isFirstLoginSession = false;
 let recommendedTestData = null;
 let nav = { mainCat: "", subCat: "", examName: "" };
+
+// Selected Subscription Plan State (Default: 12 Months)
+let selectedPlanMonths = 12;
+let subscriptionPlans = {
+    3:  { months: 3,  days: 90,  label: "3 Months Pass",  mrp: 149, price: 99 },
+    6:  { months: 6,  days: 180, label: "6 Months Pass",  mrp: 249, price: 199 },
+    12: { months: 12, days: 365, label: "12 Months Pass", mrp: 399, price: 249 }
+};
 
 // OTP State Variables
 let regGeneratedOtp = "";
@@ -70,7 +78,7 @@ const translations = {
 let currentLang = localStorage.getItem('tg_lang') || 'en';
 
 // =========================================================================
-// 📧 GOOGLE APPS SCRIPT EMAIL HELPER (OTP, Invoice & Welcome Mail)
+// 📧 GOOGLE APPS SCRIPT EMAIL HELPER (OTP, PDF Invoice & Welcome Mail)
 // =========================================================================
 async function callEmailService(payload) {
     if (!APPS_SCRIPT_URL || APPS_SCRIPT_URL === "YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL") {
@@ -369,7 +377,7 @@ window.scrollToLiveTests = function() {
 window.showPurchases = function() { 
     if(!isLoggedIn) return; 
     let status = currentStudent.isPaid ? "PRO All-Access (Active)" : "Free Plan"; 
-    alert(`--- MY SUBSCRIPTION ---\n\nName: ${currentStudent.name}\nLogin ID: ${currentStudent.loginId}\nPlan: ${status}\nValid Till: ${currentStudent.expiry || "N/A"}\n\nNote: Payment invoices are sent directly to ${currentStudent.email}.`); 
+    alert(`--- MY SUBSCRIPTION ---\n\nName: ${currentStudent.name}\nLogin ID: ${currentStudent.loginId}\nPlan: ${status}\nValid Till: ${currentStudent.expiry || "N/A"}\n\nNote: Official PDF invoices are emailed to ${currentStudent.email}.`); 
 }
 
 // =========================================================================
@@ -390,7 +398,6 @@ window.doLogin = async function() {
             const studentData = studentDoc.data();
             const docRef = doc(db, "students", studentDoc.id);
 
-            // Check Subscription Expiry automatically
             let isPaidActive = studentData.isPaid || false;
             if (isPaidActive && studentData.expiryDate) {
                 const expDate = new Date(studentData.expiryDate + "T23:59:59");
@@ -434,7 +441,6 @@ window.doLogin = async function() {
     } catch (e) { console.error(e); alert("Database Error: " + e.message); }
 }
 
-// Step 1: Send 6-Digit Email OTP for Registration
 window.sendRegisterOtp = async function() {
     const name = document.getElementById('regName').value.trim();
     const mobile = document.getElementById('regMobile').value.trim();
@@ -464,7 +470,7 @@ window.sendRegisterOtp = async function() {
         }
 
         regGeneratedOtp = Math.floor(100000 + Math.random() * 900000).toString();
-        regOtpExpiry = Date.now() + 10 * 60 * 1000; // 10 mins validity
+        regOtpExpiry = Date.now() + 10 * 60 * 1000;
 
         const res = await callEmailService({
             action: "send_otp",
@@ -475,7 +481,6 @@ window.sendRegisterOtp = async function() {
         });
 
         if (res.status === "not_configured") {
-            // Fallback preview alert until Apps Script URL is added
             alert(`[Setup Mode] Google Apps Script URL not linked yet.\nYour Test OTP is: ${regGeneratedOtp}`);
         } else if (res.status === "success") {
             alert(`✅ A 6-digit OTP has been sent to ${email}. Please check your Inbox or Spam folder.`);
@@ -494,7 +499,6 @@ window.sendRegisterOtp = async function() {
     }
 }
 
-// Step 2: Verify Registration OTP
 window.verifyRegisterOtp = function() {
     const userOtp = document.getElementById('regOtpInput').value.trim();
     const email = document.getElementById('regEmail').value.trim().toLowerCase();
@@ -512,7 +516,6 @@ window.verifyRegisterOtp = function() {
     document.getElementById('regPasswordBox').classList.remove('hide');
 }
 
-// Step 3: Complete Registration after OTP Verification
 window.doRegister = async function() {
     const name = document.getElementById('regName').value.trim();
     const mobile = document.getElementById('regMobile').value.trim();
@@ -540,7 +543,6 @@ window.doRegister = async function() {
             device2: ""
         });
 
-        // Send Welcome Email with Login Details
         callEmailService({
             action: "send_welcome",
             email: verifiedRegEmail,
@@ -568,7 +570,6 @@ window.closeRegModal = function() {
     showLogin();
 }
 
-// Forgot Password - Step 1: Send Email OTP
 window.sendForgotOtp = async function() {
     const email = document.getElementById('forgotEmail').value.trim().toLowerCase();
     if (!email || !email.includes("@")) return alert("Please enter your registered Email ID!");
@@ -617,7 +618,6 @@ window.sendForgotOtp = async function() {
     }
 }
 
-// Forgot Password - Step 2: Verify OTP & Update Password
 window.doResetPassword = async function() {
     const otpInput = document.getElementById('forgotOtpInput').value.trim();
     const newPass = document.getElementById('forgotNewPass').value.trim();
@@ -637,21 +637,53 @@ window.doResetPassword = async function() {
 }
 
 // =========================================================================
-// 💳 RAZORPAY PAYMENT & AUTOMATIC EMAIL INVOICE
+// 💳 3-TIER SUBSCRIPTION PLANS, RAZORPAY & PDF EMAIL INVOICE
 // =========================================================================
+function syncSubscriptionPlansFromSettings() {
+    subscriptionPlans[3].mrp    = parseFloat(appSettings.Plan3_MRP    || 149);
+    subscriptionPlans[3].price  = parseFloat(appSettings.Plan3_Price  || 99);
+    subscriptionPlans[6].mrp    = parseFloat(appSettings.Plan6_MRP    || 249);
+    subscriptionPlans[6].price  = parseFloat(appSettings.Plan6_Price  || 199);
+    subscriptionPlans[12].mrp   = parseFloat(appSettings.Plan12_MRP   || 399);
+    subscriptionPlans[12].price = parseFloat(appSettings.Plan12_Price || 249);
+
+    [3, 6, 12].forEach(m => {
+        const p = subscriptionPlans[m];
+        const disc = Math.max(0, p.mrp - p.price);
+        if (document.getElementById(`planMrp${m}`)) document.getElementById(`planMrp${m}`).innerText = p.mrp;
+        if (document.getElementById(`planPrice${m}`)) document.getElementById(`planPrice${m}`).innerText = p.price;
+        if (document.getElementById(`planSave${m}`)) document.getElementById(`planSave${m}`).innerText = disc > 0 ? `SAVE ₹${disc}` : "SPECIAL OFFER";
+    });
+}
+
+window.selectSubscriptionPlan = function(months) {
+    selectedPlanMonths = months;
+    [3, 6, 12].forEach(m => {
+        const card = document.getElementById(`planCard${m}`);
+        if (card) {
+            if (m === months) card.classList.add('selected');
+            else card.classList.remove('selected');
+        }
+    });
+
+    const plan = subscriptionPlans[months];
+    const discount = Math.max(0, plan.mrp - plan.price);
+
+    document.getElementById('selPlanLabel').innerText = plan.label;
+    document.getElementById('selPlanMrp').innerText = plan.mrp;
+    document.getElementById('selPlanDiscount').innerText = discount;
+    document.getElementById('selPlanFinal').innerText = plan.price;
+    document.getElementById('payBtnAmount').innerText = plan.price;
+}
+
 window.openPaymentModal = function() {
     if (!isLoggedIn) {
-        alert("Please login or register first to purchase a subscription!");
+        alert("Please login or register first to choose a subscription plan!");
         return showLogin();
     }
-    let price = (appSettings.Price || "99").toString().trim();
-    let offer = (appSettings.OfferText || "").toString().trim();
-    let validityDays = (appSettings.ValidityDays || "365").toString().trim();
-
+    syncSubscriptionPlansFromSettings();
+    selectSubscriptionPlan(12); // Default highlight 12-Month Best Value plan
     document.getElementById('paymentModal').classList.remove('hide');
-    document.getElementById('modalPrice').innerText = price;
-    document.getElementById('modalOffer').innerText = offer ? `(${offer})` : "";
-    if(document.getElementById('modalValidityDays')) document.getElementById('modalValidityDays').innerText = validityDays;
 }
 
 window.closeModal = function() { document.getElementById('paymentModal').classList.add('hide'); }
@@ -662,19 +694,19 @@ window.initiateRazorpayPayment = function() {
         return alert("Razorpay Key ID is not configured yet in student-app.js!");
     }
 
-    const price = parseFloat(appSettings.Price || "99");
-    const validityDays = parseInt(appSettings.ValidityDays || "365", 10);
+    const plan = subscriptionPlans[selectedPlanMonths];
+    const discountAmount = Math.max(0, plan.mrp - plan.price);
 
     const options = {
         "key": RAZORPAY_KEY_ID,
-        "amount": Math.round(price * 100), // in paise
+        "amount": Math.round(plan.price * 100), // in paise
         "currency": "INR",
         "name": "TaiyariGhar",
-        "description": `All-Access Mock Test & Live Exam Pass (${validityDays} Days)`,
+        "description": `${plan.label} (MRP ₹${plan.mrp} - Discount ₹${discountAmount})`,
         "image": "logo.png",
         "handler": async function (response) {
             closeModal();
-            await handleSuccessfulRazorpayPayment(response.razorpay_payment_id, price, validityDays);
+            await handleSuccessfulRazorpayPayment(response.razorpay_payment_id, plan);
         },
         "prefill": {
             "name": currentStudent.name,
@@ -683,7 +715,10 @@ window.initiateRazorpayPayment = function() {
         },
         "notes": {
             "loginId": currentStudent.loginId,
-            "studentName": currentStudent.name
+            "plan": plan.label,
+            "mrp": plan.mrp,
+            "discount": discountAmount,
+            "finalPaid": plan.price
         },
         "theme": {
             "color": "#4F46E5"
@@ -697,24 +732,26 @@ window.initiateRazorpayPayment = function() {
     rzp.open();
 }
 
-async function handleSuccessfulRazorpayPayment(paymentId, amountPaid, validityDays) {
+async function handleSuccessfulRazorpayPayment(paymentId, plan) {
     try {
         const today = new Date();
-        const expiryDateObj = new Date(today.getTime() + validityDays * 24 * 60 * 60 * 1000);
+        const expiryDateObj = new Date(today.getTime() + plan.days * 24 * 60 * 60 * 1000);
         const expiryStr = expiryDateObj.toISOString().split('T')[0];
         const invoiceNumber = "INV-" + Date.now().toString().slice(-6);
+        const discountAmount = Math.max(0, plan.mrp - plan.price);
 
         // 1. Activate Subscription in Firestore
         if (currentStudent.docId) {
             await updateDoc(doc(db, "students", currentStudent.docId), {
                 isPaid: true,
                 expiryDate: expiryStr,
+                activePlan: plan.label,
                 lastPaymentId: paymentId,
                 lastPaymentDate: today.toISOString()
             });
         }
 
-        // 2. Save Payment Record in Firestore
+        // 2. Save Payment & Discount Record in Firestore
         await addDoc(collection(db, "payments"), {
             invoiceNumber: invoiceNumber,
             paymentId: paymentId,
@@ -722,8 +759,11 @@ async function handleSuccessfulRazorpayPayment(paymentId, amountPaid, validityDa
             studentName: currentStudent.name,
             email: currentStudent.email,
             mobile: currentStudent.mobile,
-            amount: amountPaid,
-            validityDays: validityDays,
+            planName: plan.label,
+            mrp: plan.mrp,
+            discount: discountAmount,
+            amount: plan.price,
+            validityDays: plan.days,
             expiryDate: expiryStr,
             timestamp: today.toISOString()
         });
@@ -733,7 +773,7 @@ async function handleSuccessfulRazorpayPayment(paymentId, amountPaid, validityDa
         currentStudent.expiry = expiryStr;
         localStorage.setItem('tg_user', JSON.stringify(currentStudent));
 
-        // 4. Trigger Automatic Email Invoice via Google Apps Script (Respects GST Settings)
+        // 4. Trigger Automatic PDF Invoice Email via Google Apps Script
         callEmailService({
             action: "send_invoice",
             invoiceNumber: invoiceNumber,
@@ -742,15 +782,18 @@ async function handleSuccessfulRazorpayPayment(paymentId, amountPaid, validityDa
             loginId: currentStudent.loginId,
             email: currentStudent.email,
             mobile: currentStudent.mobile,
-            amount: amountPaid,
-            validityDays: validityDays,
+            planName: plan.label,
+            mrp: plan.mrp,
+            discount: discountAmount,
+            amount: plan.price,
+            validityDays: plan.days,
             expiryDate: expiryStr,
             date: today.toLocaleDateString('en-IN'),
             gstEnabled: appSettings.GST_Enabled || "No",
             gstNumber: appSettings.GST_Number || ""
         });
 
-        alert(`🎉 Payment Successful!\n\nYour All-Access Pass is now ACTIVE till ${expiryStr}.\nAn official receipt (${invoiceNumber}) has been sent to ${currentStudent.email}.`);
+        alert(`🎉 Payment Successful!\n\nYour ${plan.label} is now ACTIVE till ${expiryStr}.\nAn official PDF Invoice (${invoiceNumber}) has been sent to ${currentStudent.email}.`);
         renderCandidateProfileCard();
         fetchSettingsAndTests();
     } catch (e) {
@@ -857,7 +900,9 @@ async function fetchSettingsAndTests() {
     try {
         const setSnap = await getDoc(doc(db, "settings", "global"));
         if(setSnap.exists()) appSettings = setSnap.data();
-        else appSettings = { Price: "99", ValidityDays: "365", OfferText: "", GST_Enabled: "No", GST_Number: "" };
+        else appSettings = { Plan3_MRP: "149", Plan3_Price: "99", Plan6_MRP: "249", Plan6_Price: "199", Plan12_MRP: "399", Plan12_Price: "249", GST_Enabled: "No", GST_Number: "" };
+
+        syncSubscriptionPlansFromSettings();
 
         const testSnap = await getDocs(collection(db, "tests"));
         allTests = testSnap.docs.map(d => ({ id: d.id, ...d.data() }));
@@ -896,8 +941,6 @@ async function fetchDashboardData() {
         if(!resSnap.empty) {
             results = resSnap.docs.map(d => d.data()).sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp));
             attemptedTestIds = results.map(r => r.testId);
-
-            // Find latest released result (exclude unreleased live tests)
             lastTest = results.find(r => !r.isLivePending || (r.liveEndTime && new Date() > new Date(r.liveEndTime)));
         }
 
@@ -909,7 +952,6 @@ async function fetchDashboardData() {
             document.getElementById('recentTestScore').innerText = "Take a test to see your score";
         }
 
-        // Render Read-Only Attempt History & Live Test Results List
         const historyContainer = document.getElementById('dashHistoryContainer');
         if (results.length === 0) {
             historyContainer.innerHTML = `<div class="history-item"><span style="color:#6B7280; font-size:14px;">You haven't attempted any tests yet. Select a category below to start!</span></div>`;
@@ -941,7 +983,6 @@ async function fetchDashboardData() {
             historyContainer.innerHTML = histHtml;
         }
 
-        // Recommended Next Test (Normal tests only)
         let recTest = allTests.find(t => !attemptedTestIds.includes(t.id) && !isLiveTestCurrentlyActive(t));
         if(!recTest && allTests.length > 0) recTest = allTests.find(t => !isLiveTestCurrentlyActive(t)) || allTests[0];
 
@@ -1080,7 +1121,6 @@ function renderTestList(filtered) {
     if(filtered.length === 0) html = `<p style="text-align:center; color:#666; padding:20px;">No tests available right now. Please check back later.</p>`;
     else {
         filtered.forEach(t => {
-            // Live test automatically becomes a normal category test once liveEnd passes
             const currentlyLive = isLiveTestCurrentlyActive(t);
             const isLocked = (currentlyLive || String(t.isFree).trim().toLowerCase() !== "yes") && !currentStudent.isPaid;
             const pastRes = userPastResults[t.id];
@@ -1231,7 +1271,6 @@ function handleContextMenu(e) {
 
 function handleKeyDownAntiCheat(e) {
     if (currentScreen !== 'testScreen') return;
-    // Block PrintScreen, Ctrl+C, Ctrl+V, Ctrl+U, Ctrl+S, F12, Alt+Tab
     if (e.key === 'PrintScreen' || (e.ctrlKey && ['c','v','u','s','p','a'].includes(e.key.toLowerCase())) || e.key === 'F12') {
         e.preventDefault();
         if (e.key === 'PrintScreen') {
@@ -1343,7 +1382,6 @@ window.startActualTest = function() {
     let selectedLang = pendingTestDetails.lang;
     if(selectedLang === "Both") selectedLang = document.getElementById('instLangSelect').value;
     
-    // Force Full-Screen on Exam Start
     try {
         if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(() => {});
     } catch(e) {}
@@ -1378,7 +1416,6 @@ async function initTest(testId, testName, duration, marks, negMark, hasNeg, lang
     currentTestNegMark = hasNeg === "Yes" ? Number(negMark) : 0;
     currentTestLanguage = lang;
 
-    // Set Dynamic Watermark with Student Email/Mobile & ID
     const wm = document.getElementById('antiCheatWatermark');
     if (wm) wm.innerText = `${currentStudent.name} | ${currentStudent.loginId} | ${currentStudent.email || currentStudent.mobile}`;
 
@@ -1420,7 +1457,6 @@ async function initTest(testId, testName, duration, marks, negMark, hasNeg, lang
                     optsArray.sort(() => Math.random() - 0.5);
                     let newAnsIndex = optsArray.findIndex(o => o.h === correctObj.h && o.e === correctObj.e);
                     
-                    // Individual question marking overrides test default if specified (> 0)
                     let qPos = (qData.questionMarks !== undefined && Number(qData.questionMarks) > 0) ? Number(qData.questionMarks) : currentTestPosMark;
                     let qNeg = (qData.questionNeg !== undefined && Number(qData.questionNeg) > 0) ? Number(qData.questionNeg) : currentTestNegMark;
 
@@ -1471,7 +1507,6 @@ function loadQuestion() {
     const q = testQuestions[currentQIndex]; visitedQuestions[currentQIndex] = true;
     document.getElementById('currentQNum').innerText = currentQIndex + 1;
     
-    // Update Question-Specific Positive & Negative Badges
     document.getElementById('markPositive').innerText = q.marks || currentTestPosMark;
     if (q.neg > 0) {
         document.getElementById('negBadge').style.display = 'inline-block';
@@ -1601,7 +1636,6 @@ window.finalSubmitTest = async function() {
 
         await fetchSettingsAndTests();
 
-        // If Live Test: Hold result until liveEndTime (e.g., 12:00 AM)
         if (isCurrentTestLive) {
             showScreen('liveSubmittedScreen');
             document.getElementById('liveReleaseTimeDisplay').innerText = formatDateTimeReadable(currentLiveEndTime);
@@ -1609,7 +1643,6 @@ window.finalSubmitTest = async function() {
             return;
         }
 
-        // Normal Test: Show Result Immediately
         showScreen('resultScreen');
         document.getElementById('resTestName').innerText = currentTestName;
         document.getElementById('finalScore').innerText = score.toFixed(2); 
