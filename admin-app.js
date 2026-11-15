@@ -1,23 +1,34 @@
 // Copyright (c) 2026 TaiyariGhar. All Rights Reserved.
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getFirestore, doc, getDoc, setDoc, collection, getDocs, addDoc, deleteDoc, updateDoc, query, where } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+import { getFirestore, doc, getDoc, setDoc, collection, getDocs, addDoc, deleteDoc, updateDoc, query, where } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
-// Initialize Firestore safely (no top-level getAuth crash if apiKey is omitted)
+// Official Firebase Configuration (Matched with student-app.js)
 const firebaseConfig = {
-    projectId: "taiyarighar"
+    apiKey: "AIzaSyA7x6gQziPYLxrXnyVJJ80mvJkh3VCm24",
+    authDomain: "taiyarighar.firebaseapp.com",
+    projectId: "taiyarighar",
+    storageBucket: "taiyarighar.firebasestorage.app",
+    messagingSenderId: "329150812714",
+    appId: "1:329150812714:web:1f292d05aaba0cb918e953"
 };
 
-let db = null;
-try {
-    const app = initializeApp(firebaseConfig);
-    db = getFirestore(app);
-} catch (initErr) {
-    console.error("Firebase init warning:", initErr);
-}
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const auth = getAuth(app);
 
 let allCategoriesData = [];
 
-// 1. Guaranteed Admin Login Function
+// Check if admin is already signed in via Firebase Auth
+onAuthStateChanged(auth, (user) => {
+    if (user && user.email && user.email.toLowerCase() === "madhupverma8@gmail.com") {
+        document.getElementById('lockScreen').style.display = 'none';
+        document.getElementById('adminPanel').style.display = 'block';
+        loadAllAdminModules();
+    }
+});
+
+// 1. Official Firebase Authentication Login (Satisfies Firestore `request.auth != null` rule)
 window.checkPass = async function() {
     const emailEl = document.getElementById('adminEmail');
     const passEl = document.getElementById('adminPass');
@@ -30,38 +41,48 @@ window.checkPass = async function() {
 
     if (!email || !pass) {
         if (errMsg) {
-            errMsg.textContent = "❌ Please enter both Email and Password!";
+            errMsg.textContent = "❌ Please enter both Admin Email and Password!";
+            errMsg.style.display = 'block';
+        }
+        return;
+    }
+
+    if (email !== "madhupverma8@gmail.com") {
+        if (errMsg) {
+            errMsg.textContent = "❌ Unauthorized Admin Email!";
             errMsg.style.display = 'block';
         }
         return;
     }
 
     if (errMsg) errMsg.style.display = 'none';
-    if (btn) btn.textContent = "Verifying...";
+    if (btn) btn.textContent = "Authenticating...";
 
-    const unlockDashboard = () => {
+    try {
+        // Real Firebase Auth Sign-In so `isAdmin()` (`request.auth != null`) succeeds on Firestore write
+        await signInWithEmailAndPassword(auth, email, pass);
         document.getElementById('lockScreen').style.display = 'none';
         document.getElementById('adminPanel').style.display = 'block';
         if (btn) btn.textContent = "Unlock Panel";
         loadAllAdminModules();
-    };
-
-    if (email === "madhupverma8@gmail.com") {
-        // Direct instant unlock for valid password
-        if (pass === "admin123" || pass === "123456" || pass.length >= 4) {
-            unlockDashboard();
-            return;
+    } catch (error) {
+        console.error("Firebase Auth Error:", error);
+        if (errMsg) {
+            if (error.code === 'auth/invalid-credential' || error.code === 'auth/wrong-password') {
+                errMsg.textContent = "❌ Incorrect Firebase Admin Password! (Use your Firebase Auth password for madhupverma8@gmail.com)";
+            } else if (error.code === 'auth/too-many-requests') {
+                errMsg.textContent = "❌ Too many failed attempts. Please wait a few minutes and try again.";
+            } else {
+                errMsg.textContent = "❌ Login Failed: " + error.message;
+            }
+            errMsg.style.display = 'block';
         }
+        if (btn) btn.textContent = "Unlock Panel";
     }
-
-    if (errMsg) {
-        errMsg.textContent = "❌ Incorrect Admin Email or Password!";
-        errMsg.style.display = 'block';
-    }
-    if (btn) btn.textContent = "Unlock Panel";
 };
 
-window.logoutAdmin = function() {
+window.logoutAdmin = async function() {
+    await signOut(auth);
     document.getElementById('adminPanel').style.display = 'none';
     document.getElementById('lockScreen').style.display = 'flex';
     document.getElementById('adminPass').value = '';
@@ -76,7 +97,6 @@ window.openTab = function(tabId, btn) {
 };
 
 function loadAllAdminModules() {
-    if (!db) return;
     loadSettings();
     loadStudents();
     loadCategories();
@@ -139,11 +159,11 @@ window.loadStudents = async function() {
             html += `<tr>
                 <td>${s.name || '-'}</td>
                 <td>${s.mobile || '-'}</td>
-                <td>${s.studentId || '-'}</td>
+                <td>${s.loginId || s.studentId || '-'}</td>
                 <td>${s.email || '-'}</td>
                 <td class="${s.isPaid ? 'status-paid' : 'status-free'}">${s.isPaid ? 'PRO' : 'FREE'}</td>
                 <td>${s.expiryDate || 'N/A'}</td>
-                <td>${s.deviceCount || 1}/2</td>
+                <td>${(s.device1 ? 1 : 0) + (s.device2 ? 1 : 0)}/2</td>
                 <td>
                     <button class="btn-approve" onclick="makePro('${d.id}')">Make Pro</button>
                     <button class="btn-unpaid" onclick="makeFree('${d.id}')">Free</button>
@@ -244,13 +264,13 @@ window.loadTests = async function() {
         snap.forEach(d => {
             const t = d.data();
             html += `<tr>
-                <td>${t.testId}</td>
+                <td>${t.testId || d.id}</td>
                 <td>${t.mainCat || '-'}</td>
                 <td>${t.testName}</td>
                 <td style="color:${t.isLive==='Yes'?'red':'green'}; font-weight:bold;">${t.isLive || 'No'}</td>
-                <td>${t.totalMarks}</td>
-                <td>${t.totalQs}</td>
-                <td>${t.hasNeg === 'Yes' ? t.negMark : 'No'}</td>
+                <td>${t.marks || t.totalMarks || 100}</td>
+                <td>${t.totalQs || '-'}</td>
+                <td>${t.hasNegative === 'Yes' || t.hasNeg === 'Yes' ? (t.negativeMark || t.negMark) : 'No'}</td>
                 <td><button class="btn-delete" onclick="deleteTest('${d.id}')">Delete</button></td>
             </tr>`;
         });
@@ -270,11 +290,12 @@ window.saveTest = async function() {
         examName: document.getElementById('tExam').value,
         testName,
         duration: Number(document.getElementById('tDur').value || 60),
+        marks: Number(document.getElementById('tMarks').value || 100),
         totalMarks: Number(document.getElementById('tMarks').value || 100),
         totalQs: Number(document.getElementById('tTotalQs').value || 100),
         language: document.getElementById('tLanguage').value,
-        hasNeg: document.getElementById('tHasNeg').value,
-        negMark: Number(document.getElementById('tNegMark').value || 0),
+        hasNegative: document.getElementById('tHasNeg').value,
+        negativeMark: Number(document.getElementById('tNegMark').value || 0),
         isFree: document.getElementById('tFree').value,
         isLive: document.getElementById('tIsLive').value,
         liveReleaseTime: document.getElementById('tLiveReleaseTime').value.trim()
@@ -304,7 +325,7 @@ window.searchQuestions = async function() {
     let html = "";
     snap.forEach(d => {
         const item = d.data();
-        html += `<tr><td>${d.id.slice(0,6)}</td><td>${item.qHindi || '-'}</td><td>${item.qEnglish || '-'}</td><td>${item.marks || 1}</td><td><button class="btn-delete" onclick="deleteQuestion('${d.id}')">Delete</button></td></tr>`;
+        html += `<tr><td>${item.uniqueId || d.id.slice(0,6)}</td><td>${item.questionHindi || item.qHindi || '-'}</td><td>${item.questionEnglish || item.qEnglish || '-'}</td><td>${item.questionMarks || item.marks || 1}</td><td><button class="btn-delete" onclick="deleteQuestion('${d.id}')">Delete</button></td></tr>`;
     });
     tbody.innerHTML = html || `<tr><td colspan="5" style="text-align:center;">No questions found for ${tid}</td></tr>`;
 };
@@ -314,22 +335,26 @@ window.saveQuestion = async function() {
     if (!testId) { alert("Enter Test ID"); return; }
     const qData = {
         testId,
-        qHindi: document.getElementById('qTextHindi').value.trim(),
-        qEnglish: document.getElementById('qTextEnglish').value.trim(),
-        optAHindi: document.getElementById('qOptAHindi').value.trim(),
-        optAEnglish: document.getElementById('qOptAEnglish').value.trim(),
-        optBHindi: document.getElementById('qOptBHindi').value.trim(),
-        optBEnglish: document.getElementById('qOptBEnglish').value.trim(),
-        optCHindi: document.getElementById('qOptCHindi').value.trim(),
-        optCEnglish: document.getElementById('qOptCEnglish').value.trim(),
-        optDHindi: document.getElementById('qOptDHindi').value.trim(),
-        optDEnglish: document.getElementById('qOptDEnglish').value.trim(),
-        optEHindi: document.getElementById('qOptEHindi').value.trim(),
-        optEEnglish: document.getElementById('qOptEEnglish').value.trim(),
-        ans: Number(document.getElementById('qAns').value),
-        marks: Number(document.getElementById('qMarks').value || 1),
-        neg: Number(document.getElementById('qNeg').value || 0),
-        exp: document.getElementById('qExp').value.trim()
+        questionHindi: document.getElementById('qTextHindi').value.trim(),
+        questionEnglish: document.getElementById('qTextEnglish').value.trim(),
+        optionsHindi: [
+            document.getElementById('qOptAHindi').value.trim(),
+            document.getElementById('qOptBHindi').value.trim(),
+            document.getElementById('qOptCHindi').value.trim(),
+            document.getElementById('qOptDHindi').value.trim(),
+            document.getElementById('qOptEHindi').value.trim()
+        ],
+        optionsEnglish: [
+            document.getElementById('qOptAEnglish').value.trim(),
+            document.getElementById('qOptBEnglish').value.trim(),
+            document.getElementById('qOptCEnglish').value.trim(),
+            document.getElementById('qOptDEnglish').value.trim(),
+            document.getElementById('qOptEEnglish').value.trim()
+        ],
+        correctAnswer: Number(document.getElementById('qAns').value),
+        questionMarks: Number(document.getElementById('qMarks').value || 1),
+        questionNeg: Number(document.getElementById('qNeg').value || 0),
+        explanation: document.getElementById('qExp').value.trim()
     };
     await addDoc(collection(db, "questions"), qData);
     alert("✅ Question Added!");
@@ -354,7 +379,7 @@ window.loadResults = async function() {
         let html = "";
         snap.forEach(d => {
             const r = d.data();
-            html += `<tr><td>${r.date || '-'}</td><td>${r.studentName || '-'}</td><td>${r.testName || '-'}</td><td>${r.correct}</td><td>${r.wrong}</td><td>${r.neg || 0}</td><td><b>${r.score}</b></td></tr>`;
+            html += `<tr><td>${r.timestamp ? r.timestamp.split('T')[0] : '-'}</td><td>${r.studentName || '-'}</td><td>${r.testName || '-'}</td><td>${r.correctCount || 0}</td><td>${r.wrongCount || 0}</td><td>${r.negDeducted || 0}</td><td><b>${r.finalScore || 0}</b></td></tr>`;
         });
         tbody.innerHTML = html;
     } catch (e) { console.error("Results load error:", e); }
@@ -387,13 +412,15 @@ window.saveCA = async function() {
         title,
         link: document.getElementById('caLink').value,
         question: document.getElementById('caQ').value,
-        optA: document.getElementById('caOptA').value,
-        optB: document.getElementById('caOptB').value,
-        optC: document.getElementById('caOptC').value,
-        optD: document.getElementById('caOptD').value,
-        optE: document.getElementById('caOptE').value,
-        ans: Number(document.getElementById('caAns').value),
-        exp: document.getElementById('caExp').value
+        options: [
+            document.getElementById('caOptA').value,
+            document.getElementById('caOptB').value,
+            document.getElementById('caOptC').value,
+            document.getElementById('caOptD').value,
+            document.getElementById('caOptE').value
+        ],
+        correctAnswer: Number(document.getElementById('caAns').value),
+        explanation: document.getElementById('caExp').value
     });
     alert("✅ Current Affairs Added!");
     loadCA();
