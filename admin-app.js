@@ -45,7 +45,7 @@ window.checkPass = async function() {
     if (email === "madhupverma8@gmail.com") {
         // First try official Firebase Authentication if password is set there
         try {
-            if(firebaseConfig.apiKey) {
+            if(firebaseConfig.AIzaSyA7x6gQziPYLxrXnyVJJ80mvJkh3VCm24) {
                 await signInWithEmailAndPassword(auth, email, pass);
                 unlockDashboard();
                 return;
