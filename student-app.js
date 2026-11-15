@@ -2,10 +2,10 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebas
 import { getFirestore, collection, getDocs, getDoc, setDoc, addDoc, query, where, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
 // =========================================================================
-// 🔧 CONFIGURATION (Yahan apni Razorpay Key aur Google Apps Script URL dalein)
+// 🔧 CONFIGURATION
 // =========================================================================
-const RAZORPAY_KEY_ID = "rzp_live_Ttffsg1nwh5gBU"; // <-- Yahan apni Razorpay Key ID paste karein
-const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwR5qMVwV6yM43wl7uLrsCLPNHIWn9FpiSbB3heEh-bCbJ5CRzLxzpj8vvep9NpPTg3/exec"; // <-- Yahan apna Google Apps Script Web App URL paste karein
+const RAZORPAY_KEY_ID = "rzp_live_Ttffsg1nwh5gBU";
+const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwR5qMVwV6yM43wl7uLrsCLPNHIWn9FpiSbB3heEh-bCbJ5CRzLxzpj8vvep9NpPTg3/exec";
 
 // Firebase Configuration
 const firebaseConfig = {
@@ -29,7 +29,6 @@ let isFirstLoginSession = false;
 let recommendedTestData = null;
 let nav = { mainCat: "", subCat: "", examName: "" };
 
-// Selected Subscription Plan State (Default: 12 Months)
 let selectedPlanMonths = 12;
 let subscriptionPlans = {
     3:  { months: 3,  days: 90,  label: "3 Months Pass",  mrp: 149, price: 99 },
@@ -37,7 +36,6 @@ let subscriptionPlans = {
     12: { months: 12, days: 365, label: "12 Months Pass", mrp: 399, price: 249 }
 };
 
-// OTP State Variables
 let regGeneratedOtp = "";
 let regOtpExpiry = 0;
 let isRegEmailVerified = false;
@@ -48,7 +46,6 @@ let forgotOtpExpiry = 0;
 let forgotTargetDocId = "";
 let forgotTargetEmail = "";
 
-// Test & Live Exam State Variables
 let testQuestions = [], currentQIndex = 0, userAnswers = {}, markedForReview = {}, visitedQuestions = {};
 let timerInterval, liveCountdownInterval, timeLeft = 0, totalTime = 0;
 let currentTestId = "", currentTestName = "", currentTestMarks = 0, currentTestNegMark = 0, currentTestPosMark = 1, currentTestLanguage = "Both";
@@ -77,9 +74,6 @@ const translations = {
 
 let currentLang = localStorage.getItem('tg_lang') || 'en';
 
-// =========================================================================
-// 📧 GOOGLE APPS SCRIPT EMAIL HELPER (OTP, PDF Invoice & Welcome Mail)
-// =========================================================================
 async function callEmailService(payload) {
     if (!APPS_SCRIPT_URL || APPS_SCRIPT_URL === "YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL") {
         console.warn("Google Apps Script URL not configured yet. Payload:", payload);
@@ -98,9 +92,6 @@ async function callEmailService(payload) {
     }
 }
 
-// =========================================================================
-// 🖥️ SCREEN NAVIGATION & HISTORY
-// =========================================================================
 function showScreen(screenId, pushHistory = true) {
     ['homeScreen', 'loginScreen', 'registerScreen', 'forgotPasswordScreen', 'dashboardScreen', 'subCatScreen', 'caScreen', 'instructionsScreen', 'testScreen', 'liveSubmittedScreen', 'resultScreen', 'solutionsScreen'].forEach(s => {
         const el = document.getElementById(s);
@@ -259,41 +250,19 @@ window.logout = function() {
     goHome(); 
 }
 
-// =========================================================================
-// 📧 OFFICIAL EMAIL SUPPORT MODAL (support@taiyarighar.in)
-// =========================================================================
 window.openSupportModal = function() {
     const supportEmail = "support@taiyarighar.in";
     let studentInfo = isLoggedIn ? `Name: ${currentStudent.name} | ID: ${currentStudent.loginId} | Email: ${currentStudent.email}` : "Guest User";
     let examName = nav.examName ? ` (${nav.mainCat} > ${nav.subCat} > ${nav.examName})` : (nav.mainCat ? ` (${nav.mainCat})` : '');
 
     let qSub = `Question Report - TaiyariGhar${examName}`;
-    let qBody = `Hello TaiyariGhar Support,
-
-${studentInfo}
-Exam: ${examName}
-Question ID: 
-
-Issue Description:
-(Please attach screenshot if available)`;
+    let qBody = `Hello TaiyariGhar Support,\n\n${studentInfo}\nExam: ${examName}\nQuestion ID: \n\nIssue Description:`;
 
     let lSub = `Login / Account Issue - TaiyariGhar`;
-    let lBody = `Hello TaiyariGhar Support,
-
-${studentInfo}
-Registered Email / Mobile: 
-
-Issue Description:
-`;
+    let lBody = `Hello TaiyariGhar Support,\n\n${studentInfo}\nRegistered Email / Mobile: \n\nIssue Description:`;
 
     let pSub = `Payment / Invoice Support - TaiyariGhar`;
-    let pBody = `Hello TaiyariGhar Support,
-
-${studentInfo}
-Razorpay Payment ID (if any): 
-
-Issue Description:
-`;
+    let pBody = `Hello TaiyariGhar Support,\n\n${studentInfo}\nRazorpay Payment ID (if any): \n\nIssue Description:`;
 
     document.getElementById('mailSupportQuestion').href = `mailto:${supportEmail}?subject=${encodeURIComponent(qSub)}&body=${encodeURIComponent(qBody)}`;
     document.getElementById('mailSupportLogin').href = `mailto:${supportEmail}?subject=${encodeURIComponent(lSub)}&body=${encodeURIComponent(lBody)}`;
@@ -377,12 +346,9 @@ window.scrollToLiveTests = function() {
 window.showPurchases = function() { 
     if(!isLoggedIn) return; 
     let status = currentStudent.isPaid ? "PRO All-Access (Active)" : "Free Plan"; 
-    alert(`--- MY SUBSCRIPTION ---\n\nName: ${currentStudent.name}\nLogin ID: ${currentStudent.loginId}\nPlan: ${status}\nValid Till: ${currentStudent.expiry || "N/A"}\n\nNote: Official PDF invoices are emailed to ${currentStudent.email}.`); 
+    alert(`--- MY SUBSCRIPTION ---\n\nName: ${currentStudent.name}\nLogin ID: ${currentStudent.loginId}\nPlan: ${status}\nValid Till: ${currentStudent.expiry || "N/A"}`); 
 }
 
-// =========================================================================
-// 🔐 LOGIN, EMAIL OTP REGISTRATION & EMAIL OTP FORGOT PASSWORD
-// =========================================================================
 window.doLogin = async function() {
     const inputVal = document.getElementById('loginId').value.trim(); 
     const pass = document.getElementById('loginPass').value.trim();
@@ -516,6 +482,7 @@ window.verifyRegisterOtp = function() {
     document.getElementById('regPasswordBox').classList.remove('hide');
 }
 
+// 🟢 FIX 2: Secure ID Generation in doRegister
 window.doRegister = async function() {
     const name = document.getElementById('regName').value.trim();
     const mobile = document.getElementById('regMobile').value.trim();
@@ -528,7 +495,15 @@ window.doRegister = async function() {
 
     try {
         const allStudentsSnap = await getDocs(collection(db, "students"));
-        const newId = "TG" + String(allStudentsSnap.size + 1).padStart(4, '0');
+        let maxNum = 0;
+        allStudentsSnap.forEach(d => {
+            let lid = d.data().loginId;
+            if (lid && lid.startsWith("TG")) {
+                let num = parseInt(lid.replace("TG", ""), 10);
+                if (!isNaN(num) && num > maxNum) maxNum = num;
+            }
+        });
+        const newId = "TG" + String(maxNum + 1).padStart(4, '0');
 
         await addDoc(collection(db, "students"), {
             name: name, 
@@ -544,11 +519,12 @@ window.doRegister = async function() {
         });
 
         callEmailService({
-            action: "send_welcome",
+            action: "welcome",
             email: verifiedRegEmail,
             name: name,
-            loginId: newId,
-            mobile: mobile
+            studentId: newId,
+            mobile: mobile,
+            password: pass
         });
 
         document.getElementById('newLoginId').innerText = newId;
@@ -636,9 +612,6 @@ window.doResetPassword = async function() {
     } catch (e) { console.error(e); alert("Error updating password: " + e.message); }
 }
 
-// =========================================================================
-// 💳 3-TIER SUBSCRIPTION PLANS, RAZORPAY & PDF EMAIL INVOICE
-// =========================================================================
 function syncSubscriptionPlansFromSettings() {
     subscriptionPlans[3].mrp    = parseFloat(appSettings.Plan3_MRP    || 149);
     subscriptionPlans[3].price  = parseFloat(appSettings.Plan3_Price  || 99);
@@ -682,7 +655,7 @@ window.openPaymentModal = function() {
         return showLogin();
     }
     syncSubscriptionPlansFromSettings();
-    selectSubscriptionPlan(12); // Default highlight 12-Month Best Value plan
+    selectSubscriptionPlan(12);
     document.getElementById('paymentModal').classList.remove('hide');
 }
 
@@ -699,7 +672,7 @@ window.initiateRazorpayPayment = function() {
 
     const options = {
         "key": RAZORPAY_KEY_ID,
-        "amount": Math.round(plan.price * 100), // in paise
+        "amount": Math.round(plan.price * 100),
         "currency": "INR",
         "name": "TaiyariGhar",
         "description": `${plan.label} (MRP ₹${plan.mrp} - Discount ₹${discountAmount})`,
@@ -740,7 +713,6 @@ async function handleSuccessfulRazorpayPayment(paymentId, plan) {
         const invoiceNumber = "INV-" + Date.now().toString().slice(-6);
         const discountAmount = Math.max(0, plan.mrp - plan.price);
 
-        // 1. Activate Subscription in Firestore
         if (currentStudent.docId) {
             await updateDoc(doc(db, "students", currentStudent.docId), {
                 isPaid: true,
@@ -751,7 +723,6 @@ async function handleSuccessfulRazorpayPayment(paymentId, plan) {
             });
         }
 
-        // 2. Save Payment & Discount Record in Firestore
         await addDoc(collection(db, "payments"), {
             invoiceNumber: invoiceNumber,
             paymentId: paymentId,
@@ -768,12 +739,10 @@ async function handleSuccessfulRazorpayPayment(paymentId, plan) {
             timestamp: today.toISOString()
         });
 
-        // 3. Update Local Session
         currentStudent.isPaid = true;
         currentStudent.expiry = expiryStr;
         localStorage.setItem('tg_user', JSON.stringify(currentStudent));
 
-        // 4. Trigger Automatic PDF Invoice Email via Google Apps Script
         callEmailService({
             action: "send_invoice",
             invoiceNumber: invoiceNumber,
@@ -798,13 +767,10 @@ async function handleSuccessfulRazorpayPayment(paymentId, plan) {
         fetchSettingsAndTests();
     } catch (e) {
         console.error("Post-payment error:", e);
-        alert("Payment received (ID: " + paymentId + "), but there was a delay updating your profile. Please refresh or contact support@taiyarighar.in.");
+        alert("Payment received (ID: " + paymentId + "), but there was a delay updating your profile.");
     }
 }
 
-// =========================================================================
-// 📊 FETCH DATA, LIVE TESTS ENGINE & DASHBOARD HISTORY
-// =========================================================================
 function isLiveTestCurrentlyActive(t) {
     if (String(t.isLive).trim().toLowerCase() !== "yes") return false;
     const now = new Date();
@@ -896,6 +862,7 @@ function startLiveShowcaseCountdowns() {
     }, 1000);
 }
 
+// 🟢 FIX 1: Strict loginId verification for user past results
 async function fetchSettingsAndTests() {
     try {
         const setSnap = await getDoc(doc(db, "settings", "global"));
@@ -910,15 +877,19 @@ async function fetchSettingsAndTests() {
         const catSnap = await getDocs(collection(db, "exam_categories"));
         allExamCategories = catSnap.docs.map(d => d.data());
 
-        if(isLoggedIn) {
+        if(isLoggedIn && currentStudent.loginId) {
             const resSnap = await getDocs(query(collection(db, "results"), where("loginId", "==", currentStudent.loginId)));
             userPastResults = {};
             resSnap.forEach(docItem => {
                 let data = docItem.data();
-                if(!userPastResults[data.testId] || new Date(data.timestamp) > new Date(userPastResults[data.testId].timestamp)) {
-                    userPastResults[data.testId] = data;
+                if(data.loginId && data.loginId === currentStudent.loginId) {
+                    if(!userPastResults[data.testId] || new Date(data.timestamp) > new Date(userPastResults[data.testId].timestamp)) {
+                        userPastResults[data.testId] = data;
+                    }
                 }
             });
+        } else {
+            userPastResults = {};
         }
 
         renderLiveTestsShowcase();
@@ -1169,9 +1140,6 @@ window.clearResumeData = function(testId, examName) {
 
 window.goBackToSubCat = function() { history.back(); }
 
-// =========================================================================
-// 📰 CURRENT AFFAIRS
-// =========================================================================
 let caStreak = 0, caCorrectCount = 0, caWrongCount = 0;
 
 window.showCurrentAffairs = function() {
@@ -1244,9 +1212,6 @@ function showPopup(id) {
     setTimeout(() => { popup.classList.remove('show'); }, 3000);
 }
 
-// =========================================================================
-// 🛡️ STRICT ANTI-CHEATING ENGINE (Full Screen, Tab Switch, Copy/SS Block)
-// =========================================================================
 function handleVisibilityChange() {
     if (document.hidden && currentScreen === 'testScreen' && !isTestSubmitting) {
         handleAntiCheatViolation("Tab switching or minimizing the browser window is strictly prohibited!");
@@ -1326,9 +1291,6 @@ function handleAntiCheatViolation(reason) {
     }
 }
 
-// =========================================================================
-// 📝 TEST INSTRUCTIONS & EXECUTION ENGINE
-// =========================================================================
 window.showInstructions = function(id, name, duration, marks, negMark, hasNeg, lang, isResume = false, isLive = false, liveEnd = "", posMark = 1) {
     pendingTestDetails = { id, name, duration, marks, negMark, hasNeg, lang, isResume, isLive, liveEnd, posMark };
     
