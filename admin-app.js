@@ -5,7 +5,7 @@ import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from
 
 // Official Firebase Configuration (Matched with student-app.js)
 const firebaseConfig = {
-    apiKey: "AIzaSyA7x6gQziPYLxrXnyVJJ80mvJkh3VCm24",
+    apiKey: "AIzaSyA7x6gQziPYlxrXnyVJJ80mvJjkh3VCm24",
     authDomain: "taiyarighar.firebaseapp.com",
     projectId: "taiyarighar",
     storageBucket: "taiyarighar.firebasestorage.app",
