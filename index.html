@@ -9,6 +9,12 @@
     <link rel="stylesheet" href="style.css">
     <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
     <style>
+        /* Strict Modal & Screen Visibility Control */
+        .hide { display: none !important; }
+        #paymentModal:not(.hide), #submitModal:not(.hide), #registerSuccessModal:not(.hide) {
+            display: flex !important;
+        }
+
         /* Compact Split Hero Section Styles */
         .hero-split-section {
             background: linear-gradient(135deg, #F8FAFC 0%, #EEF2FF 100%);
@@ -268,7 +274,7 @@
     <!-- SINGLE-PAGE INTEGRATED SECTIONS: ABOUT, CONTACT, PRIVACY, TERMS, REFUND -->
     <!-- ===================================================================== -->
 
-    <!-- 1. ABOUT US SECTION (Inside index.html) -->
+    <!-- 1. ABOUT US SECTION -->
     <div id="aboutScreen" class="hide">
         <div class="info-page-card">
             <button class="btn btn-outline" onclick="goHome()" style="margin-bottom:20px;">← Back to Home</button>
@@ -303,7 +309,7 @@
         </div>
     </div>
 
-    <!-- 2. CONTACT US SECTION (Inside index.html) -->
+    <!-- 2. CONTACT US SECTION -->
     <div id="contactScreen" class="hide">
         <div class="info-page-card">
             <button class="btn btn-outline" onclick="goHome()" style="margin-bottom:20px;">← Back to Home</button>
@@ -328,7 +334,7 @@
         </div>
     </div>
 
-    <!-- 3. PRIVACY POLICY SECTION (Inside index.html) -->
+    <!-- 3. PRIVACY POLICY SECTION -->
     <div id="privacyScreen" class="hide">
         <div class="info-page-card">
             <button class="btn btn-outline" onclick="goHome()" style="margin-bottom:20px;">← Back to Home</button>
@@ -344,7 +350,7 @@
         </div>
     </div>
 
-    <!-- 4. TERMS & CONDITIONS SECTION (Inside index.html) -->
+    <!-- 4. TERMS & CONDITIONS SECTION -->
     <div id="termsScreen" class="hide">
         <div class="info-page-card">
             <button class="btn btn-outline" onclick="goHome()" style="margin-bottom:20px;">← Back to Home</button>
@@ -359,7 +365,7 @@
         </div>
     </div>
 
-    <!-- 5. REFUND POLICY SECTION (Inside index.html) -->
+    <!-- 5. REFUND POLICY SECTION -->
     <div id="refundScreen" class="hide">
         <div class="info-page-card">
             <button class="btn btn-outline" onclick="goHome()" style="margin-bottom:20px;">← Back to Home</button>
@@ -617,8 +623,8 @@
         <div id="solutionsContainer"></div>
     </div>
 
-    <!-- 3-TIER SUBSCRIPTION PAYMENT MODAL -->
-    <div id="paymentModal" class="hide" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(15,23,42,0.75); display:flex; align-items:center; justify-content:center; z-index:10000; padding:15px;">
+    <!-- 3-TIER SUBSCRIPTION PAYMENT MODAL (Hidden by default via .hide !important) -->
+    <div id="paymentModal" class="hide" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(15,23,42,0.75); align-items:center; justify-content:center; z-index:10000; padding:15px;">
         <div style="background:white; max-width:650px; width:100%; border-radius:18px; padding:28px; position:relative; max-height:92vh; overflow-y:auto;">
             <h2 style="text-align:center; color:#1E1B4B; margin-bottom:6px;">🚀 Unlock All-Access Subscription Pass</h2>
             <p style="text-align:center; font-size:13px; color:#6B7280; margin-bottom:20px;">Unlimited Mock Tests, All-India Live Exams & Detailed Analytics</p>
@@ -658,7 +664,7 @@
     </div>
 
     <!-- SUBMIT CONFIRMATION MODAL -->
-    <div id="submitModal" class="hide" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); display:flex; align-items:center; justify-content:center; z-index:10000;">
+    <div id="submitModal" class="hide" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); align-items:center; justify-content:center; z-index:10000;">
         <div style="background:white; padding:25px; border-radius:14px; max-width:400px; width:90%; text-align:center;">
             <h3 style="margin-bottom:15px;">Submit Test Summary</h3>
             <p style="font-size:14px; margin-bottom:6px;">Total Questions: <b id="smTotal">0</b></p>
@@ -674,7 +680,7 @@
     </div>
 
     <!-- REGISTRATION SUCCESS MODAL -->
-    <div id="registerSuccessModal" class="hide" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); display:flex; align-items:center; justify-content:center; z-index:10000;">
+    <div id="registerSuccessModal" class="hide" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); align-items:center; justify-content:center; z-index:10000;">
         <div style="background:white; padding:30px; border-radius:14px; max-width:420px; width:90%; text-align:center;">
             <h2 style="color:#10B981; margin-bottom:10px;">🎉 Registration Successful!</h2>
             <p style="font-size:13px; color:#4B5563; margin-bottom:15px;">Save your login credentials below (also sent to your email):</p>
@@ -724,7 +730,7 @@
         </div>
     </footer>
 
-    <!-- Helper Script for Single-Page Info Sections (Works seamlessly alongside student-app.js) -->
+    <!-- Helper Script for Single-Page Info Sections -->
     <script>
         window.openInfoSection = function(sectionId) {
             const allScreens = [
@@ -742,7 +748,6 @@
             window.scrollTo(0, 0);
         };
 
-        // Ensure goHome also hides the 5 info sections
         const origGoHomeInterval = setInterval(() => {
             if (typeof window.goHome === 'function' && !window.goHome._patched) {
                 const originalGoHome = window.goHome;
