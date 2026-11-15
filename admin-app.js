@@ -2,7 +2,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebas
 import { getFirestore, collection, getDocs, doc, getDoc, setDoc, updateDoc, deleteDoc, addDoc, writeBatch, query, where } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
-// API Key
+// Firebase Configuration
 const firebaseConfig = {
     apiKey: "AIzaSyD98AuZs7e-Z66aLIZyanQ6o-QRztWts_U", 
     authDomain: "taiyarighar.firebaseapp.com",
@@ -51,26 +51,45 @@ window.openTab = function(tabId, btn) {
 }
 
 function showLoading(show) { document.getElementById('loading').style.display = show ? 'flex' : 'none'; }
-function loadAllData() { loadSettings(); loadStudents(); loadCategories(); loadTests(); loadResults(); loadCA(); }
+function loadAllData() { loadSettings(); loadStudents(); loadPayments(); loadCategories(); loadTests(); loadResults(); loadCA(); }
 
-// ===== SETTINGS =====
+// ===== SETTINGS & FUTURE GST CONFIGURATION =====
+window.toggleGstInput = function() {
+    const gstEnabled = document.getElementById('setGstEnabled').value;
+    document.getElementById('gstNumberBox').style.display = gstEnabled === 'Yes' ? 'block' : 'none';
+}
+
 async function loadSettings() {
     const docSnap = await getDoc(doc(db, "settings", "global"));
     if(docSnap.exists()) {
         const data = docSnap.data();
-        document.getElementById('setUpi').value = data.UPI_ID || "";
-        document.getElementById('setMobile').value = data.Mobile || "";
-        document.getElementById('setPrice').value = data.Price || "";
+        document.getElementById('setPrice').value = data.Price || "99";
+        document.getElementById('setValidity').value = data.ValidityDays || "365";
         document.getElementById('setOffer').value = data.OfferText || "";
+        document.getElementById('setGstEnabled').value = data.GST_Enabled || "No";
+        document.getElementById('setGstNumber').value = data.GST_Number || "";
+        toggleGstInput();
     }
 }
 
 window.saveSettings = async function() {
+    const gstEnabled = document.getElementById('setGstEnabled').value;
+    const gstNumber = document.getElementById('setGstNumber').value.trim().toUpperCase();
+
+    if (gstEnabled === "Yes" && !gstNumber) {
+        return alert("Please enter your Company GSTIN Number or select 'No' for GST!");
+    }
+
     await setDoc(doc(db, "settings", "global"), {
-        UPI_ID: document.getElementById('setUpi').value.trim(), Mobile: document.getElementById('setMobile').value.trim(),
-        Price: document.getElementById('setPrice').value.trim(), OfferText: document.getElementById('setOffer').value.trim()
+        Price: document.getElementById('setPrice').value.trim() || "99",
+        ValidityDays: document.getElementById('setValidity').value.trim() || "365",
+        OfferText: document.getElementById('setOffer').value.trim(),
+        GST_Enabled: gstEnabled,
+        GST_Number: gstNumber
     }, { merge: true });
-    document.getElementById('settingsMsg').style.display = 'block'; setTimeout(() => document.getElementById('settingsMsg').style.display = 'none', 3000);
+
+    document.getElementById('settingsMsg').style.display = 'block'; 
+    setTimeout(() => document.getElementById('settingsMsg').style.display = 'none', 3000);
 }
 
 // ===== STUDENTS =====
@@ -87,16 +106,18 @@ async function loadStudents() {
         let d2 = data.device2 ? `<span style="font-size:11px; color:var(--warning);">${data.device2.substring(0,8)}...</span>` : '-';
         let devices = `${d1} <br> ${d2}`;
         
+        let email = data.email || '-';
         let mobile = data.mobile || '-';
-        let recCode = data.recoveryCode || '-';
-        let secQ = data.securityQuestion ? data.securityQuestion.replace('_', ' ').toUpperCase() : 'N/A';
-        let secA = data.securityAnswer || 'N/A';
-        let recDetails = `<div style="font-size:11px; line-height:1.2;"><b>Code:</b> <span style="color:var(--purple);">${recCode}</span><br><b>Q:</b> ${secQ}<br><b>A:</b> ${secA}</div>`;
 
         html += `<tr>
-            <td>${data.name}</td><td>${mobile}</td><td>${data.loginId}</td><td>${data.password}</td>
-            <td>${recDetails}</td>
-            <td>${status}</td><td>${data.expiryDate || '-'}</td><td>${devices}</td>
+            <td>${data.name}</td>
+            <td>${email}</td>
+            <td>${mobile}</td>
+            <td>${data.loginId}</td>
+            <td>${data.password}</td>
+            <td>${status}</td>
+            <td>${data.expiryDate || '-'}</td>
+            <td>${devices}</td>
             <td>
                 ${actionBtn} <br> 
                 <button class="btn-reset" onclick="resetDevices('${d.id}')">Devices</button> <br> 
@@ -110,7 +131,8 @@ async function loadStudents() {
 
 window.togglePayment = async function(id, makePaid) {
     if(makePaid) {
-        let expiry = prompt("Enter Expiry Date (YYYY-MM-DD):", "2024-12-31");
+        let defaultExp = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+        let expiry = prompt("Enter Expiry Date (YYYY-MM-DD):", defaultExp);
         if(expiry === null) return;
         await updateDoc(doc(db, "students", id), { isPaid: true, expiryDate: expiry }); 
     } else {
@@ -128,15 +150,62 @@ window.resetDevices = async function(id) {
 window.resetStudentPassword = async function(id) {
     let newPass = prompt("Enter New Password for the student:");
     if(newPass === null || newPass.trim() === "") return;
-    let newCode = Math.random().toString(36).substring(2, 8).toUpperCase();
-    if(!confirm(`Are you sure?\n\nNew Password: ${newPass}\nNew Recovery Code: ${newCode}`)) return;
-    await updateDoc(doc(db, "students", id), { password: newPass.trim(), recoveryCode: newCode });
-    loadStudents(); alert("Password and Recovery Code reset successfully!");
+    if(!confirm(`Are you sure you want to change password to: ${newPass}?`)) return;
+    await updateDoc(doc(db, "students", id), { password: newPass.trim() });
+    loadStudents(); alert("Password reset successfully!");
 }
 
 window.deleteStudent = async function(id) {
     if(!confirm("Are you sure you want to DELETE this student?")) return;
     await deleteDoc(doc(db, "students", id)); loadStudents();
+}
+
+// ===== PAYMENTS & INVOICES =====
+async function loadPayments() {
+    const tbody = document.querySelector('#paymentsTable tbody');
+    if (!tbody) return;
+    const snap = await getDocs(collection(db, "payments"));
+    let list = [];
+    snap.forEach(d => list.push(d.data()));
+    list.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+
+    let html = "";
+    list.forEach(p => {
+        html += `<tr>
+            <td>${new Date(p.timestamp).toLocaleDateString()}</td>
+            <td style="font-weight:bold; color:var(--primary);">${p.invoiceNumber || '-'}</td>
+            <td style="font-size:12px;">${p.paymentId || '-'}</td>
+            <td>${p.studentName} (${p.loginId})</td>
+            <td style="font-size:12px;">${p.email || '-'}<br>${p.mobile || '-'}</td>
+            <td style="font-weight:bold; color:var(--success);">₹${p.amount || 0}</td>
+            <td>${p.expiryDate || '-'}</td>
+        </tr>`;
+    });
+    tbody.innerHTML = html || '<tr><td colspan="7" style="text-align:center;">No payments recorded yet</td></tr>';
+}
+
+window.exportPayments = async function() {
+    showLoading(true);
+    const snap = await getDocs(collection(db, "payments"));
+    let dataToExport = [];
+    snap.forEach(d => {
+        const p = d.data();
+        dataToExport.push({
+            "Date": new Date(p.timestamp).toLocaleString(),
+            "Invoice Number": p.invoiceNumber || "",
+            "Razorpay Payment ID": p.paymentId || "",
+            "Student Name": p.studentName || "",
+            "Login ID": p.loginId || "",
+            "Email": p.email || "",
+            "Mobile": p.mobile || "",
+            "Amount Paid (INR)": p.amount || 0,
+            "Valid Till": p.expiryDate || ""
+        });
+    });
+    if(dataToExport.length === 0) { showLoading(false); return alert("No payment records!"); }
+    const csv = Papa.unparse(dataToExport);
+    const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' }); const link = document.createElement("a"); link.href = URL.createObjectURL(blob);
+    link.download = `TaiyariGhar_Payments_${new Date().toISOString().split('T')[0]}.csv`; link.click(); URL.revokeObjectURL(link.href); showLoading(false);
 }
 
 // ===== MANAGE CATEGORIES & EXAM TYPES =====
@@ -181,8 +250,8 @@ window.deleteCategory = async function(id) {
     await deleteDoc(doc(db, "exam_categories", id)); loadCategories();
 }
 
-function downloadCategoriesTemplate() {
-    const csv = Papa.unparse([["MainCategory", "SubCategory", "ExamName"], ["Railway Exams", "RPF", "Full Length Mock"]]);
+window.downloadCategoriesTemplate = function() {
+    const csv = Papa.unparse([["MainCategory", "SubCategory", "ExamName"], ["Railway Exams", "Group D", "Full Length Mock"]]);
     const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' }); 
     const link = document.createElement("a"); link.href = URL.createObjectURL(blob); link.download = "categories_template.csv"; link.click(); URL.revokeObjectURL(link.href);
 }
@@ -224,8 +293,16 @@ window.updateExamNameDropdown = function() {
     uniqueExams.forEach(exam => examSelect.innerHTML += `<option value="${exam}">${exam}</option>`);
 }
 
-// ===== TESTS =====
+// ===== TESTS & SCHEDULED LIVE EXAMS =====
 window.toggleTestNeg = function() { document.getElementById('tNegBox').style.display = document.getElementById('tHasNeg').value === 'Yes' ? 'block' : 'none'; }
+
+window.toggleLiveTestFields = function() {
+    const isLive = document.getElementById('tIsLive').value === 'Yes';
+    document.getElementById('tFreeBox').style.display = isLive ? 'none' : 'block';
+    document.getElementById('liveStartBox').style.display = isLive ? 'block' : 'none';
+    document.getElementById('liveEndBox').style.display = isLive ? 'block' : 'none';
+    document.getElementById('liveHelpText').style.display = isLive ? 'block' : 'none';
+}
 
 async function loadTests() {
     const tbody = document.querySelector('#testsTable tbody');
@@ -234,12 +311,30 @@ async function loadTests() {
     let html = "";
     testsSnap.forEach(d => {
         const t = d.data();
-        let negDisplay = t.hasNegative === "Yes" ? `-${t.negativeMark}` : 'No';
+        let posDisplay = `+${t.positiveMark || 1}`;
+        let negDisplay = t.hasNegative === "Yes" ? `-${t.negativeMark}` : 'No Neg';
         const actualQs = qCount[t.id] !== undefined ? qCount[t.id] : (t.totalQuestions || 0);
         let catDisplay = `${t.mainCat} > ${t.subCat} > ${t.examName || 'N/A'}`;
-        html += `<tr><td>${t.id}</td><td>${catDisplay}</td><td>${t.testName}</td><td>${t.language || "Both"}</td><td>${t.marks}</td><td><b>${actualQs}</b></td><td>${negDisplay}</td><td><button class="btn-edit" onclick="editTest('${d.id}')">Edit</button> <button class="btn-delete" onclick="deleteTest('${d.id}')">Del</button></td></tr>`;
+
+        let modeBadge = t.isLive === "Yes" 
+            ? `<span style="background:#FEE2E2; color:#DC2626; font-weight:700; font-size:11px; padding:3px 7px; border-radius:6px;">🔴 LIVE</span>` 
+            : `<span style="background:#EEF2FF; color:#4F46E5; font-weight:600; font-size:11px; padding:3px 7px; border-radius:6px;">Normal</span>`;
+
+        let scheduleOrAccess = t.isLive === "Yes"
+            ? `<div style="font-size:11px;"><b>Start:</b> ${t.liveStart ? t.liveStart.replace('T', ' ') : '-'}<br><b>End:</b> ${t.liveEnd ? t.liveEnd.replace('T', ' ') : '-'}</div>`
+            : (t.isFree === "Yes" ? '<span style="color:var(--success); font-weight:bold;">FREE</span>' : '<span style="color:var(--primary); font-weight:bold;">PRO ONLY</span>');
+
+        html += `<tr>
+            <td><b>${t.id}</b></td>
+            <td>${modeBadge}</td>
+            <td style="font-size:12px;">${catDisplay}</td>
+            <td>${t.testName} <br><span style="font-size:11px; color:#666;">(${actualQs} Qs | ${t.marks} Marks)</span></td>
+            <td><b>${posDisplay}</b> / <span style="color:var(--danger);">${negDisplay}</span></td>
+            <td>${scheduleOrAccess}</td>
+            <td><button class="btn-edit" onclick="editTest('${d.id}')">Edit</button> <button class="btn-delete" onclick="deleteTest('${d.id}')">Del</button></td>
+        </tr>`;
     });
-    tbody.innerHTML = html || '<tr><td colspan="8" style="text-align:center;">No tests found</td></tr>';
+    tbody.innerHTML = html || '<tr><td colspan="7" style="text-align:center;">No tests found</td></tr>';
 }
 
 window.editTest = async function(docId) {
@@ -251,10 +346,24 @@ window.editTest = async function(docId) {
         document.getElementById('tMain').value = t.mainCat; updateSubCatDropdown();
         document.getElementById('tSub').value = t.subCat; updateExamNameDropdown();
         document.getElementById('tExam').value = t.examName || '';
-        document.getElementById('tName').value = t.testName; document.getElementById('tDur').value = t.duration; document.getElementById('tMarks').value = t.marks;
-        document.getElementById('tTotalQs').value = t.totalQuestions || ""; document.getElementById('tHasNeg').value = t.hasNegative || "No"; document.getElementById('tNegMark').value = t.negativeMark || "";
-        document.getElementById('tFree').value = t.isFree; document.getElementById('tLanguage').value = t.language || "Both"; toggleTestNeg();
-        document.getElementById('testBtn').innerText = "Update Test"; document.getElementById('testBtn').style.background = "var(--warning)"; window.scrollTo(0,0);
+        document.getElementById('tName').value = t.testName; 
+        document.getElementById('tDur').value = t.duration; 
+        document.getElementById('tMarks').value = t.marks;
+        document.getElementById('tTotalQs').value = t.totalQuestions || ""; 
+        document.getElementById('tPosMark').value = t.positiveMark || 1;
+        document.getElementById('tHasNeg').value = t.hasNegative || "No"; 
+        document.getElementById('tNegMark').value = t.negativeMark || "";
+        document.getElementById('tFree').value = t.isFree || "Yes"; 
+        document.getElementById('tLanguage').value = t.language || "Both"; 
+        document.getElementById('tIsLive').value = t.isLive || "No";
+        document.getElementById('tLiveStart').value = t.liveStart || "";
+        document.getElementById('tLiveEnd').value = t.liveEnd || "";
+
+        toggleTestNeg();
+        toggleLiveTestFields();
+        document.getElementById('testBtn').innerText = "Update Test"; 
+        document.getElementById('testBtn').style.background = "var(--warning)"; 
+        window.scrollTo(0,0);
     }
 }
 
@@ -265,7 +374,33 @@ window.saveTest = async function() {
     const mainCat = document.getElementById('tMain').value, subCat = document.getElementById('tSub').value, examName = document.getElementById('tExam').value;
     if(!mainCat || !subCat || !examName) { showLoading(false); return alert("Select Category details!"); }
 
-    const data = { id, mainCat, subCat, examName, testName: document.getElementById('tName').value, duration: Number(document.getElementById('tDur').value), marks: Number(document.getElementById('tMarks').value), totalQuestions: Number(document.getElementById('tTotalQs').value) || 0, hasNegative: document.getElementById('tHasNeg').value, negativeMark: Number(document.getElementById('tNegMark').value) || 0, isFree: document.getElementById('tFree').value, language: document.getElementById('tLanguage').value };
+    const isLive = document.getElementById('tIsLive').value;
+    const liveStart = document.getElementById('tLiveStart').value;
+    const liveEnd = document.getElementById('tLiveEnd').value;
+
+    if (isLive === "Yes" && (!liveStart || !liveEnd)) {
+        showLoading(false);
+        return alert("Please select both Live Start Time and Live End / Result Time!");
+    }
+
+    const data = { 
+        id, 
+        mainCat, 
+        subCat, 
+        examName, 
+        testName: document.getElementById('tName').value, 
+        duration: Number(document.getElementById('tDur').value), 
+        marks: Number(document.getElementById('tMarks').value), 
+        totalQuestions: Number(document.getElementById('tTotalQs').value) || 0, 
+        positiveMark: Number(document.getElementById('tPosMark').value) || 1,
+        hasNegative: document.getElementById('tHasNeg').value, 
+        negativeMark: Number(document.getElementById('tNegMark').value) || 0, 
+        isFree: isLive === "Yes" ? "No" : document.getElementById('tFree').value, 
+        language: document.getElementById('tLanguage').value,
+        isLive: isLive,
+        liveStart: isLive === "Yes" ? liveStart : "",
+        liveEnd: isLive === "Yes" ? liveEnd : ""
+    };
 
     if(editId) {
         await updateDoc(doc(db, "tests", editId), data);
@@ -273,8 +408,14 @@ window.saveTest = async function() {
     } else { await setDoc(doc(db, "tests", id), data); }
     
     showLoading(false); 
-    ['tId','tName','tDur','tMarks','tTotalQs','tNegMark'].forEach(fid => document.getElementById(fid).value = "");
-    document.getElementById('tMain').value = ""; updateSubCatDropdown(); document.getElementById('tHasNeg').value = "No"; document.getElementById('tFree').value = "Yes"; document.getElementById('tLanguage').value = "Both"; toggleTestNeg();
+    ['tId','tName','tDur','tMarks','tTotalQs','tPosMark','tNegMark','tLiveStart','tLiveEnd'].forEach(fid => document.getElementById(fid).value = "");
+    document.getElementById('tMain').value = ""; updateSubCatDropdown(); 
+    document.getElementById('tHasNeg').value = "No"; 
+    document.getElementById('tFree').value = "Yes"; 
+    document.getElementById('tLanguage').value = "Both"; 
+    document.getElementById('tIsLive').value = "No";
+    toggleTestNeg();
+    toggleLiveTestFields();
     loadTests(); alert("Test Saved!");
 }
 
@@ -304,12 +445,13 @@ window.searchQuestions = async function() {
                 let qH = qData.questionHindi || qData.question || "-"; 
                 let qE = qData.questionEnglish || "-";
                 let uId = qData.uniqueId || d.id; 
+                let markText = `+${qData.questionMarks || 1} / -${qData.questionNeg || 0}`;
                 
                 html += `<tr>
                     <td style="font-weight:bold; color:var(--primary);">${uId}</td>
                     <td>${qH}</td>
                     <td>${qE}</td>
-                    <td>${qData.questionMarks || 1}</td>
+                    <td>${markText}</td>
                     <td>
                         <button class="btn-edit" onclick="editQuestionByDocId('${d.id}')">Edit</button> 
                         <button class="btn-delete" onclick="deleteQuestion('${d.id}')">Del</button>
@@ -424,9 +566,10 @@ async function loadResults() {
     let html = "";
     snap.forEach(d => {
         const r = d.data();
-        html += `<tr><td>${new Date(r.timestamp).toLocaleDateString()}</td><td>${r.studentName} (${r.loginId})</td><td>${r.testName}</td><td>${r.correctCount || 0}</td><td>${r.wrongCount || 0}</td><td style="color:red;">-${r.negDeducted || 0}</td><td style="font-weight:bold; color:var(--primary);">${r.finalScore || r.score}</td></tr>`;
+        const modeTag = r.isLivePending ? '<span style="color:#DC2626; font-weight:bold; font-size:11px;">LIVE</span>' : 'Normal';
+        html += `<tr><td>${new Date(r.timestamp).toLocaleDateString()}</td><td>${r.studentName} (${r.loginId})</td><td>${r.testName}</td><td>${modeTag}</td><td>${r.correctCount || 0}</td><td>${r.wrongCount || 0}</td><td style="color:red;">-${r.negDeducted || 0}</td><td style="font-weight:bold; color:var(--primary);">${r.finalScore || r.score}</td></tr>`;
     });
-    tbody.innerHTML = html || '<tr><td colspan="7" style="text-align:center;">No results found</td></tr>';
+    tbody.innerHTML = html || '<tr><td colspan="8" style="text-align:center;">No results found</td></tr>';
 }
 
 // ===== CURRENT AFFAIRS =====
@@ -474,7 +617,7 @@ window.exportStudents = async function() {
     let dataToExport = [];
     snap.forEach(d => {
         const data = d.data();
-        dataToExport.push({ "Name": data.name || "", "Mobile": data.mobile || "", "Login ID": data.loginId || "", "Password": data.password || "", "Recovery Code": data.recoveryCode || "", "Security Q": data.securityQuestion || "", "Security A": data.securityAnswer || "", "Status": data.isPaid ? "PAID" : "FREE", "Expiry": data.expiryDate || "" });
+        dataToExport.push({ "Name": data.name || "", "Email ID": data.email || "", "Mobile": data.mobile || "", "Login ID": data.loginId || "", "Password": data.password || "", "Status": data.isPaid ? "PAID" : "FREE", "Expiry": data.expiryDate || "" });
     });
     if(dataToExport.length === 0) { showLoading(false); return alert("No data!"); }
     const csv = Papa.unparse(dataToExport);
@@ -488,7 +631,7 @@ window.exportTests = async function() {
     let dataToExport = [];
     snap.forEach(d => {
         const data = d.data();
-        dataToExport.push({ "Test ID": data.id || "", "Main Category": data.mainCat || "", "Sub Category": data.subCat || "", "Exam Name": data.examName || "", "Test Name": data.testName || "", "Duration (Mins)": data.duration || "", "Total Marks": data.marks || "", "Language": data.language || "Both", "Has Negative": data.hasNegative || "No", "Negative Mark": data.negativeMark || 0, "Is Free": data.isFree || "Yes" });
+        dataToExport.push({ "Test ID": data.id || "", "Mode": data.isLive === "Yes" ? "LIVE" : "Normal", "Main Category": data.mainCat || "", "Sub Category": data.subCat || "", "Exam Name": data.examName || "", "Test Name": data.testName || "", "Duration (Mins)": data.duration || "", "Total Marks": data.marks || "", "Positive Mark": data.positiveMark || 1, "Has Negative": data.hasNegative || "No", "Negative Mark": data.negativeMark || 0, "Is Free": data.isFree || "Yes", "Live Start": data.liveStart || "", "Live End": data.liveEnd || "" });
     });
     if(dataToExport.length === 0) { showLoading(false); return alert("No data!"); }
     const csv = Papa.unparse(dataToExport);
@@ -502,7 +645,7 @@ window.exportResults = async function() {
     let dataToExport = [];
     snap.forEach(d => {
         const data = d.data();
-        dataToExport.push({ "Date": new Date(data.timestamp).toLocaleString(), "Student Name": data.studentName || "", "Login ID": data.loginId || "", "Test Name": data.testName || "", "Correct": data.correctCount || 0, "Wrong": data.wrongCount || 0, "Negative Deducted": data.negDeducted || 0, "Final Score": data.finalScore || 0, "Total Marks": data.totalMarks || 0, "Percentage": data.percent || "0" });
+        dataToExport.push({ "Date": new Date(data.timestamp).toLocaleString(), "Student Name": data.studentName || "", "Email": data.studentEmail || "", "Login ID": data.loginId || "", "Test Name": data.testName || "", "Mode": data.isLivePending ? "Live Exam" : "Normal", "Correct": data.correctCount || 0, "Wrong": data.wrongCount || 0, "Negative Deducted": data.negDeducted || 0, "Final Score": data.finalScore || 0, "Total Marks": data.totalMarks || 0, "Percentage": data.percent || "0" });
     });
     if(dataToExport.length === 0) { showLoading(false); return alert("No data!"); }
     const csv = Papa.unparse(dataToExport);
@@ -518,20 +661,20 @@ function downloadCSV(filename, headers, sampleRow) {
 }
 
 window.downloadTestsTemplate = function() {
-    const headers = ["TestID","MainCategory","SubCategory","ExamName","TestName","Duration","TotalMarks","TotalQuestions","HasNegative","NegativeMark","IsFree","Language"];
-    const sample = ["T1","SSC Exams","CGL","Full Length Mock","SSC CGL Mock 1","60","100","50","Yes","0.25","Yes","Both"];
+    const headers = ["TestID","MainCategory","SubCategory","ExamName","TestName","Duration","TotalMarks","TotalQuestions","PositiveMark","HasNegative","NegativeMark","IsFree","Language","IsLive","LiveStart","LiveEnd"];
+    const sample = ["RRB01","Railway Exams","Group D","Full Length Mock","Group D Live Test 1","90","100","100","1","Yes","0.33","No","Both","Yes","2026-11-20T10:00","2026-11-20T23:59"];
     downloadCSV("tests_template.csv", headers, sample);
 }
 
 window.downloadQuestionsTemplate = function() {
     const headers = ["TestID","QuestionHindi","QuestionEnglish","OptionA_Hindi","OptionB_Hindi","OptionC_Hindi","OptionD_Hindi","OptionE_Hindi","OptionA_English","OptionB_English","OptionC_English","OptionD_English","OptionE_English","CorrectAnswer","QuestionMarks","QuestionNegativeMark","Explanation"];
-    const sample = ["T1","भारत की राजधानी क्या है?","What is the capital of India?","मुंबई","दिल्ली","कोलकाता","चेन्नई","","Mumbai","Delhi","Kolkata","Chennai","","B","1","0.33","दिल्ली भारत की राजधानी है।"];
+    const sample = ["RRB01","भारत की राजधानी क्या है?","What is the capital of India?","मुंबई","दिल्ली","कोलकाता","चेन्नई","","Mumbai","Delhi","Kolkata","Chennai","","B","1","0.33","दिल्ली भारत की राजधानी है।"];
     downloadCSV("questions_template_dual.csv", headers, sample);
 }
 
 window.downloadCaTemplate = function() {
     const headers = ["Type","Date","Title","Article_Link","Question","OptionA","OptionB","OptionC","OptionD","OptionE","CorrectAnswer","Explanation"];
-    const sample = ["Daily","2024-12-01","India GDP Growth","https://example.com/article","India's GDP growth rate in 2024?","6.5%","7.2%","8.0%","7.8%","","B","India's GDP grew at 7.2% in 2024."];
+    const sample = ["Daily","2026-11-15","India GDP Growth","https://example.com/article","India's GDP growth rate in 2026?","6.5%","7.2%","8.0%","7.8%","","B","India's GDP grew at 7.2%."];
     downloadCSV("current_affairs_template.csv", headers, sample);
 }
 
@@ -544,7 +687,25 @@ window.uploadTestsCsv = function() {
         let count = 0; const batch = writeBatch(db);
         for (let row of res.data) {
             let tId = row.TestID || row.testId; if(!tId) continue;
-            batch.set(doc(db, "tests", tId), { id: tId, mainCat: row.MainCategory || "Other", subCat: row.SubCategory || "General", examName: row.ExamName || "General Test", testName: row.TestName || "Test", duration: Number(row.Duration) || 60, marks: Number(row.TotalMarks) || 100, totalQuestions: Number(row.TotalQuestions) || 0, hasNegative: row.HasNegative || "No", negativeMark: Number(row.NegativeMark) || 0, isFree: String(row.IsFree).trim().toLowerCase() === "yes" ? "Yes" : "No", language: row.Language || "Both" }); count++;
+            let isLive = String(row.IsLive || "No").trim().toLowerCase() === "yes" ? "Yes" : "No";
+            batch.set(doc(db, "tests", tId), { 
+                id: tId, 
+                mainCat: row.MainCategory || "Other", 
+                subCat: row.SubCategory || "General", 
+                examName: row.ExamName || "General Test", 
+                testName: row.TestName || "Test", 
+                duration: Number(row.Duration) || 60, 
+                marks: Number(row.TotalMarks) || 100, 
+                totalQuestions: Number(row.TotalQuestions) || 0, 
+                positiveMark: Number(row.PositiveMark) || 1,
+                hasNegative: row.HasNegative || "No", 
+                negativeMark: Number(row.NegativeMark) || 0, 
+                isFree: isLive === "Yes" ? "No" : (String(row.IsFree).trim().toLowerCase() === "yes" ? "Yes" : "No"), 
+                language: row.Language || "Both",
+                isLive: isLive,
+                liveStart: isLive === "Yes" ? (row.LiveStart || "") : "",
+                liveEnd: isLive === "Yes" ? (row.LiveEnd || "") : ""
+            }); count++;
         }
         await batch.commit(); statusText.innerText = `✅ Uploaded ${count} tests!`; loadTests();
     }});
