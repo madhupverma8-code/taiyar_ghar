@@ -6,16 +6,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TaiyariGhar | Crack Your Dream Govt Job with Confidence</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css?v=4.0">
+    <link rel="stylesheet" href="style.css?v=6.0">
+    <link rel="stylesheet" href="student-style.css?v=6.0">
     <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
     <style>
-        /* Strict Modal & Screen Visibility Control */
         .hide { display: none !important; }
-        #paymentModal:not(.hide), #submitModal:not(.hide), #registerSuccessModal:not(.hide) {
+        #paymentModal:not(.hide), #submitModal:not(.hide), #registerSuccessModal:not(.hide), #liveHubModal:not(.hide) {
             display: flex !important;
         }
 
-        /* Full-Screen Banner Hero with Text Overlay */
+        /* Full-Screen Banner Hero with Text Overlay (Homepage Intact) */
         .hero-banner-section {
             position: relative;
             width: 100%;
@@ -29,15 +29,8 @@
             padding: 55px 5%;
             border-bottom: 1px solid #E2E8F0;
         }
-        .hero-banner-container {
-            max-width: 1200px;
-            width: 100%;
-            margin: 0 auto;
-        }
-        .hero-overlay-content {
-            max-width: 600px;
-            color: #ffffff;
-        }
+        .hero-banner-container { max-width: 1200px; width: 100%; margin: 0 auto; }
+        .hero-overlay-content { max-width: 600px; color: #ffffff; }
         .hero-badge {
             display: inline-block;
             background: rgba(99, 102, 241, 0.25);
@@ -58,17 +51,8 @@
             margin-bottom: 16px;
             text-shadow: 0 2px 12px rgba(0, 0, 0, 0.35);
         }
-        .hero-overlay-content p {
-            font-size: 16px;
-            line-height: 1.65;
-            color: #E2E8F0;
-            margin-bottom: 28px;
-        }
-        .hero-cta-group {
-            display: flex;
-            gap: 14px;
-            flex-wrap: wrap;
-        }
+        .hero-overlay-content p { font-size: 16px; line-height: 1.65; color: #E2E8F0; margin-bottom: 28px; }
+        .hero-cta-group { display: flex; gap: 14px; flex-wrap: wrap; }
         .btn-hero-primary {
             background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%);
             color: #ffffff;
@@ -84,10 +68,7 @@
             align-items: center;
             gap: 8px;
         }
-        .btn-hero-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 14px 30px rgba(79, 70, 229, 0.55);
-        }
+        .btn-hero-primary:hover { transform: translateY(-2px); box-shadow: 0 14px 30px rgba(79, 70, 229, 0.55); }
         .btn-hero-secondary {
             background: rgba(255, 255, 255, 0.95);
             color: #1E1B4B;
@@ -102,19 +83,8 @@
             align-items: center;
             gap: 8px;
         }
-        .btn-hero-secondary:hover {
-            background: #ffffff;
-            transform: translateY(-2px);
-        }
-        .hero-trust-row {
-            margin-top: 24px;
-            display: flex;
-            gap: 18px;
-            flex-wrap: wrap;
-            font-size: 13px;
-            color: #CBD5E1;
-            font-weight: 500;
-        }
+        .btn-hero-secondary:hover { background: #ffffff; transform: translateY(-2px); }
+        .hero-trust-row { margin-top: 24px; display: flex; gap: 18px; flex-wrap: wrap; font-size: 13px; color: #CBD5E1; font-weight: 500; }
 
         /* Integrated About Us & Info Sections inside index.html */
         .info-page-card {
@@ -144,23 +114,9 @@
             border: 4px solid #EEF2FF;
             box-shadow: 0 8px 20px rgba(79, 70, 229, 0.2);
         }
-        .policy-heading {
-            color: #1E1B4B;
-            font-size: 28px;
-            margin-bottom: 6px;
-        }
-        .policy-sub {
-            color: #6B7280;
-            font-size: 13px;
-            margin-bottom: 22px;
-            padding-bottom: 12px;
-            border-bottom: 1px solid #E5E7EB;
-        }
-        .policy-sec-title {
-            color: #4F46E5;
-            font-size: 18px;
-            margin: 20px 0 8px;
-        }
+        .policy-heading { color: #1E1B4B; font-size: 28px; margin-bottom: 6px; }
+        .policy-sub { color: #6B7280; font-size: 13px; margin-bottom: 22px; padding-bottom: 12px; border-bottom: 1px solid #E5E7EB; }
+        .policy-sec-title { color: #4F46E5; font-size: 18px; margin: 20px 0 8px; }
         @media (max-width: 768px) {
             .hero-banner-section {
                 min-height: 380px;
@@ -184,7 +140,7 @@
         <nav class="nav-links">
             <a href="javascript:void(0)" onclick="goHome()" data-translate="nav_home">Home</a>
             <a href="javascript:void(0)" onclick="scrollToCategories()" data-translate="nav_exams">All Exams</a>
-            <a href="javascript:void(0)" onclick="scrollToLiveTests()" style="color:#DC2626; font-weight:700;"><span class="live-dot-nav"></span> Live Tests</a>
+            <a href="javascript:void(0)" onclick="openLiveTestsHub()" style="color:#DC2626; font-weight:700;"><span class="live-dot-nav"></span> Live Tests</a>
             <a href="javascript:void(0)" onclick="showCurrentAffairs()" data-translate="nav_ca">Current Affairs</a>
             <a href="javascript:void(0)" onclick="openInfoSection('aboutScreen')">About Us</a>
             <a href="javascript:void(0)" onclick="openInfoSection('contactScreen')">Contact Us</a>
@@ -196,16 +152,40 @@
                 <button class="btn btn-outline" onclick="showLogin()" data-translate="nav_login">Login</button>
                 <button class="btn btn-primary" onclick="showRegister()" data-translate="nav_register">Register</button>
             </div>
-            <div id="headerProfile" class="hide" style="display:flex; align-items:center; gap:10px;">
-                <button class="btn btn-outline" onclick="goDashboard()">👤 <span id="navStudentName">Student</span></button>
-                <button class="btn" style="background:#FEE2E2; color:#DC2626;" onclick="logout()" data-translate="nav_logout">Logout</button>
+            <!-- Logged-in Candidate Profile Avatar & Sleek LMS Popover -->
+            <div id="headerProfile" class="hide" style="position:relative;">
+                <button class="lms-avatar-trigger" onclick="toggleProfilePopover(event)">
+                    <span id="navAvatarCircle" class="avatar-circle-sm">S</span>
+                    <span id="navStudentName" style="font-weight:700; color:#1E1B4B;">Student</span>
+                    <span style="font-size:11px; color:#6B7280;">▼</span>
+                </button>
+                <div id="profilePopoverCard" class="lms-profile-popover hide">
+                    <div class="popover-header">
+                        <div id="popAvatarLg" class="avatar-circle-lg">S</div>
+                        <div>
+                            <h4 id="popStudentName" style="color:#1E1B4B; font-size:15px; margin:0;">Student Name</h4>
+                            <span id="popStudentId" style="font-size:12px; color:#4F46E5; font-weight:700;">ID: TG0001</span>
+                        </div>
+                    </div>
+                    <div class="popover-body">
+                        <div class="pop-info-row"><span>📧 Email:</span><b id="popStudentEmail">-</b></div>
+                        <div class="pop-info-row"><span>📱 Mobile:</span><b id="popStudentMobile">-</b></div>
+                        <div class="pop-info-row"><span>💳 Plan:</span><span id="popSubBadge" class="sub-badge free">FREE PLAN</span></div>
+                        <div id="popSubExpiry" style="font-size:11px; color:#6B7280; margin-top:4px; text-align:right;"></div>
+                    </div>
+                    <div class="popover-actions">
+                        <button class="btn btn-outline" style="width:100%; justify-content:flex-start;" onclick="goDashboard(); closeProfilePopover();">📊 My LMS Dashboard</button>
+                        <button class="btn btn-outline" style="width:100%; justify-content:flex-start;" onclick="showPurchases(); closeProfilePopover();">🧾 My Purchases & Invoices</button>
+                        <button id="popUpgradeBtn" class="btn btn-primary" style="width:100%;" onclick="openPaymentModal(); closeProfilePopover();">🚀 Upgrade to Pro Pass</button>
+                        <button class="btn" style="width:100%; background:#FEE2E2; color:#DC2626;" onclick="logout()" data-translate="nav_logout">🚪 Logout</button>
+                    </div>
+                </div>
             </div>
         </div>
     </header>
 
-    <!-- HOME SCREEN -->
+    <!-- HOME SCREEN (Unchanged) -->
     <div id="homeScreen">
-        <!-- Full-Width Hero Banner with Text Overlay directly on hero-laptop.jpg -->
         <section class="hero-banner-section">
             <div class="hero-banner-container">
                 <div class="hero-overlay-content">
@@ -246,7 +226,7 @@
         <div class="info-page-card">
             <button class="btn btn-outline" onclick="goHome()" style="margin-bottom:20px;">← Back to Home</button>
             <div class="founder-flex">
-                <img src="founder.jpg" alt="Madhup Verma - Founder" class="founder-photo" onerror="this.src='madhup.jpg'; this.onerror=function(){this.src='logo.png';};">
+                <img src="founder.jpg" alt="Madhup Verma - Founder" class="founder-photo" onerror="this.src='founder.png'; this.onerror=function(){this.src='logo.png';};">
                 <div style="flex:1; min-width:260px;">
                     <span style="background:#EEF2FF; color:#4F46E5; font-size:12px; font-weight:700; padding:4px 12px; border-radius:20px;">Founder & Educator</span>
                     <h2 style="font-size:28px; color:#1E1B4B; margin:8px 0 4px;">Madhup Verma</h2>
@@ -396,60 +376,131 @@
         <p style="text-align:center; margin-top:15px; font-size:13px;"><a href="javascript:void(0)" onclick="showLogin()">← Back to Login</a></p>
     </div>
 
-    <!-- DASHBOARD SCREEN -->
-    <div id="dashboardScreen" class="hide container" style="padding:30px 5%;">
-        <div id="welcomeMessage" style="background:#EEF2FF; color:#1E1B4B; padding:14px 20px; border-radius:10px; font-weight:600; margin-bottom:20px;"></div>
-        <div class="profile-card" style="background:white; padding:22px; border-radius:14px; box-shadow:0 4px 15px rgba(0,0,0,0.05); display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:15px; margin-bottom:25px;">
-            <div style="display:flex; align-items:center; gap:15px;">
-                <div id="dashProfileAvatar" style="width:54px; height:54px; border-radius:50%; background:#4F46E5; color:white; display:flex; align-items:center; justify-content:center; font-size:22px; font-weight:700;">S</div>
+    <!-- ===================================================================== -->
+    <!-- 🌟 PRO ENTERPRISE LMS CANDIDATE DASHBOARD (CLEAN, BEST-LOOKING UI)    -->
+    <!-- ===================================================================== -->
+    <div id="dashboardScreen" class="hide lms-dashboard-wrapper">
+        <div class="container">
+            <!-- Top Welcome & Action Bar -->
+            <div class="lms-top-banner">
                 <div>
-                    <h3 id="dashProfileName" style="color:#1E1B4B;">Student Name</h3>
-                    <p style="font-size:13px; color:#6B7280;">ID: <b id="dashProfileId">TG0001</b> | 📧 <span id="dashProfileEmail">-</span> | 📱 <span id="dashProfileMobile">-</span></p>
+                    <div id="welcomeMessage" style="font-size:18px; font-weight:700; color:#1E1B4B;">Welcome back!</div>
+                    <p style="font-size:13px; color:#6B7280; margin-top:2px;">Your personalized exam preparation & analytics workspace</p>
+                </div>
+                <div style="display:flex; gap:10px; flex-wrap:wrap;">
+                    <button class="btn btn-danger-soft" onclick="openLiveTestsHub()">
+                        <span class="live-dot-nav"></span> All-India Live Tests (<span id="liveCountBadge">0</span>)
+                    </button>
+                    <button class="btn btn-primary" onclick="scrollToCategories()">📚 Browse Exam Categories</button>
                 </div>
             </div>
-            <div style="text-align:right;">
-                <span id="dashSubBadge" class="sub-badge free">FREE PLAN</span>
-                <p id="dashSubExpiry" style="font-size:12px; color:#6B7280; margin-top:5px;"></p>
-                <button id="dashUpgradeBtn" class="btn btn-primary" style="margin-top:8px;" onclick="openPaymentModal()">🚀 Upgrade to Pro</button>
+
+            <!-- 3-Column LMS KPI & Quick Action Cards -->
+            <div class="lms-kpi-grid">
+                <div class="lms-kpi-card">
+                    <div class="kpi-icon" style="background:#EEF2FF; color:#4F46E5;">🎯</div>
+                    <div class="kpi-content">
+                        <span class="kpi-label" data-translate="qv_rec">Recommended Next</span>
+                        <h4 id="recTestName" class="kpi-title">Loading...</h4>
+                        <p id="recTestDetails" class="kpi-sub"></p>
+                        <button class="btn btn-accent" style="margin-top:10px; padding:7px 14px; font-size:12px;" onclick="startRecommendedTest()" data-translate="qv_start">Start Now →</button>
+                    </div>
+                </div>
+
+                <div class="lms-kpi-card">
+                    <div class="kpi-icon" style="background:#ECFDF5; color:#059669;">📈</div>
+                    <div class="kpi-content">
+                        <span class="kpi-label" data-translate="qv_recent">Recent Performance</span>
+                        <h4 id="recentTestName" class="kpi-title">Not Attempted Yet</h4>
+                        <p id="recentTestScore" class="kpi-sub" style="color:#059669; font-weight:600;">Take a test to see your score</p>
+                    </div>
+                </div>
+
+                <div class="lms-kpi-card">
+                    <div class="kpi-icon" style="background:#FEF3C7; color:#D97706;">🏆</div>
+                    <div class="kpi-content">
+                        <span class="kpi-label">Tests Completed</span>
+                        <h4 id="totalAttemptedCount" class="kpi-title">0 Tests</h4>
+                        <p class="kpi-sub">Click below to view detailed rank & solutions</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Centralized Live Tests Showcase on Dashboard -->
+            <div id="dashLiveTestsSection" style="margin-bottom:32px;">
+                <div id="dashLiveTestsContainer"></div>
+            </div>
+
+            <!-- Cross-Exam Quick Practice by Test Type (All PYPs, Full Mocks, Mini Tests, Topic Tests) -->
+            <div class="lms-quick-types-section" style="margin-bottom:35px;">
+                <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:16px;">
+                    <h2 class="section-title" style="margin:0;">⚡ Quick Practice by Test Type (All Exams)</h2>
+                    <span style="font-size:12px; color:#6B7280; font-weight:500;">Direct access across SSC, Railway, UP Police & State Exams</span>
+                </div>
+                <div class="lms-type-grid">
+                    <div class="lms-type-card" onclick="openCrossExamTypeFilter('previous')">
+                        <div class="lt-icon" style="background:#EEF2FF; color:#4F46E5;">📋</div>
+                        <div>
+                            <h4>Previous Year Papers</h4>
+                            <p>All uploaded PYP sets across exams</p>
+                        </div>
+                    </div>
+                    <div class="lms-type-card" onclick="openCrossExamTypeFilter('full')">
+                        <div class="lt-icon" style="background:#ECFDF5; color:#059669;">✅</div>
+                        <div>
+                            <h4>Full-Length Mocks</h4>
+                            <p>Complete exam-pattern mock tests</p>
+                        </div>
+                    </div>
+                    <div class="lms-type-card" onclick="openCrossExamTypeFilter('mini')">
+                        <div class="lt-icon" style="background:#FEF3C7; color:#D97706;">⚡</div>
+                        <div>
+                            <h4>Mini / Speed Tests</h4>
+                            <p>Quick time-bound booster quizzes</p>
+                        </div>
+                    </div>
+                    <div class="lms-type-card" onclick="openCrossExamTypeFilter('chapter')">
+                        <div class="lt-icon" style="background:#FCE7F3; color:#DB2777;">📚</div>
+                        <div>
+                            <h4>Chapter / Topic Tests</h4>
+                            <p>Subject-wise & topic-wise practice</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Exam Categories Grid (Existing Categories Preserved) -->
+            <div id="dashCategories" style="margin-bottom:35px;">
+                <h2 class="section-title" data-translate="sec_cats">🎯 Exam Categories</h2>
+                <div id="dashCatContainer"></div>
+            </div>
+
+            <!-- Attempted Test History -->
+            <div class="lms-history-section">
+                <h3 style="margin-bottom:15px; color:#1E1B4B; font-size:19px;">📜 Attempted Test History & Scorecards</h3>
+                <div id="dashHistoryContainer"></div>
             </div>
         </div>
+    </div>
 
-        <div id="dashLiveTestsSection" style="margin-bottom:25px;">
-            <div id="dashLiveTestsContainer"></div>
-        </div>
-
-        <h3 style="margin-bottom:15px; color:#1E1B4B;" data-translate="dash_qv">📊 Dashboard Quick View</h3>
-        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(250px, 1fr)); gap:18px; margin-bottom:30px;">
-            <div style="background:white; padding:20px; border-radius:12px; border:1px solid #E5E7EB;">
-                <h4 data-translate="qv_explore">Explore Tests</h4>
-                <p style="font-size:13px; color:#6B7280; margin:8px 0 14px;" data-translate="qv_browse">Browse all available tests</p>
-                <button class="btn btn-outline" onclick="scrollToCategories()" data-translate="qv_view">View Tests</button>
+    <!-- CENTRALIZED LIVE TESTS HUB MODAL (Shows all running live exams across categories) -->
+    <div id="liveHubModal" class="hide" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(15,23,42,0.75); align-items:center; justify-content:center; z-index:10000; padding:15px;">
+        <div style="background:white; max-width:850px; width:100%; border-radius:18px; padding:28px; position:relative; max-height:90vh; overflow-y:auto;">
+            <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #E5E7EB; padding-bottom:14px; margin-bottom:20px;">
+                <div style="display:flex; align-items:center; gap:10px;">
+                    <span class="live-dot-nav"></span>
+                    <h2 style="color:#1E1B4B; font-size:20px; margin:0;">All-India Live Exams Hub</h2>
+                </div>
+                <button onclick="closeLiveTestsHub()" style="background:#F3F4F6; border:none; width:32px; height:32px; border-radius:50%; font-weight:700; cursor:pointer;">✕</button>
             </div>
-            <div style="background:white; padding:20px; border-radius:12px; border:1px solid #E5E7EB;">
-                <h4 data-translate="qv_rec">Recommended Next</h4>
-                <p id="recTestName" style="font-weight:600; color:#4F46E5; margin-top:8px;">Loading...</p>
-                <p id="recTestDetails" style="font-size:12px; color:#6B7280; margin-bottom:12px;"></p>
-                <button class="btn btn-accent" onclick="startRecommendedTest()" data-translate="qv_start">Start Now</button>
-            </div>
-            <div style="background:white; padding:20px; border-radius:12px; border:1px solid #E5E7EB;">
-                <h4 data-translate="qv_recent">Recent Performance</h4>
-                <p id="recentTestName" style="font-weight:600; margin-top:8px;">Not Attempted Yet</p>
-                <p id="recentTestScore" style="font-size:13px; color:#10B981; margin-top:4px;"></p>
-            </div>
+            <p style="font-size:13px; color:#6B7280; margin-bottom:18px;">All currently active live tests across SSC, Railway, Banking, UP Police, and State Exams are listed below with exact closing times. Choose any live exam to begin:</p>
+            <div id="modalLiveTestsContainer"></div>
         </div>
-
-        <div id="dashCategories" style="margin-bottom:35px;">
-            <h2 class="section-title" data-translate="sec_cats">🎯 Exam Categories</h2>
-            <div id="dashCatContainer"></div>
-        </div>
-
-        <h3 style="margin-bottom:15px; color:#1E1B4B;">📜 Attempted Test History</h3>
-        <div id="dashHistoryContainer"></div>
     </div>
 
     <!-- SUB-CATEGORIES & TEST LIST SCREEN -->
     <div id="subCatScreen" class="hide container" style="padding:30px 5%;">
-        <button class="btn btn-outline" onclick="goDashboard()" style="margin-bottom:15px;" data-translate="btn_back_cat">← Back</button>
+        <button class="btn btn-outline" onclick="goDashboard()" style="margin-bottom:15px;" data-translate="btn_back_cat">← Back to Dashboard</button>
         <h2 id="subCatTitle" style="color:#1E1B4B; margin-bottom:15px;">Select Exam</h2>
         <div id="subCatPills" style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:20px;"></div>
         <div id="examNamePills" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(180px, 1fr)); gap:12px; margin-bottom:25px;"></div>
@@ -664,7 +715,7 @@
     <div id="popupSuccess" class="streak-popup">🔥 3 in a row! Awesome accuracy!</div>
     <div id="popupWarning" class="streak-popup warning">⚠️ 3 wrong in a row! Read carefully!</div>
 
-    <!-- PROFESSIONAL FOOTER (All Links Stay Inside index.html) -->
+    <!-- PROFESSIONAL FOOTER -->
     <footer id="mainFooter" style="background:#1E1B4B; color:#CBD5E1; padding:45px 5% 25px; margin-top:60px;">
         <div style="max-width:1200px; margin:0 auto; display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:30px; margin-bottom:30px;">
             <div>
@@ -697,39 +748,7 @@
         </div>
     </footer>
 
-    <!-- Helper Script for Single-Page Info Sections -->
     <script>
-        window.openInfoSection = function(sectionId) {
-            const allScreens = [
-                'homeScreen', 'loginScreen', 'registerScreen', 'forgotPasswordScreen',
-                'dashboardScreen', 'subCatScreen', 'caScreen', 'instructionsScreen',
-                'testScreen', 'liveSubmittedScreen', 'resultScreen', 'solutionsScreen',
-                'aboutScreen', 'contactScreen', 'privacyScreen', 'termsScreen', 'refundScreen'
-            ];
-            allScreens.forEach(id => {
-                const el = document.getElementById(id);
-                if (el) el.classList.add('hide');
-            });
-            const target = document.getElementById(sectionId);
-            if (target) target.classList.remove('hide');
-            window.scrollTo(0, 0);
-        };
-
-        const origGoHomeInterval = setInterval(() => {
-            if (typeof window.goHome === 'function' && !window.goHome._patched) {
-                const originalGoHome = window.goHome;
-                window.goHome = function() {
-                    ['aboutScreen', 'contactScreen', 'privacyScreen', 'termsScreen', 'refundScreen'].forEach(id => {
-                        const el = document.getElementById(id);
-                        if (el) el.classList.add('hide');
-                    });
-                    originalGoHome();
-                };
-                window.goHome._patched = true;
-                clearInterval(origGoHomeInterval);
-            }
-        }, 200);
-
         window.submitContactForm = function() {
             const name = document.getElementById('contactName').value.trim();
             const email = document.getElementById('contactEmail').value.trim();
