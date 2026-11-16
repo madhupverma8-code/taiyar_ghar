@@ -22,6 +22,7 @@ const db = getFirestore(app);
 
 let allTests = [], appSettings = {}, allCA = [], allExamCategories = [];
 let userPastResults = {}; 
+let isDataLoaded = false;
 
 let currentStudent = { docId: "", name: "", email: "", mobile: "", loginId: "", isPaid: false, expiry: "" };
 let isLoggedIn = false;
@@ -74,6 +75,18 @@ const translations = {
 
 let currentLang = localStorage.getItem('tg_lang') || 'en';
 
+function resetSessionMemory() {
+    userPastResults = {};
+    recommendedTestData = null;
+    isDataLoaded = false;
+    nav = { mainCat: "", subCat: "", examName: "" };
+    if (document.getElementById('dashHistoryContainer')) document.getElementById('dashHistoryContainer').innerHTML = '';
+    if (document.getElementById('testListContainer')) document.getElementById('testListContainer').innerHTML = '';
+    if (document.getElementById('recentTestName')) document.getElementById('recentTestName').innerText = 'Not Attempted Yet';
+    if (document.getElementById('recentTestScore')) document.getElementById('recentTestScore').innerText = 'Take a test to see your score';
+    if (document.getElementById('totalAttemptedCount')) document.getElementById('totalAttemptedCount').innerText = '0 Tests';
+}
+
 async function callEmailService(payload) {
     if (!APPS_SCRIPT_URL || APPS_SCRIPT_URL === "YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL") {
         console.warn("Google Apps Script URL not configured yet. Payload:", payload);
@@ -123,7 +136,6 @@ function showScreen(screenId, pushHistory = true) {
     currentScreen = screenId;
     window.scrollTo(0, 0);
 
-    // Dynamic URL Address Bar Update
     if (pushHistory && history.state?.screen !== screenId) {
         const pageMap = {
             'homeScreen': window.location.pathname,
@@ -272,14 +284,18 @@ window.goHome = function() {
     updateHeaderUI(); 
 }
 
-window.goDashboard = function() { 
+window.goDashboard = async function() { 
     if(!isLoggedIn) return showLogin(); 
     window.history.pushState({ screen: 'dashboardScreen' }, '', '?page=dashboard');
     showScreen('dashboardScreen', false); 
     updateHeaderUI(); 
     renderCandidateProfilePopover();
-    fetchDashboardData(); 
     updateWelcomeMessage(isFirstLoginSession); 
+    if (!isDataLoaded) {
+        await fetchSettingsAndTests();
+    } else {
+        await fetchDashboardData();
+    }
 }
 
 window.showLogin = function() { showScreen('loginScreen'); }
@@ -300,7 +316,8 @@ window.showForgotPassword = function() {
 }
 window.logout = function() { 
     isLoggedIn = false; 
-    currentStudent = {}; 
+    currentStudent = { docId: "", name: "", email: "", mobile: "", loginId: "", isPaid: false, expiry: "" }; 
+    resetSessionMemory();
     localStorage.removeItem('tg_user'); 
     closeProfilePopover();
     goHome(); 
@@ -410,6 +427,9 @@ window.doLogin = async function() {
     const pass = document.getElementById('loginPass').value.trim();
     if(!inputVal || !pass) return alert("Enter Email ID, Mobile Number, or Login ID and Password!");
     
+    // Hard clear previous user's memory state before authenticating new user
+    resetSessionMemory();
+
     try {
         let snapshot = await getDocs(query(collection(db, "students"), where("email", "==", inputVal.toLowerCase()), where("password", "==", pass)));
         if(snapshot.empty) snapshot = await getDocs(query(collection(db, "students"), where("mobile", "==", inputVal), where("password", "==", pass)));
@@ -445,11 +465,17 @@ window.doLogin = async function() {
             };
             isLoggedIn = true;
             
-            let hasLoggedInBefore = localStorage.getItem('tg_has_logged_in');
-            if(!hasLoggedInBefore) { isFirstLoginSession = true; localStorage.setItem('tg_has_logged_in', 'true'); } 
-            else { isFirstLoginSession = false; }
+            let hasLoggedInBefore = localStorage.getItem('tg_has_logged_in_' + studentData.loginId);
+            if(!hasLoggedInBefore) { 
+                isFirstLoginSession = true; 
+                localStorage.setItem('tg_has_logged_in_' + studentData.loginId, 'true'); 
+            } else { 
+                isFirstLoginSession = false; 
+            }
 
             localStorage.setItem('tg_user', JSON.stringify(currentStudent));
+            
+            // Strictly wait for fresh settings, tests, and THIS user's results before rendering anything
             await fetchSettingsAndTests();
             
             let pendingCat = sessionStorage.getItem('pendingCat');
@@ -870,7 +896,7 @@ function renderLiveTestsShowcase() {
     let modalGridHtml = `<div class="live-showcase-grid">`;
 
     activeLiveTests.forEach(t => {
-        const alreadyAttempted = userPastResults[t.id] !== undefined;
+        const alreadyAttempted = Boolean(isLoggedIn && userPastResults && userPastResults[t.id]);
         let actionBtnHtml = "";
 
         if (!isLoggedIn) {
@@ -933,8 +959,9 @@ function startLiveShowcaseCountdowns() {
 // =========================================================================
 // ⚡ CROSS-EXAM QUICK PRACTICE BY TEST TYPE (Previous Year, Full, Mini, Chapter)
 // =========================================================================
-window.openCrossExamTypeFilter = function(typeKey) {
+window.openCrossExamTypeFilter = async function(typeKey) {
     if(!isLoggedIn) return showLogin();
+    if (!isDataLoaded) await fetchSettingsAndTests();
 
     const titleMap = {
         'previous': '📋 All Previous Year Papers (Across All Exams)',
@@ -970,8 +997,13 @@ window.openCrossExamTypeFilter = function(typeKey) {
     showScreen('subCatScreen', true);
 };
 
+// =========================================================================
+// 🔒 STRICT SEQUENTIAL FETCH (Prevents Race Condition & Cross-User Leakage)
+// =========================================================================
 async function fetchSettingsAndTests() {
     try {
+        userPastResults = {}; // Always start clean
+
         const setSnap = await getDoc(doc(db, "settings", "global"));
         if(setSnap.exists()) appSettings = setSnap.data();
         else appSettings = { Plan3_MRP: "149", Plan3_Price: "99", Plan6_MRP: "249", Plan6_Price: "199", Plan12_MRP: "399", Plan12_Price: "249", GST_Enabled: "No", GST_Number: "" };
@@ -984,23 +1016,27 @@ async function fetchSettingsAndTests() {
         const catSnap = await getDocs(collection(db, "exam_categories"));
         allExamCategories = catSnap.docs.map(d => d.data());
 
-        if(isLoggedIn && currentStudent.loginId) {
-            const resSnap = await getDocs(query(collection(db, "results"), where("loginId", "==", currentStudent.loginId)));
-            userPastResults = {};
+        // Strictly fetch ONLY current logged-in student's results BEFORE rendering UI
+        if(isLoggedIn && currentStudent && currentStudent.loginId) {
+            const activeLoginId = String(currentStudent.loginId).trim();
+            const resSnap = await getDocs(query(collection(db, "results"), where("loginId", "==", activeLoginId)));
             resSnap.forEach(docItem => {
                 let data = docItem.data();
-                if(data.loginId && data.loginId === currentStudent.loginId) {
+                if(data.loginId && String(data.loginId).trim() === activeLoginId && data.testId) {
                     if(!userPastResults[data.testId] || new Date(data.timestamp) > new Date(userPastResults[data.testId].timestamp)) {
                         userPastResults[data.testId] = data;
                     }
                 }
             });
-        } else {
-            userPastResults = {};
         }
+
+        isDataLoaded = true;
 
         renderLiveTestsShowcase();
         renderMainCategories();
+        if (isLoggedIn) {
+            await fetchDashboardData();
+        }
 
         const caSnap = await getDocs(collection(db, "current_affairs"));
         allCA = caSnap.docs.map(d => ({ id: d.id, ...d.data() }));
@@ -1010,14 +1046,29 @@ async function fetchSettingsAndTests() {
 }
 
 async function fetchDashboardData() {
+    if (!isLoggedIn || !currentStudent || !currentStudent.loginId) return;
     try {
-        const qRes = query(collection(db, "results"), where("loginId", "==", currentStudent.loginId));
+        const activeLoginId = String(currentStudent.loginId).trim();
+        const qRes = query(collection(db, "results"), where("loginId", "==", activeLoginId));
         const resSnap = await getDocs(qRes);
+        
         let lastTest = null, attemptedTestIds = [];
         let results = [];
+        userPastResults = {}; // Rebuild fresh map from verified query
 
         if(!resSnap.empty) {
-            results = resSnap.docs.map(d => d.data()).sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp));
+            resSnap.docs.forEach(d => {
+                const data = d.data();
+                if (data.loginId && String(data.loginId).trim() === activeLoginId) {
+                    results.push(data);
+                    if (data.testId) {
+                        if(!userPastResults[data.testId] || new Date(data.timestamp) > new Date(userPastResults[data.testId].timestamp)) {
+                            userPastResults[data.testId] = data;
+                        }
+                    }
+                }
+            });
+            results.sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp));
             attemptedTestIds = results.map(r => r.testId);
             lastTest = results.find(r => !r.isLivePending || (r.liveEndTime && new Date() > new Date(r.liveEndTime)));
         }
@@ -1114,8 +1165,9 @@ function renderMainCategories() {
     document.getElementById('dashCatContainer').innerHTML = finalHtml;
 }
 
-window.openCategory = function(mainCat, fromUrl = false) {
+window.openCategory = async function(mainCat, fromUrl = false) {
     if(!isLoggedIn) return showLogin();
+    if (!isDataLoaded) await fetchSettingsAndTests();
     nav.mainCat = mainCat;
     
     let normalizedMain = mainCat.toLowerCase().replace("exams", "").trim();
@@ -1204,8 +1256,14 @@ function renderTestList(filtered, showExamBadge = false) {
         filtered.forEach(t => {
             const currentlyLive = isLiveTestCurrentlyActive(t);
             const isLocked = (currentlyLive || String(t.isFree).trim().toLowerCase() !== "yes") && !currentStudent.isPaid;
-            const pastRes = userPastResults[t.id];
-            const inProgressData = !currentlyLive ? localStorage.getItem('tg_resume_' + t.id) : null;
+            
+            // Strictly verify past result belongs to the active logged-in student
+            const rawPastRes = (isLoggedIn && userPastResults) ? userPastResults[t.id] : null;
+            const pastRes = (rawPastRes && String(rawPastRes.loginId).trim() === String(currentStudent.loginId).trim()) ? rawPastRes : null;
+            
+            // Scope resume key to the specific student loginId so another student on same device never sees it
+            const resumeKey = 'tg_resume_' + currentStudent.loginId + '_' + t.id;
+            const inProgressData = !currentlyLive ? localStorage.getItem(resumeKey) : null;
             
             let btnHtml = "";
             let examCategoryBadge = showExamBadge ? `<span style="background:#EEF2FF; color:#4F46E5; font-size:11px; font-weight:700; padding:2px 8px; border-radius:8px; margin-right:6px;">${t.mainCat} • ${t.subCat}</span>` : "";
@@ -1245,7 +1303,7 @@ function renderTestList(filtered, showExamBadge = false) {
 
 window.clearResumeData = function(testId, examName) {
     if(confirm("Are you sure? Your progress will be lost.")) {
-        localStorage.removeItem('tg_resume_' + testId);
+        localStorage.removeItem('tg_resume_' + currentStudent.loginId + '_' + testId);
         const activeCard = document.querySelector('.exam-name-card.active');
         if (activeCard) loadTestsForExamName(nav.examName, activeCard);
         else goDashboard();
@@ -1517,7 +1575,8 @@ async function initTest(testId, testName, duration, marks, negMark, hasNeg, lang
         const qSnap = await getDocs(q);
         
         if(!qSnap.empty) {
-            let resumeData = !isLive ? localStorage.getItem('tg_resume_' + testId) : null;
+            const resumeKey = 'tg_resume_' + currentStudent.loginId + '_' + testId;
+            let resumeData = !isLive ? localStorage.getItem(resumeKey) : null;
             if(isResume && resumeData) {
                 let parsed = JSON.parse(resumeData);
                 testQuestions = parsed.testQuestions; userAnswers = parsed.userAnswers; markedForReview = parsed.markedForReview; visitedQuestions = parsed.visitedQuestions; timeLeft = parsed.timeLeft; currentQIndex = parsed.currentQIndex; totalTime = duration * 60;
@@ -1563,8 +1622,9 @@ async function initTest(testId, testName, duration, marks, negMark, hasNeg, lang
 }
 
 function saveProgress() {
-    if (!isCurrentTestLive) {
-        localStorage.setItem('tg_resume_' + currentTestId, JSON.stringify({ testQuestions, userAnswers, markedForReview, visitedQuestions, timeLeft, currentQIndex }));
+    if (!isCurrentTestLive && isLoggedIn && currentStudent.loginId) {
+        const resumeKey = 'tg_resume_' + currentStudent.loginId + '_' + currentTestId;
+        localStorage.setItem(resumeKey, JSON.stringify({ testQuestions, userAnswers, markedForReview, visitedQuestions, timeLeft, currentQIndex }));
     }
 }
 
@@ -1665,7 +1725,9 @@ window.finalSubmitTest = async function() {
     isTestSubmitting = true;
     closeSubmitModal(); 
     clearInterval(timerInterval); 
-    localStorage.removeItem('tg_resume_' + currentTestId); 
+    if (isLoggedIn && currentStudent.loginId) {
+        localStorage.removeItem('tg_resume_' + currentStudent.loginId + '_' + currentTestId); 
+    }
 
     if (document.fullscreenElement) {
         try { document.exitFullscreen().catch(() => {}); } catch(e) {}
@@ -1692,7 +1754,7 @@ window.finalSubmitTest = async function() {
     try {
         await addDoc(collection(db, "results"), {
             timestamp: new Date().toISOString(), 
-            loginId: currentStudent.loginId, 
+            loginId: String(currentStudent.loginId).trim(), 
             studentName: currentStudent.name,
             studentEmail: currentStudent.email || "",
             testId: currentTestId, 
@@ -1842,10 +1904,24 @@ if ('serviceWorker' in navigator) {
 
 history.replaceState({ screen: 'homeScreen' }, '', '');
 
-window.onload = () => {
+window.onload = async () => {
     applyLanguage(); 
+    resetSessionMemory();
     let savedUser = localStorage.getItem('tg_user');
     if(savedUser) { 
-        currentStudent = JSON.parse(savedUser); isLoggedIn = true; isFirstLoginSession = false; updateHeaderUI(); fetchSettingsAndTests(); 
-    } else { fetchSettingsAndTests(); }
+        try {
+            const parsedUser = JSON.parse(savedUser);
+            if (parsedUser && parsedUser.loginId) {
+                currentStudent = parsedUser;
+                isLoggedIn = true;
+                isFirstLoginSession = false;
+                updateHeaderUI();
+                await fetchSettingsAndTests();
+                return;
+            }
+        } catch(e) {
+            localStorage.removeItem('tg_user');
+        }
+    }
+    await fetchSettingsAndTests();
 };
