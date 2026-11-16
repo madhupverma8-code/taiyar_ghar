@@ -1,0 +1,2 @@
+User-agent: *
+Disallow: /tg-admin-secure-99x.html
