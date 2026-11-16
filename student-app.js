@@ -68,8 +68,8 @@ const defaultMainCategories = [
 ];
 
 const translations = {
-    "en": { "nav_home": "Home", "nav_exams": "All Exams", "nav_ca": "Current Affairs", "nav_login": "Login", "nav_register": "Register", "nav_dash": "Dashboard", "nav_purchase": "My Purchases", "nav_logout": "Logout", "hero_h1": "Crack Your Dream Govt Job with Confidence.", "hero_p": "All-in-one mock test platform for SSC, Railway, Police & All State Exams. Latest syllabus, real-time rankings, and unlimited tests in one subscription.", "sec_cats": "🎯 Exam Categories", "ca_h2": "📰 Current Affairs Hub", "ca_p": "Stay updated with Daily, Weekly, and Monthly Current Affairs.", "btn_explore": "Explore Now", "login_h2": "Login to Your Account", "login_btn": "Login", "login_new": "New user?", "login_reg": "Register Here", "reg_h2": "Create an Account", "reg_btn": "Complete Registration", "dash_h2": "Crack Your Dream Govt Job with Confidence.", "dash_qv": "📊 Dashboard Quick View", "qv_explore": "Explore Tests", "qv_browse": "Browse all available tests", "qv_view": "View Tests", "qv_rec": "Recommended Next", "qv_loading": "Loading...", "qv_start": "Start Now", "qv_recent": "Recent Performance", "qv_not_att": "Not Attempted Yet", "qv_take": "Take a test to see your score", "btn_back_cat": "← Back", "pay_unlock": "Unlock all premium mock tests & Live All-India Exams for", "pay_close": "Close" },
-    "hi": { "nav_home": "होम", "nav_exams": "सभी परीक्षाएं", "nav_ca": "करंट अफेयर्स", "nav_login": "लॉगिन", "nav_register": "रजिस्टर", "nav_dash": "डैशबोर्ड", "nav_purchase": "मेरी खरीदारी", "nav_logout": "लॉगआउट", "hero_h1": "TayariGhar के साथ पाएं अपनी ड्रीम गवर्नमेंट जॉब।", "hero_p": "SSC, रेलवे, पुलिस और सभी राज्य परीक्षाओं के लिए ऑल-इन-वन मॉक टेस्ट प्लेटफॉर्म। नवीनतम सिलेबस, रियल-टाइम रैंकिंग और वन सब्सक्रिप्शन में अनलिमिटेड टेस्ट।", "sec_cats": "🎯 परीक्षा श्रेणियाँ", "ca_h2": "📰 करंट अफेयर्स हब", "ca_p": "दैनिक, साप्ताहिक और मासिक करंट अफेयर्स के साथ अपडेट रहें।", "btn_explore": "अभी देखें", "login_h2": "अपने खाते में लॉगिन करें", "login_btn": "लॉगिन", "login_new": "नए उपयोगकर्ता हैं?", "login_reg": "यहाँ रजिस्टर करें", "reg_h2": "खाता बनाएँ", "reg_btn": "रजिस्ट्रेशन पूरा करें", "dash_h2": "TayariGhar के साथ पाएं अपनी ड्रीम गवर्नमेंट जॉब।", "dash_qv": "📊 डैशबोर्ड त्वरित दृश्य", "qv_explore": "टेस्ट खोजें", "qv_browse": "सभी उपलब्ध टेस्ट ब्राउज़ करें", "qv_view": "टेस्ट देखें", "qv_rec": "अगला सुझाव", "qv_loading": "लोड हो रहा है...", "qv_start": "अभी शुरू करें", "qv_recent": "हालिया प्रदर्शन", "qv_not_att": "अभी तक प्रयास नहीं किया", "qv_take": "अपना स्कोर देखने के लिए टेस्ट दें", "btn_back_cat": "← पीछे जाएँ", "pay_unlock": "सभी प्रीमियम मॉक टेस्ट और लाइव ऑल-इंडिया परीक्षाएं अनलॉक करें", "pay_close": "बंद करें" }
+    "en": { "nav_home": "Home", "nav_exams": "All Exams", "nav_ca": "Current Affairs", "nav_login": "Login", "nav_register": "Register", "nav_dash": "Dashboard", "nav_purchase": "My Purchases", "nav_logout": "Logout", "hero_h1": "Crack Your Dream Govt Job with Confidence.", "hero_p": "All-in-one mock test platform for SSC, Railway, Police & All State Exams. Latest syllabus, real-time rankings, and unlimited tests in one subscription.", "sec_cats": "🎯 Exam Categories", "ca_h2": "📰 Current Affairs Hub", "ca_p": "Stay updated with Daily, Weekly, and Monthly Current Affairs.", "btn_explore": "Explore Now", "login_h2": "Login to Your Account", "login_btn": "Login", "login_new": "New user?", "login_reg": "Register Here", "reg_h2": "Create an Account", "reg_btn": "Complete Registration", "dash_h2": "Crack Your Dream Govt Job with Confidence.", "dash_qv": "📊 Dashboard Quick View", "qv_explore": "Explore Tests", "qv_browse": "Browse all available tests", "qv_view": "View Tests", "qv_rec": "Recommended Next", "qv_loading": "Loading...", "qv_start": "Start Now", "qv_recent": "Recent Performance", "qv_not_att": "Not Attempted Yet", "qv_take": "Take a test to see your score", "btn_back_cat": "← Back to Dashboard", "pay_unlock": "Unlock all premium mock tests & Live All-India Exams for", "pay_close": "Close" },
+    "hi": { "nav_home": "होम", "nav_exams": "सभी परीक्षाएं", "nav_ca": "करंट अफेयर्स", "nav_login": "लॉगिन", "nav_register": "रजिस्टर", "nav_dash": "डैशबोर्ड", "nav_purchase": "मेरी खरीदारी", "nav_logout": "लॉगआउट", "hero_h1": "TayariGhar के साथ पाएं अपनी ड्रीम गवर्नमेंट जॉब।", "hero_p": "SSC, रेलवे, पुलिस और सभी राज्य परीक्षाओं के लिए ऑल-इन-वन मॉक टेस्ट प्लेटफॉर्म। नवीनतम सिलेबस, रियल-टाइम रैंकिंग और वन सब्सक्रिप्शन में अनलिमिटेड टेस्ट।", "sec_cats": "🎯 परीक्षा श्रेणियाँ", "ca_h2": "📰 करंट अफेयर्स हब", "ca_p": "दैनिक, साप्ताहिक और मासिक करंट अफेयर्स के साथ अपडेट रहें।", "btn_explore": "अभी देखें", "login_h2": "अपने खाते में लॉगिन करें", "login_btn": "लॉगिन", "login_new": "नए उपयोगकर्ता हैं?", "login_reg": "यहाँ रजिस्टर करें", "reg_h2": "खाता बनाएँ", "reg_btn": "रजिस्ट्रेशन पूरा करें", "dash_h2": "TayariGhar के साथ पाएं अपनी ड्रीम गवर्नमेंट जॉब।", "dash_qv": "📊 डैशबोर्ड त्वरित दृश्य", "qv_explore": "टेस्ट खोजें", "qv_browse": "सभी उपलब्ध टेस्ट ब्राउज़ करें", "qv_view": "टेस्ट देखें", "qv_rec": "अगला सुझाव", "qv_loading": "लोड हो रहा है...", "qv_start": "अभी शुरू करें", "qv_recent": "हालिया प्रदर्शन", "qv_not_att": "अभी तक प्रयास नहीं किया", "qv_take": "अपना स्कोर देखने के लिए टेस्ट दें", "btn_back_cat": "← डैशबोर्ड पर वापस", "pay_unlock": "सभी प्रीमियम मॉक टेस्ट और लाइव ऑल-इंडिया परीक्षाएं अनलॉक करें", "pay_close": "बंद करें" }
 };
 
 let currentLang = localStorage.getItem('tg_lang') || 'en';
@@ -92,8 +92,18 @@ async function callEmailService(payload) {
     }
 }
 
+// =========================================================================
+// 🖥️ SCREEN NAVIGATION & DYNAMIC URL ROUTING
+// =========================================================================
+const ALL_SCREENS = [
+    'homeScreen', 'loginScreen', 'registerScreen', 'forgotPasswordScreen',
+    'dashboardScreen', 'subCatScreen', 'caScreen', 'instructionsScreen',
+    'testScreen', 'liveSubmittedScreen', 'resultScreen', 'solutionsScreen',
+    'aboutScreen', 'contactScreen', 'privacyScreen', 'termsScreen', 'refundScreen'
+];
+
 function showScreen(screenId, pushHistory = true) {
-    ['homeScreen', 'loginScreen', 'registerScreen', 'forgotPasswordScreen', 'dashboardScreen', 'subCatScreen', 'caScreen', 'instructionsScreen', 'testScreen', 'liveSubmittedScreen', 'resultScreen', 'solutionsScreen'].forEach(s => {
+    ALL_SCREENS.forEach(s => {
         const el = document.getElementById(s);
         if(el) el.classList.add('hide');
     });
@@ -113,10 +123,29 @@ function showScreen(screenId, pushHistory = true) {
     currentScreen = screenId;
     window.scrollTo(0, 0);
 
+    // Dynamic URL Address Bar Update
     if (pushHistory && history.state?.screen !== screenId) {
-        history.pushState({ screen: screenId }, '', window.location.search);
+        const pageMap = {
+            'homeScreen': window.location.pathname,
+            'aboutScreen': '?page=about',
+            'contactScreen': '?page=contact',
+            'privacyScreen': '?page=privacy',
+            'termsScreen': '?page=terms',
+            'refundScreen': '?page=refund',
+            'loginScreen': '?page=login',
+            'registerScreen': '?page=register',
+            'forgotPasswordScreen': '?page=reset-password',
+            'dashboardScreen': '?page=dashboard',
+            'caScreen': '?page=current-affairs'
+        };
+        const nextUrl = pageMap[screenId] || window.location.search;
+        history.pushState({ screen: screenId }, '', nextUrl);
     }
 }
+
+window.openInfoSection = function(sectionId) {
+    showScreen(sectionId, true);
+};
 
 window.onpopstate = function(event) {
     if (currentScreen === 'testScreen') {
@@ -140,8 +169,34 @@ window.onpopstate = function(event) {
 
 async function checkUrlRouting() {
     const urlParams = new URLSearchParams(window.location.search);
+    const pageParam = urlParams.get('page');
     const catSlug = urlParams.get('category');
     const subCatSlug = urlParams.get('subcat');
+
+    if (pageParam) {
+        const routeMap = {
+            'about': 'aboutScreen',
+            'contact': 'contactScreen',
+            'privacy': 'privacyScreen',
+            'terms': 'termsScreen',
+            'refund': 'refundScreen',
+            'login': 'loginScreen',
+            'register': 'registerScreen',
+            'reset-password': 'forgotPasswordScreen',
+            'current-affairs': 'caScreen',
+            'dashboard': isLoggedIn ? 'dashboardScreen' : 'loginScreen'
+        };
+        if (routeMap[pageParam]) {
+            if (routeMap[pageParam] === 'dashboardScreen') {
+                goDashboard();
+            } else if (routeMap[pageParam] === 'caScreen') {
+                showCurrentAffairs();
+            } else {
+                showScreen(routeMap[pageParam], false);
+            }
+            return;
+        }
+    }
 
     if (catSlug) {
         let targetCat = allTests.map(t => t.mainCat).find(c => c.toLowerCase().replace(/\s+/g, '-') === catSlug);
@@ -219,10 +274,10 @@ window.goHome = function() {
 
 window.goDashboard = function() { 
     if(!isLoggedIn) return showLogin(); 
-    window.history.pushState({ screen: 'dashboardScreen' }, '', window.location.pathname);
+    window.history.pushState({ screen: 'dashboardScreen' }, '', '?page=dashboard');
     showScreen('dashboardScreen', false); 
     updateHeaderUI(); 
-    renderCandidateProfileCard();
+    renderCandidateProfilePopover();
     fetchDashboardData(); 
     updateWelcomeMessage(isFirstLoginSession); 
 }
@@ -247,54 +302,66 @@ window.logout = function() {
     isLoggedIn = false; 
     currentStudent = {}; 
     localStorage.removeItem('tg_user'); 
+    closeProfilePopover();
     goHome(); 
 }
 
-window.openSupportModal = function() {
-    const supportEmail = "support@taiyarighar.in";
-    let studentInfo = isLoggedIn ? `Name: ${currentStudent.name} | ID: ${currentStudent.loginId} | Email: ${currentStudent.email}` : "Guest User";
-    let examName = nav.examName ? ` (${nav.mainCat} > ${nav.subCat} > ${nav.examName})` : (nav.mainCat ? ` (${nav.mainCat})` : '');
+// =========================================================================
+// 👤 PRO LMS PROFILE POPOVER & LIVE TESTS HUB CONTROLS
+// =========================================================================
+window.toggleProfilePopover = function(e) {
+    if (e) e.stopPropagation();
+    const pop = document.getElementById('profilePopoverCard');
+    if (pop) pop.classList.toggle('hide');
+};
 
-    let qSub = `Question Report - TaiyariGhar${examName}`;
-    let qBody = `Hello TaiyariGhar Support,\n\n${studentInfo}\nExam: ${examName}\nQuestion ID: \n\nIssue Description:`;
+window.closeProfilePopover = function() {
+    const pop = document.getElementById('profilePopoverCard');
+    if (pop) pop.classList.add('hide');
+};
 
-    let lSub = `Login / Account Issue - TaiyariGhar`;
-    let lBody = `Hello TaiyariGhar Support,\n\n${studentInfo}\nRegistered Email / Mobile: \n\nIssue Description:`;
+document.addEventListener('click', function(e) {
+    const pop = document.getElementById('profilePopoverCard');
+    const trigger = document.querySelector('.lms-avatar-trigger');
+    if (pop && !pop.classList.contains('hide') && !pop.contains(e.target) && (!trigger || !trigger.contains(e.target))) {
+        pop.classList.add('hide');
+    }
+});
 
-    let pSub = `Payment / Invoice Support - TaiyariGhar`;
-    let pBody = `Hello TaiyariGhar Support,\n\n${studentInfo}\nRazorpay Payment ID (if any): \n\nIssue Description:`;
+window.openLiveTestsHub = function() {
+    renderLiveTestsShowcase();
+    document.getElementById('liveHubModal').classList.remove('hide');
+};
 
-    document.getElementById('mailSupportQuestion').href = `mailto:${supportEmail}?subject=${encodeURIComponent(qSub)}&body=${encodeURIComponent(qBody)}`;
-    document.getElementById('mailSupportLogin').href = `mailto:${supportEmail}?subject=${encodeURIComponent(lSub)}&body=${encodeURIComponent(lBody)}`;
-    document.getElementById('mailSupportPayment').href = `mailto:${supportEmail}?subject=${encodeURIComponent(pSub)}&body=${encodeURIComponent(pBody)}`;
-    
-    document.getElementById('supportModal').classList.remove('hide');
-}
-
-window.closeSupportModal = function() { document.getElementById('supportModal').classList.add('hide'); }
+window.closeLiveTestsHub = function() {
+    document.getElementById('liveHubModal').classList.add('hide');
+};
 
 function updateHeaderUI() {
     if(isLoggedIn) {
         document.getElementById('headerAuth').classList.add('hide');
         document.getElementById('headerProfile').classList.remove('hide');
         document.getElementById('navStudentName').innerText = currentStudent.name.split(' ')[0]; 
+        document.getElementById('navAvatarCircle').innerText = currentStudent.name.charAt(0).toUpperCase();
+        renderCandidateProfilePopover();
     } else {
         document.getElementById('headerAuth').classList.remove('hide');
         document.getElementById('headerProfile').classList.add('hide');
     }
 }
 
-function renderCandidateProfileCard() {
+function renderCandidateProfilePopover() {
     if (!isLoggedIn) return;
-    document.getElementById('dashProfileAvatar').innerText = currentStudent.name.charAt(0).toUpperCase();
-    document.getElementById('dashProfileName').innerText = currentStudent.name;
-    document.getElementById('dashProfileId').innerText = currentStudent.loginId;
-    document.getElementById('dashProfileEmail').innerText = currentStudent.email || "Not Set";
-    document.getElementById('dashProfileMobile').innerText = currentStudent.mobile || "Not Set";
+    const initial = currentStudent.name.charAt(0).toUpperCase();
+    document.getElementById('popAvatarLg').innerText = initial;
+    document.getElementById('popStudentName').innerText = currentStudent.name;
+    document.getElementById('popStudentId').innerText = "ID: " + currentStudent.loginId;
+    document.getElementById('popStudentEmail').innerText = currentStudent.email || "Not Set";
+    document.getElementById('popStudentMobile').innerText = currentStudent.mobile || "Not Set";
 
-    const badge = document.getElementById('dashSubBadge');
-    const expiryEl = document.getElementById('dashSubExpiry');
-    const upgBtn = document.getElementById('dashUpgradeBtn');
+    const badge = document.getElementById('popSubBadge');
+    const expiryEl = document.getElementById('popSubExpiry');
+    const upgBtn = document.getElementById('popUpgradeBtn');
 
     if (currentStudent.isPaid) {
         badge.className = "sub-badge pro";
@@ -312,13 +379,14 @@ function renderCandidateProfileCard() {
 function updateWelcomeMessage(isFirst) {
     let firstName = currentStudent.name.split(' ')[0];
     let msgEl = document.getElementById('welcomeMessage');
-    if(isFirst) msgEl.innerHTML = currentLang === 'en' ? `🎉 Welcome, ${firstName}! Your journey to a Govt Job starts here.` : `🎉 स्वागत है, ${firstName}! आपकी तैयारी का सफर यहीं से शुरू होता है।`;
+    if(isFirst) msgEl.innerHTML = currentLang === 'en' ? `🎉 Welcome, ${firstName}! Your Govt Job preparation workspace is ready.` : `🎉 स्वागत है, ${firstName}! आपकी तैयारी का डैशबोर्ड तैयार है।`;
     else msgEl.innerHTML = currentLang === 'en' ? `💪 Welcome back, ${firstName}! Consistency is the key to success.` : `💪 वापसी पर स्वागत है, ${firstName}! सफलता उन्हीं को मिलती है जो रोज़ मेहनत करते हैं।`;
 }
 
 window.scrollToCategories = function() { 
     if(!isLoggedIn) { 
-        document.getElementById('homeCategories').scrollIntoView({behavior: 'smooth'});
+        if (currentScreen !== 'homeScreen') goHome();
+        setTimeout(() => { document.getElementById('homeCategories').scrollIntoView({behavior: 'smooth'}); }, 100);
     } else if (currentScreen === 'dashboardScreen') {
         document.getElementById('dashCategories').scrollIntoView({behavior: 'smooth'}); 
     } else {
@@ -328,25 +396,13 @@ window.scrollToCategories = function() {
 }
 
 window.scrollToLiveTests = function() {
-    if (!isLoggedIn) {
-        const el = document.getElementById('homeLiveTestsSection');
-        if (el) el.scrollIntoView({ behavior: 'smooth' });
-    } else if (currentScreen === 'dashboardScreen') {
-        const el = document.getElementById('dashLiveTestsSection');
-        if (el) el.scrollIntoView({ behavior: 'smooth' });
-    } else {
-        goDashboard();
-        setTimeout(() => {
-            const el = document.getElementById('dashLiveTestsSection');
-            if (el) el.scrollIntoView({ behavior: 'smooth' });
-        }, 400);
-    }
+    openLiveTestsHub();
 }
 
 window.showPurchases = function() { 
     if(!isLoggedIn) return; 
     let status = currentStudent.isPaid ? "PRO All-Access (Active)" : "Free Plan"; 
-    alert(`--- MY SUBSCRIPTION ---\n\nName: ${currentStudent.name}\nLogin ID: ${currentStudent.loginId}\nPlan: ${status}\nValid Till: ${currentStudent.expiry || "N/A"}`); 
+    alert(`--- MY SUBSCRIPTION & INVOICES ---\n\nName: ${currentStudent.name}\nLogin ID: ${currentStudent.loginId}\nPlan: ${status}\nValid Till: ${currentStudent.expiry || "N/A"}\n\nNote: Official PDF invoices are automatically emailed to ${currentStudent.email}.`); 
 }
 
 window.doLogin = async function() {
@@ -482,7 +538,6 @@ window.verifyRegisterOtp = function() {
     document.getElementById('regPasswordBox').classList.remove('hide');
 }
 
-// 🟢 FIX 2: Secure ID Generation in doRegister
 window.doRegister = async function() {
     const name = document.getElementById('regName').value.trim();
     const mobile = document.getElementById('regMobile').value.trim();
@@ -763,7 +818,7 @@ async function handleSuccessfulRazorpayPayment(paymentId, plan) {
         });
 
         alert(`🎉 Payment Successful!\n\nYour ${plan.label} is now ACTIVE till ${expiryStr}.\nAn official PDF Invoice (${invoiceNumber}) has been sent to ${currentStudent.email}.`);
-        renderCandidateProfileCard();
+        renderCandidateProfilePopover();
         fetchSettingsAndTests();
     } catch (e) {
         console.error("Post-payment error:", e);
@@ -797,35 +852,43 @@ function renderLiveTestsShowcase() {
     const activeLiveTests = allTests.filter(t => isLiveTestCurrentlyActive(t));
     const homeContainer = document.getElementById('homeLiveTestsContainer');
     const dashContainer = document.getElementById('dashLiveTestsContainer');
+    const modalContainer = document.getElementById('modalLiveTestsContainer');
+    const liveBadgeEl = document.getElementById('liveCountBadge');
+
+    if (liveBadgeEl) liveBadgeEl.innerText = activeLiveTests.length;
 
     if (activeLiveTests.length === 0) {
         if (homeContainer) homeContainer.innerHTML = "";
         if (dashContainer) dashContainer.innerHTML = "";
+        if (modalContainer) {
+            modalContainer.innerHTML = `<div style="text-align:center; padding:30px; background:#F8FAFC; border-radius:12px;"><p style="color:#6B7280; font-size:15px;">No All-India Live Exams are running at this moment. Check back soon or attempt regular mock tests!</p></div>`;
+        }
         return;
     }
 
     let cardsHtml = `<h2 class="section-title" style="display:flex; align-items:center; gap:8px;"><span class="live-dot-nav"></span> All-India Live Exams (Happening Now)</h2><div class="live-showcase-grid">`;
-    
+    let modalGridHtml = `<div class="live-showcase-grid">`;
+
     activeLiveTests.forEach(t => {
         const alreadyAttempted = userPastResults[t.id] !== undefined;
         let actionBtnHtml = "";
 
         if (!isLoggedIn) {
-            actionBtnHtml = `<button class="btn" style="background:#FDE047; color:#1E1B4B; font-weight:700;" onclick="showLogin()">Login to Attempt Live Exam</button>`;
+            actionBtnHtml = `<button class="btn" style="background:#FDE047; color:#1E1B4B; font-weight:700;" onclick="closeLiveTestsHub(); showLogin()">Login to Attempt Live Exam</button>`;
         } else if (!currentStudent.isPaid) {
-            actionBtnHtml = `<button class="btn" style="background:#FDE047; color:#1E1B4B; font-weight:700;" onclick="openPaymentModal()">🔒 Subscribe to Enter Live Exam</button>`;
+            actionBtnHtml = `<button class="btn" style="background:#FDE047; color:#1E1B4B; font-weight:700;" onclick="closeLiveTestsHub(); openPaymentModal()">🔒 Subscribe to Enter Live Exam</button>`;
         } else if (alreadyAttempted) {
             actionBtnHtml = `<button class="btn" style="background:rgba(255,255,255,0.2); color:#FFF; cursor:default;">✅ Submitted (Result at ${formatDateTimeReadable(t.liveEnd)})</button>`;
         } else {
-            actionBtnHtml = `<button class="btn btn-accent" style="font-weight:700;" onclick="showInstructions('${t.id}', '${t.testName.replace(/'/g, "\\'")}', ${t.duration}, ${t.marks}, ${t.negativeMark || 0}, '${t.hasNegative}', '${t.language || 'Both'}', false, true, '${t.liveEnd || ''}', ${t.positiveMark || 1})">🚀 Attempt Live Exam Now</button>`;
+            actionBtnHtml = `<button class="btn btn-accent" style="font-weight:700;" onclick="closeLiveTestsHub(); showInstructions('${t.id}', '${t.testName.replace(/'/g, "\\'")}', ${t.duration}, ${t.marks}, ${t.negativeMark || 0}, '${t.hasNegative}', '${t.language || 'Both'}', false, true, '${t.liveEnd || ''}', ${t.positiveMark || 1})">🚀 Attempt Live Exam Now</button>`;
         }
 
-        cardsHtml += `
+        const singleCard = `
             <div class="live-card">
                 <div>
-                    <div class="live-badge-pill"><span class="live-dot-nav" style="background:white;"></span> LIVE EXAM • SUBSCRIBERS ONLY</div>
+                    <div class="live-badge-pill"><span class="live-dot-nav" style="background:white;"></span> ${t.mainCat} • LIVE</div>
                     <h3>${t.testName}</h3>
-                    <p>${t.mainCat} • ${t.subCat} | ⏱️ ${t.duration} Mins | 🏆 ${t.marks} Marks</p>
+                    <p>${t.subCat} | ⏱️ ${t.duration} Mins | 🏆 ${t.marks} Marks</p>
                 </div>
                 <div class="live-timer-strip">
                     <span>⏳ Ends: ${formatDateTimeReadable(t.liveEnd)}</span>
@@ -834,11 +897,16 @@ function renderLiveTestsShowcase() {
                 ${actionBtnHtml}
             </div>
         `;
+        cardsHtml += singleCard;
+        modalGridHtml += singleCard;
     });
 
     cardsHtml += `</div>`;
+    modalGridHtml += `</div>`;
+
     if (homeContainer) homeContainer.innerHTML = cardsHtml;
     if (dashContainer) dashContainer.innerHTML = cardsHtml;
+    if (modalContainer) modalContainer.innerHTML = modalGridHtml;
 
     startLiveShowcaseCountdowns();
 }
@@ -862,7 +930,46 @@ function startLiveShowcaseCountdowns() {
     }, 1000);
 }
 
-// 🟢 FIX 1: Strict loginId verification for user past results
+// =========================================================================
+// ⚡ CROSS-EXAM QUICK PRACTICE BY TEST TYPE (Previous Year, Full, Mini, Chapter)
+// =========================================================================
+window.openCrossExamTypeFilter = function(typeKey) {
+    if(!isLoggedIn) return showLogin();
+
+    const titleMap = {
+        'previous': '📋 All Previous Year Papers (Across All Exams)',
+        'full': '✅ All Full-Length Mock Tests (Across All Exams)',
+        'mini': '⚡ Mini & Speed Booster Tests (Across All Exams)',
+        'chapter': '📚 Chapter & Topic-Wise Tests (Across All Exams)'
+    };
+
+    const filteredTests = allTests.filter(t => {
+        const eName = (t.examName || "").toLowerCase();
+        const tName = (t.testName || "").toLowerCase();
+        if (typeKey === 'previous') {
+            return eName.includes('previous') || eName.includes('pyp') || eName.includes('memory') || tName.includes('pyp') || tName.includes('previous');
+        } else if (typeKey === 'full') {
+            return eName.includes('full') || tName.includes('full');
+        } else if (typeKey === 'mini') {
+            return eName.includes('mini') || eName.includes('speed') || tName.includes('mini') || tName.includes('speed');
+        } else if (typeKey === 'chapter') {
+            return eName.includes('chapter') || eName.includes('topic') || eName.includes('ncert') || tName.includes('chapter') || tName.includes('topic');
+        }
+        return false;
+    });
+
+    document.getElementById('subCatTitle').innerText = titleMap[typeKey] || "Filtered Mock Tests";
+    document.getElementById('subCatPills').innerHTML = `
+        <div class="sub-cat-pill ${typeKey === 'previous' ? 'active' : ''}" onclick="openCrossExamTypeFilter('previous')">📋 Previous Year Papers</div>
+        <div class="sub-cat-pill ${typeKey === 'full' ? 'active' : ''}" onclick="openCrossExamTypeFilter('full')">✅ Full-Length Mocks</div>
+        <div class="sub-cat-pill ${typeKey === 'mini' ? 'active' : ''}" onclick="openCrossExamTypeFilter('mini')">⚡ Mini / Speed Tests</div>
+        <div class="sub-cat-pill ${typeKey === 'chapter' ? 'active' : ''}" onclick="openCrossExamTypeFilter('chapter')">📚 Chapter / Topic Tests</div>
+    `;
+    document.getElementById('examNamePills').innerHTML = "";
+    renderTestList(filteredTests, true);
+    showScreen('subCatScreen', true);
+};
+
 async function fetchSettingsAndTests() {
     try {
         const setSnap = await getDoc(doc(db, "settings", "global"));
@@ -915,6 +1022,9 @@ async function fetchDashboardData() {
             lastTest = results.find(r => !r.isLivePending || (r.liveEndTime && new Date() > new Date(r.liveEndTime)));
         }
 
+        const totalAttEl = document.getElementById('totalAttemptedCount');
+        if (totalAttEl) totalAttEl.innerText = `${results.length} Test${results.length === 1 ? '' : 's'}`;
+
         if(lastTest) {
             document.getElementById('recentTestName').innerText = lastTest.testName;
             document.getElementById('recentTestScore').innerText = `Score: ${lastTest.finalScore}/${lastTest.totalMarks} (${lastTest.percent}%)`;
@@ -925,7 +1035,7 @@ async function fetchDashboardData() {
 
         const historyContainer = document.getElementById('dashHistoryContainer');
         if (results.length === 0) {
-            historyContainer.innerHTML = `<div class="history-item"><span style="color:#6B7280; font-size:14px;">You haven't attempted any tests yet. Select a category below to start!</span></div>`;
+            historyContainer.innerHTML = `<div class="history-item"><span style="color:#6B7280; font-size:14px;">You haven't attempted any tests yet. Select an exam category above to start!</span></div>`;
         } else {
             let histHtml = "";
             results.forEach(r => {
@@ -938,7 +1048,7 @@ async function fetchDashboardData() {
                                 <h4 style="font-size:15px; color:#1E1B4B; margin-top:4px;">${r.testName}</h4>
                                 <p style="font-size:12px; color:#6B7280;">Attempted on ${new Date(r.timestamp).toLocaleDateString()} • Result releases at ${formatDateTimeReadable(r.liveEndTime)}</p>
                             </div>
-                            <span style="font-size:13px; font-weight:600; color:#D97706;">Locked till 12:00 AM</span>
+                            <span style="font-size:13px; font-weight:600; color:#D97706;">Locked till release</span>
                         </div>`;
                 } else {
                     histHtml += `
@@ -1065,7 +1175,7 @@ window.loadTestsForSubCat = function(subCat, pillElement, fromUrl = false) {
         });
         document.getElementById('testListContainer').innerHTML = `<p style="text-align:center; color:#666; padding:20px;">Select a Test Type above to view tests.</p>`;
     } else {
-        renderTestList(filteredTests);
+        renderTestList(filteredTests, false);
     }
     
     if(!fromUrl) {
@@ -1084,12 +1194,12 @@ window.loadTestsForExamName = function(examName, cardElement) {
     let normalizedSub = nav.subCat.toLowerCase().trim();
 
     const filteredTests = allTests.filter(t => t.mainCat.toLowerCase().replace("exams", "").trim() === normalizedMain && t.subCat.toLowerCase().trim() === normalizedSub && t.examName === examName);
-    renderTestList(filteredTests);
+    renderTestList(filteredTests, false);
 }
 
-function renderTestList(filtered) {
+function renderTestList(filtered, showExamBadge = false) {
     let html = "";
-    if(filtered.length === 0) html = `<p style="text-align:center; color:#666; padding:20px;">No tests available right now. Please check back later.</p>`;
+    if(filtered.length === 0) html = `<p style="text-align:center; color:#666; padding:20px;">No tests uploaded in this section yet. Please check back soon!</p>`;
     else {
         filtered.forEach(t => {
             const currentlyLive = isLiveTestCurrentlyActive(t);
@@ -1098,6 +1208,7 @@ function renderTestList(filtered) {
             const inProgressData = !currentlyLive ? localStorage.getItem('tg_resume_' + t.id) : null;
             
             let btnHtml = "";
+            let examCategoryBadge = showExamBadge ? `<span style="background:#EEF2FF; color:#4F46E5; font-size:11px; font-weight:700; padding:2px 8px; border-radius:8px; margin-right:6px;">${t.mainCat} • ${t.subCat}</span>` : "";
             let badgeTag = currentlyLive ? `<span style="background:#FEE2E2; color:#DC2626; font-size:11px; font-weight:700; padding:2px 8px; border-radius:10px; margin-left:6px;">🔴 LIVE NOW</span>` : (isLiveTestEnded(t) ? `<span style="background:#EEF2FF; color:#4F46E5; font-size:11px; font-weight:600; padding:2px 8px; border-radius:10px; margin-left:6px;">Archived Live Test</span>` : "");
 
             if(isLocked) {
@@ -1121,7 +1232,8 @@ function renderTestList(filtered) {
 
             html += `<div class="test-item ${isLocked ? 'locked' : ''}">
                 <div>
-                    <h3 style="color: var(--primary); margin-bottom: 5px; font-size:16px;">${t.testName} ${badgeTag}</h3>
+                    ${examCategoryBadge}
+                    <h3 style="color: var(--primary); margin-bottom: 5px; margin-top:4px; font-size:16px;">${t.testName} ${badgeTag}</h3>
                     <p style="font-size: 13px; color: #666;">⏱️ ${t.duration} Mins | ${t.marks} Marks | +${posMarkText} / ${negMarkText} | Lang: ${t.language || 'Both'}</p>
                 </div>
                 <div style="display:flex; align-items:center;">${btnHtml}</div>
@@ -1134,7 +1246,9 @@ function renderTestList(filtered) {
 window.clearResumeData = function(testId, examName) {
     if(confirm("Are you sure? Your progress will be lost.")) {
         localStorage.removeItem('tg_resume_' + testId);
-        loadTestsForExamName(nav.examName, document.querySelector('.exam-name-card.active')); 
+        const activeCard = document.querySelector('.exam-name-card.active');
+        if (activeCard) loadTestsForExamName(nav.examName, activeCard);
+        else goDashboard();
     }
 }
 
@@ -1732,6 +1846,6 @@ window.onload = () => {
     applyLanguage(); 
     let savedUser = localStorage.getItem('tg_user');
     if(savedUser) { 
-        currentStudent = JSON.parse(savedUser); isLoggedIn = true; isFirstLoginSession = false; fetchSettingsAndTests(); 
+        currentStudent = JSON.parse(savedUser); isLoggedIn = true; isFirstLoginSession = false; updateHeaderUI(); fetchSettingsAndTests(); 
     } else { fetchSettingsAndTests(); }
-}
+};
