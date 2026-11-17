@@ -9,7 +9,7 @@ const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxvoU_mH8BjfE7Q
 
 // Firebase Configuration
 const firebaseConfig = {
-    apiKey: "AIzaSyA7x6gQziPYLxrXnyVJJ80mvJkh3VCm24", 
+    apiKey: "AIzaSyA7x6gQziPYlxrXnyVJJ80mvJkh3VCm24", 
     authDomain: "taiyarighar.firebaseapp.com",
     projectId: "taiyarighar",
     storageBucket: "taiyarighar.firebasestorage.app",
@@ -427,7 +427,6 @@ window.doLogin = async function() {
     const pass = document.getElementById('loginPass').value.trim();
     if(!inputVal || !pass) return alert("Enter Email ID, Mobile Number, or Login ID and Password!");
     
-    // Hard clear previous user's memory state before authenticating new user
     resetSessionMemory();
 
     try {
@@ -475,7 +474,6 @@ window.doLogin = async function() {
 
             localStorage.setItem('tg_user', JSON.stringify(currentStudent));
             
-            // Strictly wait for fresh settings, tests, and THIS user's results before rendering anything
             await fetchSettingsAndTests();
             
             let pendingCat = sessionStorage.getItem('pendingCat');
@@ -852,12 +850,17 @@ async function handleSuccessfulRazorpayPayment(paymentId, plan) {
     }
 }
 
+// =========================================================================
+// 🔴 FIXED LIVE TEST CHECKER (Works seamlessly with Admin `isLive: "Yes"`)
+// =========================================================================
 function isLiveTestCurrentlyActive(t) {
     if (String(t.isLive).trim().toLowerCase() !== "yes") return false;
     const now = new Date();
     const start = t.liveStart ? new Date(t.liveStart) : null;
     const end = t.liveEnd ? new Date(t.liveEnd) : null;
-    if (!start || !end) return false;
+    if (!start && !end) return true;
+    if (start && !end) return now >= start;
+    if (!start && end) return now <= end;
     return now >= start && now <= end;
 }
 
@@ -871,6 +874,7 @@ function isLiveTestEnded(t) {
 function formatDateTimeReadable(isoStr) {
     if (!isoStr) return "12:00 AM";
     const d = new Date(isoStr);
+    if (isNaN(d.getTime())) return isoStr;
     return d.toLocaleString('en-IN', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit', hour12: true });
 }
 
@@ -896,17 +900,19 @@ function renderLiveTestsShowcase() {
     let modalGridHtml = `<div class="live-showcase-grid">`;
 
     activeLiveTests.forEach(t => {
-        const alreadyAttempted = Boolean(isLoggedIn && userPastResults && userPastResults[t.id]);
+        const lookupId = t.testId || t.id;
+        const alreadyAttempted = Boolean(isLoggedIn && userPastResults && (userPastResults[lookupId] || userPastResults[t.id]));
+        const endDisplay = t.liveEnd ? formatDateTimeReadable(t.liveEnd) : (t.liveReleaseTime || "12:00 AM");
         let actionBtnHtml = "";
 
         if (!isLoggedIn) {
             actionBtnHtml = `<button class="btn" style="background:#FDE047; color:#1E1B4B; font-weight:700;" onclick="closeLiveTestsHub(); showLogin()">Login to Attempt Live Exam</button>`;
-        } else if (!currentStudent.isPaid) {
+        } else if (String(t.isFree).trim().toLowerCase() !== "yes" && !currentStudent.isPaid) {
             actionBtnHtml = `<button class="btn" style="background:#FDE047; color:#1E1B4B; font-weight:700;" onclick="closeLiveTestsHub(); openPaymentModal()">🔒 Subscribe to Enter Live Exam</button>`;
         } else if (alreadyAttempted) {
-            actionBtnHtml = `<button class="btn" style="background:rgba(255,255,255,0.2); color:#FFF; cursor:default;">✅ Submitted (Result at ${formatDateTimeReadable(t.liveEnd)})</button>`;
+            actionBtnHtml = `<button class="btn" style="background:rgba(255,255,255,0.2); color:#FFF; cursor:default;">✅ Submitted (Result at ${endDisplay})</button>`;
         } else {
-            actionBtnHtml = `<button class="btn btn-accent" style="font-weight:700;" onclick="closeLiveTestsHub(); showInstructions('${t.id}', '${t.testName.replace(/'/g, "\\'")}', ${t.duration}, ${t.marks}, ${t.negativeMark || 0}, '${t.hasNegative}', '${t.language || 'Both'}', false, true, '${t.liveEnd || ''}', ${t.positiveMark || 1})">🚀 Attempt Live Exam Now</button>`;
+            actionBtnHtml = `<button class="btn btn-accent" style="font-weight:700;" onclick="closeLiveTestsHub(); showInstructions('${lookupId}', '${t.testName.replace(/'/g, "\\'")}', ${t.duration}, ${t.marks}, ${t.negativeMark || 0}, '${t.hasNegative}', '${t.language || 'Both'}', false, true, '${t.liveEnd || t.liveReleaseTime || ''}', ${t.positiveMark || 1})">🚀 Attempt Live Exam Now</button>`;
         }
 
         const singleCard = `
@@ -917,8 +923,8 @@ function renderLiveTestsShowcase() {
                     <p>${t.subCat} | ⏱️ ${t.duration} Mins | 🏆 ${t.marks} Marks</p>
                 </div>
                 <div class="live-timer-strip">
-                    <span>⏳ Ends: ${formatDateTimeReadable(t.liveEnd)}</span>
-                    <span class="live-countdown-clock" data-endtime="${t.liveEnd}">Active</span>
+                    <span>⏳ Result: ${endDisplay}</span>
+                    <span class="live-countdown-clock" data-endtime="${t.liveEnd || ''}">LIVE</span>
                 </div>
                 ${actionBtnHtml}
             </div>
@@ -942,9 +948,14 @@ function startLiveShowcaseCountdowns() {
     liveCountdownInterval = setInterval(() => {
         document.querySelectorAll('.live-countdown-clock').forEach(el => {
             const endStr = el.getAttribute('data-endtime');
-            if (!endStr) return;
+            if (!endStr) {
+                el.innerText = "LIVE NOW";
+                return;
+            }
             const diff = new Date(endStr) - new Date();
-            if (diff <= 0) {
+            if (isNaN(diff)) {
+                el.innerText = "LIVE NOW";
+            } else if (diff <= 0) {
                 el.innerText = "Ended";
             } else {
                 const hrs = Math.floor(diff / (1000 * 60 * 60));
@@ -1002,7 +1013,7 @@ window.openCrossExamTypeFilter = async function(typeKey) {
 // =========================================================================
 async function fetchSettingsAndTests() {
     try {
-        userPastResults = {}; // Always start clean
+        userPastResults = {};
 
         const setSnap = await getDoc(doc(db, "settings", "global"));
         if(setSnap.exists()) appSettings = setSnap.data();
@@ -1016,7 +1027,6 @@ async function fetchSettingsAndTests() {
         const catSnap = await getDocs(collection(db, "exam_categories"));
         allExamCategories = catSnap.docs.map(d => d.data());
 
-        // Strictly fetch ONLY current logged-in student's results BEFORE rendering UI
         if(isLoggedIn && currentStudent && currentStudent.loginId) {
             const activeLoginId = String(currentStudent.loginId).trim();
             const resSnap = await getDocs(query(collection(db, "results"), where("loginId", "==", activeLoginId)));
@@ -1054,7 +1064,7 @@ async function fetchDashboardData() {
         
         let lastTest = null, attemptedTestIds = [];
         let results = [];
-        userPastResults = {}; // Rebuild fresh map from verified query
+        userPastResults = {};
 
         if(!resSnap.empty) {
             resSnap.docs.forEach(d => {
@@ -1070,7 +1080,7 @@ async function fetchDashboardData() {
             });
             results.sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp));
             attemptedTestIds = results.map(r => r.testId);
-            lastTest = results.find(r => !r.isLivePending || (r.liveEndTime && new Date() > new Date(r.liveEndTime)));
+            lastTest = results.find(r => !r.isLivePending || (r.liveEndTime && !isNaN(new Date(r.liveEndTime)) && new Date() > new Date(r.liveEndTime)));
         }
 
         const totalAttEl = document.getElementById('totalAttemptedCount');
@@ -1090,7 +1100,7 @@ async function fetchDashboardData() {
         } else {
             let histHtml = "";
             results.forEach(r => {
-                const isStillPending = r.isLivePending && r.liveEndTime && (new Date() <= new Date(r.liveEndTime));
+                const isStillPending = r.isLivePending && (!r.liveEndTime || isNaN(new Date(r.liveEndTime)) || new Date() <= new Date(r.liveEndTime));
                 if (isStillPending) {
                     histHtml += `
                         <div class="history-item" style="border-left: 4px solid #F59E0B;">
@@ -1115,7 +1125,7 @@ async function fetchDashboardData() {
             historyContainer.innerHTML = histHtml;
         }
 
-        let recTest = allTests.find(t => !attemptedTestIds.includes(t.id) && !isLiveTestCurrentlyActive(t));
+        let recTest = allTests.find(t => !attemptedTestIds.includes(t.testId || t.id) && !isLiveTestCurrentlyActive(t));
         if(!recTest && allTests.length > 0) recTest = allTests.find(t => !isLiveTestCurrentlyActive(t)) || allTests[0];
 
         if(recTest) {
@@ -1132,7 +1142,8 @@ window.startRecommendedTest = function() {
     if(recommendedTestData) {
         const isLocked = (String(recommendedTestData.isFree).trim().toLowerCase() !== "yes" && !currentStudent.isPaid);
         if (isLocked) return openPaymentModal();
-        showInstructions(recommendedTestData.id, recommendedTestData.testName, recommendedTestData.duration, recommendedTestData.marks, recommendedTestData.negativeMark || 0, recommendedTestData.hasNegative, recommendedTestData.language || 'Both', false, false, '', recommendedTestData.positiveMark || 1);
+        const tid = recommendedTestData.testId || recommendedTestData.id;
+        showInstructions(tid, recommendedTestData.testName, recommendedTestData.duration, recommendedTestData.marks, recommendedTestData.negativeMark || 0, recommendedTestData.hasNegative, recommendedTestData.language || 'Both', false, false, '', recommendedTestData.positiveMark || 1);
     } else scrollToCategories(); 
 }
 
@@ -1141,6 +1152,7 @@ function renderMainCategories() {
     
     const testMainCats = [...new Set(allTests.map(t => t.mainCat))];
     testMainCats.forEach(catName => {
+        if (!catName) return;
         let isDuplicate = finalMainCats.some(c => {
             let cName = c.name.toLowerCase().replace("exams", "").trim();
             let tName = catName.toLowerCase().replace("exams", "").trim();
@@ -1171,10 +1183,10 @@ window.openCategory = async function(mainCat, fromUrl = false) {
     nav.mainCat = mainCat;
     
     let normalizedMain = mainCat.toLowerCase().replace("exams", "").trim();
-    let subCats = allExamCategories.filter(c => c.mainCat.toLowerCase().replace("exams", "").trim() === normalizedMain).map(c => c.subCat);
+    let subCats = allExamCategories.filter(c => c.mainCat && c.mainCat.toLowerCase().replace("exams", "").trim() === normalizedMain).map(c => c.subCat);
     
-    const testSubCats = allTests.filter(t => t.mainCat.toLowerCase().replace("exams", "").trim() === normalizedMain).map(t => t.subCat);
-    subCats = [...new Set([...subCats, ...testSubCats])];
+    const testSubCats = allTests.filter(t => t.mainCat && t.mainCat.toLowerCase().replace("exams", "").trim() === normalizedMain).map(t => t.subCat);
+    subCats = [...new Set([...subCats, ...testSubCats])].filter(Boolean);
 
     let pillsHtml = "";
     if(subCats.length > 0) subCats.forEach(sc => pillsHtml += `<div class="sub-cat-pill" onclick="loadTestsForSubCat('${sc}', this)">${sc}</div>`);
@@ -1201,10 +1213,10 @@ window.loadTestsForSubCat = function(subCat, pillElement, fromUrl = false) {
     let normalizedMain = nav.mainCat.toLowerCase().replace("exams", "").trim();
     let normalizedSub = subCat.toLowerCase().trim();
 
-    const filteredTests = allTests.filter(t => t.mainCat.toLowerCase().replace("exams", "").trim() === normalizedMain && t.subCat.toLowerCase().trim() === normalizedSub);
+    const filteredTests = allTests.filter(t => t.mainCat && t.subCat && t.mainCat.toLowerCase().replace("exams", "").trim() === normalizedMain && t.subCat.toLowerCase().trim() === normalizedSub);
 
     const uniqueExamNames = [...new Set([
-        ...allExamCategories.filter(c => c.mainCat.toLowerCase().replace("exams", "").trim() === normalizedMain && c.subCat.toLowerCase().trim() === normalizedSub).map(c => c.examName),
+        ...allExamCategories.filter(c => c.mainCat && c.subCat && c.mainCat.toLowerCase().replace("exams", "").trim() === normalizedMain && c.subCat.toLowerCase().trim() === normalizedSub).map(c => c.examName),
         ...filteredTests.map(t => t.examName)
     ])].filter(name => name); 
 
@@ -1245,7 +1257,7 @@ window.loadTestsForExamName = function(examName, cardElement) {
     let normalizedMain = nav.mainCat.toLowerCase().replace("exams", "").trim();
     let normalizedSub = nav.subCat.toLowerCase().trim();
 
-    const filteredTests = allTests.filter(t => t.mainCat.toLowerCase().replace("exams", "").trim() === normalizedMain && t.subCat.toLowerCase().trim() === normalizedSub && t.examName === examName);
+    const filteredTests = allTests.filter(t => t.mainCat && t.subCat && t.mainCat.toLowerCase().replace("exams", "").trim() === normalizedMain && t.subCat.toLowerCase().trim() === normalizedSub && t.examName === examName);
     renderTestList(filteredTests, false);
 }
 
@@ -1254,15 +1266,14 @@ function renderTestList(filtered, showExamBadge = false) {
     if(filtered.length === 0) html = `<p style="text-align:center; color:#666; padding:20px;">No tests uploaded in this section yet. Please check back soon!</p>`;
     else {
         filtered.forEach(t => {
+            const lookupId = t.testId || t.id;
             const currentlyLive = isLiveTestCurrentlyActive(t);
-            const isLocked = (currentlyLive || String(t.isFree).trim().toLowerCase() !== "yes") && !currentStudent.isPaid;
+            const isLocked = (String(t.isFree).trim().toLowerCase() !== "yes" && !currentStudent.isPaid);
             
-            // Strictly verify past result belongs to the active logged-in student
-            const rawPastRes = (isLoggedIn && userPastResults) ? userPastResults[t.id] : null;
+            const rawPastRes = (isLoggedIn && userPastResults) ? (userPastResults[lookupId] || userPastResults[t.id]) : null;
             const pastRes = (rawPastRes && String(rawPastRes.loginId).trim() === String(currentStudent.loginId).trim()) ? rawPastRes : null;
             
-            // Scope resume key to the specific student loginId so another student on same device never sees it
-            const resumeKey = 'tg_resume_' + currentStudent.loginId + '_' + t.id;
+            const resumeKey = 'tg_resume_' + currentStudent.loginId + '_' + lookupId;
             const inProgressData = !currentlyLive ? localStorage.getItem(resumeKey) : null;
             
             let btnHtml = "";
@@ -1272,16 +1283,16 @@ function renderTestList(filtered, showExamBadge = false) {
             if(isLocked) {
                 btnHtml = `<button class="btn" style="background:#F3F4F6; color:#6B7280; border:1px solid #E5E7EB;" onclick="openPaymentModal()">🔒 Unlock</button>`;
             } else if (currentlyLive && pastRes) {
-                btnHtml = `<span style="font-size:12px; font-weight:600; color:#D97706;">⏳ Result releases at ${formatDateTimeReadable(t.liveEnd)}</span>`;
+                btnHtml = `<span style="font-size:12px; font-weight:600; color:#D97706;">⏳ Result releases at ${formatDateTimeReadable(t.liveEnd || t.liveReleaseTime)}</span>`;
             } else {
                 if(inProgressData) {
-                    btnHtml = `<div style="display:flex; gap:10px;"><button class="btn btn-primary" onclick="showInstructions('${t.id}', '${t.testName.replace(/'/g, "\\'")}', ${t.duration}, ${t.marks}, ${t.negativeMark || 0}, '${t.hasNegative}', '${t.language || 'Both'}', true, false, '', ${t.positiveMark || 1})">▶ Resume</button><button class="btn btn-outline" style="color:var(--danger); border-color:var(--danger);" onclick="clearResumeData('${t.id}', '${t.examName}')">Clear</button></div>`;
+                    btnHtml = `<div style="display:flex; gap:10px;"><button class="btn btn-primary" onclick="showInstructions('${lookupId}', '${t.testName.replace(/'/g, "\\'")}', ${t.duration}, ${t.marks}, ${t.negativeMark || 0}, '${t.hasNegative}', '${t.language || 'Both'}', true, false, '', ${t.positiveMark || 1})">▶ Resume</button><button class="btn btn-outline" style="color:var(--danger); border-color:var(--danger);" onclick="clearResumeData('${lookupId}', '${t.examName}')">Clear</button></div>`;
                 } else {
-                    btnHtml = `<button class="btn btn-accent" onclick="showInstructions('${t.id}', '${t.testName.replace(/'/g, "\\'")}', ${t.duration}, ${t.marks}, ${t.negativeMark || 0}, '${t.hasNegative}', '${t.language || 'Both'}', false, ${currentlyLive}, '${t.liveEnd || ''}', ${t.positiveMark || 1})">${currentlyLive ? '🚀 Start Live Test' : 'Start Test'}</button>`;
+                    btnHtml = `<button class="btn btn-accent" onclick="showInstructions('${lookupId}', '${t.testName.replace(/'/g, "\\'")}', ${t.duration}, ${t.marks}, ${t.negativeMark || 0}, '${t.hasNegative}', '${t.language || 'Both'}', false, ${currentlyLive}, '${t.liveEnd || t.liveReleaseTime || ''}', ${t.positiveMark || 1})">${currentlyLive ? '🚀 Start Live Test' : 'Start Test'}</button>`;
                 }
                 
-                if(pastRes && !(pastRes.isLivePending && pastRes.liveEndTime && new Date() <= new Date(pastRes.liveEndTime))) {
-                    btnHtml += `<button class="btn" style="background:#4F46E5; color:white; margin-left:10px;" onclick="viewPastAnalysis('${t.id}')">📊 Analysis</button>`;
+                if(pastRes && !(pastRes.isLivePending && (!pastRes.liveEndTime || isNaN(new Date(pastRes.liveEndTime)) || new Date() <= new Date(pastRes.liveEndTime)))) {
+                    btnHtml += `<button class="btn" style="background:#4F46E5; color:white; margin-left:10px;" onclick="viewPastAnalysis('${lookupId}')">📊 Analysis</button>`;
                 }
             }
 
@@ -1836,7 +1847,7 @@ window.viewPastAnalysis = async function(testId) {
     let res = userPastResults[testId];
     if(!res) return alert("Result not found!");
 
-    if (res.isLivePending && res.liveEndTime && new Date() <= new Date(res.liveEndTime)) {
+    if (res.isLivePending && (!res.liveEndTime || isNaN(new Date(res.liveEndTime)) || new Date() <= new Date(res.liveEndTime))) {
         return alert(`⏳ Live Test results are locked until ${formatDateTimeReadable(res.liveEndTime)}.`);
     }
     
