@@ -18,17 +18,32 @@ const db = getFirestore(app);
 const auth = getAuth(app);
 
 let allCategoriesData = [];
+let loadedTabs = {}; // Lazy Loading Cache (Har tab ek hi baar load hoga)
+
+// Helper for UTF-8 CSV Download (Hindi text Excel me bilkul sahi dikhega)
+function triggerCsvDownload(filename, headers, rows) {
+    const csvContent = "\uFEFF" + Papa.unparse({ fields: headers, data: rows });
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.setAttribute("download", filename);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+}
 
 // Check if admin is already signed in via Firebase Auth
 onAuthStateChanged(auth, (user) => {
     if (user && user.email && user.email.toLowerCase() === "madhupverma8@gmail.com") {
         document.getElementById('lockScreen').style.display = 'none';
         document.getElementById('adminPanel').style.display = 'block';
-        loadAllAdminModules();
+        initFastAdminDashboard();
     }
 });
 
-// 1. Official Firebase Authentication Login (Satisfies Firestore `request.auth != null` rule)
+// 1. Official Firebase Authentication Login
 window.checkPass = async function() {
     const emailEl = document.getElementById('adminEmail');
     const passEl = document.getElementById('adminPass');
@@ -59,19 +74,18 @@ window.checkPass = async function() {
     if (btn) btn.textContent = "Authenticating...";
 
     try {
-        // Real Firebase Auth Sign-In so `isAdmin()` (`request.auth != null`) succeeds on Firestore write
         await signInWithEmailAndPassword(auth, email, pass);
         document.getElementById('lockScreen').style.display = 'none';
         document.getElementById('adminPanel').style.display = 'block';
         if (btn) btn.textContent = "Unlock Panel";
-        loadAllAdminModules();
+        initFastAdminDashboard();
     } catch (error) {
         console.error("Firebase Auth Error:", error);
         if (errMsg) {
             if (error.code === 'auth/invalid-credential' || error.code === 'auth/wrong-password') {
-                errMsg.textContent = "❌ Incorrect Firebase Admin Password! (Use your Firebase Auth password for madhupverma8@gmail.com)";
+                errMsg.textContent = "❌ Incorrect Firebase Admin Password!";
             } else if (error.code === 'auth/too-many-requests') {
-                errMsg.textContent = "❌ Too many failed attempts. Please wait a few minutes and try again.";
+                errMsg.textContent = "❌ Too many failed attempts. Please wait a few minutes.";
             } else {
                 errMsg.textContent = "❌ Login Failed: " + error.message;
             }
@@ -83,27 +97,35 @@ window.checkPass = async function() {
 
 window.logoutAdmin = async function() {
     await signOut(auth);
+    loadedTabs = {};
     document.getElementById('adminPanel').style.display = 'none';
     document.getElementById('lockScreen').style.display = 'flex';
     document.getElementById('adminPass').value = '';
 };
 
+// FAST INIT: Parallel load only Settings & Categories first (< 1 Second)
+async function initFastAdminDashboard() {
+    if (loadedTabs.init) return;
+    loadedTabs.init = true;
+    await Promise.all([loadSettings(), loadCategories()]);
+}
+
+// LAZY TAB LOADER: Load heavy tables only when user clicks that tab
 window.openTab = function(tabId, btn) {
     document.querySelectorAll('.section').forEach(el => el.classList.remove('active'));
     document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
     const target = document.getElementById(tabId);
     if (target) target.classList.add('active');
     if (btn) btn.classList.add('active');
-};
 
-function loadAllAdminModules() {
-    loadSettings();
-    loadStudents();
-    loadCategories();
-    loadTests();
-    loadResults();
-    loadCA();
-}
+    if (!loadedTabs[tabId]) {
+        loadedTabs[tabId] = true;
+        if (tabId === 'tabStudents') loadStudents();
+        else if (tabId === 'tabTests') loadTests();
+        else if (tabId === 'tabResults') loadResults();
+        else if (tabId === 'tabCA') loadCA();
+    }
+};
 
 // 2. Settings & 3-Tier Subscription Pricing
 window.loadSettings = async function() {
@@ -433,17 +455,105 @@ window.deleteCA = async function(id) {
     }
 };
 
-// 9. Bulk CSV Upload Handlers
+// =========================================================================
+// 9. ALL CSV TEMPLATE DOWNLOADS (Categories, Tests, Questions, CA)
+// =========================================================================
+
+window.downloadCategoriesTemplate = function() {
+    const headers = ["mainCat", "subCat", "examName"];
+    const rows = [
+        ["Railway Exams", "RRB Group D", "Full Length Mock"],
+        ["SSC Exams", "SSC CGL", "Tier-1 Practice Set"]
+    ];
+    triggerCsvDownload("TaiyariGhar_Categories_Template.csv", headers, rows);
+};
+
+window.downloadTestsTemplate = function() {
+    const headers = ["testId", "mainCat", "subCat", "examName", "testName", "duration", "marks", "totalQs", "language", "hasNegative", "negativeMark", "isFree", "isLive", "liveReleaseTime"];
+    const rows = [
+        ["RRB001", "Railway Exams", "RRB Group D", "Full Length Mock", "RRB Group D Mock Test 01", "90", "100", "100", "Both", "Yes", "0.33", "Yes", "No", "12:00 AM"]
+    ];
+    triggerCsvDownload("TaiyariGhar_Tests_Template.csv", headers, rows);
+};
+
+window.downloadQuestionsTemplate = function() {
+    const headers = [
+        "testId", "questionHindi", "questionEnglish",
+        "optAHindi", "optBHindi", "optCHindi", "optDHindi",
+        "optAEnglish", "optBEnglish", "optCEnglish", "optDEnglish",
+        "correctAnswer", "questionMarks", "questionNeg", "explanation"
+    ];
+    const rows = [
+        [
+            "RRB001",
+            "भारत की राजधानी क्या है?",
+            "What is the capital of India?",
+            "मुंबई", "नई दिल्ली", "कोलकाता", "चेन्नई",
+            "Mumbai", "New Delhi", "Kolkata", "Chennai",
+            "1", "1", "0.33", "नई दिल्ली भारत की राजधानी है (0=A, 1=B, 2=C, 3=D)"
+        ]
+    ];
+    triggerCsvDownload("TaiyariGhar_Questions_Template.csv", headers, rows);
+};
+
+window.downloadCaTemplate = function() {
+    const headers = ["type", "date", "title", "link", "question", "optA", "optB", "optC", "optD", "correctAnswer", "explanation"];
+    const rows = [
+        ["Daily", "2026-11-17", "National Science Update", "https://taiyarighar.in", "ISRO ka naya mission kaun sa hai?", "Gaganyaan", "Aditya L1", "Chandrayaan 4", "Shukrayaan", "0", "0=A, 1=B, 2=C, 3=D"]
+    ];
+    triggerCsvDownload("TaiyariGhar_CurrentAffairs_Template.csv", headers, rows);
+};
+
+// =========================================================================
+// 10. ALL BULK CSV UPLOADS (Fast Parallel Batch Uploads)
+// =========================================================================
+
+window.uploadCategoriesCsv = function() {
+    const file = document.getElementById('categoriesCsvFile').files[0];
+    if (!file) { alert("Please select Categories CSV file!"); return; }
+    Papa.parse(file, {
+        header: true, skipEmptyLines: true,
+        complete: async function(results) {
+            const promises = results.data.map(row => addDoc(collection(db, "exam_categories"), {
+                mainCat: (row.mainCat || "").trim(),
+                subCat: (row.subCat || "").trim(),
+                examName: (row.examName || "").trim()
+            }));
+            await Promise.all(promises);
+            alert(`✅ ${results.data.length} Categories Uploaded!`);
+            loadCategories();
+        }
+    });
+};
+
 window.uploadTestsCsv = function() {
     const file = document.getElementById('testsCsvFile').files[0];
     if (!file) { alert("Select CSV file"); return; }
     Papa.parse(file, {
         header: true, skipEmptyLines: true,
         complete: async function(results) {
-            for (let row of results.data) {
-                await addDoc(collection(db, "tests"), row);
-            }
-            alert("✅ Tests Bulk Uploaded!");
+            const status = document.getElementById('bulkStatus');
+            if (status) status.textContent = "Uploading Tests...";
+            const promises = results.data.map(row => addDoc(collection(db, "tests"), {
+                testId: (row.testId || "").trim(),
+                mainCat: (row.mainCat || "").trim(),
+                subCat: (row.subCat || "").trim(),
+                examName: (row.examName || "").trim(),
+                testName: (row.testName || "").trim(),
+                duration: Number(row.duration || 60),
+                marks: Number(row.marks || 100),
+                totalMarks: Number(row.marks || 100),
+                totalQs: Number(row.totalQs || 100),
+                language: (row.language || "Both").trim(),
+                hasNegative: (row.hasNegative || "No").trim(),
+                negativeMark: Number(row.negativeMark || 0),
+                isFree: (row.isFree || "Yes").trim(),
+                isLive: (row.isLive || "No").trim(),
+                liveReleaseTime: (row.liveReleaseTime || "12:00 AM").trim()
+            }));
+            await Promise.all(promises);
+            if (status) status.textContent = `✅ ${results.data.length} Tests Uploaded Successfully!`;
+            alert(`✅ ${results.data.length} Tests Bulk Uploaded!`);
             loadTests();
         }
     });
@@ -455,10 +565,132 @@ window.uploadQuestionsCsv = function() {
     Papa.parse(file, {
         header: true, skipEmptyLines: true,
         complete: async function(results) {
-            for (let row of results.data) {
-                await addDoc(collection(db, "questions"), row);
-            }
-            alert("✅ Questions Bulk Uploaded!");
+            const status = document.getElementById('bulkStatus');
+            if (status) status.textContent = "Uploading Questions...";
+            const promises = results.data.map(row => {
+                // Convert letter A/B/C/D or number 0/1/2/3 cleanly
+                let ans = String(row.correctAnswer || "0").trim().toUpperCase();
+                const mapAns = { "A": 0, "B": 1, "C": 2, "D": 3, "E": 4 };
+                const correctIdx = mapAns[ans] !== undefined ? mapAns[ans] : Number(ans || 0);
+
+                return addDoc(collection(db, "questions"), {
+                    testId: (row.testId || "").trim(),
+                    questionHindi: (row.questionHindi || "").trim(),
+                    questionEnglish: (row.questionEnglish || "").trim(),
+                    optionsHindi: [
+                        (row.optAHindi || "").trim(),
+                        (row.optBHindi || "").trim(),
+                        (row.optCHindi || "").trim(),
+                        (row.optDHindi || "").trim(),
+                        (row.optEHindi || "").trim()
+                    ],
+                    optionsEnglish: [
+                        (row.optAEnglish || "").trim(),
+                        (row.optBEnglish || "").trim(),
+                        (row.optCEnglish || "").trim(),
+                        (row.optDEnglish || "").trim(),
+                        (row.optEEnglish || "").trim()
+                    ],
+                    correctAnswer: correctIdx,
+                    questionMarks: Number(row.questionMarks || 1),
+                    questionNeg: Number(row.questionNeg || 0),
+                    explanation: (row.explanation || "").trim()
+                });
+            });
+            await Promise.all(promises);
+            if (status) status.textContent = `✅ ${results.data.length} Questions Uploaded Successfully!`;
+            alert(`✅ ${results.data.length} Questions Bulk Uploaded!`);
         }
     });
+};
+
+window.uploadCaCsv = function() {
+    const file = document.getElementById('caCsvFile').files[0];
+    if (!file) { alert("Select CA CSV file"); return; }
+    Papa.parse(file, {
+        header: true, skipEmptyLines: true,
+        complete: async function(results) {
+            const status = document.getElementById('bulkStatus');
+            if (status) status.textContent = "Uploading Current Affairs...";
+            const promises = results.data.map(row => addDoc(collection(db, "current_affairs"), {
+                type: (row.type || "Daily").trim(),
+                date: (row.date || "").trim(),
+                title: (row.title || "").trim(),
+                link: (row.link || "").trim(),
+                question: (row.question || "").trim(),
+                options: [
+                    (row.optA || "").trim(),
+                    (row.optB || "").trim(),
+                    (row.optC || "").trim(),
+                    (row.optD || "").trim()
+                ],
+                correctAnswer: Number(row.correctAnswer || 0),
+                explanation: (row.explanation || "").trim()
+            }));
+            await Promise.all(promises);
+            if (status) status.textContent = `✅ ${results.data.length} Current Affairs Uploaded!`;
+            alert(`✅ ${results.data.length} Current Affairs Uploaded!`);
+            loadCA();
+        }
+    });
+};
+
+// =========================================================================
+// 11. EXCEL / CSV DATA EXPORTS (Students, Tests, Results, Questions)
+// =========================================================================
+
+window.exportStudents = async function() {
+    const snap = await getDocs(collection(db, "students"));
+    const rows = [];
+    snap.forEach(d => {
+        const s = d.data();
+        rows.push([s.name || "", s.mobile || "", s.loginId || "", s.email || "", s.isPaid ? "PRO" : "FREE", s.expiryDate || "N/A"]);
+    });
+    triggerCsvDownload("TaiyariGhar_Students_List.csv", ["Name", "Mobile", "LoginID", "Email", "Status", "ExpiryDate"], rows);
+};
+
+window.exportTests = async function() {
+    const snap = await getDocs(collection(db, "tests"));
+    const rows = [];
+    snap.forEach(d => {
+        const t = d.data();
+        rows.push([t.testId || "", t.mainCat || "", t.subCat || "", t.testName || "", t.duration || "", t.marks || "", t.totalQs || "", t.isLive || "No"]);
+    });
+    triggerCsvDownload("TaiyariGhar_Tests_List.csv", ["TestID", "MainCategory", "SubCategory", "TestName", "Duration", "Marks", "TotalQs", "IsLive"], rows);
+};
+
+window.exportResults = async function() {
+    const snap = await getDocs(collection(db, "results"));
+    const rows = [];
+    snap.forEach(d => {
+        const r = d.data();
+        rows.push([r.timestamp ? r.timestamp.split('T')[0] : "", r.studentName || "", r.testName || "", r.correctCount || 0, r.wrongCount || 0, r.negDeducted || 0, r.finalScore || 0]);
+    });
+    triggerCsvDownload("TaiyariGhar_Results_List.csv", ["Date", "StudentName", "TestName", "Correct", "Wrong", "Negative", "FinalScore"], rows);
+};
+
+window.downloadTestQuestions = async function() {
+    const tid = document.getElementById('searchTestId').value.trim();
+    if (!tid) { alert("Pehle Search box mein Test ID dalein!"); return; }
+    const q = query(collection(db, "questions"), where("testId", "==", tid));
+    const snap = await getDocs(q);
+    if (snap.empty) { alert("Is Test ID ke koi questions nahi mile!"); return; }
+    const rows = [];
+    snap.forEach(d => {
+        const item = d.data();
+        const optH = item.optionsHindi || [];
+        const optE = item.optionsEnglish || [];
+        rows.push([
+            item.testId, item.questionHindi || "", item.questionEnglish || "",
+            optH[0] || "", optH[1] || "", optH[2] || "", optH[3] || "",
+            optE[0] || "", optE[1] || "", optE[2] || "", optE[3] || "",
+            item.correctAnswer ?? 0, item.questionMarks || 1, item.questionNeg || 0, item.explanation || ""
+        ]);
+    });
+    triggerCsvDownload(`${tid}_Questions_Backup.csv`, [
+        "testId", "questionHindi", "questionEnglish",
+        "optAHindi", "optBHindi", "optCHindi", "optDHindi",
+        "optAEnglish", "optBEnglish", "optCEnglish", "optDEnglish",
+        "correctAnswer", "questionMarks", "questionNeg", "explanation"
+    ], rows);
 };
