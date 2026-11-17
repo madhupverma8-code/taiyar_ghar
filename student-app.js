@@ -279,9 +279,28 @@ window.installPWA = function() {
 }
 
 function getDeviceId() {
-    let devId = localStorage.getItem('tg_device_id');
-    if(!devId) { devId = 'dev_' + Math.random().toString(36).substr(2, 9); localStorage.setItem('tg_device_id', devId); }
-    return devId;
+    // Stable hardware/browser signature so clearing browser cache on the same laptop/phone does not consume a 2nd device slot
+    try {
+        const rawSig = [
+            navigator.platform || '',
+            navigator.hardwareConcurrency || '',
+            screen.width + 'x' + screen.height,
+            screen.colorDepth || '',
+            Intl.DateTimeFormat().resolvedOptions().timeZone || ''
+        ].join('|');
+        let hash = 0;
+        for (let i = 0; i < rawSig.length; i++) {
+            hash = ((hash << 5) - hash) + rawSig.charCodeAt(i);
+            hash |= 0;
+        }
+        const stableId = 'hw_' + Math.abs(hash).toString(36);
+        localStorage.setItem('tg_device_id', stableId);
+        return stableId;
+    } catch (e) {
+        let devId = localStorage.getItem('tg_device_id');
+        if(!devId) { devId = 'dev_' + Math.random().toString(36).substr(2, 9); localStorage.setItem('tg_device_id', devId); }
+        return devId;
+    }
 }
 
 window.goHome = function() { 
@@ -1571,7 +1590,9 @@ async function initTest(testId, testName, duration, marks, negMark, hasNeg, lang
     currentTestMarks = marks; 
     currentTestPosMark = Number(posMark) || 1;
     currentTestNegMark = hasNeg === "Yes" ? Number(negMark) : 0;
-    currentTestLanguage = lang;
+    currentTestLanguage = lang || "Both";
+    const switcher = document.getElementById('liveTestLangSwitcher');
+    if (switcher) switcher.value = currentTestLanguage;
 
     const wm = document.getElementById('antiCheatWatermark');
     if (wm) wm.innerText = `${currentStudent.name} | ${currentStudent.loginId} | ${currentStudent.email || currentStudent.mobile}`;
@@ -1618,10 +1639,11 @@ async function initTest(testId, testName, duration, marks, negMark, hasNeg, lang
                     let qPos = (qData.questionMarks !== undefined && Number(qData.questionMarks) > 0) ? Number(qData.questionMarks) : currentTestPosMark;
                     let qNeg = (qData.questionNeg !== undefined && Number(qData.questionNeg) > 0) ? Number(qData.questionNeg) : currentTestNegMark;
 
+                    const autoUid = qData.uniqueId || `${testId}-Q${String(Math.floor(100 + Math.random()*900))}`;
                     return { 
-                        qH: qData.questionHindi || qData.question, 
-                        qE: qData.questionEnglish, 
-                        uniqueId: qData.uniqueId || "N/A", 
+                        qH: qData.questionHindi || qData.question || "", 
+                        qE: qData.questionEnglish || "", 
+                        uniqueId: autoUid, 
                         opts: optsArray, 
                         ans: newAnsIndex, 
                         exp: qData.explanation || "No explanation provided.", 
@@ -1691,22 +1713,32 @@ function loadQuestion() {
     document.getElementById('questionUniqueId').innerText = "Q-ID: " + (q.uniqueId || "N/A");
     
     let qHtml = "";
-    if(currentTestLanguage === "Hindi") qHtml = `<div>${q.qH}</div>`;
-    else if(currentTestLanguage === "English") qHtml = `<div>${q.qE}</div>`;
-    else qHtml = `<div>${q.qH}</div><div class="q-lang-en">${q.qE}</div>`;
+    if(currentTestLanguage === "Hindi") qHtml = `<div>${q.qH || q.qE}</div>`;
+    else if(currentTestLanguage === "English") qHtml = `<div>${q.qE || q.qH}</div>`;
+    else {
+        qHtml = `<div>${q.qH || ''}</div>` + (q.qE && q.qE !== q.qH ? `<div class="q-lang-en" style="margin-top:8px; color:#334155; font-size:15px;">${q.qE}</div>` : '');
+    }
     document.getElementById('questionText').innerHTML = qHtml;
 
     const optContainer = document.getElementById('optionsContainer'); optContainer.innerHTML = '';
     q.opts.forEach((opt, i) => {
         let labelHtml = "";
-        if(currentTestLanguage === "Hindi") labelHtml = opt.h;
-        else if(currentTestLanguage === "English") labelHtml = opt.e;
-        else labelHtml = `${opt.h} <span class="opt-en">${opt.e}</span>`;
+        if(currentTestLanguage === "Hindi") labelHtml = opt.h || opt.e;
+        else if(currentTestLanguage === "English") labelHtml = opt.e || opt.h;
+        else {
+            labelHtml = (opt.h && opt.e && opt.h !== opt.e) ? `${opt.h} <span class="opt-en" style="color:#475569; font-size:13.5px;">(${opt.e})</span>` : (opt.h || opt.e);
+        }
 
-        if(labelHtml.trim() !== "") {
-            const label = document.createElement('label'); label.className = 'option-label';
-            label.innerHTML = `<input type="radio" name="option" value="${i}" ${userAnswers[currentQIndex] === i ? 'checked' : ''}> <div>${labelHtml}</div>`;
-            label.querySelector('input').onchange = () => { userAnswers[currentQIndex] = i; saveProgress(); updatePalette(); };
+        if(labelHtml && labelHtml.trim() !== "") {
+            const isSel = userAnswers[currentQIndex] === i;
+            const label = document.createElement('label');
+            label.className = 'cbt-option-card' + (isSel ? ' selected-opt' : '');
+            label.innerHTML = `<input type="radio" name="option" value="${i}" ${isSel ? 'checked' : ''}> <div style="flex:1; font-size:15px;">${labelHtml}</div>`;
+            label.querySelector('input').onchange = () => {
+                userAnswers[currentQIndex] = i;
+                saveProgress();
+                loadQuestion();
+            };
             optContainer.appendChild(label);
         }
     });
@@ -1723,15 +1755,60 @@ function loadQuestion() {
 
 function updatePalette() {
     const buttons = document.getElementById('paletteContainer').children;
+    let cAns = 0, cNotAns = 0, cNotVis = 0, cMarked = 0;
     for (let i = 0; i < testQuestions.length; i++) {
         buttons[i].className = 'pallet-btn';
-        if (userAnswers[i] !== undefined && markedForReview[i]) buttons[i].classList.add('answered-marked');
-        else if (markedForReview[i]) buttons[i].classList.add('marked');
-        else if (userAnswers[i] !== undefined) buttons[i].classList.add('answered');
-        else if (visitedQuestions[i]) buttons[i].classList.add('not-answered');
+        if (userAnswers[i] !== undefined && markedForReview[i]) { buttons[i].classList.add('answered-marked'); cMarked++; cAns++; }
+        else if (markedForReview[i]) { buttons[i].classList.add('marked'); cMarked++; }
+        else if (userAnswers[i] !== undefined) { buttons[i].classList.add('answered'); cAns++; }
+        else if (visitedQuestions[i]) { buttons[i].classList.add('not-answered'); cNotAns++; }
+        else { cNotVis++; }
         if (i === currentQIndex) buttons[i].classList.add('active');
     }
+    if (document.getElementById('legAnswered')) document.getElementById('legAnswered').innerText = cAns;
+    if (document.getElementById('legNotAnswered')) document.getElementById('legNotAnswered').innerText = cNotAns;
+    if (document.getElementById('legNotVisited')) document.getElementById('legNotVisited').innerText = cNotVis;
+    if (document.getElementById('legMarked')) document.getElementById('legMarked').innerText = cMarked;
 }
+
+window.toggleCbtSidebar = function() {
+    const sb = document.getElementById('cbtRightSidebar');
+    const arrow = document.getElementById('cbtSidebarArrow');
+    if (!sb) return;
+    if (window.innerWidth <= 820) {
+        sb.classList.toggle('mobile-drawer-open');
+    } else {
+        sb.classList.toggle('hidden-sidebar');
+        if (arrow) arrow.textContent = sb.classList.contains('hidden-sidebar') ? '‹' : '›';
+    }
+};
+
+window.switchTestLanguageLive = function(newLang) {
+    currentTestLanguage = newLang;
+    loadQuestion();
+};
+
+window.reportCurrentQuestion = async function() {
+    const q = testQuestions[currentQIndex];
+    if (!q) return;
+    const issue = prompt(`Report Question (${q.uniqueId}):\nKya galti hai? (e.g., Wrong Answer / Typing Mistake / Translation Issue):`);
+    if (!issue || !issue.trim()) return;
+    try {
+        await addDoc(collection(db, "reported_questions"), {
+            testId: currentTestId,
+            testName: currentTestName,
+            uniqueId: q.uniqueId,
+            questionHindi: q.qH || "",
+            questionEnglish: q.qE || "",
+            issue: issue.trim(),
+            reportedBy: currentStudent.loginId || "Student",
+            timestamp: new Date().toISOString()
+        });
+        alert(`✅ Reported! Question ID (${q.uniqueId}) admin ko bhej diya gaya hai.`);
+    } catch (e) {
+        alert("Report saved locally: " + q.uniqueId);
+    }
+};
 
 window.nextQuestion = function() { saveProgress(); if (currentQIndex < testQuestions.length - 1) { currentQIndex++; loadQuestion(); } else showSubmitModal(); }
 window.prevQuestion = function() { saveProgress(); if (currentQIndex > 0) { currentQIndex--; loadQuestion(); } }
