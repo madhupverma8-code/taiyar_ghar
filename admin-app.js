@@ -347,27 +347,79 @@ window.deleteTest = async function(id) {
 };
 
 // 6. Questions Management
+let searchedQuestionsCache = {};
+
 window.searchQuestions = async function() {
-    const tid = document.getElementById('searchTestId').value.trim();
-    if (!tid) { alert("Enter Test ID"); return; }
-    const q = query(collection(db, "questions"), where("testId", "==", tid));
-    const snap = await getDocs(q);
+    const keyword = document.getElementById('searchTestId').value.trim();
+    if (!keyword) { alert("Enter Test ID or Question Unique ID (e.g., RRB001 or RRB001-Q01)"); return; }
+    
+    let snap = await getDocs(query(collection(db, "questions"), where("testId", "==", keyword)));
+    if (snap.empty) {
+        snap = await getDocs(query(collection(db, "questions"), where("uniqueId", "==", keyword)));
+    }
+
     document.getElementById('questionListContainer').style.display = 'block';
-    document.getElementById('displaySearchTestId').textContent = tid;
+    document.getElementById('displaySearchTestId').textContent = keyword;
     const tbody = document.querySelector("#questionsTable tbody");
+    searchedQuestionsCache = {};
     let html = "";
     snap.forEach(d => {
         const item = d.data();
-        html += `<tr><td>${item.uniqueId || d.id.slice(0,6)}</td><td>${item.questionHindi || item.qHindi || '-'}</td><td>${item.questionEnglish || item.qEnglish || '-'}</td><td>${item.questionMarks || item.marks || 1}</td><td><button class="btn-delete" onclick="deleteQuestion('${d.id}')">Delete</button></td></tr>`;
+        const uid = item.uniqueId || (item.testId ? `${item.testId}-Q${d.id.slice(0,4).toUpperCase()}` : d.id.slice(0,6));
+        searchedQuestionsCache[d.id] = { id: d.id, ...item, uniqueId: uid };
+        html += `<tr>
+            <td><b style="color:#4F46E5;">${uid}</b></td>
+            <td>${item.questionHindi || item.qHindi || '-'}</td>
+            <td>${item.questionEnglish || item.qEnglish || '-'}</td>
+            <td>${item.questionMarks || item.marks || 1}</td>
+            <td style="white-space:nowrap;">
+                <button class="btn-approve" onclick="editQuestion('${d.id}')">✏️ Edit</button>
+                <button class="btn-delete" onclick="deleteQuestion('${d.id}')">Delete</button>
+            </td>
+        </tr>`;
     });
-    tbody.innerHTML = html || `<tr><td colspan="5" style="text-align:center;">No questions found for ${tid}</td></tr>`;
+    tbody.innerHTML = html || `<tr><td colspan="5" style="text-align:center;">No questions found for ${keyword}</td></tr>`;
+};
+
+window.editQuestion = function(docId) {
+    const item = searchedQuestionsCache[docId];
+    if (!item) return;
+    document.getElementById('editQId').value = docId;
+    document.getElementById('qTestId').value = item.testId || '';
+    document.getElementById('qTextHindi').value = item.questionHindi || item.qHindi || '';
+    document.getElementById('qTextEnglish').value = item.questionEnglish || item.qEnglish || '';
+    const optH = item.optionsHindi || [];
+    const optE = item.optionsEnglish || [];
+    document.getElementById('qOptAHindi').value = optH[0] || '';
+    document.getElementById('qOptBHindi').value = optH[1] || '';
+    document.getElementById('qOptCHindi').value = optH[2] || '';
+    document.getElementById('qOptDHindi').value = optH[3] || '';
+    document.getElementById('qOptEHindi').value = optH[4] || '';
+    document.getElementById('qOptAEnglish').value = optE[0] || '';
+    document.getElementById('qOptBEnglish').value = optE[1] || '';
+    document.getElementById('qOptCEnglish').value = optE[2] || '';
+    document.getElementById('qOptDEnglish').value = optE[3] || '';
+    document.getElementById('qOptEEnglish').value = optE[4] || '';
+    document.getElementById('qAns').value = item.correctAnswer ?? 0;
+    document.getElementById('qMarks').value = item.questionMarks || 1;
+    document.getElementById('qNeg').value = item.questionNeg || 0;
+    document.getElementById('qExp').value = item.explanation || '';
+    const btn = document.getElementById('qBtn');
+    if (btn) {
+        btn.textContent = "✅ Update Question (" + (item.uniqueId || docId.slice(0,6)) + ")";
+        btn.style.background = "#10B981";
+    }
+    document.getElementById('qTestId').scrollIntoView({ behavior: 'smooth' });
 };
 
 window.saveQuestion = async function() {
     const testId = document.getElementById('qTestId').value.trim();
     if (!testId) { alert("Enter Test ID"); return; }
+    const editId = document.getElementById('editQId').value.trim();
+    const autoUniqueId = `${testId}-Q${Math.floor(1000 + Math.random() * 9000)}`;
     const qData = {
         testId,
+        uniqueId: editId && searchedQuestionsCache[editId] ? searchedQuestionsCache[editId].uniqueId : autoUniqueId,
         questionHindi: document.getElementById('qTextHindi').value.trim(),
         questionEnglish: document.getElementById('qTextEnglish').value.trim(),
         optionsHindi: [
@@ -389,8 +441,17 @@ window.saveQuestion = async function() {
         questionNeg: Number(document.getElementById('qNeg').value || 0),
         explanation: document.getElementById('qExp').value.trim()
     };
-    await addDoc(collection(db, "questions"), qData);
-    alert("✅ Question Added!");
+    if (editId) {
+        await updateDoc(doc(db, "questions", editId), qData);
+        document.getElementById('editQId').value = '';
+        const btn = document.getElementById('qBtn');
+        if (btn) { btn.textContent = "Add Question"; btn.style.background = ""; }
+        alert("✅ Question Updated Successfully!");
+        searchQuestions();
+    } else {
+        await addDoc(collection(db, "questions"), qData);
+        alert(`✅ Question Added! Unique ID: ${autoUniqueId}`);
+    }
 };
 
 window.deleteQuestion = async function(id) {
@@ -578,14 +639,20 @@ window.uploadQuestionsCsv = function() {
         complete: async function(results) {
             const status = document.getElementById('bulkStatus');
             if (status) status.textContent = "Uploading Questions...";
-            const promises = results.data.map(row => {
-                // Convert letter A/B/C/D or number 0/1/2/3 cleanly
+            const testCounters = {};
+            const promises = results.data.map((row) => {
+                const tid = (row.testId || "").trim();
+                testCounters[tid] = (testCounters[tid] || 0) + 1;
+                const qNumStr = String(testCounters[tid]).padStart(2, '0');
+                const autoUid = (row.uniqueId && row.uniqueId.trim()) ? row.uniqueId.trim() : `${tid}-Q${qNumStr}`;
+
                 let ans = String(row.correctAnswer || "0").trim().toUpperCase();
                 const mapAns = { "A": 0, "B": 1, "C": 2, "D": 3, "E": 4 };
                 const correctIdx = mapAns[ans] !== undefined ? mapAns[ans] : Number(ans || 0);
 
                 return addDoc(collection(db, "questions"), {
-                    testId: (row.testId || "").trim(),
+                    testId: tid,
+                    uniqueId: autoUid,
                     questionHindi: (row.questionHindi || "").trim(),
                     questionEnglish: (row.questionEnglish || "").trim(),
                     optionsHindi: [
