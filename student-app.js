@@ -20,7 +20,7 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-let allTests = [], appSettings = {}, allCA = [], allExamCategories = [];
+let allTests = [], appSettings = {}, allCA = [], allExamCategories = [], allJobUpdates = [];
 let userPastResults = {}; 
 let isDataLoaded = false;
 
@@ -53,6 +53,8 @@ let currentTestId = "", currentTestName = "", currentTestMarks = 0, currentTestN
 let isCurrentTestLive = false, currentLiveEndTime = "";
 let tabSwitchWarnings = 0;
 let isTestSubmitting = false;
+let testStartTimestamp = 0;
+let lastWarningTimestamp = 0;
 
 let pendingTestDetails = null;
 let currentResultData = null;
@@ -110,7 +112,7 @@ async function callEmailService(payload) {
 // =========================================================================
 const ALL_SCREENS = [
     'homeScreen', 'loginScreen', 'registerScreen', 'forgotPasswordScreen',
-    'dashboardScreen', 'subCatScreen', 'caScreen', 'instructionsScreen',
+    'dashboardScreen', 'subCatScreen', 'caScreen', 'updatesScreen', 'instructionsScreen',
     'testScreen', 'liveSubmittedScreen', 'resultScreen', 'solutionsScreen',
     'aboutScreen', 'contactScreen', 'privacyScreen', 'termsScreen', 'refundScreen'
 ];
@@ -148,7 +150,8 @@ function showScreen(screenId, pushHistory = true) {
             'registerScreen': '?page=register',
             'forgotPasswordScreen': '?page=reset-password',
             'dashboardScreen': '?page=dashboard',
-            'caScreen': '?page=current-affairs'
+            'caScreen': '?page=current-affairs',
+            'updatesScreen': '?page=updates'
         };
         const nextUrl = pageMap[screenId] || window.location.search;
         history.pushState({ screen: screenId }, '', nextUrl);
@@ -196,6 +199,7 @@ async function checkUrlRouting() {
             'register': 'registerScreen',
             'reset-password': 'forgotPasswordScreen',
             'current-affairs': 'caScreen',
+            'updates': 'updatesScreen',
             'dashboard': isLoggedIn ? 'dashboardScreen' : 'loginScreen'
         };
         if (routeMap[pageParam]) {
@@ -203,6 +207,8 @@ async function checkUrlRouting() {
                 goDashboard();
             } else if (routeMap[pageParam] === 'caScreen') {
                 showCurrentAffairs();
+            } else if (routeMap[pageParam] === 'updatesScreen') {
+                openUpdatesHub();
             } else {
                 showScreen(routeMap[pageParam], false);
             }
@@ -1396,20 +1402,20 @@ function showPopup(id) {
 }
 
 function handleVisibilityChange() {
-    if (document.hidden && currentScreen === 'testScreen' && !isTestSubmitting) {
+    if (document.hidden && currentScreen === 'testScreen' && !isTestSubmitting && isCurrentTestLive) {
         handleAntiCheatViolation("Tab switching or minimizing the browser window is strictly prohibited!");
     }
 }
 
 function handleWindowBlur() {
-    if (currentScreen === 'testScreen' && !isTestSubmitting && isCurrentTestLive) {
-        handleAntiCheatViolation("Focus lost! Do not switch apps or open floating windows during Live Exam.");
-    }
+    // Disabled false-positive blur triggers on laptop/mobile fullscreen transition & dialogs
 }
 
 function handleFullScreenChange() {
     if (!document.fullscreenElement && currentScreen === 'testScreen' && !isTestSubmitting && isCurrentTestLive) {
-        handleAntiCheatViolation("You exited Full-Screen mode! Live Exam must be taken in Full-Screen.");
+        if (Date.now() - testStartTimestamp > 5000) {
+            handleAntiCheatViolation("You exited Full-Screen mode! Live Exam must be taken in Full-Screen.");
+        }
     }
 }
 
@@ -1456,6 +1462,10 @@ function disableAntiCheating() {
 
 function handleAntiCheatViolation(reason) {
     if (isTestSubmitting) return;
+    const now = Date.now();
+    if (now - testStartTimestamp < 4000) return;
+    if (now - lastWarningTimestamp < 3000) return;
+    lastWarningTimestamp = now;
     tabSwitchWarnings++;
     const badge = document.getElementById('warningCounterBadge');
     if (badge) {
@@ -1549,6 +1559,8 @@ window.startActualTest = function() {
 async function initTest(testId, testName, duration, marks, negMark, hasNeg, lang, isResume, isLive = false, liveEnd = "", posMark = 1) {
     isTestSubmitting = false;
     tabSwitchWarnings = 0;
+    testStartTimestamp = Date.now();
+    lastWarningTimestamp = 0;
     isCurrentTestLive = isLive;
     currentLiveEndTime = liveEnd;
 
@@ -1935,4 +1947,76 @@ window.onload = async () => {
         }
     }
     await fetchSettingsAndTests();
+};
+
+
+// =========================================================================
+// 📢 JOBS, EXAM SYLLABUS & LATEST UPDATES HUB
+// =========================================================================
+window.openUpdatesHub = async function() {
+    showScreen('updatesScreen');
+    const container = document.getElementById('updatesContentContainer');
+    if (container) container.innerHTML = `<div style="text-align:center; padding:30px; color:#6B7280;">Loading Jobs & Exam Syllabus...</div>`;
+    try {
+        const snap = await getDocs(collection(db, "job_updates"));
+        allJobUpdates = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        allJobUpdates.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+    } catch (e) {
+        console.error("Error loading job updates:", e);
+    }
+    const defaultTab = document.querySelector('.upd-tab');
+    filterUpdates('All', defaultTab);
+};
+
+window.filterUpdates = function(categoryFilter, btn) {
+    document.querySelectorAll('.upd-tab').forEach(b => {
+        b.classList.remove('active', 'btn-primary');
+        b.classList.add('btn-outline');
+    });
+    if (btn) {
+        btn.classList.add('active', 'btn-primary');
+        btn.classList.remove('btn-outline');
+    }
+
+    const container = document.getElementById('updatesContentContainer');
+    if (!container) return;
+
+    const filtered = categoryFilter === 'All'
+        ? allJobUpdates
+        : allJobUpdates.filter(u => (u.category || '').toLowerCase() === categoryFilter.toLowerCase());
+
+    if (filtered.length === 0) {
+        container.innerHTML = `<div style="text-align:center; padding:35px; background:#ffffff; border-radius:14px; border:1px solid #E2E8F0; color:#6B7280;">No updates published in this category yet. Check back soon!</div>`;
+        return;
+    }
+
+    let html = `<div style="display:grid; gap:14px;">`;
+    filtered.forEach(u => {
+        const cat = u.category || 'Latest Job';
+        let badgeBg = '#EEF2FF', badgeColor = '#4F46E5', icon = '💼';
+        if (cat.toLowerCase().includes('syllabus')) {
+            badgeBg = '#ECFDF5'; badgeColor = '#059669'; icon = '📚';
+        } else if (cat.toLowerCase().includes('admit') || cat.toLowerCase().includes('result')) {
+            badgeBg = '#FEF3C7'; badgeColor = '#D97706'; icon = '🔔';
+        }
+
+        html += `
+            <div style="background:#ffffff; border:1px solid #E2E8F0; border-left:4px solid ${badgeColor}; border-radius:12px; padding:18px 20px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:14px; box-shadow:0 2px 8px rgba(0,0,0,0.03);">
+                <div style="flex:1; min-width:250px;">
+                    <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-bottom:6px;">
+                        <span style="background:${badgeBg}; color:${badgeColor}; font-size:11px; font-weight:700; padding:3px 10px; border-radius:20px;">${icon} ${cat}</span>
+                        ${u.exam ? `<span style="background:#F1F5F9; color:#334155; font-size:11px; font-weight:600; padding:3px 9px; border-radius:6px;">${u.exam}</span>` : ''}
+                        ${u.date ? `<span style="font-size:12px; color:#64748B; font-weight:500;">📅 ${u.date}</span>` : ''}
+                    </div>
+                    <h3 style="color:#1E1B4B; font-size:16px; margin:0 0 6px;">${u.title}</h3>
+                    ${u.description ? `<p style="font-size:13px; color:#475569; margin:0; line-height:1.55;">${u.description}</p>` : ''}
+                </div>
+                <div>
+                    ${u.link ? `<a href="${u.link}" target="_blank" rel="noopener" class="btn btn-primary" style="text-decoration:none; font-size:13px; padding:9px 16px;">View / Download →</a>` : ''}
+                </div>
+            </div>
+        `;
+    });
+    html += `</div>`;
+    container.innerHTML = html;
 };
