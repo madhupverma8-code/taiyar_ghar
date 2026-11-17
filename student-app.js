@@ -1430,7 +1430,13 @@ function handleWindowBlur() {
     // Disabled false-positive blur triggers on laptop/mobile fullscreen transition & dialogs
 }
 
+function updateFullScreenButtonLabel() {
+    const lbl = document.getElementById('fsBtnText');
+    if (lbl) lbl.innerText = document.fullscreenElement ? "Exit Full Screen" : "Full Screen";
+}
+
 function handleFullScreenChange() {
+    updateFullScreenButtonLabel();
     if (!document.fullscreenElement && currentScreen === 'testScreen' && !isTestSubmitting && isCurrentTestLive) {
         if (Date.now() - testStartTimestamp > 5000) {
             handleAntiCheatViolation("You exited Full-Screen mode! Live Exam must be taken in Full-Screen.");
@@ -1557,7 +1563,7 @@ window.startActualTest = function() {
     if(selectedLang === "Both") selectedLang = document.getElementById('instLangSelect').value;
     
     try {
-        if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(() => {});
+        if (!document.fullscreenElement) document.documentElement.requestFullscreen().then(updateFullScreenButtonLabel).catch(() => {});
     } catch(e) {}
 
     initTest(
@@ -1680,10 +1686,16 @@ async function initTest(testId, testName, duration, marks, negMark, hasNeg, lang
     }
 }
 
+let saveProgressTimer = null;
 function saveProgress() {
     if (!isCurrentTestLive && isLoggedIn && currentStudent.loginId) {
-        const resumeKey = 'tg_resume_' + currentStudent.loginId + '_' + currentTestId;
-        localStorage.setItem(resumeKey, JSON.stringify({ testQuestions, userAnswers, markedForReview, visitedQuestions, timeLeft, currentQIndex }));
+        clearTimeout(saveProgressTimer);
+        saveProgressTimer = setTimeout(() => {
+            const resumeKey = 'tg_resume_' + currentStudent.loginId + '_' + currentTestId;
+            try {
+                localStorage.setItem(resumeKey, JSON.stringify({ testQuestions, userAnswers, markedForReview, visitedQuestions, timeLeft, currentQIndex }));
+            } catch (e) {}
+        }, 400);
     }
 }
 
@@ -1700,6 +1712,8 @@ function startTimer() {
 
 function loadQuestion() {
     const q = testQuestions[currentQIndex]; visitedQuestions[currentQIndex] = true;
+    const scrollBox = document.getElementById('cbtQuestionScrollBox');
+    if (scrollBox) scrollBox.scrollTop = 0;
     document.getElementById('currentQNum').innerText = currentQIndex + 1;
     
     document.getElementById('markPositive').innerText = q.marks || currentTestPosMark;
@@ -1736,8 +1750,10 @@ function loadQuestion() {
             label.innerHTML = `<input type="radio" name="option" value="${i}" ${isSel ? 'checked' : ''}> <div style="flex:1; font-size:15px;">${labelHtml}</div>`;
             label.querySelector('input').onchange = () => {
                 userAnswers[currentQIndex] = i;
+                optContainer.querySelectorAll('.cbt-option-card').forEach(c => c.classList.remove('selected-opt'));
+                label.classList.add('selected-opt');
                 saveProgress();
-                loadQuestion();
+                updatePalette();
             };
             optContainer.appendChild(label);
         }
@@ -1774,12 +1790,19 @@ function updatePalette() {
 window.toggleCbtSidebar = function() {
     const sb = document.getElementById('cbtRightSidebar');
     const arrow = document.getElementById('cbtSidebarArrow');
+    const btnText = document.getElementById('paletteBtnText');
+    const topBtn = document.getElementById('btnTogglePaletteTop');
     if (!sb) return;
     if (window.innerWidth <= 820) {
         sb.classList.toggle('mobile-drawer-open');
+        const isOpen = sb.classList.contains('mobile-drawer-open');
+        if (btnText) btnText.innerText = isOpen ? 'Hide Palette' : 'Show Palette';
     } else {
         sb.classList.toggle('hidden-sidebar');
-        if (arrow) arrow.textContent = sb.classList.contains('hidden-sidebar') ? '‹' : '›';
+        const isHidden = sb.classList.contains('hidden-sidebar');
+        if (arrow) arrow.textContent = isHidden ? '‹' : '›';
+        if (btnText) btnText.innerText = isHidden ? 'Show Palette' : 'Hide Palette';
+        if (topBtn) topBtn.classList.toggle('active-pill', !isHidden);
     }
 };
 
@@ -1814,7 +1837,13 @@ window.nextQuestion = function() { saveProgress(); if (currentQIndex < testQuest
 window.prevQuestion = function() { saveProgress(); if (currentQIndex > 0) { currentQIndex--; loadQuestion(); } }
 window.toggleMark = function() { markedForReview[currentQIndex] = !markedForReview[currentQIndex]; saveProgress(); loadQuestion(); }
 window.clearResponse = function() { delete userAnswers[currentQIndex]; saveProgress(); loadQuestion(); }
-window.toggleFullScreen = function() { if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(()=>{}); else if (document.exitFullscreen) document.exitFullscreen().catch(()=>{}); }
+window.toggleFullScreen = function() {
+    if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().then(updateFullScreenButtonLabel).catch(() => {});
+    } else if (document.exitFullscreen) {
+        document.exitFullscreen().then(updateFullScreenButtonLabel).catch(() => {});
+    }
+};
 
 window.showSubmitModal = function() {
     let answered = 0, notAnswered = 0, marked = 0, notVisited = 0;
