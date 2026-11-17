@@ -124,6 +124,7 @@ window.openTab = function(tabId, btn) {
         else if (tabId === 'tabTests') loadTests();
         else if (tabId === 'tabResults') loadResults();
         else if (tabId === 'tabCA') loadCA();
+        else if (tabId === 'tabUpdates') loadJobUpdates();
     }
 };
 
@@ -693,4 +694,90 @@ window.downloadTestQuestions = async function() {
         "optAEnglish", "optBEnglish", "optCEnglish", "optDEnglish",
         "correctAnswer", "questionMarks", "questionNeg", "explanation"
     ], rows);
+};
+
+
+// =========================================================================
+// 8B. JOBS, EXAM SYLLABUS & UPDATES MANAGEMENT
+// =========================================================================
+window.loadJobUpdates = async function() {
+    try {
+        const snap = await getDocs(collection(db, "job_updates"));
+        const tbody = document.querySelector("#updatesTable tbody");
+        if (!tbody) return;
+        if (snap.empty) {
+            tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;">No Jobs or Syllabus updates published yet</td></tr>`;
+            return;
+        }
+        let html = "";
+        snap.forEach(d => {
+            const u = d.data();
+            html += `<tr>
+                <td><b>${u.category || 'Latest Job'}</b></td>
+                <td>${u.exam || '-'}</td>
+                <td>${u.title || '-'}</td>
+                <td>${u.date || '-'}</td>
+                <td>${u.link ? `<a href="${u.link}" target="_blank">Open Link</a>` : '-'}</td>
+                <td><button class="btn-delete" onclick="deleteJobUpdate('${d.id}')">Delete</button></td>
+            </tr>`;
+        });
+        tbody.innerHTML = html;
+    } catch (e) { console.error("Job updates load error:", e); }
+};
+
+window.saveJobUpdate = async function() {
+    const title = document.getElementById('updTitle').value.trim();
+    if (!title) { alert("Please enter Title!"); return; }
+    await addDoc(collection(db, "job_updates"), {
+        category: document.getElementById('updCategory').value,
+        exam: document.getElementById('updExam').value.trim(),
+        date: document.getElementById('updDate').value.trim(),
+        title,
+        link: document.getElementById('updLink').value.trim(),
+        description: document.getElementById('updDesc').value.trim(),
+        createdAt: new Date().toISOString()
+    });
+    document.getElementById('updTitle').value = '';
+    document.getElementById('updLink').value = '';
+    document.getElementById('updDesc').value = '';
+    alert("✅ Job / Syllabus Update Published!");
+    loadJobUpdates();
+};
+
+window.deleteJobUpdate = async function(id) {
+    if (confirm("Delete this update?")) {
+        await deleteDoc(doc(db, "job_updates", id));
+        loadJobUpdates();
+    }
+};
+
+window.downloadUpdatesTemplate = function() {
+    const headers = ["category", "exam", "title", "date", "link", "description"];
+    const rows = [
+        ["Syllabus", "RRB Group D", "RRB Group D 2026 Complete Syllabus & Exam Pattern", "Updated 2026", "https://taiyarighar.in", "General Science 25 Qs, Maths 25 Qs, Reasoning 30 Qs, GA/CA 20 Qs"],
+        ["Latest Job", "UP Police", "UP Police Constable New Recruitment Notification", "Last Date: 15 Dec 2026", "https://uppbpb.gov.in", "Complete eligibility, age limit, and selection process details"]
+    ];
+    triggerCsvDownload("TaiyariGhar_Jobs_Syllabus_Template.csv", headers, rows);
+};
+
+window.uploadUpdatesCsv = function() {
+    const file = document.getElementById('updatesCsvFile').files[0];
+    if (!file) { alert("Select CSV file first!"); return; }
+    Papa.parse(file, {
+        header: true, skipEmptyLines: true,
+        complete: async function(results) {
+            const promises = results.data.map(row => addDoc(collection(db, "job_updates"), {
+                category: (row.category || "Latest Job").trim(),
+                exam: (row.exam || "").trim(),
+                title: (row.title || "").trim(),
+                date: (row.date || "").trim(),
+                link: (row.link || "").trim(),
+                description: (row.description || "").trim(),
+                createdAt: new Date().toISOString()
+            }));
+            await Promise.all(promises);
+            alert(`✅ ${results.data.length} Updates Uploaded!`);
+            loadJobUpdates();
+        }
+    });
 };
