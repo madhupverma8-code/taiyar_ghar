@@ -190,6 +190,7 @@ window.loadStudents = async function() {
                 <td>
                     <button class="btn-approve" onclick="makePro('${d.id}')">Make Pro</button>
                     <button class="btn-unpaid" onclick="makeFree('${d.id}')">Free</button>
+                    <button style="background:#4F46E5; color:white; border:none; padding:6px 10px; border-radius:5px; cursor:pointer; font-size:11px; margin-top:3px;" onclick="resetStudentDevices('${d.id}')">🔄 Reset Devices</button>
                 </td>
             </tr>`;
         });
@@ -203,6 +204,15 @@ window.makePro = async function(id) {
     await updateDoc(doc(db, "students", id), { isPaid: true, expiryDate: exp.toISOString().split('T')[0] });
     alert("✅ Upgraded to Pro!");
     loadStudents();
+};
+
+
+window.resetStudentDevices = async function(id) {
+    if (confirm("Reset registered devices for this student to 0/2?")) {
+        await updateDoc(doc(db, "students", id), { device1: "", device2: "" });
+        alert("✅ Devices Reset to 0/2!");
+        loadStudents();
+    }
 };
 
 window.makeFree = async function(id) {
