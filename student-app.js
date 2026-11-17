@@ -163,7 +163,7 @@ window.openInfoSection = function(sectionId) {
 };
 
 window.onpopstate = function(event) {
-    if (currentScreen === 'testScreen') {
+    if (currentScreen === 'testScreen' && !isTestSubmitting && testQuestions.length > 0) {
         history.pushState({ screen: 'testScreen' }, '', window.location.search);
         if (isCurrentTestLive) {
             handleAntiCheatViolation("Back button navigation is strictly blocked during Live Exam!");
@@ -1640,8 +1640,22 @@ async function initTest(testId, testName, duration, marks, negMark, hasNeg, lang
             });
 
             loadQuestion(); startTimer();
-        } else { alert("No questions found for this test!"); history.back(); }
-    } catch (e) { console.error(e); alert("Failed to load test!"); history.back(); }
+        } else { 
+            isTestSubmitting = true;
+            disableAntiCheating();
+            if (document.fullscreenElement) { try { document.exitFullscreen().catch(() => {}); } catch(e) {} }
+            alert("⚠️ No questions found for Test ID: " + testId + ". Please check Test ID in Admin Panel."); 
+            goDashboard(); 
+            return;
+        }
+    } catch (e) { 
+        console.error(e); 
+        isTestSubmitting = true;
+        disableAntiCheating();
+        if (document.fullscreenElement) { try { document.exitFullscreen().catch(() => {}); } catch(e) {} }
+        alert("Failed to load test: " + e.message); 
+        goDashboard(); 
+    }
 }
 
 function saveProgress() {
