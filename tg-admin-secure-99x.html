@@ -77,6 +77,7 @@
             <button class="tab-btn" onclick="openTab('tabQuestions', this)">❓ Questions</button>
             <button class="tab-btn" onclick="openTab('tabResults', this)">📊 Results</button>
             <button class="tab-btn" onclick="openTab('tabCA', this)">📰 Current Affairs</button>
+            <button class="tab-btn" onclick="openTab('tabUpdates', this)">📢 Jobs & Syllabus</button>
             <button class="tab-btn" onclick="openTab('tabUpload', this)">🚀 Bulk Upload</button>
         </div>
 
@@ -286,6 +287,54 @@
                 </div>
             </div>
 
+            <!-- TAB 7B: Jobs, Syllabus & Updates -->
+            <div id="tabUpdates" class="section">
+                <h2 class="title">Manage Jobs, Exam Syllabus & Updates</h2>
+                <div class="row">
+                    <div>
+                        <label style="font-size:12px; font-weight:600;">Category</label>
+                        <select id="updCategory">
+                            <option value="Latest Job">💼 Latest Job Notification</option>
+                            <option value="Syllabus">📚 Exam Syllabus & Pattern</option>
+                            <option value="Admit Card / Result">🔔 Admit Card / Result / Update</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label style="font-size:12px; font-weight:600;">Exam / Department Name</label>
+                        <input type="text" id="updExam" placeholder="e.g., RRB Group D / SSC CGL / UP Police">
+                    </div>
+                    <div>
+                        <label style="font-size:12px; font-weight:600;">Publish / Last Date</label>
+                        <input type="text" id="updDate" placeholder="e.g., Last Date: 30 Nov 2026">
+                    </div>
+                </div>
+                <div class="row">
+                    <div style="flex:2;">
+                        <input type="text" id="updTitle" placeholder="Post Title (e.g., RRB Group D 2026 Complete Syllabus & Exam Pattern PDF)">
+                    </div>
+                    <div style="flex:1;">
+                        <input type="url" id="updLink" placeholder="Official Notification / PDF Link (https://...)">
+                    </div>
+                </div>
+                <div>
+                    <textarea id="updDesc" rows="3" placeholder="Short details, eligibility, vacancy count, or syllabus highlights..."></textarea>
+                </div>
+                <button class="save-btn" onclick="saveJobUpdate()">Publish Job / Syllabus Update</button>
+
+                <div class="row" style="margin-top: 10px; background: #f8fafc; padding: 15px; border-radius: 8px; border: 1px dashed #cbd5e1;">
+                    <div style="flex: 2;"><input type="file" id="updatesCsvFile" accept=".csv" style="margin-bottom:0; background:white;"></div>
+                    <div style="flex: 1;"><button class="save-btn" style="background:var(--purple); margin-bottom:0;" onclick="uploadUpdatesCsv()">Bulk Upload Updates</button></div>
+                    <div style="flex: 1;"><button onclick="downloadUpdatesTemplate()" style="background:none; border:1px solid var(--purple); color:var(--purple); padding:10px; border-radius:8px; cursor:pointer; font-size:13px; width:100%; font-weight:600;">📥 Download Template</button></div>
+                </div>
+
+                <div class="table-wrapper">
+                    <table id="updatesTable">
+                        <thead><tr><th>Category</th><th>Exam</th><th>Title</th><th>Date / Last Date</th><th>Link</th><th>Action</th></tr></thead>
+                        <tbody><tr><td colspan="6" style="text-align:center;">Loading...</td></tr></tbody>
+                    </table>
+                </div>
+            </div>
+
             <!-- TAB 8: Bulk Upload -->
             <div id="tabUpload" class="section">
                 <h2 class="title">Bulk Upload (CSV)</h2>
@@ -317,6 +366,6 @@
         </div>
     </div>
 
-    <script type="module" src="admin-app.js?v=20261115"></script>
+    <script type="module" src="admin-app.js?v=20261118"></script>
 </body>
 </html>
