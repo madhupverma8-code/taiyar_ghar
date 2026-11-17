@@ -142,6 +142,7 @@
             <a href="javascript:void(0)" onclick="scrollToCategories()" data-translate="nav_exams">All Exams</a>
             <a href="javascript:void(0)" onclick="openLiveTestsHub()" style="color:#DC2626; font-weight:700;"><span class="live-dot-nav"></span> Live Tests</a>
             <a href="javascript:void(0)" onclick="showCurrentAffairs()" data-translate="nav_ca">Current Affairs</a>
+            <a href="javascript:void(0)" onclick="openUpdatesHub()" style="color:#4F46E5; font-weight:700;">📢 Jobs & Syllabus</a>
             <a href="javascript:void(0)" onclick="openInfoSection('aboutScreen')">About Us</a>
             <a href="javascript:void(0)" onclick="openInfoSection('contactScreen')">Contact Us</a>
         </nav>
@@ -523,6 +524,24 @@
         <div id="caContentContainer"></div>
     </div>
 
+    <!-- JOBS, SYLLABUS & UPDATES SCREEN -->
+    <div id="updatesScreen" class="hide container" style="padding:30px 5%; max-width:1050px; margin:0 auto;">
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; margin-bottom:20px;">
+            <div>
+                <h2 style="color:#1E1B4B; margin:0; font-size:24px;">📢 Govt Jobs, Exam Syllabus & Latest Updates</h2>
+                <p style="font-size:13px; color:#6B7280; margin-top:4px;">Official Notifications, Complete Syllabus PDFs, Admit Cards & Results</p>
+            </div>
+            <button class="btn btn-outline" onclick="goHome()">← Back to Home</button>
+        </div>
+        <div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:22px;">
+            <button class="upd-tab active btn btn-primary" onclick="filterUpdates('All', this)">All Updates</button>
+            <button class="upd-tab btn btn-outline" onclick="filterUpdates('Latest Job', this)">💼 Latest Jobs</button>
+            <button class="upd-tab btn btn-outline" onclick="filterUpdates('Syllabus', this)">📚 Exam Syllabus</button>
+            <button class="upd-tab btn btn-outline" onclick="filterUpdates('Admit Card / Result', this)">🔔 Admit Card & Updates</button>
+        </div>
+        <div id="updatesContentContainer"></div>
+    </div>
+
     <!-- INSTRUCTIONS SCREEN -->
     <div id="instructionsScreen" class="hide container" style="max-width:750px; margin:30px auto; background:white; padding:30px; border-radius:14px; box-shadow:0 6px 25px rgba(0,0,0,0.06);">
         <span id="instLiveBadge" class="hide" style="background:#FEE2E2; color:#DC2626; padding:4px 12px; border-radius:20px; font-size:12px; font-weight:700;">🔴 ALL-INDIA LIVE EXAM</span>
@@ -720,7 +739,14 @@
         <div style="max-width:1200px; margin:0 auto; display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:30px; margin-bottom:30px;">
             <div>
                 <h3 style="color:#ffffff; margin-bottom:10px;">TaiyariGhar</h3>
-                <p style="font-size:13px; line-height:1.6;">India's modern exam preparation and mock test platform for SSC, Railway, Banking, UP Police, and State Government Exams.</p>
+                <p style="font-size:13px; line-height:1.6; margin-bottom:14px;">India's modern exam preparation and mock test platform for SSC, Railway, Banking, UP Police, and State Government Exams.</p>
+                <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                    <a href="https://t.me/taiyarighar" target="_blank" rel="noopener" style="background:#0088cc; color:#fff; padding:6px 11px; border-radius:8px; font-size:12px; font-weight:600; text-decoration:none;">✈️ Telegram</a>
+                    <a href="https://whatsapp.com/channel/0029Vb9IvdC1yT2EG3s1BV3q" target="_blank" rel="noopener" style="background:#25D366; color:#fff; padding:6px 11px; border-radius:8px; font-size:12px; font-weight:600; text-decoration:none;">💬 WhatsApp</a>
+                    <a href="https://youtube.com/@taiyarigharofficial" target="_blank" rel="noopener" style="background:#FF0000; color:#fff; padding:6px 11px; border-radius:8px; font-size:12px; font-weight:600; text-decoration:none;">▶️ YouTube</a>
+                    <a href="https://www.instagram.com/taiyarighar_official" target="_blank" rel="noopener" style="background:#E1306C; color:#fff; padding:6px 11px; border-radius:8px; font-size:12px; font-weight:600; text-decoration:none;">📸 Instagram</a>
+                    <a href="https://www.facebook.com/profile.php?id=61596620462613" target="_blank" rel="noopener" style="background:#1877F2; color:#fff; padding:6px 11px; border-radius:8px; font-size:12px; font-weight:600; text-decoration:none;">📘 Facebook</a>
+                </div>
             </div>
             <div>
                 <h4 style="color:#ffffff; margin-bottom:10px;">Quick Links</h4>
@@ -740,7 +766,7 @@
             </div>
             <div>
                 <h4 style="color:#ffffff; margin-bottom:10px;">Official Support</h4>
-                <p style="font-size:13px; line-height:1.8;">📧 support@taiyarighar.in<br>📧 info@taiyarighar.in<br>🌐 www.taiyarighar.in</p>
+                <p style="font-size:13px; line-height:1.8;">📧 support@taiyarighar.in<br>📧 taiyarighar@gmail.com<br>📲 WhatsApp Help: +91 9140281870<br>🌐 www.taiyarighar.in</p>
             </div>
         </div>
         <div style="text-align:center; border-top:1px solid rgba(255,255,255,0.1); padding-top:20px; font-size:12px;">
@@ -760,6 +786,6 @@
         };
     </script>
 
-    <script type="module" src="student-app.js?v=10.0"></script>
+    <script type="module" src="student-app.js?v=11.0"></script>
 </body>
 </html>
