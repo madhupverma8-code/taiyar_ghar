@@ -331,7 +331,9 @@ window.saveTest = async function() {
         negativeMark: Number(document.getElementById('tNegMark').value || 0),
         isFree: document.getElementById('tFree').value,
         isLive: document.getElementById('tIsLive').value,
-        liveReleaseTime: document.getElementById('tLiveReleaseTime').value.trim()
+        liveStart: document.getElementById('tLiveStart') ? document.getElementById('tLiveStart').value : "",
+        liveEnd: document.getElementById('tLiveEnd') ? document.getElementById('tLiveEnd').value : "",
+        liveReleaseTime: document.getElementById('tLiveEnd') && document.getElementById('tLiveEnd').value ? document.getElementById('tLiveEnd').value : "12:00 AM"
     };
 
     await addDoc(collection(db, "tests"), testData);
@@ -541,9 +543,9 @@ window.downloadCategoriesTemplate = function() {
 };
 
 window.downloadTestsTemplate = function() {
-    const headers = ["testId", "mainCat", "subCat", "examName", "testName", "duration", "marks", "totalQs", "language", "hasNegative", "negativeMark", "isFree", "isLive", "liveReleaseTime"];
+    const headers = ["testId", "mainCat", "subCat", "examName", "testName", "duration", "marks", "totalQs", "language", "hasNegative", "negativeMark", "isFree", "isLive", "liveStart", "liveEnd"];
     const rows = [
-        ["RRB001", "Railway Exams", "RRB Group D", "Full Length Mock", "RRB Group D Mock Test 01", "90", "100", "100", "Both", "Yes", "0.33", "Yes", "No", "12:00 AM"]
+        ["RRB001", "Railway Exams", "RRB Group D", "Full Length Mock", "RRB Group D Mock Test 01", "90", "100", "100", "Both", "Yes", "0.33", "Yes", "No", "", ""]
     ];
     triggerCsvDownload("TaiyariGhar_Tests_Template.csv", headers, rows);
 };
@@ -621,7 +623,9 @@ window.uploadTestsCsv = function() {
                 negativeMark: Number(row.negativeMark || 0),
                 isFree: (row.isFree || "Yes").trim(),
                 isLive: (row.isLive || "No").trim(),
-                liveReleaseTime: (row.liveReleaseTime || "12:00 AM").trim()
+                liveStart: (row.liveStart || "").trim(),
+                liveEnd: (row.liveEnd || "").trim(),
+                liveReleaseTime: (row.liveEnd || row.liveReleaseTime || "12:00 AM").trim()
             }));
             await Promise.all(promises);
             if (status) status.textContent = `✅ ${results.data.length} Tests Uploaded Successfully!`;
@@ -857,4 +861,79 @@ window.uploadUpdatesCsv = function() {
             loadJobUpdates();
         }
     });
+};
+
+
+const APPS_SCRIPT_MAILER_URL = "https://script.google.com/macros/s/AKfycbxvoU_mH8BjfE7QdC_UOQyzDfmJsUoVcIvq9Kp3VtXutzYTFRFY0vXpzw6Uv2XAjnng5Q/exec";
+
+window.releaseLiveResultsAndSendEmails = async function() {
+    if (!confirm("Kya aap sabhi pending Live Tests ke results unlock karke students ko Scorecard & All-India Rank email bhejna chahte hain?")) return;
+    const loadingEl = document.getElementById('loading');
+    if (loadingEl) loadingEl.style.display = 'flex';
+
+    try {
+        const resSnap = await getDocs(collection(db, "results"));
+        const allDocs = resSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+        // Group results by testId to compute All-India Rank
+        const byTest = {};
+        allDocs.forEach(r => {
+            if (!r.testId) return;
+            if (!byTest[r.testId]) byTest[r.testId] = [];
+            byTest[r.testId].push(r);
+        });
+
+        Object.keys(byTest).forEach(tid => {
+            byTest[tid].sort((a, b) => parseFloat(b.finalScore || 0) - parseFloat(a.finalScore || 0));
+        });
+
+        let releasedCount = 0;
+        for (const r of allDocs) {
+            if (r.isLivePending === true || r.emailResultSent === false) {
+                const testRankList = byTest[r.testId] || [];
+                const rankIndex = testRankList.findIndex(item => item.id === r.id);
+                const rank = rankIndex !== -1 ? rankIndex + 1 : 1;
+                const totalStudents = testRankList.length || 1;
+
+                // Unlock on Student Dashboard
+                await updateDoc(doc(db, "results", r.id), {
+                    isLivePending: false,
+                    emailResultSent: true,
+                    allIndiaRank: rank,
+                    totalParticipants: totalStudents
+                });
+
+                // Dispatch Email via Google Apps Script if studentEmail is present
+                if (r.studentEmail && r.studentEmail.includes("@")) {
+                    fetch(APPS_SCRIPT_MAILER_URL, {
+                        method: "POST",
+                        headers: { "Content-Type": "text/plain;charset=utf-8" },
+                        body: JSON.stringify({
+                            action: "send_live_result",
+                            email: r.studentEmail,
+                            studentName: r.studentName || "Aspirant",
+                            loginId: r.loginId || "",
+                            testName: r.testName || "All-India Live Exam",
+                            finalScore: r.finalScore || "0",
+                            totalMarks: r.totalMarks || "100",
+                            percent: r.percent || "0",
+                            correctCount: r.correctCount || 0,
+                            wrongCount: r.wrongCount || 0,
+                            negDeducted: r.negDeducted || "0",
+                            rank: rank,
+                            totalStudents: totalStudents
+                        })
+                    }).catch(err => console.error("Email send error:", err));
+                }
+                releasedCount++;
+            }
+        }
+
+        if (loadingEl) loadingEl.style.display = 'none';
+        alert(`✅ ${releasedCount} Live Test Results released & Scorecard emails dispatched!`);
+        loadResults();
+    } catch (e) {
+        if (loadingEl) loadingEl.style.display = 'none';
+        alert("❌ Error releasing live results: " + e.message);
+    }
 };
