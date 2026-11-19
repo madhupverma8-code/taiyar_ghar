@@ -564,6 +564,76 @@ function startSingleSessionWatcher() {
     }, 20000);
 }
 
+window.openDirectGmailModal = function(prefillEmail = "", prefillName = "") {
+    if (document.getElementById('directGmailInput')) document.getElementById('directGmailInput').value = prefillEmail;
+    if (document.getElementById('directGmailNameInput')) document.getElementById('directGmailNameInput').value = prefillName;
+    const m = document.getElementById('directGmailModal');
+    if (m) m.classList.remove('hide');
+};
+
+window.closeDirectGmailModal = function() {
+    const m = document.getElementById('directGmailModal');
+    if (m) m.classList.add('hide');
+};
+
+window.continueWithDirectGmail = async function() {
+    const gEmail = (document.getElementById('directGmailInput')?.value || "").trim().toLowerCase();
+    const gNameInput = (document.getElementById('directGmailNameInput')?.value || "").trim();
+    if (!gEmail || !gEmail.includes("@")) return alert("Please enter a valid Gmail address!");
+
+    const gName = gNameInput || gEmail.split('@')[0];
+    closeDirectGmailModal();
+    resetSessionMemory();
+
+    try {
+        const snap = await getDocs(query(collection(db, "students"), where("email", "==", gEmail)));
+        if (!snap.empty) {
+            await finalizeStudentLoginSession(snap.docs[0]);
+            return;
+        }
+
+        const allStudentsSnap = await getDocs(collection(db, "students"));
+        let maxNum = 0;
+        allStudentsSnap.forEach(d => {
+            let lid = d.data().loginId;
+            if (lid && lid.startsWith("TG")) {
+                let num = parseInt(lid.replace("TG", ""), 10);
+                if (!isNaN(num) && num > maxNum) maxNum = num;
+            }
+        });
+        const newId = "TG" + String(maxNum + 1).padStart(4, '0');
+
+        const newDocRef = await addDoc(collection(db, "students"), {
+            name: gName,
+            email: gEmail,
+            mobile: "",
+            loginId: newId,
+            password: "",
+            authProvider: "gmail_direct",
+            isPaid: false,
+            expiryDate: "",
+            createdAt: new Date().toISOString(),
+            device1: getDeviceId(),
+            device2: ""
+        });
+
+        callEmailService({
+            action: "welcome",
+            email: gEmail,
+            name: gName,
+            studentId: newId,
+            mobile: "Direct Gmail",
+            password: "No password required (Direct Gmail Sign-In)"
+        });
+
+        const createdSnap = await getDoc(newDocRef);
+        await finalizeStudentLoginSession(createdSnap);
+    } catch (e) {
+        console.error("Direct Gmail Error:", e);
+        alert("❌ Error: " + e.message);
+    }
+};
+
 window.loginWithGoogle = async function() {
     try {
         const result = await signInWithPopup(auth, googleProvider);
@@ -620,8 +690,8 @@ window.loginWithGoogle = async function() {
         const createdSnap = await getDoc(newDocRef);
         await finalizeStudentLoginSession(createdSnap);
     } catch (e) {
-        console.error("Google Sign-In Error:", e);
-        alert("❌ Google Sign-In Error: " + e.message);
+        console.warn("Firebase Google Auth fallback triggered:", e && e.code ? e.code : e);
+        openDirectGmailModal();
     }
 };
 
