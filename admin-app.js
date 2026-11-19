@@ -120,11 +120,7 @@ window.openTab = function(tabId, btn) {
 
     if (!loadedTabs[tabId]) {
         loadedTabs[tabId] = true;
-        if (tabId === 'tabStudents') loadStudents();
-        else if (tabId === 'tabTests') loadTests();
-        else if (tabId === 'tabResults') loadResults();
-        else if (tabId === 'tabCA') loadCA();
-        else if (tabId === 'tabUpdates') loadJobUpdates();
+        if (tabId === 'tabReports') loadReportedQuestions();
     }
 };
 
@@ -233,7 +229,7 @@ window.loadCategories = async function() {
             allCategoriesData.push(c);
             html += `<tr><td>${c.mainCat}</td><td>${c.subCat}</td><td>${c.examName}</td><td><button class="btn-delete" onclick="deleteCat('${d.id}')">Delete</button></td></tr>`;
         });
-        tbody.innerHTML = html || `<tr><td colspan="4" style="text-align:center;">No categories found</td></tr>`;
+        if (tbody) tbody.innerHTML = html || `<tr><td colspan="4" style="text-align:center;">No categories found</td></tr>`;
         
         const mainSelect = document.getElementById('tMain');
         if (mainSelect) {
@@ -936,4 +932,246 @@ window.releaseLiveResultsAndSendEmails = async function() {
         if (loadingEl) loadingEl.style.display = 'none';
         alert("❌ Error releasing live results: " + e.message);
     }
+};
+
+
+// =========================================================================
+// 12. ADMIN SEARCH, COLLAPSIBLE TABLES, PDF BULK EXPORT & REPORTED QUESTIONS
+// =========================================================================
+let cachedAdminLists = { students: [], categories: [], tests: [], results: [], ca: [], updates: [], reports: [] };
+
+window.toggleAdminTable = async function(wrapId, btn, loaderFn) {
+    const wrap = document.getElementById(wrapId);
+    if (!wrap) return;
+    if (wrap.style.display === 'none') {
+        wrap.style.display = 'block';
+        if (btn) btn.textContent = '🙈 Hide List';
+        if (typeof loaderFn === 'function') await loaderFn();
+    } else {
+        wrap.style.display = 'none';
+        if (btn) btn.textContent = '👁️ Show All';
+    }
+};
+
+window.filterAdminTable = async function(type) {
+    if (type === 'students') {
+        const wrap = document.getElementById('studentsTableWrap');
+        if (wrap && wrap.style.display === 'none') { wrap.style.display = 'block'; await loadStudents(); }
+        const q = (document.getElementById('searchStudentInput')?.value || '').toLowerCase();
+        document.querySelectorAll('#studentsTable tbody tr').forEach(tr => {
+            tr.style.display = tr.innerText.toLowerCase().includes(q) ? '' : 'none';
+        });
+    } else if (type === 'categories') {
+        const wrap = document.getElementById('categoriesTableWrap');
+        if (wrap && wrap.style.display === 'none') { wrap.style.display = 'block'; await loadCategories(); }
+        const q = (document.getElementById('searchCatInput')?.value || '').toLowerCase();
+        document.querySelectorAll('#categoriesTable tbody tr').forEach(tr => {
+            tr.style.display = tr.innerText.toLowerCase().includes(q) ? '' : 'none';
+        });
+    } else if (type === 'tests') {
+        const wrap = document.getElementById('testsTableWrap');
+        if (wrap && wrap.style.display === 'none') { wrap.style.display = 'block'; await loadTests(); }
+        const q = (document.getElementById('searchTestListInput')?.value || '').toLowerCase();
+        document.querySelectorAll('#testsTable tbody tr').forEach(tr => {
+            tr.style.display = tr.innerText.toLowerCase().includes(q) ? '' : 'none';
+        });
+    } else if (type === 'results') {
+        const wrap = document.getElementById('resultsTableWrap');
+        if (wrap && wrap.style.display === 'none') { wrap.style.display = 'block'; await loadResults(); }
+        const q = (document.getElementById('searchResultInput')?.value || '').toLowerCase();
+        document.querySelectorAll('#resultsTable tbody tr').forEach(tr => {
+            tr.style.display = tr.innerText.toLowerCase().includes(q) ? '' : 'none';
+        });
+    } else if (type === 'ca') {
+        const wrap = document.getElementById('caTableWrap');
+        if (wrap && wrap.style.display === 'none') { wrap.style.display = 'block'; await loadCA(); }
+        const q = (document.getElementById('searchCaInput')?.value || '').toLowerCase();
+        document.querySelectorAll('#caTable tbody tr').forEach(tr => {
+            tr.style.display = tr.innerText.toLowerCase().includes(q) ? '' : 'none';
+        });
+    } else if (type === 'updates') {
+        const wrap = document.getElementById('updatesTableWrap');
+        if (wrap && wrap.style.display === 'none') { wrap.style.display = 'block'; await loadJobUpdates(); }
+        const q = (document.getElementById('searchUpdInput')?.value || '').toLowerCase();
+        document.querySelectorAll('#updatesTable tbody tr').forEach(tr => {
+            tr.style.display = tr.innerText.toLowerCase().includes(q) ? '' : 'none';
+        });
+    } else if (type === 'reports') {
+        const q = (document.getElementById('searchReportInput')?.value || '').toLowerCase();
+        document.querySelectorAll('#reportsTable tbody tr').forEach(tr => {
+            tr.style.display = tr.innerText.toLowerCase().includes(q) ? '' : 'none';
+        });
+    }
+};
+
+window.exportTableToPdf = async function(wrapId, titleText) {
+    const wrap = document.getElementById(wrapId);
+    if (!wrap) return;
+    // Ensure data is loaded before printing PDF
+    if (wrapId === 'studentsTableWrap' && !document.querySelector('#studentsTable tbody tr')) await loadStudents();
+    if (wrapId === 'categoriesTableWrap' && !document.querySelector('#categoriesTable tbody tr')) await loadCategories();
+    if (wrapId === 'testsTableWrap' && !document.querySelector('#testsTable tbody tr')) await loadTests();
+    if (wrapId === 'resultsTableWrap' && !document.querySelector('#resultsTable tbody tr')) await loadResults();
+    if (wrapId === 'caTableWrap' && !document.querySelector('#caTable tbody tr')) await loadCA();
+    if (wrapId === 'updatesTableWrap' && !document.querySelector('#updatesTable tbody tr')) await loadJobUpdates();
+
+    const tableClone = wrap.querySelector('table').cloneNode(true);
+    // Remove Action column from PDF if present
+    tableClone.querySelectorAll('tr').forEach(tr => {
+        const cells = tr.children;
+        if (cells.length > 0 && (cells[cells.length - 1].innerText.includes('Action') || cells[cells.length - 1].querySelector('button'))) {
+            tr.removeChild(cells[cells.length - 1]);
+        }
+    });
+
+    const w = window.open('', '_blank');
+    w.document.write(`<html><head><title>${titleText}</title><style>body{font-family:sans-serif;padding:24px;} h2{color:#4F46E5;margin-bottom:12px;} table{width:100%;border-collapse:collapse;font-size:12px;} th,td{border:1px solid #cbd5e1;padding:8px;text-align:left;} th{background:#f1f5f9;}</style></head><body><h2>🏠 TaiyariGhar - ${titleText}</h2><p style="font-size:12px;color:#64748B;">Generated on: ${new Date().toLocaleString('en-IN')}</p>${tableClone.outerHTML}</body></html>`);
+    w.document.close();
+    setTimeout(() => w.print(), 400);
+};
+
+window.downloadTestQuestionsPdf = async function() {
+    const keyword = document.getElementById('searchTestId').value.trim();
+    if (!keyword) { alert("Pehle Search box mein Test ID dalein!"); return; }
+    let snap = await getDocs(query(collection(db, "questions"), where("testId", "==", keyword)));
+    if (snap.empty) {
+        snap = await getDocs(query(collection(db, "questions"), where("uniqueId", "==", keyword)));
+    }
+    if (snap.empty) { alert("Is ID ke koi questions nahi mile!"); return; }
+
+    let html = `<html><head><title>${keyword}_Questions_PDF</title><style>body{font-family:sans-serif;padding:25px;} .q{margin-bottom:18px;border-bottom:1px solid #e2e8f0;padding-bottom:12px;} .uid{font-size:11px;color:#4F46E5;font-weight:bold;} .ans{color:#059669;font-weight:bold;}</style></head><body><h2 style="text-align:center;color:#1E1B4B;">🏠 TaiyariGhar - Question Bank (${keyword})</h2><hr>`;
+    let idx = 1;
+    snap.forEach(d => {
+        const item = d.data();
+        const uid = item.uniqueId || `${keyword}-Q${idx}`;
+        const optH = item.optionsHindi || [];
+        const optE = item.optionsEnglish || [];
+        const ansLetter = ['A', 'B', 'C', 'D', 'E'][item.correctAnswer ?? 0] || 'A';
+        html += `<div class="q"><div class="uid">Q-ID: ${uid} | Marks: +${item.questionMarks || 1} / -${item.questionNeg || 0}</div>
+            <p><b>Q${idx}. ${item.questionHindi || ''}</b><br><span style="color:#475569;">${item.questionEnglish || ''}</span></p>
+            <p>A) ${optH[0] || ''} (${optE[0] || ''}) &nbsp;&nbsp; B) ${optH[1] || ''} (${optE[1] || ''})<br>
+               C) ${optH[2] || ''} (${optE[2] || ''}) &nbsp;&nbsp; D) ${optH[3] || ''} (${optE[3] || ''})</p>
+            <p class="ans">Correct Answer: ${ansLetter}</p>
+            ${item.explanation ? `<p style="font-size:12px;color:#1E3A8A;">Explanation: ${item.explanation}</p>` : ''}
+        </div>`;
+        idx++;
+    });
+    html += `</body></html>`;
+    const w = window.open('', '_blank');
+    w.document.write(html);
+    w.document.close();
+    setTimeout(() => w.print(), 450);
+};
+
+window.exportCategoriesExcel = async function() {
+    const snap = await getDocs(collection(db, "exam_categories"));
+    const rows = snap.docs.map(d => { const c = d.data(); return [c.mainCat || "", c.subCat || "", c.examName || ""]; });
+    triggerCsvDownload("TaiyariGhar_Categories.csv", ["MainCategory", "SubCategory", "ExamName"], rows);
+};
+
+window.exportCaExcel = async function() {
+    const snap = await getDocs(collection(db, "current_affairs"));
+    const rows = snap.docs.map(d => { const c = d.data(); return [c.type || "", c.date || "", c.title || "", c.question || "", c.explanation || ""]; });
+    triggerCsvDownload("TaiyariGhar_Current_Affairs.csv", ["Type", "Date", "Title", "Question", "Explanation"], rows);
+};
+
+window.exportUpdatesExcel = async function() {
+    const snap = await getDocs(collection(db, "job_updates"));
+    const rows = snap.docs.map(d => { const u = d.data(); return [u.category || "", u.exam || "", u.title || "", u.date || "", u.link || "", u.description || ""]; });
+    triggerCsvDownload("TaiyariGhar_Jobs_Syllabus.csv", ["Category", "Exam", "Title", "Date", "Link", "Description"], rows);
+};
+
+window.cleanDuplicateResults = async function() {
+    if (!confirm("Kya aap ek hi student ke ek hi test ke duplicate results delete karke sirf latest result rakhna chahte hain?")) return;
+    const snap = await getDocs(collection(db, "results"));
+    const all = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    all.sort((a, b) => new Date(b.timestamp || 0) - new Date(a.timestamp || 0));
+    const seen = new Set();
+    let delCount = 0;
+    for (const r of all) {
+        const key = `${r.loginId}_${r.testId}`;
+        if (seen.has(key)) {
+            await deleteDoc(doc(db, "results", r.id));
+            delCount++;
+        } else {
+            seen.add(key);
+        }
+    }
+    alert(`✅ ${delCount} Duplicate Result rows removed!`);
+    loadResults();
+};
+
+// Reported Questions Management
+window.loadReportedQuestions = async function() {
+    const tbody = document.querySelector("#reportsTable tbody");
+    if (!tbody) return;
+    tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;">Loading reports...</td></tr>`;
+    try {
+        const snap = await getDocs(collection(db, "reported_questions"));
+        if (snap.empty) {
+            tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;">No reported questions yet!</td></tr>`;
+            return;
+        }
+        const items = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        items.sort((a, b) => new Date(b.timestamp || 0) - new Date(a.timestamp || 0));
+
+        let html = "";
+        items.forEach(r => {
+            const hasImg = r.screenshotData && (r.screenshotData.startsWith('data:image') || r.screenshotData.startsWith('http'));
+            html += `<tr>
+                <td>${r.timestamp ? r.timestamp.split('T')[0] : '-'}</td>
+                <td><b style="color:#4F46E5;">${r.uniqueId || '-'}</b><br><span style="font-size:11px;color:#64748B;">Test: ${r.testId || '-'}</span></td>
+                <td style="max-width:280px;">
+                    <span style="background:#FEF2F2;color:#DC2626;font-size:11px;font-weight:700;padding:2px 6px;border-radius:4px;">${r.issueType || 'Issue'}</span>
+                    <div style="margin-top:4px;font-size:12.5px;"><b>Galti:</b> ${r.issue || '-'}</div>
+                    ${r.suggestedCorrection ? `<div style="margin-top:3px;font-size:12.5px;color:#059669;"><b>Sahi Hoga:</b> ${r.suggestedCorrection}</div>` : ''}
+                </td>
+                <td>${hasImg ? `<a href="${r.screenshotData}" target="_blank"><img src="${r.screenshotData}" style="max-height:55px;border-radius:4px;border:1px solid #ccc;"></a>` : '-'}</td>
+                <td>${r.reportedBy || '-'}</td>
+                <td style="font-weight:700;color:${r.status === 'Resolved' ? '#10B981' : '#F59E0B'};">${r.status || 'Pending'}</td>
+                <td style="white-space:nowrap;">
+                    <button class="btn-approve" onclick="jumpToFixQuestion('${r.uniqueId || r.testId}')">✏️ Fix Q</button>
+                    <button style="background:#4F46E5;color:white;border:none;padding:6px 9px;border-radius:5px;cursor:pointer;font-size:11px;" onclick="markReportResolved('${r.id}')">✅ Done</button>
+                    <button class="btn-delete" onclick="deleteQuestionReport('${r.id}')">Del</button>
+                </td>
+            </tr>`;
+        });
+        tbody.innerHTML = html;
+    } catch (e) {
+        tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;color:red;">Error: ${e.message}</td></tr>`;
+    }
+};
+
+window.jumpToFixQuestion = async function(qUid) {
+    if (!qUid) return;
+    const qTabBtn = Array.from(document.querySelectorAll('.tab-btn')).find(b => b.innerText.includes('Questions'));
+    openTab('tabQuestions', qTabBtn);
+    const searchInput = document.getElementById('searchTestId');
+    if (searchInput) {
+        searchInput.value = qUid;
+        await searchQuestions();
+        const firstDocId = Object.keys(searchedQuestionsCache)[0];
+        if (firstDocId) editQuestion(firstDocId);
+    }
+};
+
+window.markReportResolved = async function(id) {
+    await updateDoc(doc(db, "reported_questions", id), { status: "Resolved" });
+    loadReportedQuestions();
+};
+
+window.deleteQuestionReport = async function(id) {
+    if (confirm("Delete this report?")) {
+        await deleteDoc(doc(db, "reported_questions", id));
+        loadReportedQuestions();
+    }
+};
+
+window.exportReportsExcel = async function() {
+    const snap = await getDocs(collection(db, "reported_questions"));
+    const rows = snap.docs.map(d => {
+        const r = d.data();
+        return [r.timestamp || "", r.uniqueId || "", r.testId || "", r.issueType || "", r.issue || "", r.suggestedCorrection || "", r.reportedBy || "", r.status || "Pending"];
+    });
+    triggerCsvDownload("TaiyariGhar_Reported_Questions.csv", ["Date", "UniqueQID", "TestID", "IssueType", "MistakeDescription", "SuggestedCorrection", "ReportedBy", "Status"], rows);
 };
