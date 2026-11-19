@@ -1894,36 +1894,48 @@ window.finalSubmitTest = async function() {
     let percent = (score / currentTestMarks) * 100; if(percent < 0) percent = 0;
     const percentStr = percent.toFixed(1);
 
-    try {
-        await addDoc(collection(db, "results"), {
-            timestamp: new Date().toISOString(), 
-            loginId: String(currentStudent.loginId).trim(), 
-            studentName: currentStudent.name,
-            studentEmail: currentStudent.email || "",
-            testId: currentTestId, 
-            testName: currentTestName, 
-            correctCount, 
-            wrongCount, 
-            negDeducted: negDeducted.toFixed(2), 
-            finalScore: score.toFixed(2), 
-            totalMarks: currentTestMarks, 
-            percent: percentStr, 
-            isLivePending: isCurrentTestLive,
-            liveEndTime: currentLiveEndTime || "",
-            emailResultSent: false,
-            userAnswers, 
-            testQuestionsState: testQuestions 
-        });
+    const nowIso = new Date().toISOString();
+    // Clean questions array so Firestore never rejects undefined fields
+    const cleanQuestionsState = testQuestions.map(q => ({
+        qH: q.qH || "",
+        qE: q.qE || "",
+        uniqueId: q.uniqueId || "",
+        opts: (q.opts || []).map(o => ({ h: o.h || "", e: o.e || "" })),
+        ans: Number(q.ans ?? 0),
+        exp: q.exp || "",
+        marks: Number(q.marks || 1),
+        neg: Number(q.neg || 0)
+    }));
 
-        await fetchSettingsAndTests();
+    const resultPayload = {
+        timestamp: nowIso, 
+        loginId: String(currentStudent.loginId || "").trim(), 
+        studentName: currentStudent.name || "Student",
+        studentEmail: currentStudent.email || "",
+        testId: currentTestId, 
+        testName: currentTestName, 
+        correctCount, 
+        wrongCount, 
+        negDeducted: negDeducted.toFixed(2), 
+        finalScore: score.toFixed(2), 
+        totalMarks: currentTestMarks, 
+        percent: percentStr, 
+        isLivePending: Boolean(isCurrentTestLive),
+        liveEndTime: currentLiveEndTime || "",
+        emailResultSent: false,
+        userAnswers: { ...userAnswers }, 
+        testQuestionsState: cleanQuestionsState
+    };
 
-        if (isCurrentTestLive) {
-            showScreen('liveSubmittedScreen');
-            document.getElementById('liveReleaseTimeDisplay').innerText = formatDateTimeReadable(currentLiveEndTime);
-            document.getElementById('liveUserEmailDisplay').innerText = currentStudent.email || "your registered email";
-            return;
-        }
+    // Update local cache immediately so UI never freezes waiting for full DB reload
+    userPastResults[currentTestId] = resultPayload;
 
+    // 1. Show Result / Live Submitted Screen IMMEDIATELY (0ms delay)
+    if (isCurrentTestLive) {
+        showScreen('liveSubmittedScreen');
+        document.getElementById('liveReleaseTimeDisplay').innerText = formatDateTimeReadable(currentLiveEndTime);
+        document.getElementById('liveUserEmailDisplay').innerText = currentStudent.email || "your registered email";
+    } else {
         showScreen('resultScreen');
         document.getElementById('resTestName').innerText = currentTestName;
         document.getElementById('finalScore').innerText = score.toFixed(2); 
@@ -1933,16 +1945,25 @@ window.finalSubmitTest = async function() {
         document.getElementById('statSkipped').innerText = skippedCount;
         document.getElementById('statNeg').innerText = negDeducted.toFixed(2);
         document.getElementById('scoreCircle').style.background = `conic-gradient(var(--accent) ${percent}%, #E5E7EB ${percent}%)`;
-        document.getElementById('rankText').innerText = "Calculating Rank...";
+        document.getElementById('rankText').innerText = "Saving & Calculating Rank...";
+        currentResultData = { score: score.toFixed(2), total: currentTestMarks, rank: 1, totalStudents: 1, correct: correctCount, wrong: wrongCount, neg: negDeducted.toFixed(2), percent: percentStr };
+    }
 
-        const rankSnap = await getDocs(query(collection(db, "results"), where("testId", "==", currentTestId)));
-        let allResults = rankSnap.docs.map(d => d.data()).sort((a, b) => parseFloat(b.finalScore) - parseFloat(a.finalScore));
-        let userRank = 1;
-        allResults.forEach((r, index) => { if(r.loginId === currentStudent.loginId && r.finalScore === score.toFixed(2)) userRank = index + 1; });
-
-        document.getElementById('rankText').innerText = `Your Rank: ${userRank} out of ${allResults.length} students`;
-        currentResultData = { score: score.toFixed(2), total: currentTestMarks, rank: userRank, totalStudents: allResults.length, correct: correctCount, wrong: wrongCount, neg: negDeducted.toFixed(2), percent: percentStr };
-    } catch(e) { console.error(e); alert("Error saving result: " + e.message); }
+    // 2. Save to Firestore in background and update Rank once saved
+    try {
+        await addDoc(collection(db, "results"), resultPayload);
+        if (!isCurrentTestLive) {
+            const rankSnap = await getDocs(query(collection(db, "results"), where("testId", "==", currentTestId)));
+            let allResults = rankSnap.docs.map(d => d.data()).sort((a, b) => parseFloat(b.finalScore) - parseFloat(a.finalScore));
+            let userRank = 1;
+            allResults.forEach((r, index) => { if(r.loginId === currentStudent.loginId && r.finalScore === score.toFixed(2)) userRank = index + 1; });
+            const rankEl = document.getElementById('rankText');
+            if (rankEl) rankEl.innerText = `Your Rank: ${userRank} out of ${allResults.length} students`;
+            currentResultData = { score: score.toFixed(2), total: currentTestMarks, rank: userRank, totalStudents: allResults.length, correct: correctCount, wrong: wrongCount, neg: negDeducted.toFixed(2), percent: percentStr };
+        }
+    } catch(e) {
+        console.error("Background result save error:", e);
+    }
 }
 
 window.viewSolutions = function() {
