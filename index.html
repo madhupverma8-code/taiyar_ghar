@@ -11,7 +11,7 @@
     <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
     <style>
         .hide { display: none !important; }
-        #paymentModal:not(.hide), #submitModal:not(.hide), #registerSuccessModal:not(.hide), #liveHubModal:not(.hide) {
+        #paymentModal:not(.hide), #submitModal:not(.hide), #registerSuccessModal:not(.hide), #liveHubModal:not(.hide), #historyModal:not(.hide) {
             display: flex !important;
         }
 
@@ -410,6 +410,9 @@
                     <button class="btn btn-danger-soft" onclick="openLiveTestsHub()">
                         <span class="live-dot-nav"></span> All-India Live Tests (<span id="liveCountBadge">0</span>)
                     </button>
+                    <button class="btn btn-outline" style="background:#ffffff; border-color:#CBD5E1; color:#1E1B4B; font-weight:700;" onclick="openAttemptedHistoryModal()">
+                        📜 Attempted Tests (<span id="bannerAttemptedBadge">0</span>)
+                    </button>
                     <button class="btn btn-primary" onclick="scrollToCategories()">📚 Browse Exam Categories</button>
                 </div>
             </div>
@@ -435,12 +438,13 @@
                     </div>
                 </div>
 
-                <div class="lms-kpi-card">
+                <div class="lms-kpi-card" onclick="openAttemptedHistoryModal()" style="cursor:pointer;">
                     <div class="kpi-icon" style="background:#FEF3C7; color:#D97706;">🏆</div>
                     <div class="kpi-content">
                         <span class="kpi-label">Tests Completed</span>
                         <h4 id="totalAttemptedCount" class="kpi-title">0 Tests</h4>
-                        <p class="kpi-sub">Click below to view detailed rank & solutions</p>
+                        <p class="kpi-sub">View unique attempted tests & scorecards</p>
+                        <button class="btn btn-outline" style="margin-top:10px; padding:6px 13px; font-size:12px; font-weight:700;" onclick="event.stopPropagation(); openAttemptedHistoryModal()">📜 View Attempted History →</button>
                     </div>
                 </div>
             </div>
@@ -494,11 +498,7 @@
                 <div id="dashCatContainer"></div>
             </div>
 
-            <!-- Attempted Test History -->
-            <div class="lms-history-section">
-                <h3 style="margin-bottom:15px; color:#1E1B4B; font-size:19px;">📜 Attempted Test History & Scorecards</h3>
-                <div id="dashHistoryContainer"></div>
-            </div>
+
         </div>
     </div>
 
@@ -514,6 +514,23 @@
             </div>
             <p style="font-size:13px; color:#6B7280; margin-bottom:18px;">All currently active live tests across SSC, Railway, Banking, UP Police, and State Exams are listed below with exact closing times. Choose any live exam to begin:</p>
             <div id="modalLiveTestsContainer"></div>
+        </div>
+    </div>
+
+    <!-- ATTEMPTED TEST HISTORY & SCORECARDS MODAL (Hidden until clicked) -->
+    <div id="historyModal" class="hide" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(15,23,42,0.75); align-items:center; justify-content:center; z-index:10000; padding:15px;">
+        <div style="background:white; max-width:820px; width:100%; border-radius:18px; padding:26px; position:relative; max-height:88vh; overflow-y:auto;">
+            <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #E5E7EB; padding-bottom:14px; margin-bottom:18px;">
+                <div style="display:flex; align-items:center; gap:10px;">
+                    <span style="font-size:22px;">📜</span>
+                    <div>
+                        <h2 style="color:#1E1B4B; font-size:19px; margin:0;">Attempted Test History & Scorecards</h2>
+                        <p style="font-size:12px; color:#6B7280; margin:2px 0 0;">Each attempted test is shown once with your latest scorecard & All-India Rank</p>
+                    </div>
+                </div>
+                <button onclick="closeAttemptedHistoryModal()" style="background:#F3F4F6; border:none; width:34px; height:34px; border-radius:50%; font-weight:700; cursor:pointer; font-size:15px;">✕</button>
+            </div>
+            <div id="dashHistoryContainer"></div>
         </div>
     </div>
 
@@ -968,6 +985,6 @@
         };
     </script>
 
-    <script type="module" src="student-app.js?v=15.0"></script>
+    <script type="module" src="student-app.js?v=16.0"></script>
 </body>
 </html>
