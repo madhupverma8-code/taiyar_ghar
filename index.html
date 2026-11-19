@@ -11,7 +11,7 @@
     <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
     <style>
         .hide { display: none !important; }
-        #paymentModal:not(.hide), #submitModal:not(.hide), #registerSuccessModal:not(.hide), #liveHubModal:not(.hide), #historyModal:not(.hide), #reportQuestionModal:not(.hide) {
+        #paymentModal:not(.hide), #submitModal:not(.hide), #registerSuccessModal:not(.hide), #liveHubModal:not(.hide), #historyModal:not(.hide), #reportQuestionModal:not(.hide), #directGmailModal:not(.hide) {
             display: flex !important;
         }
 
@@ -1010,6 +1010,33 @@
         </div>
     </div>
 
+    <!-- DIRECT GMAIL QUICK LOGIN / REGISTRATION MODAL (Zero-Password Gmail Flow) -->
+    <div id="directGmailModal" class="hide" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(15,23,42,0.72); align-items:center; justify-content:center; z-index:10002; padding:15px;">
+        <div style="background:white; max-width:440px; width:100%; border-radius:16px; padding:26px; position:relative; box-shadow:0 20px 45px rgba(0,0,0,0.25);">
+            <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #E2E8F0; padding-bottom:12px; margin-bottom:16px;">
+                <div>
+                    <h3 style="color:#1E1B4B; margin:0; font-size:18px;">📧 Direct Gmail Sign-In / Sign-Up</h3>
+                    <p style="font-size:12px; color:#64748B; margin-top:2px;">No password required • Instant `TG` Student ID</p>
+                </div>
+                <button onclick="closeDirectGmailModal()" style="background:#F1F5F9; border:none; width:32px; height:32px; border-radius:50%; font-weight:700; cursor:pointer;">✕</button>
+            </div>
+
+            <div style="margin-bottom:12px;">
+                <label style="display:block; font-size:12.5px; font-weight:600; color:#334155; margin-bottom:5px;">Your Gmail Address</label>
+                <input type="email" id="directGmailInput" placeholder="example@gmail.com" style="width:100%; padding:11px; border:1px solid #CBD5E1; border-radius:8px; font-size:13.5px;">
+            </div>
+
+            <div style="margin-bottom:16px;">
+                <label style="display:block; font-size:12.5px; font-weight:600; color:#334155; margin-bottom:5px;">Full Name (For New Account)</label>
+                <input type="text" id="directGmailNameInput" placeholder="Your Full Name" style="width:100%; padding:11px; border:1px solid #CBD5E1; border-radius:8px; font-size:13.5px;">
+            </div>
+
+            <button type="button" class="btn btn-primary" style="width:100%; padding:12px; font-weight:700;" onclick="continueWithDirectGmail()">
+                Continue with Gmail →
+            </button>
+        </div>
+    </div>
+
     <!-- REGISTRATION SUCCESS MODAL -->
     <div id="registerSuccessModal" class="hide" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); align-items:center; justify-content:center; z-index:10000;">
         <div style="background:white; padding:30px; border-radius:14px; max-width:420px; width:90%; text-align:center;">
@@ -1090,6 +1117,6 @@
         };
     </script>
 
-    <script type="module" src="student-app.js?v=17.0"></script>
+    <script type="module" src="student-app.js?v=18.0"></script>
 </body>
 </html>
