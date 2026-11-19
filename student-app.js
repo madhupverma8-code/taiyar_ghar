@@ -1,5 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
 import { getFirestore, collection, getDocs, getDoc, setDoc, addDoc, query, where, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import { getAuth, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
 // =========================================================================
 // 🔧 CONFIGURATION
@@ -19,6 +20,8 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
+const auth = getAuth(app);
+const googleProvider = new GoogleAuthProvider();
 
 let allTests = [], appSettings = {}, allCA = [], allExamCategories = [], allJobUpdates = [];
 let userPastResults = {}; 
@@ -61,13 +64,13 @@ let currentResultData = null;
 let currentScreen = 'homeScreen'; 
 
 const defaultMainCategories = [
-    { name: "SSC Exams", icon: "🏛️", gradient: "linear-gradient(135deg, #FF416C 0%, #FF4B2B 100%)", subText: "CGL, CHSL, MTS, GD, Stenographer" },
-    { name: "Railway Exams", icon: "🚂", gradient: "linear-gradient(135deg, #43E97B 0%, #38F9D7 100%)", subText: "NTPC, Group D, ALP, RPF" },
-    { name: "UP State Exams", icon: "🏛️", gradient: "linear-gradient(135deg, #F6D365 0%, #FDA085 100%)", subText: "PCS, RO/ARO, VDO, BEO" },
-    { name: "Banking Exams", icon: "🏦", gradient: "linear-gradient(135deg, #4FACFE 0%, #00F2FE 100%)", subText: "IBPS PO, Clerk, SBI PO, SO" },
-    { name: "UP Police", icon: "👮", gradient: "linear-gradient(135deg, #667EEA 0%, #764BA2 100%)", subText: "Constable, SI (Daroga), Home Guard" },
-    { name: "Other Central Exams", icon: "🌍", gradient: "linear-gradient(135deg, #00B4DB 0%, #0083B0 100%)", subText: "IBPS RRB, LIC, Army, Navy" },
-    { name: "Other State Exams", icon: "🗺️", gradient: "linear-gradient(135deg, #FA709A 0%, #FEE140 100%)", subText: "BPSC, UKPSC, JPSC, JSSC" }
+    { name: "SSC Exams", icon: "🏛️", gradient: "linear-gradient(135deg, #1E3A8A 0%, #3B82F6 100%)", subText: "CGL, CHSL, MTS, GD, Stenographer" },
+    { name: "Railway Exams", icon: "🚂", gradient: "linear-gradient(135deg, #065F46 0%, #10B981 100%)", subText: "NTPC, Group D, ALP, RPF" },
+    { name: "UP State Exams", icon: "🏛️", gradient: "linear-gradient(135deg, #7C2D12 0%, #EA580C 100%)", subText: "PCS, RO/ARO, VDO, BEO" },
+    { name: "Banking Exams", icon: "🏦", gradient: "linear-gradient(135deg, #0F766E 0%, #06B6D4 100%)", subText: "IBPS PO, Clerk, SBI PO, SO" },
+    { name: "UP Police", icon: "👮", gradient: "linear-gradient(135deg, #312E81 0%, #6366F1 100%)", subText: "Constable, SI (Daroga), Home Guard" },
+    { name: "Other Central Exams", icon: "🌍", gradient: "linear-gradient(135deg, #1E293B 0%, #475569 100%)", subText: "IBPS RRB, LIC, Army, Navy" },
+    { name: "Other State Exams", icon: "🗺️", gradient: "linear-gradient(135deg, #831843 0%, #DB2777 100%)", subText: "BPSC, UKPSC, JPSC, JSSC" }
 ];
 
 const translations = {
@@ -459,6 +462,169 @@ window.showPurchases = function() {
     alert(`--- MY SUBSCRIPTION & INVOICES ---\n\nName: ${currentStudent.name}\nLogin ID: ${currentStudent.loginId}\nPlan: ${status}\nValid Till: ${currentStudent.expiry || "N/A"}\n\nNote: Official PDF invoices are automatically emailed to ${currentStudent.email}.`); 
 }
 
+let sessionMonitorInterval = null;
+
+async function finalizeStudentLoginSession(studentDoc) {
+    const studentData = studentDoc.data();
+    const docRef = doc(db, "students", studentDoc.id);
+
+    let isPaidActive = studentData.isPaid || false;
+    if (isPaidActive && studentData.expiryDate) {
+        const expDate = new Date(studentData.expiryDate + "T23:59:59");
+        if (new Date() > expDate) {
+            isPaidActive = false;
+            await updateDoc(docRef, { isPaid: false });
+        }
+    }
+
+    // Smart Device Registration: Same physical device (hw_...) ALWAYS counts as 1 device, replacing old random dev_ IDs
+    let dev1 = studentData.device1 || "";
+    let dev2 = studentData.device2 || "";
+    const myDev = getDeviceId();
+
+    // Clean legacy random dev_ IDs or duplicate device slots
+    if (dev1.startsWith("dev_")) dev1 = "";
+    if (dev2.startsWith("dev_")) dev2 = "";
+    if (dev1 === dev2) dev2 = "";
+
+    if (dev1 === myDev || dev2 === myDev) {
+        // Already registered on this exact laptop/phone -> keep count unchanged!
+    } else if (!dev1) {
+        dev1 = myDev;
+    } else if (!dev2) {
+        dev2 = myDev;
+    } else {
+        // 3rd physical device -> shift oldest out so max 2 devices remain
+        dev1 = dev2;
+        dev2 = myDev;
+    }
+
+    // Single Active Session Token: logging in here automatically invalidates any concurrent session on another device
+    const newSessionToken = "sess_" + Date.now() + "_" + Math.random().toString(36).substr(2, 6);
+    localStorage.setItem("tg_session_token", newSessionToken);
+
+    await updateDoc(docRef, {
+        device1: dev1,
+        device2: dev2,
+        activeSessionToken: newSessionToken,
+        lastLoginAt: new Date().toISOString()
+    });
+
+    currentStudent = {
+        docId: studentDoc.id,
+        name: studentData.name,
+        email: studentData.email || "",
+        mobile: studentData.mobile || "",
+        loginId: studentData.loginId,
+        isPaid: isPaidActive,
+        expiry: studentData.expiryDate || "",
+        sessionToken: newSessionToken
+    };
+    isLoggedIn = true;
+
+    let hasLoggedInBefore = localStorage.getItem('tg_has_logged_in_' + studentData.loginId);
+    if (!hasLoggedInBefore) {
+        isFirstLoginSession = true;
+        localStorage.setItem('tg_has_logged_in_' + studentData.loginId, 'true');
+    } else {
+        isFirstLoginSession = false;
+    }
+
+    localStorage.setItem('tg_user', JSON.stringify(currentStudent));
+    startSingleSessionWatcher();
+
+    await fetchSettingsAndTests();
+
+    let pendingCat = sessionStorage.getItem('pendingCat');
+    if (pendingCat) {
+        sessionStorage.removeItem('pendingCat');
+        openCategory(pendingCat);
+    } else {
+        goDashboard();
+    }
+}
+
+function startSingleSessionWatcher() {
+    clearInterval(sessionMonitorInterval);
+    sessionMonitorInterval = setInterval(async () => {
+        if (!isLoggedIn || !currentStudent.docId) return;
+        const localToken = localStorage.getItem("tg_session_token");
+        if (!localToken) return;
+        try {
+            const snap = await getDoc(doc(db, "students", currentStudent.docId));
+            if (snap.exists()) {
+                const remoteToken = snap.data().activeSessionToken;
+                if (remoteToken && remoteToken !== localToken) {
+                    clearInterval(sessionMonitorInterval);
+                    alert("⚠️ Aapki ID kisi doosre device (Phone/Laptop) par login ho gayi hai. Ek samay mein sirf 1 device par hi session chal sakta hai, isliye yahan se logout kiya ja raha hai.");
+                    logout();
+                }
+            }
+        } catch (e) {}
+    }, 20000);
+}
+
+window.loginWithGoogle = async function() {
+    try {
+        const result = await signInWithPopup(auth, googleProvider);
+        const gUser = result.user;
+        if (!gUser || !gUser.email) return alert("Google account email not found!");
+
+        const gEmail = gUser.email.trim().toLowerCase();
+        const gName = gUser.displayName || gEmail.split('@')[0];
+
+        resetSessionMemory();
+
+        // Check if student already exists with this Gmail
+        const snap = await getDocs(query(collection(db, "students"), where("email", "==", gEmail)));
+        if (!snap.empty) {
+            await finalizeStudentLoginSession(snap.docs[0]);
+            return;
+        }
+
+        // New Google user -> create account automatically without requiring password
+        const allStudentsSnap = await getDocs(collection(db, "students"));
+        let maxNum = 0;
+        allStudentsSnap.forEach(d => {
+            let lid = d.data().loginId;
+            if (lid && lid.startsWith("TG")) {
+                let num = parseInt(lid.replace("TG", ""), 10);
+                if (!isNaN(num) && num > maxNum) maxNum = num;
+            }
+        });
+        const newId = "TG" + String(maxNum + 1).padStart(4, '0');
+
+        const newDocRef = await addDoc(collection(db, "students"), {
+            name: gName,
+            email: gEmail,
+            mobile: "",
+            loginId: newId,
+            password: "",
+            authProvider: "google",
+            isPaid: false,
+            expiryDate: "",
+            createdAt: new Date().toISOString(),
+            device1: getDeviceId(),
+            device2: ""
+        });
+
+        callEmailService({
+            action: "welcome",
+            email: gEmail,
+            name: gName,
+            studentId: newId,
+            mobile: "Google Sign-In",
+            password: "Login directly via Google Button (No Password Required)"
+        });
+
+        const createdSnap = await getDoc(newDocRef);
+        await finalizeStudentLoginSession(createdSnap);
+    } catch (e) {
+        console.error("Google Sign-In Error:", e);
+        alert("❌ Google Sign-In Error: " + e.message);
+    }
+};
+
 window.doLogin = async function() {
     const inputVal = document.getElementById('loginId').value.trim(); 
     const pass = document.getElementById('loginPass').value.trim();
@@ -472,55 +638,8 @@ window.doLogin = async function() {
         if(snapshot.empty) snapshot = await getDocs(query(collection(db, "students"), where("loginId", "==", inputVal.toUpperCase()), where("password", "==", pass)));
         
         if(!snapshot.empty) {
-            const studentDoc = snapshot.docs[0];
-            const studentData = studentDoc.data();
-            const docRef = doc(db, "students", studentDoc.id);
-
-            let isPaidActive = studentData.isPaid || false;
-            if (isPaidActive && studentData.expiryDate) {
-                const expDate = new Date(studentData.expiryDate + "T23:59:59");
-                if (new Date() > expDate) {
-                    isPaidActive = false;
-                    await updateDoc(docRef, { isPaid: false });
-                }
-            }
-
-            let dev1 = studentData.device1 || "", dev2 = studentData.device2 || "", myDev = getDeviceId();
-            if(dev1 && dev2 && dev1 !== myDev && dev2 !== myDev) await updateDoc(docRef, { device1: dev2, device2: myDev }); 
-            else if(!dev1) await updateDoc(docRef, { device1: myDev });
-            else if(!dev2 && dev1 !== myDev) await updateDoc(docRef, { device2: myDev });
-
-            currentStudent = { 
-                docId: studentDoc.id,
-                name: studentData.name, 
-                email: studentData.email || "",
-                mobile: studentData.mobile || "",
-                loginId: studentData.loginId, 
-                isPaid: isPaidActive, 
-                expiry: studentData.expiryDate || "" 
-            };
-            isLoggedIn = true;
-            
-            let hasLoggedInBefore = localStorage.getItem('tg_has_logged_in_' + studentData.loginId);
-            if(!hasLoggedInBefore) { 
-                isFirstLoginSession = true; 
-                localStorage.setItem('tg_has_logged_in_' + studentData.loginId, 'true'); 
-            } else { 
-                isFirstLoginSession = false; 
-            }
-
-            localStorage.setItem('tg_user', JSON.stringify(currentStudent));
-            
-            await fetchSettingsAndTests();
-            
-            let pendingCat = sessionStorage.getItem('pendingCat');
-            if(pendingCat) {
-                sessionStorage.removeItem('pendingCat');
-                openCategory(pendingCat);
-            } else {
-                goDashboard();
-            }
-        } else { alert("❌ Invalid Credentials! Please check your Email/Mobile and Password."); }
+            await finalizeStudentLoginSession(snapshot.docs[0]);
+        } else { alert("❌ Invalid Credentials! Please check your Email/Mobile and Password (or use Continue with Google)."); }
     } catch (e) { console.error(e); alert("Database Error: " + e.message); }
 }
 
@@ -1210,7 +1329,7 @@ function renderMainCategories() {
             let tName = catName.toLowerCase().replace("exams", "").trim();
             return cName === tName || cName.includes(tName) || tName.includes(cName);
         });
-        if(!isDuplicate) finalMainCats.push({ name: catName, icon: "📚", gradient: "linear-gradient(135deg, #8E2DE2 0%, #4A00E0 100%)", subText: "Explore Tests" });
+        if(!isDuplicate) finalMainCats.push({ name: catName, icon: "📚", gradient: "linear-gradient(135deg, #3730A3 0%, #4F46E5 100%)", subText: "Explore Tests" });
     });
 
     let gridHtml = "";
@@ -1838,25 +1957,109 @@ window.switchTestLanguageLive = function(newLang) {
     loadQuestion();
 };
 
-window.reportCurrentQuestion = async function() {
+let repScreenshotBase64 = "";
+
+window.reportCurrentQuestion = function() {
     const q = testQuestions[currentQIndex];
     if (!q) return;
-    const issue = prompt(`Report Question (${q.uniqueId}):\nKya galti hai? (e.g., Wrong Answer / Typing Mistake / Translation Issue):`);
-    if (!issue || !issue.trim()) return;
+    repScreenshotBase64 = "";
+    if (document.getElementById('repModalQId')) document.getElementById('repModalQId').innerText = `${q.uniqueId} (Test: ${currentTestId})`;
+    if (document.getElementById('repWrongDesc')) document.getElementById('repWrongDesc').value = "";
+    if (document.getElementById('repCorrectSuggestion')) document.getElementById('repCorrectSuggestion').value = "";
+    if (document.getElementById('repScreenshotFile')) document.getElementById('repScreenshotFile').value = "";
+    if (document.getElementById('repScreenshotUrl')) document.getElementById('repScreenshotUrl').value = "";
+    if (document.getElementById('repScreenshotPreviewBox')) document.getElementById('repScreenshotPreviewBox').classList.add('hide');
+    const modal = document.getElementById('reportQuestionModal');
+    if (modal) modal.classList.remove('hide');
+};
+
+window.closeReportQuestionModal = function() {
+    const modal = document.getElementById('reportQuestionModal');
+    if (modal) modal.classList.add('hide');
+};
+
+window.handleReportScreenshotSelect = function(input) {
+    const file = input.files && input.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        const img = new Image();
+        img.onload = function() {
+            const canvas = document.createElement('canvas');
+            const maxW = 720;
+            const scale = img.width > maxW ? (maxW / img.width) : 1;
+            canvas.width = img.width * scale;
+            canvas.height = img.height * scale;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+            repScreenshotBase64 = canvas.toDataURL('image/jpeg', 0.65);
+            const prevImg = document.getElementById('repScreenshotPreviewImg');
+            const prevBox = document.getElementById('repScreenshotPreviewBox');
+            if (prevImg) prevImg.src = repScreenshotBase64;
+            if (prevBox) prevBox.classList.remove('hide');
+        };
+        img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+};
+
+window.submitStructuredQuestionReport = async function() {
+    const q = testQuestions[currentQIndex];
+    if (!q) return;
+    const issueType = document.getElementById('repIssueType').value;
+    const wrongDesc = document.getElementById('repWrongDesc').value.trim();
+    const correctSugg = document.getElementById('repCorrectSuggestion').value.trim();
+    const imgUrl = document.getElementById('repScreenshotUrl').value.trim();
+
+    if (!wrongDesc && !correctSugg) {
+        alert("Kripya batayein ki kya galti hai ya sahi jawab kya hoga!");
+        return;
+    }
+
+    const btn = document.getElementById('btnSubmitReportQ');
+    if (btn) { btn.disabled = true; btn.innerText = "Sending Report..."; }
+
+    const reportPayload = {
+        testId: currentTestId,
+        testName: currentTestName,
+        uniqueId: q.uniqueId,
+        questionHindi: q.qH || "",
+        questionEnglish: q.qE || "",
+        issueType: issueType,
+        issue: wrongDesc,
+        suggestedCorrection: correctSugg,
+        screenshotData: repScreenshotBase64 || imgUrl || "",
+        status: "Pending",
+        reportedBy: `${currentStudent.name || 'Student'} (${currentStudent.loginId || 'N/A'})`,
+        reporterEmail: currentStudent.email || "",
+        timestamp: new Date().toISOString()
+    };
+
     try {
-        await addDoc(collection(db, "reported_questions"), {
+        await addDoc(collection(db, "reported_questions"), reportPayload);
+
+        // Send Instant Notification Email to Admin via Google Apps Script
+        callEmailService({
+            action: "report_question",
+            uniqueId: q.uniqueId,
             testId: currentTestId,
             testName: currentTestName,
-            uniqueId: q.uniqueId,
             questionHindi: q.qH || "",
             questionEnglish: q.qE || "",
-            issue: issue.trim(),
-            reportedBy: currentStudent.loginId || "Student",
-            timestamp: new Date().toISOString()
+            issueType: issueType,
+            issue: wrongDesc,
+            suggestedCorrection: correctSugg,
+            screenshotUrl: imgUrl || (repScreenshotBase64 ? "[Screenshot Attached in Admin Panel]" : "No Screenshot"),
+            reportedBy: reportPayload.reportedBy,
+            reporterEmail: reportPayload.reporterEmail
         });
-        alert(`✅ Reported! Question ID (${q.uniqueId}) admin ko bhej diya gaya hai.`);
+
+        closeReportQuestionModal();
+        alert(`✅ Report Sent! Question ID (${q.uniqueId}) ki jankari Admin ko email aur dashboard par bhej di gayi hai.`);
     } catch (e) {
-        alert("Report saved locally: " + q.uniqueId);
+        alert("Error submitting report: " + e.message);
+    } finally {
+        if (btn) { btn.disabled = false; btn.innerText = "🚀 Send Report to Admin"; }
     }
 };
 
@@ -2108,6 +2311,7 @@ window.onload = async () => {
                 isLoggedIn = true;
                 isFirstLoginSession = false;
                 updateHeaderUI();
+                startSingleSessionWatcher();
                 await fetchSettingsAndTests();
                 return;
             }
