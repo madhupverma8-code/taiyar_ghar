@@ -289,10 +289,11 @@
                     <div><select id="tFree"><option value="Yes">Is Free? Yes</option><option value="No">Is Free? No</option></select></div>
                 </div>
                 
-                <!-- Live Exam Controls -->
+                <!-- Live Exam Controls with Start & End Date-Time -->
                 <div class="row" style="background: #FEF2F2; padding: 12px; border-radius: 8px; border: 1px solid #FECACA; margin-bottom: 12px;">
-                    <div><label style="color: #991B1B; font-weight:700;">Is All-India Live Test?</label><select id="tIsLive"><option value="No">No (Normal Practice Test)</option><option value="Yes">Yes (All-India Live Exam)</option></select></div>
-                    <div><label style="color: #991B1B; font-weight:700;">Result Release Time</label><input type="text" id="tLiveReleaseTime" value="12:00 AM"></div>
+                    <div><label style="color: #991B1B; font-weight:700; font-size:12px;">Is All-India Live Test?</label><select id="tIsLive"><option value="No">No (Normal Practice Test)</option><option value="Yes">Yes (All-India Live Exam)</option></select></div>
+                    <div><label style="color: #991B1B; font-weight:700; font-size:12px;">Live Start Date & Time</label><input type="datetime-local" id="tLiveStart"></div>
+                    <div><label style="color: #991B1B; font-weight:700; font-size:12px;">Live End & Result Release Date-Time</label><input type="datetime-local" id="tLiveEnd"></div>
                 </div>
 
                 <button class="save-btn" id="testBtn" onclick="saveTest()">Add Test</button>
@@ -355,7 +356,12 @@
 
             <!-- TAB 6: Results -->
             <div id="tabResults" class="section">
-                <h2 class="title">Student Results <button class="btn-export" onclick="exportResults()">📥 Export to Excel</button></h2>
+                <h2 class="title">Student Results 
+                    <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                        <button class="btn-export" style="background:#4F46E5;" onclick="releaseLiveResultsAndSendEmails()">📧 Release Live Results & Email Scorecards</button>
+                        <button class="btn-export" onclick="exportResults()">📥 Export to Excel</button>
+                    </div>
+                </h2>
                 <div class="table-wrapper">
                     <table id="resultsTable">
                         <thead><tr><th>Date</th><th>Student</th><th>Test</th><th>Correct</th><th>Wrong</th><th>Neg</th><th>Score</th></tr></thead>
@@ -501,6 +507,6 @@
         };
     </script>
 
-    <script type="module" src="admin-app.js?v=20261119"></script>
+    <script type="module" src="admin-app.js?v=20261120"></script>
 </body>
 </html>
