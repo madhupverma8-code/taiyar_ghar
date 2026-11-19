@@ -564,95 +564,36 @@ function startSingleSessionWatcher() {
     }, 20000);
 }
 
-window.openDirectGmailModal = function(prefillEmail = "", prefillName = "") {
-    if (document.getElementById('directGmailInput')) document.getElementById('directGmailInput').value = prefillEmail;
-    if (document.getElementById('directGmailNameInput')) document.getElementById('directGmailNameInput').value = prefillName;
-    const m = document.getElementById('directGmailModal');
-    if (m) m.classList.remove('hide');
-};
-
-window.closeDirectGmailModal = function() {
-    const m = document.getElementById('directGmailModal');
-    if (m) m.classList.add('hide');
-};
-
-window.continueWithDirectGmail = async function() {
-    const gEmail = (document.getElementById('directGmailInput')?.value || "").trim().toLowerCase();
-    const gNameInput = (document.getElementById('directGmailNameInput')?.value || "").trim();
-    if (!gEmail || !gEmail.includes("@")) return alert("Please enter a valid Gmail address!");
-
-    const gName = gNameInput || gEmail.split('@')[0];
-    closeDirectGmailModal();
-    resetSessionMemory();
-
-    try {
-        const snap = await getDocs(query(collection(db, "students"), where("email", "==", gEmail)));
-        if (!snap.empty) {
-            await finalizeStudentLoginSession(snap.docs[0]);
-            return;
-        }
-
-        const allStudentsSnap = await getDocs(collection(db, "students"));
-        let maxNum = 0;
-        allStudentsSnap.forEach(d => {
-            let lid = d.data().loginId;
-            if (lid && lid.startsWith("TG")) {
-                let num = parseInt(lid.replace("TG", ""), 10);
-                if (!isNaN(num) && num > maxNum) maxNum = num;
-            }
-        });
-        const newId = "TG" + String(maxNum + 1).padStart(4, '0');
-
-        const newDocRef = await addDoc(collection(db, "students"), {
-            name: gName,
-            email: gEmail,
-            mobile: "",
-            loginId: newId,
-            password: "",
-            authProvider: "gmail_direct",
-            isPaid: false,
-            expiryDate: "",
-            createdAt: new Date().toISOString(),
-            device1: getDeviceId(),
-            device2: ""
-        });
-
-        callEmailService({
-            action: "welcome",
-            email: gEmail,
-            name: gName,
-            studentId: newId,
-            mobile: "Direct Gmail",
-            password: "No password required (Direct Gmail Sign-In)"
-        });
-
-        const createdSnap = await getDoc(newDocRef);
-        await finalizeStudentLoginSession(createdSnap);
-    } catch (e) {
-        console.error("Direct Gmail Error:", e);
-        alert("❌ Error: " + e.message);
-    }
-};
-
 window.loginWithGoogle = async function() {
     try {
+        googleProvider.setCustomParameters({ prompt: 'select_account' });
         const result = await signInWithPopup(auth, googleProvider);
         const gUser = result.user;
-        if (!gUser || !gUser.email) return alert("Google account email not found!");
+        if (!gUser || !gUser.email) {
+            alert("Google account email could not be retrieved. Please try again.");
+            return;
+        }
 
         const gEmail = gUser.email.trim().toLowerCase();
         const gName = gUser.displayName || gEmail.split('@')[0];
 
         resetSessionMemory();
 
-        // Check if student already exists with this Gmail
-        const snap = await getDocs(query(collection(db, "students"), where("email", "==", gEmail)));
-        if (!snap.empty) {
+        // Check if student already exists with this Gmail (case-insensitive check)
+        let snap = await getDocs(query(collection(db, "students"), where("email", "==", gEmail)));
+        if (snap.empty) {
+            const allSnap = await getDocs(collection(db, "students"));
+            const matchedDoc = allSnap.docs.find(d => (d.data().email || "").trim().toLowerCase() === gEmail);
+            if (matchedDoc) {
+                await finalizeStudentLoginSession(matchedDoc);
+                return;
+            }
+        } else {
             await finalizeStudentLoginSession(snap.docs[0]);
             return;
         }
 
-        // New Google user -> create account automatically without requiring password
+        // New Google user -> create verified account automatically (no password required)
         const allStudentsSnap = await getDocs(collection(db, "students"));
         let maxNum = 0;
         allStudentsSnap.forEach(d => {
@@ -683,15 +624,28 @@ window.loginWithGoogle = async function() {
             email: gEmail,
             name: gName,
             studentId: newId,
-            mobile: "Google Sign-In",
-            password: "Login directly via Google Button (No Password Required)"
+            mobile: "Google Account",
+            password: "Login anytime using 'Continue with Google' button"
         });
 
         const createdSnap = await getDoc(newDocRef);
         await finalizeStudentLoginSession(createdSnap);
     } catch (e) {
-        console.warn("Firebase Google Auth fallback triggered:", e && e.code ? e.code : e);
-        openDirectGmailModal();
+        console.error("Google Sign-In Error:", e);
+        if (e.code === 'auth/popup-closed-by-user') return;
+        if (e.code === 'auth/api-key-not-valid.-please-pass-a-valid-api-key.' || e.code === 'auth/api-key-not-valid') {
+            alert("⚠️ Google Sign-In Setup Pending in Firebase Console:
+1. Open Firebase Console -> Authentication -> Sign-in method -> Enable 'Google'.
+2. In Google Cloud Console -> Credentials -> API Key -> Allow 'taiyarighar.in'.
+
+Tab tak aap Email OTP se register/login kar sakte hain.");
+        } else if (e.code === 'auth/operation-not-allowed') {
+            alert("⚠️ Firebase Console mein 'Google' Sign-In provider abhi Enable nahi hai. Authentication -> Sign-in method mein jakar Google ko Enable karein.");
+        } else if (e.code === 'auth/unauthorized-domain') {
+            alert("⚠️ Firebase Console -> Authentication -> Settings -> Authorized domains mein 'taiyarighar.in' add karein.");
+        } else {
+            alert("❌ Google Sign-In Error: " + e.message);
+        }
     }
 };
 
@@ -851,23 +805,42 @@ window.closeRegModal = function() {
     showLogin();
 }
 
+function setForgotStatus(msg, isError = false) {
+    const box = document.getElementById('forgotStatusMsg');
+    if (!box) return;
+    box.classList.remove('hide');
+    box.style.background = isError ? '#FEF2F2' : '#ECFDF5';
+    box.style.color = isError ? '#991B1B' : '#065F46';
+    box.style.border = isError ? '1px solid #FECACA' : '1px solid #A7F3D0';
+    box.innerHTML = msg;
+}
+
 window.sendForgotOtp = async function() {
-    const email = document.getElementById('forgotEmail').value.trim().toLowerCase();
+    const rawEmail = document.getElementById('forgotEmail').value.trim();
+    const email = rawEmail.toLowerCase();
     if (!email || !email.includes("@")) return alert("Please enter your registered Email ID!");
 
     const btn = document.getElementById('btnSendForgotOtp');
     btn.disabled = true;
-    btn.innerText = "Checking...";
+    btn.innerText = "Sending...";
+    setForgotStatus("⏳ Checking account & sending 6-digit OTP to your Gmail...", false);
 
     try {
-        const snap = await getDocs(query(collection(db, "students"), where("email", "==", email)));
-        if (snap.empty) {
-            btn.disabled = false;
-            btn.innerText = "Send OTP";
-            return alert("❌ No account found with this Email ID!");
+        // Case-insensitive search in Firestore students
+        let snap = await getDocs(query(collection(db, "students"), where("email", "==", email)));
+        let studentDoc = !snap.empty ? snap.docs[0] : null;
+        if (!studentDoc) {
+            const allSnap = await getDocs(collection(db, "students"));
+            studentDoc = allSnap.docs.find(d => (d.data().email || "").trim().toLowerCase() === email) || null;
         }
 
-        const studentDoc = snap.docs[0];
+        if (!studentDoc) {
+            btn.disabled = false;
+            btn.innerText = "Send OTP";
+            setForgotStatus("❌ Is Email ID se koi account registered nahi hai. Pehle Register karein.", true);
+            return;
+        }
+
         forgotTargetDocId = studentDoc.id;
         forgotTargetEmail = email;
         forgotGeneratedOtp = Math.floor(100000 + Math.random() * 900000).toString();
@@ -881,41 +854,49 @@ window.sendForgotOtp = async function() {
             purpose: "Password Reset"
         });
 
-        if (res.status === "not_configured") {
-            alert(`[Setup Mode] Your Password Reset OTP is: ${forgotGeneratedOtp}`);
-        } else if (res.status === "success") {
-            alert(`✅ Password Reset OTP sent to ${email}.`);
+        if (res.status === "success") {
+            setForgotStatus(`✅ 6-Digit OTP <b>${email}</b> par bhej diya gaya hai! Inbox ya Spam folder check karein.`, false);
+            document.getElementById('forgotOtpStepBox').classList.remove('hide');
+        } else {
+            throw new Error(res.message || "Email server did not confirm delivery");
         }
 
-        document.getElementById('forgotEmail').disabled = true;
-        document.getElementById('forgotOtpStepBox').classList.remove('hide');
         btn.innerText = "Resend OTP";
         btn.disabled = false;
     } catch (e) {
-        console.error(e);
-        alert("Error: " + e.message);
+        console.error("Forgot OTP Error:", e);
+        setForgotStatus(`❌ OTP bhejne mein samasya aayi: ${e.message}. Kripya Google Apps Script deployment check karein.`, true);
         btn.disabled = false;
         btn.innerText = "Send OTP";
     }
-}
+};
 
 window.doResetPassword = async function() {
     const otpInput = document.getElementById('forgotOtpInput').value.trim();
     const newPass = document.getElementById('forgotNewPass').value.trim();
 
     if (!otpInput || otpInput.length !== 6) return alert("Please enter the 6-digit OTP!");
-    if (Date.now() > forgotOtpExpiry) return alert("❌ OTP expired! Please request a new OTP.");
-    if (otpInput !== forgotGeneratedOtp) return alert("❌ Invalid OTP!");
-    if (!newPass || newPass.length < 4) return alert("Please enter a new password (min 4 characters)!");
+    if (Date.now() > forgotOtpExpiry) return alert("❌ OTP expired! Please click Resend OTP.");
+    if (otpInput !== forgotGeneratedOtp) return alert("❌ Incorrect OTP! Please check your Gmail and enter the exact 6 digits.");
+    if (!newPass || newPass.length < 4) return alert("Please enter a new password (minimum 4 characters)!");
+
+    const btn = document.getElementById('btnDoResetPass');
+    if (btn) { btn.disabled = true; btn.innerText = "Updating Password..."; }
 
     try {
         await updateDoc(doc(db, "students", forgotTargetDocId), { password: newPass });
-        alert("✅ Password Reset Successful! You can now login with your new password.");
+        alert("✅ Password Reset Successful! Ab aap naye password se login kar sakte hain.");
         document.getElementById('forgotOtpInput').value = '';
         document.getElementById('forgotNewPass').value = '';
+        document.getElementById('forgotStatusMsg').classList.add('hide');
         showLogin();
-    } catch (e) { console.error(e); alert("Error updating password: " + e.message); }
-}
+    } catch (e) {
+        console.error(e);
+        alert("Error updating password: " + e.message);
+    } finally {
+        if (btn) { btn.disabled = false; btn.innerText = "Verify OTP & Update Password"; }
+    }
+};
 
 function syncSubscriptionPlansFromSettings() {
     subscriptionPlans[3].mrp    = parseFloat(appSettings.Plan3_MRP    || 149);
