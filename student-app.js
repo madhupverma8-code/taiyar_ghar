@@ -379,6 +379,18 @@ window.closeLiveTestsHub = function() {
     document.getElementById('liveHubModal').classList.add('hide');
 };
 
+window.openAttemptedHistoryModal = async function() {
+    if (!isLoggedIn) return showLogin();
+    const modal = document.getElementById('historyModal');
+    if (modal) modal.classList.remove('hide');
+    await fetchDashboardData();
+};
+
+window.closeAttemptedHistoryModal = function() {
+    const modal = document.getElementById('historyModal');
+    if (modal) modal.classList.add('hide');
+};
+
 function updateHeaderUI() {
     if(isLoggedIn) {
         document.getElementById('headerAuth').classList.add('hide');
@@ -1108,8 +1120,21 @@ async function fetchDashboardData() {
             lastTest = results.find(r => !r.isLivePending || (r.liveEndTime && !isNaN(new Date(r.liveEndTime)) && new Date() > new Date(r.liveEndTime)));
         }
 
+        // Deduplicate by testId (keep latest attempt per unique test so duplicate rows never clutter the list)
+        const uniqueResultsList = [];
+        const seenTestKeys = new Set();
+        results.forEach(r => {
+            const key = r.testId || r.testName;
+            if (!seenTestKeys.has(key)) {
+                seenTestKeys.add(key);
+                uniqueResultsList.push(r);
+            }
+        });
+
         const totalAttEl = document.getElementById('totalAttemptedCount');
-        if (totalAttEl) totalAttEl.innerText = `${results.length} Test${results.length === 1 ? '' : 's'}`;
+        if (totalAttEl) totalAttEl.innerText = `${uniqueResultsList.length} Test${uniqueResultsList.length === 1 ? '' : 's'}`;
+        const bannerBadgeEl = document.getElementById('bannerAttemptedBadge');
+        if (bannerBadgeEl) bannerBadgeEl.innerText = uniqueResultsList.length;
 
         if(lastTest) {
             document.getElementById('recentTestName').innerText = lastTest.testName;
@@ -1120,34 +1145,36 @@ async function fetchDashboardData() {
         }
 
         const historyContainer = document.getElementById('dashHistoryContainer');
-        if (results.length === 0) {
-            historyContainer.innerHTML = `<div class="history-item"><span style="color:#6B7280; font-size:14px;">You haven't attempted any tests yet. Select an exam category above to start!</span></div>`;
-        } else {
-            let histHtml = "";
-            results.forEach(r => {
-                const isStillPending = r.isLivePending && (!r.liveEndTime || isNaN(new Date(r.liveEndTime)) || new Date() <= new Date(r.liveEndTime));
-                if (isStillPending) {
-                    histHtml += `
-                        <div class="history-item" style="border-left: 4px solid #F59E0B;">
-                            <div>
-                                <span style="background:#FEF3C7; color:#92400E; font-size:11px; font-weight:700; padding:2px 8px; border-radius:12px;">⏳ LIVE RESULT PENDING</span>
-                                <h4 style="font-size:15px; color:#1E1B4B; margin-top:4px;">${r.testName}</h4>
-                                <p style="font-size:12px; color:#6B7280;">Attempted on ${new Date(r.timestamp).toLocaleDateString()} • Result releases at ${formatDateTimeReadable(r.liveEndTime)}</p>
-                            </div>
-                            <span style="font-size:13px; font-weight:600; color:#D97706;">Locked till release</span>
-                        </div>`;
-                } else {
-                    histHtml += `
-                        <div class="history-item" style="border-left: 4px solid var(--accent);">
-                            <div>
-                                <h4 style="font-size:15px; color:#1E1B4B;">${r.testName}</h4>
-                                <p style="font-size:12px; color:#6B7280;">Date: ${new Date(r.timestamp).toLocaleDateString()} | Score: <b style="color:var(--primary);">${r.finalScore}/${r.totalMarks}</b> (${r.percent}%)</p>
-                            </div>
-                            <button class="btn btn-outline" style="padding:6px 14px; font-size:12px;" onclick="viewPastAnalysis('${r.testId}')">📊 View Result & Rank</button>
-                        </div>`;
-                }
-            });
-            historyContainer.innerHTML = histHtml;
+        if (historyContainer) {
+            if (uniqueResultsList.length === 0) {
+                historyContainer.innerHTML = `<div class="history-item"><span style="color:#6B7280; font-size:14px;">You haven't attempted any tests yet. Select an exam category above to start!</span></div>`;
+            } else {
+                let histHtml = "";
+                uniqueResultsList.forEach(r => {
+                    const isStillPending = r.isLivePending && (!r.liveEndTime || isNaN(new Date(r.liveEndTime)) || new Date() <= new Date(r.liveEndTime));
+                    if (isStillPending) {
+                        histHtml += `
+                            <div class="history-item" style="border-left: 4px solid #F59E0B;">
+                                <div>
+                                    <span style="background:#FEF3C7; color:#92400E; font-size:11px; font-weight:700; padding:2px 8px; border-radius:12px;">⏳ LIVE RESULT PENDING</span>
+                                    <h4 style="font-size:15px; color:#1E1B4B; margin-top:4px;">${r.testName}</h4>
+                                    <p style="font-size:12px; color:#6B7280;">Attempted on ${new Date(r.timestamp).toLocaleDateString()} • Result releases at ${formatDateTimeReadable(r.liveEndTime)}</p>
+                                </div>
+                                <span style="font-size:13px; font-weight:600; color:#D97706;">Locked till release</span>
+                            </div>`;
+                    } else {
+                        histHtml += `
+                            <div class="history-item" style="border-left: 4px solid var(--accent);">
+                                <div>
+                                    <h4 style="font-size:15px; color:#1E1B4B;">${r.testName}</h4>
+                                    <p style="font-size:12px; color:#6B7280;">Date: ${new Date(r.timestamp).toLocaleDateString()} | Score: <b style="color:var(--primary);">${r.finalScore}/${r.totalMarks}</b> (${r.percent}%)</p>
+                                </div>
+                                <button class="btn btn-outline" style="padding:6px 14px; font-size:12px;" onclick="closeAttemptedHistoryModal(); viewPastAnalysis('${r.testId}')">📊 View Result & Rank</button>
+                            </div>`;
+                    }
+                });
+                historyContainer.innerHTML = histHtml;
+            }
         }
 
         let recTest = allTests.find(t => !attemptedTestIds.includes(t.testId || t.id) && !isLiveTestCurrentlyActive(t));
@@ -1865,6 +1892,7 @@ window.showSubmitModal = function() {
 window.closeSubmitModal = function() { document.getElementById('submitModal').classList.add('hide'); }
 
 window.finalSubmitTest = async function() {
+    if (isTestSubmitting && currentScreen !== 'testScreen') return;
     isTestSubmitting = true;
     closeSubmitModal(); 
     clearInterval(timerInterval); 
