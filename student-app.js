@@ -634,11 +634,7 @@ window.loginWithGoogle = async function() {
         console.error("Google Sign-In Error:", e);
         if (e.code === 'auth/popup-closed-by-user') return;
         if (e.code === 'auth/api-key-not-valid.-please-pass-a-valid-api-key.' || e.code === 'auth/api-key-not-valid') {
-            alert("⚠️ Google Sign-In Setup Pending in Firebase Console:
-1. Open Firebase Console -> Authentication -> Sign-in method -> Enable 'Google'.
-2. In Google Cloud Console -> Credentials -> API Key -> Allow 'taiyarighar.in'.
-
-Tab tak aap Email OTP se register/login kar sakte hain.");
+            alert("⚠️ Google Sign-In Setup Pending in Firebase Console:\n1. Open Firebase Console -> Authentication -> Sign-in method -> Enable 'Google'.\n2. In Google Cloud Console -> Credentials -> API Key -> Allow 'taiyarighar.in'.\n\nTab tak aap Email OTP se register/login kar sakte hain.");
         } else if (e.code === 'auth/operation-not-allowed') {
             alert("⚠️ Firebase Console mein 'Google' Sign-In provider abhi Enable nahi hai. Authentication -> Sign-in method mein jakar Google ko Enable karein.");
         } else if (e.code === 'auth/unauthorized-domain') {
