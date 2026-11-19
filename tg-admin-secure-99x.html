@@ -176,6 +176,7 @@
                     <button class="tab-btn" title="Exam Types" onclick="openTab('tabCategories', this); closeMobileSidebar();"><span class="tab-icon">🗂️</span><span class="tab-label">Exam Types</span></button>
                     <button class="tab-btn" title="Tests & Live" onclick="openTab('tabTests', this); closeMobileSidebar();"><span class="tab-icon">📝</span><span class="tab-label">Tests & Live</span></button>
                     <button class="tab-btn" title="Questions" onclick="openTab('tabQuestions', this); closeMobileSidebar();"><span class="tab-icon">❓</span><span class="tab-label">Questions</span></button>
+                    <button class="tab-btn" title="Reported Questions" onclick="openTab('tabReports', this); closeMobileSidebar();"><span class="tab-icon">🚨</span><span class="tab-label">Reported Qs</span></button>
                     <button class="tab-btn" title="Results" onclick="openTab('tabResults', this); closeMobileSidebar();"><span class="tab-icon">📊</span><span class="tab-label">Results</span></button>
                     <button class="tab-btn" title="Current Affairs" onclick="openTab('tabCA', this); closeMobileSidebar();"><span class="tab-icon">📰</span><span class="tab-label">Current Affairs</span></button>
                     <button class="tab-btn" title="Jobs & Syllabus" onclick="openTab('tabUpdates', this); closeMobileSidebar();"><span class="tab-icon">📢</span><span class="tab-label">Jobs & Syllabus</span></button>
@@ -221,8 +222,17 @@
 
             <!-- TAB 2: Students & Payments -->
             <div id="tabStudents" class="section">
-                <h2 class="title">Students & Payments <button class="btn-export" onclick="exportStudents()">📥 Export to Excel</button></h2>
-                <div class="table-wrapper">
+                <h2 class="title">Students & Payments 
+                    <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                        <button class="btn-export" onclick="exportStudents()">📥 Export Excel</button>
+                        <button class="btn-export" style="background:#DC2626;" onclick="exportTableToPdf('studentsTableWrap', 'TaiyariGhar_Students_Report')">📄 Download PDF</button>
+                    </div>
+                </h2>
+                <div class="row" style="background:#F8FAFC; padding:12px; border-radius:8px; border:1px solid #E2E8F0; margin-bottom:12px;">
+                    <div style="flex:3;"><input type="text" id="searchStudentInput" placeholder="🔍 Search Student by Name, Mobile, Student ID (TG0004), or Email..." style="margin-bottom:0;" onkeyup="filterAdminTable('students')"></div>
+                    <div style="flex:1;"><button class="save-btn" style="margin-bottom:0; background:#4F46E5;" onclick="toggleAdminTable('studentsTableWrap', this, loadStudents)">👁️ Show All</button></div>
+                </div>
+                <div id="studentsTableWrap" class="table-wrapper" style="display:none;">
                     <table id="studentsTable">
                         <thead>
                             <tr>
@@ -236,7 +246,7 @@
                                 <th>Action</th>
                             </tr>
                         </thead>
-                        <tbody><tr><td colspan="8" style="text-align:center;">Loading...</td></tr></tbody>
+                        <tbody></tbody>
                     </table>
                 </div>
             </div>
@@ -258,10 +268,16 @@
                     <div style="flex: 1;"><button onclick="downloadCategoriesTemplate()" style="background:none; border:1px solid var(--purple); color:var(--purple); padding:10px; border-radius:8px; cursor:pointer; font-size:13px; width:100%; font-weight:600;">📥 Download Template</button></div>
                 </div>
 
-                <div class="table-wrapper">
+                <div class="row" style="margin-top:14px; background:#F8FAFC; padding:12px; border-radius:8px; border:1px solid #E2E8F0;">
+                    <div style="flex:2;"><input type="text" id="searchCatInput" placeholder="🔍 Search Category, Sub-Category, or Exam Type..." style="margin-bottom:0;" onkeyup="filterAdminTable('categories')"></div>
+                    <div style="flex:1;"><button class="save-btn" style="margin-bottom:0; background:#4F46E5;" onclick="toggleAdminTable('categoriesTableWrap', this, loadCategories)">👁️ Show All</button></div>
+                    <div style="flex:1;"><button class="btn-export" style="width:100%; height:40px;" onclick="exportCategoriesExcel()">📥 Excel</button></div>
+                    <div style="flex:1;"><button class="btn-export" style="width:100%; height:40px; background:#DC2626;" onclick="exportTableToPdf('categoriesTableWrap', 'TaiyariGhar_Categories')">📄 PDF</button></div>
+                </div>
+                <div id="categoriesTableWrap" class="table-wrapper" style="display:none;">
                     <table id="categoriesTable">
                         <thead><tr><th>Main Category</th><th>Sub-Category</th><th>Exam Name (Test Type)</th><th>Action</th></tr></thead>
-                        <tbody><tr><td colspan="4" style="text-align:center;">Loading...</td></tr></tbody>
+                        <tbody></tbody>
                     </table>
                 </div>
             </div>
@@ -297,10 +313,15 @@
                 </div>
 
                 <button class="save-btn" id="testBtn" onclick="saveTest()">Add Test</button>
-                <div class="table-wrapper">
+                <div class="row" style="background:#F8FAFC; padding:12px; border-radius:8px; border:1px solid #E2E8F0; margin-bottom:10px;">
+                    <div style="flex:2;"><input type="text" id="searchTestListInput" placeholder="🔍 Search Test by ID (RRB005), Category, or Test Name..." style="margin-bottom:0;" onkeyup="filterAdminTable('tests')"></div>
+                    <div style="flex:1;"><button class="save-btn" style="margin-bottom:0; background:#4F46E5;" onclick="toggleAdminTable('testsTableWrap', this, loadTests)">👁️ Show All</button></div>
+                    <div style="flex:1;"><button class="btn-export" style="width:100%; height:40px; background:#DC2626;" onclick="exportTableToPdf('testsTableWrap', 'TaiyariGhar_Tests_List')">📄 PDF</button></div>
+                </div>
+                <div id="testsTableWrap" class="table-wrapper" style="display:none;">
                     <table id="testsTable">
                         <thead><tr><th>ID</th><th>Category</th><th>Test Name</th><th>Live?</th><th>Marks</th><th>Qs</th><th>Neg</th><th>Action</th></tr></thead>
-                        <tbody><tr><td colspan="8" style="text-align:center;">Loading...</td></tr></tbody>
+                        <tbody></tbody>
                     </table>
                 </div>
             </div>
@@ -311,11 +332,12 @@
                 <input type="hidden" id="editQId">
                 
                 <div style="background: #f8fafc; padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #e2e8f0;">
-                    <h3 style="margin-bottom: 10px; font-size: 15px; color: var(--primary);">🔍 Search & Download Questions</h3>
+                    <h3 style="margin-bottom: 10px; font-size: 15px; color: var(--primary);">🔍 Search by Test ID or Unique Q-ID & Bulk Download (Excel / PDF)</h3>
                     <div class="row">
-                        <div style="flex: 2;"><input type="text" id="searchTestId" placeholder="Enter Test ID (e.g., RRB001)" style="margin-bottom:0;"></div>
-                        <div style="flex: 1;"><button class="save-btn" style="margin-bottom:0; background: var(--primary);" onclick="searchQuestions()">Search</button></div>
-                        <div style="flex: 1;"><button class="save-btn" style="margin-bottom:0; background: var(--success);" onclick="downloadTestQuestions()">📥 Download</button></div>
+                        <div style="flex: 2.5;"><input type="text" id="searchTestId" placeholder="Enter Test ID (e.g., RRB001) OR Unique Q-ID (e.g., RRB001-Q01)" style="margin-bottom:0;" onkeypress="if(event.key==='Enter') searchQuestions()"></div>
+                        <div style="flex: 1;"><button class="save-btn" style="margin-bottom:0; background: var(--primary);" onclick="searchQuestions()">🔍 Search</button></div>
+                        <div style="flex: 1;"><button class="save-btn" style="margin-bottom:0; background: var(--success);" onclick="downloadTestQuestions()">📥 Excel</button></div>
+                        <div style="flex: 1;"><button class="save-btn" style="margin-bottom:0; background: #DC2626;" onclick="downloadTestQuestionsPdf()">📄 PDF</button></div>
                     </div>
                 </div>
 
@@ -354,18 +376,54 @@
                 </div>
             </div>
 
+            <!-- TAB 5B: Reported Questions -->
+            <div id="tabReports" class="section">
+                <h2 class="title">🚨 Student Reported Questions
+                    <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                        <button class="btn-export" style="background:#4F46E5;" onclick="loadReportedQuestions()">🔄 Refresh Reports</button>
+                        <button class="btn-export" onclick="exportReportsExcel()">📥 Export Excel</button>
+                        <button class="btn-export" style="background:#DC2626;" onclick="exportTableToPdf('reportsTableWrap', 'TaiyariGhar_Reported_Questions')">📄 Download PDF</button>
+                    </div>
+                </h2>
+                <div class="row" style="background:#F8FAFC; padding:12px; border-radius:8px; border:1px solid #E2E8F0; margin-bottom:12px;">
+                    <div style="flex:3;"><input type="text" id="searchReportInput" placeholder="🔍 Search Reported Q by Unique Q-ID, Test ID, or Student..." style="margin-bottom:0;" onkeyup="filterAdminTable('reports')"></div>
+                </div>
+                <div id="reportsTableWrap" class="table-wrapper">
+                    <table id="reportsTable">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Unique Q-ID</th>
+                                <th>Issue & Suggested Fix</th>
+                                <th>Screenshot</th>
+                                <th>Reported By</th>
+                                <th>Status</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody><tr><td colspan="7" style="text-align:center;">Click Refresh Reports to load...</td></tr></tbody>
+                    </table>
+                </div>
+            </div>
+
             <!-- TAB 6: Results -->
             <div id="tabResults" class="section">
                 <h2 class="title">Student Results 
                     <div style="display:flex; gap:8px; flex-wrap:wrap;">
-                        <button class="btn-export" style="background:#4F46E5;" onclick="releaseLiveResultsAndSendEmails()">📧 Release Live Results & Email Scorecards</button>
-                        <button class="btn-export" onclick="exportResults()">📥 Export to Excel</button>
+                        <button class="btn-export" style="background:#4F46E5;" onclick="releaseLiveResultsAndSendEmails()">📧 Release Live Results & Emails</button>
+                        <button class="btn-export" style="background:#F59E0B;" onclick="cleanDuplicateResults()">🧹 Remove Duplicates</button>
+                        <button class="btn-export" onclick="exportResults()">📥 Excel</button>
+                        <button class="btn-export" style="background:#DC2626;" onclick="exportTableToPdf('resultsTableWrap', 'TaiyariGhar_Student_Results')">📄 PDF</button>
                     </div>
                 </h2>
-                <div class="table-wrapper">
+                <div class="row" style="background:#F8FAFC; padding:12px; border-radius:8px; border:1px solid #E2E8F0; margin-bottom:12px;">
+                    <div style="flex:3;"><input type="text" id="searchResultInput" placeholder="🔍 Search Results by Student Name, Login ID, Test Name, or Date..." style="margin-bottom:0;" onkeyup="filterAdminTable('results')"></div>
+                    <div style="flex:1;"><button class="save-btn" style="margin-bottom:0; background:#4F46E5;" onclick="toggleAdminTable('resultsTableWrap', this, loadResults)">👁️ Show All</button></div>
+                </div>
+                <div id="resultsTableWrap" class="table-wrapper" style="display:none;">
                     <table id="resultsTable">
                         <thead><tr><th>Date</th><th>Student</th><th>Test</th><th>Correct</th><th>Wrong</th><th>Neg</th><th>Score</th></tr></thead>
-                        <tbody><tr><td colspan="7" style="text-align:center;">Loading...</td></tr></tbody>
+                        <tbody></tbody>
                     </table>
                 </div>
             </div>
@@ -393,10 +451,16 @@
                     <div style="flex:2;"><input type="text" id="caExp" placeholder="Explanation (For Monthly only)"></div>
                 </div>
                 <button class="save-btn" id="caBtn" onclick="saveCA()">Add Current Affairs</button>
-                <div class="table-wrapper">
+                <div class="row" style="background:#F8FAFC; padding:12px; border-radius:8px; border:1px solid #E2E8F0; margin-bottom:10px;">
+                    <div style="flex:2;"><input type="text" id="searchCaInput" placeholder="🔍 Search Current Affairs by Title, Date, or Question..." style="margin-bottom:0;" onkeyup="filterAdminTable('ca')"></div>
+                    <div style="flex:1;"><button class="save-btn" style="margin-bottom:0; background:#4F46E5;" onclick="toggleAdminTable('caTableWrap', this, loadCA)">👁️ Show All</button></div>
+                    <div style="flex:1;"><button class="btn-export" style="width:100%; height:40px;" onclick="exportCaExcel()">📥 Excel</button></div>
+                    <div style="flex:1;"><button class="btn-export" style="width:100%; height:40px; background:#DC2626;" onclick="exportTableToPdf('caTableWrap', 'TaiyariGhar_Current_Affairs')">📄 PDF</button></div>
+                </div>
+                <div id="caTableWrap" class="table-wrapper" style="display:none;">
                     <table id="caTable">
                         <thead><tr><th>Type</th><th>Date</th><th>Title</th><th>Question</th><th>Action</th></tr></thead>
-                        <tbody><tr><td colspan="5" style="text-align:center;">Loading...</td></tr></tbody>
+                        <tbody></tbody>
                     </table>
                 </div>
             </div>
@@ -441,10 +505,16 @@
                     <div style="flex: 1;"><button onclick="downloadUpdatesTemplate()" style="background:none; border:1px solid var(--purple); color:var(--purple); padding:10px; border-radius:8px; cursor:pointer; font-size:13px; width:100%; font-weight:600;">📥 Download Template</button></div>
                 </div>
 
-                <div class="table-wrapper">
+                <div class="row" style="margin-top:12px; background:#F8FAFC; padding:12px; border-radius:8px; border:1px solid #E2E8F0; margin-bottom:10px;">
+                    <div style="flex:2;"><input type="text" id="searchUpdInput" placeholder="🔍 Search Jobs & Syllabus by Exam, Category, or Title..." style="margin-bottom:0;" onkeyup="filterAdminTable('updates')"></div>
+                    <div style="flex:1;"><button class="save-btn" style="margin-bottom:0; background:#4F46E5;" onclick="toggleAdminTable('updatesTableWrap', this, loadJobUpdates)">👁️ Show All</button></div>
+                    <div style="flex:1;"><button class="btn-export" style="width:100%; height:40px;" onclick="exportUpdatesExcel()">📥 Excel</button></div>
+                    <div style="flex:1;"><button class="btn-export" style="width:100%; height:40px; background:#DC2626;" onclick="exportTableToPdf('updatesTableWrap', 'TaiyariGhar_Jobs_Syllabus')">📄 PDF</button></div>
+                </div>
+                <div id="updatesTableWrap" class="table-wrapper" style="display:none;">
                     <table id="updatesTable">
                         <thead><tr><th>Category</th><th>Exam</th><th>Title</th><th>Date / Last Date</th><th>Link</th><th>Action</th></tr></thead>
-                        <tbody><tr><td colspan="6" style="text-align:center;">Loading...</td></tr></tbody>
+                        <tbody></tbody>
                     </table>
                 </div>
             </div>
@@ -507,6 +577,6 @@
         };
     </script>
 
-    <script type="module" src="admin-app.js?v=20261120"></script>
+    <script type="module" src="admin-app.js?v=20261121"></script>
 </body>
 </html>
