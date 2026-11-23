@@ -462,22 +462,21 @@
 
 <!-- Firebase SDKs (Replace config object with your existing TaiyariGhar Firebase config) -->
 <script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
   import {
     getFirestore, collection, doc, getDoc, getDocs, setDoc, updateDoc,
     query, where, serverTimestamp, runTransaction
-  } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+  } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-  // TODO: Paste your existing TaiyariGhar firebaseConfig & GAS_WEB_APP_URL here
   const firebaseConfig = {
-    apiKey: "YOUR_FIREBASE_API_KEY",
-    authDomain: "YOUR_PROJECT.firebaseapp.com",
-    projectId: "YOUR_PROJECT_ID",
-    storageBucket: "YOUR_PROJECT.appspot.com",
-    messagingSenderId: "YOUR_SENDER_ID",
-    appId: "YOUR_APP_ID"
+    apiKey: "AIzaSyA7x6gQziPYlxrXnyVJJ80mvJkh3VCm24",
+    authDomain: "taiyarighar.firebaseapp.com",
+    projectId: "taiyarighar",
+    storageBucket: "taiyarighar.firebasestorage.app",
+    messagingSenderId: "329150812714",
+    appId: "1:329150812714:web:1f292d05aaba0cb918e953"
   };
-  const GAS_WEB_APP_URL = "YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL";
+  const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxvoU_mH8BjfE7QdC_UOQyzDfmJsUoVcIvq9Kp3VtXutzYTFRFY0vXpzw6Uv2XAjnng5Q/exec";
 
   const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
