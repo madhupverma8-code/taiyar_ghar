@@ -121,6 +121,7 @@ window.openTab = function(tabId, btn) {
     if (!loadedTabs[tabId]) {
         loadedTabs[tabId] = true;
         if (tabId === 'tabReports') loadReportedQuestions();
+        if (tabId === 'tabPartners') initPartnerAdmin();
     }
 };
 
@@ -1174,4 +1175,296 @@ window.exportReportsExcel = async function() {
         return [r.timestamp || "", r.uniqueId || "", r.testId || "", r.issueType || "", r.issue || "", r.suggestedCorrection || "", r.reportedBy || "", r.status || "Pending"];
     });
     triggerCsvDownload("TaiyariGhar_Reported_Questions.csv", ["Date", "UniqueQID", "TestID", "IssueType", "MistakeDescription", "SuggestedCorrection", "ReportedBy", "Status"], rows);
+};
+
+
+// =========================================================================
+// 13. OFFICIAL REFERRAL PARTNERS & COUPONS MANAGEMENT
+// =========================================================================
+let allPartnersCache = [];
+let currentPartnerFilterView = "pending";
+let partnerRegEnabledState = true;
+
+window.initPartnerAdmin = async function() {
+    await loadPartnerRegistrationSetting();
+    await loadAllPartnersAdmin();
+};
+
+async function loadPartnerRegistrationSetting() {
+    try {
+        const snap = await getDoc(doc(db, "settings", "partnerProgram"));
+        partnerRegEnabledState = snap.exists() ? (snap.data().registrationEnabled !== false) : true;
+        const btn = document.getElementById("btnToggleRegistration");
+        if (btn) {
+            btn.textContent = partnerRegEnabledState ? "ON (Click to Disable)" : "OFF (Click to Enable)";
+            btn.style.background = partnerRegEnabledState ? "#10B981" : "#EF4444";
+        }
+    } catch (e) { console.error("Partner setting load error:", e); }
+}
+
+window.togglePartnerRegistrationSetting = async function() {
+    const newState = !partnerRegEnabledState;
+    await setDoc(doc(db, "settings", "partnerProgram"), { registrationEnabled: newState }, { merge: true });
+    await loadPartnerRegistrationSetting();
+};
+
+window.loadAllPartnersAdmin = async function() {
+    try {
+        const snap = await getDocs(collection(db, "partners"));
+        allPartnersCache = snap.docs.map(d => ({ docId: d.id, ...d.data() }));
+
+        const pendingCount = allPartnersCache.filter(p => p.status === "pending").length;
+        const completedCount = allPartnersCache.filter(p => p.status === "approved" || p.status === "disabled").length;
+        const rejectedCount = allPartnersCache.filter(p => p.status === "rejected").length;
+
+        if (document.getElementById("cntPending")) document.getElementById("cntPending").textContent = pendingCount;
+        if (document.getElementById("cntCompleted")) document.getElementById("cntCompleted").textContent = completedCount;
+        if (document.getElementById("cntRejected")) document.getElementById("cntRejected").textContent = rejectedCount;
+
+        renderPartnerAdminList();
+    } catch (e) { console.error("Load partners error:", e); }
+};
+
+window.switchPartnerFilter = function(view) {
+    currentPartnerFilterView = view;
+    renderPartnerAdminList();
+};
+
+window.renderPartnerAdminList = function() {
+    const container = document.getElementById("partnerAdminList");
+    if (!container) return;
+    const term = (document.getElementById("adminPartnerSearch")?.value || "").trim().toLowerCase();
+
+    if (term) {
+        const matched = allPartnersCache.filter(p =>
+            (p.partnerId || "").toLowerCase().includes(term) ||
+            (p.couponCode || "").toLowerCase().includes(term) ||
+            (p.mobile || "").toLowerCase().includes(term) ||
+            (p.name || "").toLowerCase().includes(term)
+        );
+        if (matched.length === 0) {
+            container.innerHTML = `<p style="color:#64748B; font-size:13px;">No partner matched "${term}".</p>`;
+            return;
+        }
+        container.innerHTML = matched.map(renderPartnerCardHtml).join("");
+        return;
+    }
+
+    if (currentPartnerFilterView === "pending") {
+        const list = allPartnersCache.filter(p => p.status === "pending");
+        container.innerHTML = list.length
+            ? list.map(renderPartnerCardHtml).join("")
+            : `<p style="color:#059669; font-size:13px; font-weight:600;">✅ No pending verifications right now.</p>`;
+    } else if (currentPartnerFilterView === "rejected") {
+        const list = allPartnersCache.filter(p => p.status === "rejected");
+        container.innerHTML = list.length
+            ? list.map(renderPartnerCardHtml).join("")
+            : `<p style="color:#64748B; font-size:13px;">No rejected applications.</p>`;
+    } else {
+        const verifiedCount = allPartnersCache.filter(p => p.status === "approved" || p.status === "disabled").length;
+        container.innerHTML = `<div style="padding:16px; background:#F8FAFC; border:1px dashed #CBD5E1; border-radius:10px; font-size:13px; color:#334155;">
+            Total Verified Partners: <strong>${verifiedCount}</strong>.<br/>
+            All verified partners remain hidden until searched. Enter a <strong>Partner ID (e.g. TGP-1001)</strong>, <strong>Coupon Code</strong>, <strong>Mobile</strong>, or <strong>Name</strong> in the search box above to inspect or manage a partner.
+        </div>`;
+    }
+};
+
+function renderPartnerCardHtml(p) {
+    const unpaid = Math.max(0, Number(p.totalCommission || 0) - Number(p.paidCommission || 0)).toFixed(2);
+    const nameMatchNote = (p.name || "").trim().toLowerCase() === (p.holderName || "").trim().toLowerCase()
+        ? `<span style="color:#059669; font-weight:700;">(Exact Name Match)</span>`
+        : `<span style="color:#D97706; font-weight:700;">(Check Name Match!)</span>`;
+
+    return `
+      <div style="border:1px solid #CBD5E1; border-radius:10px; padding:15px; margin-bottom:12px; background:#fff; font-size:12.5px;">
+        <div style="display:flex; justify-content:space-between; flex-wrap:wrap; gap:8px;">
+          <div>
+            <strong style="font-size:14.5px; color:#1E1B4B;">${p.name}</strong>
+            <span style="background:#EEF2FF; color:#4F46E5; padding:2px 8px; border-radius:5px; font-weight:700; margin-left:6px;">${p.partnerId}</span>
+            <span style="background:#FEF3C7; color:#92400E; padding:2px 8px; border-radius:5px; font-weight:700; margin-left:4px; text-transform:uppercase;">${p.status}</span>
+          </div>
+          <div>
+            <a href="tel:${p.mobile}" style="margin-right:10px; color:#4F46E5; font-weight:600; text-decoration:none;">📞 Call: ${p.mobile}</a>
+            <a href="https://wa.me/91${p.mobile}" target="_blank" style="color:#059669; font-weight:600; text-decoration:none;">💬 WhatsApp</a>
+          </div>
+        </div>
+
+        <div style="margin-top:8px; display:grid; grid-template-columns:repeat(auto-fit, minmax(210px, 1fr)); gap:6px; background:#F8FAFC; padding:10px; border-radius:8px; border:1px solid #E2E8F0;">
+          <div><strong>Gmail:</strong> ${p.email}</div>
+          <div><strong>City:</strong> ${p.city}</div>
+          <div><strong>Social/Channel:</strong> ${p.socialLink ? `<a href="${p.socialLink}" target="_blank">Open Link</a>` : "Optional / Not Provided"}</div>
+          <div><strong>Bank Holder Name:</strong> ${p.holderName} ${nameMatchNote}</div>
+          <div><strong>Bank & A/C:</strong> ${p.bankName} | <code>${p.accountNo}</code></div>
+          <div><strong>IFSC & UPI:</strong> <code>${p.ifsc}</code> | <code>${p.upiId}</code></div>
+        </div>
+
+        <div style="margin-top:10px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+          <div>
+            <strong>Coupon:</strong> <code style="font-size:13.5px; color:#4F46E5; font-weight:700;">${p.couponCode}</code>
+            (₹${p.discountAmount} off + ${p.extraDays}d | Uses: ${p.usedCount || 0}/${p.maxUsageLimit} | Comm: ${p.commissionPercent}% | Unpaid: <strong>₹${unpaid}</strong>)
+          </div>
+          <div style="display:flex; gap:6px; flex-wrap:wrap;">
+            <button type="button" class="btn-approve" onclick="openApprovePartnerModal('${p.docId}')">
+              ${p.status === "pending" ? "✅ Verify & Approve" : "✏️ Edit Coupon / Approve"}
+            </button>
+            <button type="button" class="btn-delete" onclick="rejectPartnerWithReason('${p.docId}')">
+              ❌ Reject with Reason
+            </button>
+            ${p.status === "approved" ? `
+              <button type="button" style="background:#475569; color:#fff; border:none; padding:6px 10px; border-radius:5px; cursor:pointer; font-size:11px;" onclick="togglePartnerDisableStatus('${p.docId}', 'disabled')">Disable</button>
+              <button type="button" style="background:#0F766E; color:#fff; border:none; padding:6px 10px; border-radius:5px; cursor:pointer; font-size:11px;" onclick="markPartnerPayoutPaid('${p.docId}')">💸 Mark Paid</button>
+            ` : ""}
+            ${p.status === "disabled" ? `
+              <button type="button" style="background:#2563EB; color:#fff; border:none; padding:6px 10px; border-radius:5px; cursor:pointer; font-size:11px;" onclick="togglePartnerDisableStatus('${p.docId}', 'approved')">Re-Enable</button>
+            ` : ""}
+          </div>
+        </div>
+        ${p.status === "rejected" && p.rejectionReason ? `<div style="margin-top:6px; color:#DC2626;"><strong>Rejection Reason:</strong> ${p.rejectionReason}</div>` : ""}
+      </div>
+    `;
+}
+
+window.openApprovePartnerModal = function(docId) {
+    const p = allPartnersCache.find(item => item.docId === docId);
+    if (!p) return;
+    document.getElementById("editPartnerDocId").value = docId;
+    document.getElementById("modalPartnerSummary").textContent = `${p.name} (${p.partnerId}) — Holder: ${p.holderName} | A/C: ${p.accountNo}`;
+    document.getElementById("cfgCouponCode").value = p.couponCode || "";
+    document.getElementById("cfgDiscount").value = p.discountAmount ?? 20;
+    document.getElementById("cfgExtraDays").value = p.extraDays ?? 15;
+    document.getElementById("cfgMaxLimit").value = p.maxUsageLimit ?? 100;
+    document.getElementById("cfgCommPct").value = p.commissionPercent ?? 10;
+    document.getElementById("approvePartnerModal").style.display = "flex";
+};
+
+window.confirmApprovePartner = async function() {
+    const docId = document.getElementById("editPartnerDocId").value;
+    const newCode = document.getElementById("cfgCouponCode").value.trim().toUpperCase();
+    const discountAmount = Number(document.getElementById("cfgDiscount").value || 0);
+    const extraDays = Number(document.getElementById("cfgExtraDays").value || 0);
+    const maxUsageLimit = Number(document.getElementById("cfgMaxLimit").value || 100);
+    const commissionPercent = Number(document.getElementById("cfgCommPct").value || 10);
+
+    if (!newCode) { alert("Coupon code cannot be empty."); return; }
+
+    const duplicate = allPartnersCache.find(p => p.docId !== docId && (p.couponCode || "").toUpperCase() === newCode);
+    if (duplicate) {
+        alert(`❌ Duplicate Coupon Blocked! Code "${newCode}" is already assigned to ${duplicate.name} (${duplicate.partnerId}).`);
+        return;
+    }
+
+    const partner = allPartnersCache.find(p => p.docId === docId);
+    await updateDoc(doc(db, "partners", docId), {
+        status: "approved",
+        rejectionReason: "",
+        couponCode: newCode,
+        discountAmount,
+        extraDays,
+        maxUsageLimit,
+        commissionPercent
+    });
+
+    if (partner && partner.status !== "approved") {
+        fetch(APPS_SCRIPT_MAILER_URL, {
+            method: "POST",
+            headers: { "Content-Type": "text/plain;charset=utf-8" },
+            body: JSON.stringify({
+                action: "partner_status",
+                email: partner.email,
+                name: partner.name,
+                status: "approved",
+                partnerId: partner.partnerId,
+                couponCode: newCode
+            })
+        }).catch(() => {});
+    }
+
+    document.getElementById("approvePartnerModal").style.display = "none";
+    alert("✅ Partner verified and activated!");
+    await loadAllPartnersAdmin();
+};
+
+window.rejectPartnerWithReason = async function(docId) {
+    const reason = prompt("Enter Rejection Reason (this will be shown to the partner so they can fix & re-submit):");
+    if (reason === null) return;
+    if (!reason.trim()) { alert("Rejection reason is required."); return; }
+
+    const partner = allPartnersCache.find(p => p.docId === docId);
+    await updateDoc(doc(db, "partners", docId), {
+        status: "rejected",
+        rejectionReason: reason.trim()
+    });
+
+    if (partner) {
+        fetch(APPS_SCRIPT_MAILER_URL, {
+            method: "POST",
+            headers: { "Content-Type": "text/plain;charset=utf-8" },
+            body: JSON.stringify({
+                action: "partner_status",
+                email: partner.email,
+                name: partner.name,
+                status: "rejected",
+                partnerId: partner.partnerId,
+                reason: reason.trim()
+            })
+        }).catch(() => {});
+    }
+
+    alert("Application rejected with reason.");
+    await loadAllPartnersAdmin();
+};
+
+window.togglePartnerDisableStatus = async function(docId, targetStatus) {
+    await updateDoc(doc(db, "partners", docId), { status: targetStatus });
+    alert(`Partner status updated to: ${targetStatus.toUpperCase()}`);
+    await loadAllPartnersAdmin();
+};
+
+window.markPartnerPayoutPaid = async function(docId) {
+    const p = allPartnersCache.find(item => item.docId === docId);
+    if (!p) return;
+    const total = Number(p.totalCommission || 0);
+    if (!confirm(`Mark full ₹${total.toFixed(2)} commission as PAID for ${p.name} (${p.partnerId})?`)) return;
+    await updateDoc(doc(db, "partners", docId), { paidCommission: total });
+    alert("✅ Payout marked as paid!");
+    await loadAllPartnersAdmin();
+};
+
+window.exportFullPartnersCsv = function() {
+    const headers = [
+        "PartnerID", "Status", "ApplicantName", "Mobile", "Gmail", "City",
+        "SocialLink", "AccountHolderName", "BankName", "AccountNumber",
+        "IFSCCode", "UPI_ID", "CouponCode", "DiscountINR", "ExtraDays",
+        "UsedCount", "MaxLimit", "CommissionPct", "TotalSales", "TotalCommission", "PaidCommission", "UnpaidBalance"
+    ];
+    const rows = allPartnersCache.map(p => {
+        const unpaid = Math.max(0, Number(p.totalCommission || 0) - Number(p.paidCommission || 0)).toFixed(2);
+        return [
+            p.partnerId || "", p.status || "", p.name || "", p.mobile || "", p.email || "", p.city || "",
+            p.socialLink || "", p.holderName || "", p.bankName || "", p.accountNo || "",
+            p.ifsc || "", p.upiId || "", p.couponCode || "", p.discountAmount || 0, p.extraDays || 0,
+            p.usedCount || 0, p.maxUsageLimit || 0, p.commissionPercent || 10,
+            p.totalSales || 0, p.totalCommission || 0, p.paidCommission || 0, unpaid
+        ];
+    });
+    triggerCsvDownload("TaiyariGhar_All_Partners_Data.csv", headers, rows);
+};
+
+window.exportMonthlyPayoutCsv = function() {
+    const headers = [
+        "PartnerID", "AccountHolderName", "BankName", "AccountNumber",
+        "IFSCCode", "UPI_ID", "Mobile", "PayableCommissionINR", "Remarks"
+    ];
+    const rows = [];
+    allPartnersCache.forEach(p => {
+        const unpaid = Number(p.totalCommission || 0) - Number(p.paidCommission || 0);
+        if (p.status === "approved" && unpaid > 0) {
+            rows.push([
+                p.partnerId || "", p.holderName || "", p.bankName || "", p.accountNo || "",
+                p.ifsc || "", p.upiId || "", p.mobile || "", unpaid.toFixed(2),
+                `TaiyariGhar Referral Payout - ${p.partnerId}`
+            ]);
+        }
+    });
+    triggerCsvDownload("TaiyariGhar_Monthly_Payout_Sheet.csv", headers, rows);
 };
