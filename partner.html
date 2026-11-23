@@ -1,0 +1,879 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Careers - Official Referral Partner | TaiyariGhar</title>
+  <style>
+    :root {
+      --primary: #1e3a8a;
+      --primary-light: #eff6ff;
+      --accent: #059669;
+      --danger: #dc2626;
+      --warning: #d97706;
+      --text: #1f2937;
+      --muted: #4b5563;
+      --border: #e5e7eb;
+      --bg: #f8fafc;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Roboto, Arial, sans-serif; }
+    body { background: var(--bg); color: var(--text); font-size: 14px; line-height: 1.55; }
+    header {
+      background: #ffffff;
+      border-bottom: 1px solid var(--border);
+      padding: 12px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 20;
+    }
+    .brand { font-weight: 700; font-size: 17px; color: var(--primary); text-decoration: none; }
+    .brand span { display: block; font-size: 11px; font-weight: 500; color: var(--muted); }
+    .back-link { font-size: 13px; color: var(--primary); text-decoration: none; font-weight: 600; }
+    .container { max-width: 820px; margin: 20px auto; padding: 0 14px 40px; }
+    .card {
+      background: #ffffff;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 20px;
+      margin-bottom: 18px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    }
+    h1 { font-size: 20px; color: var(--primary); margin-bottom: 4px; }
+    .subtitle { font-size: 12.5px; color: var(--muted); margin-bottom: 14px; }
+    h2 { font-size: 14.5px; color: #111827; margin: 14px 0 6px; border-left: 3px solid var(--primary); padding-left: 8px; }
+    p, li { font-size: 13px; color: #374151; }
+    ul { padding-left: 18px; margin-bottom: 8px; }
+    li { margin-bottom: 4px; }
+    .highlight-box {
+      background: var(--primary-light);
+      border: 1px solid #bfdbfe;
+      border-radius: 8px;
+      padding: 12px 14px;
+      margin: 12px 0;
+      font-size: 12.5px;
+      color: #1e40af;
+    }
+    .portal-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 14px;
+      padding-top: 14px;
+      border-top: 1px dashed var(--border);
+    }
+    .btn {
+      padding: 10px 16px;
+      border: none;
+      border-radius: 7px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .btn-primary { background: var(--primary); color: #fff; }
+    .btn-outline { background: #fff; color: var(--primary); border: 1px solid var(--primary); }
+    .btn-success { background: var(--accent); color: #fff; }
+    .btn-sm { padding: 6px 12px; font-size: 12px; }
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 10px; }
+    @media (max-width: 600px) { .form-grid { grid-template-columns: 1fr; } }
+    .form-group { display: flex; flex-direction: column; gap: 4px; }
+    .form-group.full { grid-column: 1 / -1; }
+    label { font-size: 12px; font-weight: 600; color: #374151; }
+    input, select {
+      padding: 9px 11px;
+      border: 1px solid #d1d5db;
+      border-radius: 6px;
+      font-size: 13px;
+      outline: none;
+    }
+    input:focus { border-color: var(--primary); }
+    input[readonly] { background: #f3f4f6; color: #4b5563; cursor: not-allowed; }
+    .checkbox-list { margin-top: 14px; display: flex; flex-direction: column; gap: 8px; background: #f9fafb; padding: 12px; border-radius: 8px; border: 1px solid var(--border); }
+    .checkbox-item { display: flex; align-items: flex-start; gap: 8px; font-size: 12.5px; color: #1f2937; cursor: pointer; }
+    .checkbox-item input { margin-top: 3px; width: 15px; height: 15px; cursor: pointer; }
+    .alert { padding: 12px 14px; border-radius: 8px; font-size: 13px; margin-bottom: 12px; }
+    .alert-warning { background: #fffbeb; border: 1px solid #fde68a; color: #92400e; }
+    .alert-danger { background: #fef2f2; border: 1px solid #fecaca; color: #991b1b; }
+    .alert-success { background: #ecfdf5; border: 1px solid #a7f3d0; color: #065f46; }
+    .hidden { display: none !important; }
+    .stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin: 14px 0; }
+    @media (max-width: 640px) { .stat-grid { grid-template-columns: repeat(2, 1fr); } }
+    .stat-box { background: #f8fafc; border: 1px solid var(--border); border-radius: 8px; padding: 12px; text-align: center; }
+    .stat-box .val { font-size: 18px; font-weight: 700; color: var(--primary); }
+    .stat-box .lbl { font-size: 11px; color: var(--muted); margin-top: 2px; }
+    .coupon-banner {
+      background: #eff6ff;
+      border: 1.5px dashed var(--primary);
+      border-radius: 8px;
+      padding: 12px 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 12.5px; }
+    th, td { border: 1px solid var(--border); padding: 8px 10px; text-align: left; }
+    th { background: #f1f5f9; font-weight: 600; }
+    .note-tiny { font-size: 11.5px; color: var(--muted); margin-top: 6px; }
+  </style>
+</head>
+<body>
+
+<header>
+  <a href="index.html" class="brand">
+    TaiyariGhar
+    <span>मेहनत आपकी, साथ हमारा</span>
+  </a>
+  <a href="index.html" class="back-link">&larr; Back to Mock Tests</a>
+</header>
+
+<div class="container">
+
+  <!-- SECTION 1: COMPLETE PROGRAM INFORMATION (SMALL & CLEAN ENGLISH) -->
+  <div class="card" id="infoSection">
+    <h1>Careers &mdash; Official Referral Partner Program</h1>
+    <div class="subtitle">Partner with TaiyariGhar, help exam aspirants save on test passes, and earn transparent monthly commissions.</div>
+
+    <h2>1. What is the Official Referral Partner Program?</h2>
+    <p>The TaiyariGhar Official Referral Partner Program is a zero-fee affiliate initiative for students, educators, YouTubers, Telegram/WhatsApp community admins, and local coaching operators. You can share your unique referral coupon code with government exam aspirants and earn a fixed commission on every successful subscription purchase.</p>
+
+    <h2>2. How It Works &amp; How You Earn</h2>
+    <ul>
+      <li><strong>Unique Partner ID &amp; Coupon Code:</strong> Once verified, the system assigns you a unique Partner ID (e.g., <code>TGP-1001</code>) and a custom Referral Coupon Code (e.g., <code>RAHUL78</code>).</li>
+      <li><strong>Double Benefit for Students:</strong> When a student applies your coupon code during checkout, they receive an instant fee discount along with bonus validity days on their subscription plan.</li>
+      <li><strong>Commission on Every Successful Payment:</strong> You earn <strong>10% commission</strong> (or the rate configured by Admin) on the final paid amount whenever a student completes a Razorpay payment using your code.</li>
+      <li><strong>Renewal Commissions Included:</strong> When an existing student renews their expired plan using your coupon code, you earn commission on the renewal payment as well.</li>
+      <li><strong>Read-Only Partner Dashboard:</strong> Log in anytime to track your coupon usage count, masked student purchase history, total commission generated, and payout status.</li>
+    </ul>
+
+    <h2>3. Monthly Payout Schedule</h2>
+    <div class="highlight-box">
+      <strong>Direct Bank / UPI Payout:</strong> All verified commission earnings are transferred directly to your registered Bank Account (NEFT/IMPS) or UPI ID on the <strong>last date of every month</strong>.
+    </div>
+
+    <h2>4. Eligibility &amp; Required Details</h2>
+    <ul>
+      <li><strong>Own Bank Account Mandatory:</strong> Only candidates who hold their <strong>own active personal bank account</strong> may register. Using a friend's, relative's, or third-party bank account will result in immediate rejection.</li>
+      <li><strong>No Hard-Copy Document Upload Needed:</strong> You do not need to upload Aadhaar or PAN documents. You only need: Full Name (matching your bank passbook), Active Mobile Number, Gmail ID, City/State, Bank Account Holder Name, Bank Account Number, IFSC Code, and UPI ID.</li>
+      <li><strong>Promotion Link (Optional):</strong> You may optionally provide your YouTube, Telegram, Instagram, Facebook, or coaching details.</li>
+    </ul>
+
+    <h2>5. Registration &amp; 24-Hour Verification Process</h2>
+    <ul>
+      <li><strong>Step 1 (OTP Verification):</strong> Verify your Mobile Number and Gmail ID using a 6-digit OTP.</li>
+      <li><strong>Step 2 (Submit Application):</strong> Fill out your personal and bank payout details, accept all Terms &amp; Conditions, and submit the form.</li>
+      <li><strong>Step 3 (Admin Verification within 24 Hours):</strong> Your profile enters <em>Verification Pending</em> status. Team TaiyariGhar verifies that your applicant name matches your Bank Account Holder Name within 24 hours.</li>
+      <li><strong>Step 4 (Activation):</strong> Once approved, your Partner Dashboard and Unique Coupon Code become active immediately.</li>
+    </ul>
+
+    <h2>6. Terms &amp; Conditions</h2>
+    <ul>
+      <li>Strictly one Partner ID per individual (enforced via Mobile, Gmail, Bank Account Number, and UPI ID).</li>
+      <li>Coupon usage is counted only after 100% successful Razorpay payment confirmation.</li>
+      <li>Misleading claims, spam promotion, or fake details will result in permanent suspension of your Partner ID.</li>
+    </ul>
+
+    <div class="portal-actions">
+      <button type="button" class="btn btn-primary" id="btnShowRegister">I Agree &mdash; New Partner Registration</button>
+      <button type="button" class="btn btn-outline" id="btnShowLogin">Existing Partner Login / Check Status</button>
+    </div>
+  </div>
+
+  <!-- SECTION 2: REGISTRATION CLOSED NOTICE (SHOWN IF ADMIN DISABLES REGISTRATION) -->
+  <div class="card hidden" id="regClosedCard">
+    <div class="alert alert-warning" style="margin-bottom:0;">
+      <strong>Registrations Temporarily Closed:</strong> New Official Referral Partner registrations are currently paused by the Administrator. Existing partners can still log in using the button above to check their status and dashboard.
+    </div>
+  </div>
+
+  <!-- SECTION 3: NEW PARTNER REGISTRATION FLOW -->
+  <div class="card hidden" id="registerCard">
+    <h1>New Official Referral Partner Registration</h1>
+    <div class="subtitle">Step 1: Verify your Mobile Number &amp; Gmail ID via OTP to unlock the registration form.</div>
+
+    <!-- Step 1: Mobile + Gmail OTP -->
+    <div id="otpStepBox">
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Mobile Number (10-digit WhatsApp/Calling) *</label>
+          <input type="tel" id="regMobile" maxlength="10" placeholder="e.g. 9876543210" />
+        </div>
+        <div class="form-group">
+          <label>Active Gmail ID *</label>
+          <input type="email" id="regEmail" placeholder="e.g. rahul@gmail.com" />
+        </div>
+      </div>
+      <div style="margin-top:12px;">
+        <button type="button" class="btn btn-primary" id="btnSendRegOtp">Send Gmail OTP</button>
+        <span class="note-tiny" style="display:block;">If OTP is not visible in Primary Inbox, please check your Spam/Updates folder.</span>
+      </div>
+
+      <div id="otpVerifyRow" class="hidden" style="margin-top:14px; padding-top:12px; border-top:1px solid var(--border);">
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Enter 6-Digit Gmail OTP *</label>
+            <input type="text" id="regOtpInput" maxlength="6" placeholder="6-digit OTP" />
+          </div>
+          <div class="form-group" style="justify-content:flex-end;">
+            <button type="button" class="btn btn-success" id="btnVerifyRegOtp">Verify OTP &amp; Continue</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 2: Full Application Form (Unlocked after OTP Verification) -->
+    <form id="partnerAppForm" class="hidden" style="margin-top:14px;">
+      <div class="alert alert-success">Gmail OTP Verified! Complete your personal and own bank account details below.</div>
+
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Verified Mobile Number (Locked)</label>
+          <input type="tel" id="formMobile" readonly />
+        </div>
+        <div class="form-group">
+          <label>Verified Gmail ID (Locked)</label>
+          <input type="email" id="formEmail" readonly />
+        </div>
+        <div class="form-group">
+          <label>Applicant Full Name (As per Bank Account) *</label>
+          <input type="text" id="formName" required placeholder="Enter your full name" />
+        </div>
+        <div class="form-group">
+          <label>City &amp; State *</label>
+          <input type="text" id="formCity" required placeholder="e.g. Lakhimpur, Uttar Pradesh" />
+        </div>
+        <div class="form-group full">
+          <label>Where will you promote? Social Media / Channel / Coaching Link (Optional)</label>
+          <input type="text" id="formSocial" placeholder="Optional: YouTube, Telegram, Instagram link or Coaching name" />
+        </div>
+
+        <div class="form-group full" style="margin-top:6px;">
+          <strong style="font-size:13px; color:var(--primary);">Payout Bank &amp; UPI Details (Must be your own account)</strong>
+        </div>
+
+        <div class="form-group">
+          <label>Bank Account Holder Name *</label>
+          <input type="text" id="formHolderName" required placeholder="Exact name in bank passbook" />
+        </div>
+        <div class="form-group">
+          <label>Bank Name *</label>
+          <input type="text" id="formBankName" required placeholder="e.g. State Bank of India" />
+        </div>
+        <div class="form-group">
+          <label>Bank Account Number *</label>
+          <input type="text" id="formAccountNo" required placeholder="Enter bank account number" />
+        </div>
+        <div class="form-group">
+          <label>IFSC Code *</label>
+          <input type="text" id="formIfsc" required maxlength="11" style="text-transform:uppercase;" placeholder="e.g. SBIN0001234" />
+        </div>
+        <div class="form-group full">
+          <label>Active Personal UPI ID *</label>
+          <input type="text" id="formUpi" required placeholder="e.g. rahul@ybl / 9876543210@paytm" />
+        </div>
+      </div>
+
+      <!-- Mandatory Checkboxes -->
+      <div class="checkbox-list">
+        <label class="checkbox-item">
+          <input type="checkbox" class="req-chk" id="chkOwnAccount" />
+          <span>I confirm that the Bank Account Number, IFSC Code, and UPI ID provided above belong strictly to <strong>me personally</strong>, and I am voluntarily sharing them for monthly commission payouts.</span>
+        </label>
+        <label class="checkbox-item">
+          <input type="checkbox" class="req-chk" id="chkNameMatch" />
+          <span>I understand that my profile will only be activated if my Applicant Name matches the Bank Account Holder Name during Admin Verification.</span>
+        </label>
+        <label class="checkbox-item">
+          <input type="checkbox" class="req-chk" id="chkTerms" />
+          <span>I have read and accept all Official Referral Partner Terms &amp; Conditions and agree not to create duplicate accounts or engage in misleading promotions.</span>
+        </label>
+      </div>
+
+      <p class="note-tiny">Your bank &amp; UPI details are used strictly for commission payouts on the last day of every month and are kept confidential.</p>
+
+      <div style="margin-top:14px;">
+        <button type="submit" class="btn btn-primary" id="btnSubmitPartner" disabled>Submit Partner Application</button>
+      </div>
+    </form>
+  </div>
+
+  <!-- SECTION 4: EXISTING PARTNER LOGIN -->
+  <div class="card hidden" id="loginCard">
+    <h1>Partner Login &amp; Application Status</h1>
+    <div class="subtitle">Log in with your registered Gmail ID and OTP to view your verification status or read-only partner dashboard.</div>
+    <div class="form-grid">
+      <div class="form-group">
+        <label>Registered Gmail ID *</label>
+        <input type="email" id="loginEmail" placeholder="Enter registered Gmail" />
+      </div>
+      <div class="form-group" style="justify-content:flex-end;">
+        <button type="button" class="btn btn-primary" id="btnSendLoginOtp">Send Login OTP</button>
+      </div>
+    </div>
+    <div id="loginOtpRow" class="hidden" style="margin-top:12px;">
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Enter 6-Digit OTP *</label>
+          <input type="text" id="loginOtpInput" maxlength="6" placeholder="6-digit OTP" />
+        </div>
+        <div class="form-group" style="justify-content:flex-end;">
+          <button type="button" class="btn btn-success" id="btnVerifyLoginOtp">Access Partner Portal</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 5: PARTNER PORTAL (PENDING / REJECTED + RESUBMIT / DISABLED / READ-ONLY DASHBOARD) -->
+  <div class="card hidden" id="dashboardCard">
+    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:12px;">
+      <div>
+        <h1 id="dashPartnerName">Partner Portal</h1>
+        <div class="subtitle" style="margin-bottom:0;">Partner ID: <strong id="dashPartnerId">-</strong> | Registered Mobile: <span id="dashMobile">-</span></div>
+      </div>
+      <button type="button" class="btn btn-outline btn-sm" id="btnPartnerLogout">Logout</button>
+    </div>
+
+    <!-- Status Banner: Pending -->
+    <div id="statusPendingBox" class="alert alert-warning hidden">
+      <strong>Status: Admin Verification Pending</strong><br />
+      Your application is currently under process by Admin. Team TaiyariGhar is verifying your name and bank account holder details. Your Partner ID and Coupon Code will be activated within <strong>24 hours</strong>.
+    </div>
+
+    <!-- Status Banner: Disabled -->
+    <div id="statusDisabledBox" class="alert alert-danger hidden">
+      <strong>Status: Partner Account Disabled</strong><br />
+      Your referral partner profile and coupon code have been temporarily disabled by the Administrator. Please contact TaiyariGhar support for assistance.
+    </div>
+
+    <!-- Status Banner: Rejected (With Reason + Edit & Re-submit) -->
+    <div id="statusRejectedBox" class="alert alert-danger hidden">
+      <strong>Status: Application Rejected</strong><br />
+      <strong>Reason from Admin:</strong> <span id="rejectReasonText">-</span><br /><br />
+      <button type="button" class="btn btn-primary btn-sm" id="btnOpenResubmit">Edit Details &amp; Re-submit Application</button>
+    </div>
+
+    <!-- Edit & Re-submit Form (Shown when Rejected Partner clicks Edit) -->
+    <form id="resubmitForm" class="hidden" style="margin-top:12px; padding:14px; border:1px solid var(--border); border-radius:8px;">
+      <h2 style="margin-top:0;">Correct Details &amp; Re-submit for Verification</h2>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Applicant Full Name *</label>
+          <input type="text" id="editName" required />
+        </div>
+        <div class="form-group">
+          <label>City &amp; State *</label>
+          <input type="text" id="editCity" required />
+        </div>
+        <div class="form-group full">
+          <label>Social Media / Channel Link (Optional)</label>
+          <input type="text" id="editSocial" />
+        </div>
+        <div class="form-group">
+          <label>Bank Account Holder Name *</label>
+          <input type="text" id="editHolderName" required />
+        </div>
+        <div class="form-group">
+          <label>Bank Name *</label>
+          <input type="text" id="editBankName" required />
+        </div>
+        <div class="form-group">
+          <label>Bank Account Number *</label>
+          <input type="text" id="editAccountNo" required />
+        </div>
+        <div class="form-group">
+          <label>IFSC Code *</label>
+          <input type="text" id="editIfsc" required maxlength="11" style="text-transform:uppercase;" />
+        </div>
+        <div class="form-group full">
+          <label>Personal UPI ID *</label>
+          <input type="text" id="editUpi" required />
+        </div>
+      </div>
+      <div style="margin-top:12px; display:flex; gap:8px;">
+        <button type="submit" class="btn btn-success btn-sm">Re-submit Application</button>
+        <button type="button" class="btn btn-outline btn-sm" id="btnCancelResubmit">Cancel</button>
+      </div>
+    </form>
+
+    <!-- Active Read-Only Dashboard -->
+    <div id="activeDashboardContent" class="hidden">
+      <div class="coupon-banner">
+        <div>
+          <div style="font-size:11.5px; color:var(--muted);">Your Active Referral Coupon Code (Read-Only)</div>
+          <div style="font-size:22px; font-weight:800; color:var(--primary); letter-spacing:1px;" id="dashCouponCode">-</div>
+          <div style="font-size:12px; color:#065f46;" id="dashOfferSummary">-</div>
+        </div>
+        <button type="button" class="btn btn-primary btn-sm" id="btnCopyCoupon">Copy Coupon Code</button>
+      </div>
+
+      <div class="stat-grid">
+        <div class="stat-box">
+          <div class="val" id="statUsage">0 / 0</div>
+          <div class="lbl">Coupon Uses (Paid)</div>
+        </div>
+        <div class="stat-box">
+          <div class="val" id="statSales">&#8377;0</div>
+          <div class="lbl">Total Plan Sales</div>
+        </div>
+        <div class="stat-box">
+          <div class="val" id="statCommission">&#8377;0</div>
+          <div class="lbl">Total Commission (<span id="statCommPct">10</span>%)</div>
+        </div>
+        <div class="stat-box">
+          <div class="val" id="statPendingPayout">&#8377;0</div>
+          <div class="lbl">Unpaid Balance (Month-End)</div>
+        </div>
+      </div>
+
+      <h2>Registered Payout Details (Read-Only)</h2>
+      <p style="font-size:12.5px; background:#f8fafc; padding:10px; border-radius:6px; border:1px solid var(--border);">
+        <strong>Account Holder:</strong> <span id="roHolder">-</span> |
+        <strong>Bank:</strong> <span id="roBank">-</span> |
+        <strong>A/C:</strong> <span id="roAcc">-</span> |
+        <strong>IFSC:</strong> <span id="roIfsc">-</span> |
+        <strong>UPI:</strong> <span id="roUpi">-</span>
+      </p>
+
+      <h2>Recent Coupon Conversions (Read-Only)</h2>
+      <div style="overflow-x:auto;">
+        <table>
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Student</th>
+              <th>Plan Paid</th>
+              <th>Your Commission</th>
+            </tr>
+          </thead>
+          <tbody id="usageTableBody">
+            <tr><td colspan="4" style="text-align:center; color:#6b7280;">No successful coupon purchases yet.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Firebase SDKs (Replace config object with your existing TaiyariGhar Firebase config) -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import {
+    getFirestore, collection, doc, getDoc, getDocs, setDoc, updateDoc,
+    query, where, serverTimestamp, runTransaction
+  } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+  // TODO: Paste your existing TaiyariGhar firebaseConfig & GAS_WEB_APP_URL here
+  const firebaseConfig = {
+    apiKey: "YOUR_FIREBASE_API_KEY",
+    authDomain: "YOUR_PROJECT.firebaseapp.com",
+    projectId: "YOUR_PROJECT_ID",
+    storageBucket: "YOUR_PROJECT.appspot.com",
+    messagingSenderId: "YOUR_SENDER_ID",
+    appId: "YOUR_APP_ID"
+  };
+  const GAS_WEB_APP_URL = "YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL";
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  let generatedRegOtp = "";
+  let generatedLoginOtp = "";
+  let currentPartnerDocId = null;
+  let currentPartnerData = null;
+
+  // Toggle UI sections
+  const registerCard = document.getElementById("registerCard");
+  const regClosedCard = document.getElementById("regClosedCard");
+  const loginCard = document.getElementById("loginCard");
+  const dashboardCard = document.getElementById("dashboardCard");
+
+  document.getElementById("btnShowRegister").addEventListener("click", async () => {
+    loginCard.classList.add("hidden");
+    dashboardCard.classList.add("hidden");
+
+    // Check Admin Registration ON/OFF setting
+    const settingsSnap = await getDoc(doc(db, "settings", "partnerProgram"));
+    const isEnabled = settingsSnap.exists() ? (settingsSnap.data().registrationEnabled !== false) : true;
+
+    if (!isEnabled) {
+      registerCard.classList.add("hidden");
+      regClosedCard.classList.remove("hidden");
+      regClosedCard.scrollIntoView({ behavior: "smooth" });
+      return;
+    }
+
+    // Device Anti-Spam Lock check
+    if (localStorage.getItem("tg_partner_submitted") === "true") {
+      alert("An application has already been submitted from this browser/device. Please use Existing Partner Login to check your status.");
+      loginCard.classList.remove("hidden");
+      return;
+    }
+
+    regClosedCard.classList.add("hidden");
+    registerCard.classList.remove("hidden");
+    registerCard.scrollIntoView({ behavior: "smooth" });
+  });
+
+  document.getElementById("btnShowLogin").addEventListener("click", () => {
+    registerCard.classList.add("hidden");
+    regClosedCard.classList.add("hidden");
+    dashboardCard.classList.add("hidden");
+    loginCard.classList.remove("hidden");
+    loginCard.scrollIntoView({ behavior: "smooth" });
+  });
+
+  // Enable Submit button ONLY when all mandatory checkboxes are checked
+  const reqCheckboxes = document.querySelectorAll(".req-chk");
+  const btnSubmitPartner = document.getElementById("btnSubmitPartner");
+  reqCheckboxes.forEach(chk => {
+    chk.addEventListener("change", () => {
+      const allChecked = Array.from(reqCheckboxes).every(c => c.checked);
+      btnSubmitPartner.disabled = !allChecked;
+    });
+  });
+
+  // Helper: Send OTP via Google Apps Script
+  async function sendGasOtp(email, otp, purpose) {
+    const res = await fetch(GAS_WEB_APP_URL, {
+      method: "POST",
+      body: JSON.stringify({ action: "send_otp", email, otp, purpose })
+    });
+    return res.json();
+  }
+
+  // Step 1: Send Registration OTP
+  document.getElementById("btnSendRegOtp").addEventListener("click", async () => {
+    const mobile = document.getElementById("regMobile").value.trim();
+    const email = document.getElementById("regEmail").value.trim().toLowerCase();
+
+    if (!/^[6-9]\d{9}$/.test(mobile)) {
+      alert("Please enter a valid 10-digit Indian mobile number.");
+      return;
+    }
+    if (!email.endsWith("@gmail.com")) {
+      alert("Please enter a valid @gmail.com address.");
+      return;
+    }
+
+    // Strict duplicate check on Mobile & Gmail before sending OTP
+    const mobSnap = await getDocs(query(collection(db, "partners"), where("mobile", "==", mobile)));
+    if (!mobSnap.empty) {
+      alert("This Mobile Number is already registered in the Partner Program. Please log in instead.");
+      return;
+    }
+    const emailSnap = await getDocs(query(collection(db, "partners"), where("email", "==", email)));
+    if (!emailSnap.empty) {
+      alert("This Gmail ID is already registered in the Partner Program. Please log in instead.");
+      return;
+    }
+
+    generatedRegOtp = String(Math.floor(100000 + Math.random() * 900000));
+    const btn = document.getElementById("btnSendRegOtp");
+    btn.disabled = true;
+    btn.textContent = "Sending OTP...";
+
+    try {
+      await sendGasOtp(email, generatedRegOtp, "Partner Registration");
+      document.getElementById("otpVerifyRow").classList.remove("hidden");
+      alert("6-digit OTP sent to " + email);
+    } catch (e) {
+      alert("Failed to send OTP. Please try again.");
+    } finally {
+      btn.disabled = false;
+      btn.textContent = "Resend OTP";
+    }
+  });
+
+  // Verify Registration OTP
+  document.getElementById("btnVerifyRegOtp").addEventListener("click", () => {
+    const entered = document.getElementById("regOtpInput").value.trim();
+    if (entered !== generatedRegOtp || !generatedRegOtp) {
+      alert("Invalid OTP. Please check your Gmail and enter the exact 6-digit code.");
+      return;
+    }
+    document.getElementById("formMobile").value = document.getElementById("regMobile").value.trim();
+    document.getElementById("formEmail").value = document.getElementById("regEmail").value.trim().toLowerCase();
+    document.getElementById("otpStepBox").classList.add("hidden");
+    document.getElementById("partnerAppForm").classList.remove("hidden");
+  });
+
+  // Generate Guaranteed Unique Partner ID (TGP-1001...) & Unique Coupon Code
+  async function generateUniquePartnerCredentials(fullName, mobile) {
+    const counterRef = doc(db, "settings", "partnerCounter");
+    const nextNum = await runTransaction(db, async (tx) => {
+      const snap = await tx.get(counterRef);
+      const current = snap.exists() ? (snap.data().lastNumber || 1000) : 1000;
+      const updated = current + 1;
+      tx.set(counterRef, { lastNumber: updated }, { merge: true });
+      return updated;
+    });
+
+    const partnerId = `TGP-${nextNum}`;
+    const cleanPrefix = fullName.replace(/[^a-zA-Z]/g, "").toUpperCase().slice(0, 5) || "TGPART";
+    const lastTwo = mobile.slice(-2);
+    let candidateCode = `${cleanPrefix}${lastTwo}`;
+
+    // Verify coupon code does not already exist in Firestore
+    let suffix = 1;
+    while (true) {
+      const dupSnap = await getDocs(query(collection(db, "partners"), where("couponCode", "==", candidateCode)));
+      if (dupSnap.empty) break;
+      candidateCode = `${cleanPrefix}${lastTwo}${suffix}`;
+      suffix++;
+    }
+
+    return { partnerId, couponCode: candidateCode };
+  }
+
+  // Submit Partner Application
+  document.getElementById("partnerAppForm").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const mobile = document.getElementById("formMobile").value.trim();
+    const email = document.getElementById("formEmail").value.trim().toLowerCase();
+    const name = document.getElementById("formName").value.trim();
+    const city = document.getElementById("formCity").value.trim();
+    const socialLink = document.getElementById("formSocial").value.trim();
+    const holderName = document.getElementById("formHolderName").value.trim();
+    const bankName = document.getElementById("formBankName").value.trim();
+    const accountNo = document.getElementById("formAccountNo").value.trim();
+    const ifsc = document.getElementById("formIfsc").value.trim().toUpperCase();
+    const upiId = document.getElementById("formUpi").value.trim().toLowerCase();
+
+    btnSubmitPartner.disabled = true;
+    btnSubmitPartner.textContent = "Checking & Submitting...";
+
+    try {
+      // Strict Duplicate Locks: Bank Account Number & UPI ID
+      const accSnap = await getDocs(query(collection(db, "partners"), where("accountNo", "==", accountNo)));
+      if (!accSnap.empty) {
+        alert("Duplicate Blocked: This Bank Account Number is already linked to another Partner ID.");
+        btnSubmitPartner.disabled = false;
+        btnSubmitPartner.textContent = "Submit Partner Application";
+        return;
+      }
+
+      const upiSnap = await getDocs(query(collection(db, "partners"), where("upiId", "==", upiId)));
+      if (!upiSnap.empty) {
+        alert("Duplicate Blocked: This UPI ID is already linked to another Partner ID.");
+        btnSubmitPartner.disabled = false;
+        btnSubmitPartner.textContent = "Submit Partner Application";
+        return;
+      }
+
+      const { partnerId, couponCode } = await generateUniquePartnerCredentials(name, mobile);
+
+      const partnerPayload = {
+        partnerId,
+        name,
+        mobile,
+        email,
+        city,
+        socialLink,
+        holderName,
+        bankName,
+        accountNo,
+        ifsc,
+        upiId,
+        status: "pending", // "pending" | "approved" | "rejected" | "disabled"
+        rejectionReason: "",
+        couponCode,
+        discountAmount: 20,      // Default ₹20 off (Admin editable)
+        extraDays: 15,           // Default +15 days validity (Admin editable)
+        maxUsageLimit: 100,      // Default max 100 paid uses (Admin editable)
+        commissionPercent: 10,   // Default 10% commission (Admin editable)
+        usedCount: 0,
+        totalSales: 0,
+        totalCommission: 0,
+        paidCommission: 0,
+        conversions: [],
+        createdAt: serverTimestamp()
+      };
+
+      await setDoc(doc(db, "partners", partnerId), partnerPayload);
+      localStorage.setItem("tg_partner_submitted", "true");
+
+      // Send confirmation email via GAS
+      fetch(GAS_WEB_APP_URL, {
+        method: "POST",
+        body: JSON.stringify({ action: "partner_status", email, name, status: "submitted", partnerId })
+      }).catch(() => {});
+
+      registerCard.classList.add("hidden");
+      renderPartnerPortal(partnerId, partnerPayload);
+    } catch (err) {
+      alert("Error submitting application: " + err.message);
+      btnSubmitPartner.disabled = false;
+      btnSubmitPartner.textContent = "Submit Partner Application";
+    }
+  });
+
+  // Existing Partner Login Flow
+  document.getElementById("btnSendLoginOtp").addEventListener("click", async () => {
+    const email = document.getElementById("loginEmail").value.trim().toLowerCase();
+    if (!email) {
+      alert("Please enter your registered Gmail ID.");
+      return;
+    }
+
+    const snap = await getDocs(query(collection(db, "partners"), where("email", "==", email)));
+    if (snap.empty) {
+      alert("No Partner account found with this Gmail ID. Please register first.");
+      return;
+    }
+
+    generatedLoginOtp = String(Math.floor(100000 + Math.random() * 900000));
+    const btn = document.getElementById("btnSendLoginOtp");
+    btn.disabled = true;
+    btn.textContent = "Sending OTP...";
+
+    try {
+      await sendGasOtp(email, generatedLoginOtp, "Partner Login");
+      document.getElementById("loginOtpRow").classList.remove("hidden");
+      alert("6-digit Login OTP sent to " + email);
+    } catch (e) {
+      alert("Could not send OTP. Please try again.");
+    } finally {
+      btn.disabled = false;
+      btn.textContent = "Resend OTP";
+    }
+  });
+
+  document.getElementById("btnVerifyLoginOtp").addEventListener("click", async () => {
+    const entered = document.getElementById("loginOtpInput").value.trim();
+    const email = document.getElementById("loginEmail").value.trim().toLowerCase();
+    if (entered !== generatedLoginOtp || !generatedLoginOtp) {
+      alert("Invalid OTP. Please enter the exact 6-digit code sent to your Gmail.");
+      return;
+    }
+
+    const snap = await getDocs(query(collection(db, "partners"), where("email", "==", email)));
+    if (!snap.empty) {
+      const d = snap.docs[0];
+      loginCard.classList.add("hidden");
+      renderPartnerPortal(d.id, d.data());
+    }
+  });
+
+  // Render Read-Only Partner Portal based on Status
+  function renderPartnerPortal(docId, data) {
+    currentPartnerDocId = docId;
+    currentPartnerData = data;
+
+    dashboardCard.classList.remove("hidden");
+    document.getElementById("dashPartnerName").textContent = data.name;
+    document.getElementById("dashPartnerId").textContent = data.partnerId;
+    document.getElementById("dashMobile").textContent = data.mobile;
+
+    // Hide all status panels first
+    document.getElementById("statusPendingBox").classList.add("hidden");
+    document.getElementById("statusDisabledBox").classList.add("hidden");
+    document.getElementById("statusRejectedBox").classList.add("hidden");
+    document.getElementById("resubmitForm").classList.add("hidden");
+    document.getElementById("activeDashboardContent").classList.add("hidden");
+
+    if (data.status === "pending") {
+      document.getElementById("statusPendingBox").classList.remove("hidden");
+    } else if (data.status === "disabled") {
+      document.getElementById("statusDisabledBox").classList.remove("hidden");
+    } else if (data.status === "rejected") {
+      document.getElementById("statusRejectedBox").classList.remove("hidden");
+      document.getElementById("rejectReasonText").textContent = data.rejectionReason || "Details did not match during verification.";
+    } else if (data.status === "approved") {
+      document.getElementById("activeDashboardContent").classList.remove("hidden");
+      document.getElementById("dashCouponCode").textContent = data.couponCode;
+      document.getElementById("dashOfferSummary").textContent =
+        `Student Benefit: ₹${data.discountAmount} Instant Discount + ${data.extraDays} Extra Validity Days`;
+
+      document.getElementById("statUsage").textContent = `${data.usedCount || 0} / ${data.maxUsageLimit || 0}`;
+      document.getElementById("statSales").textContent = `₹${data.totalSales || 0}`;
+      document.getElementById("statCommPct").textContent = data.commissionPercent || 10;
+      const totalComm = Number(data.totalCommission || 0);
+      const paidComm = Number(data.paidCommission || 0);
+      document.getElementById("statCommission").textContent = `₹${totalComm.toFixed(2)}`;
+      document.getElementById("statPendingPayout").textContent = `₹${Math.max(0, totalComm - paidComm).toFixed(2)}`;
+
+      // Masked bank details for read-only display
+      const maskedAcc = data.accountNo ? ("XXXXXX" + data.accountNo.slice(-4)) : "-";
+      document.getElementById("roHolder").textContent = data.holderName || "-";
+      document.getElementById("roBank").textContent = data.bankName || "-";
+      document.getElementById("roAcc").textContent = maskedAcc;
+      document.getElementById("roIfsc").textContent = data.ifsc || "-";
+      document.getElementById("roUpi").textContent = data.upiId || "-";
+
+      const tbody = document.getElementById("usageTableBody");
+      const list = data.conversions || [];
+      if (list.length > 0) {
+        tbody.innerHTML = list.slice().reverse().map(item => `
+          <tr>
+            <td>${item.date || "-"}</td>
+            <td>${item.studentMasked || "Student"}</td>
+            <td>₹${item.paidAmount || 0}</td>
+            <td><strong>₹${Number(item.commission || 0).toFixed(2)}</strong></td>
+          </tr>
+        `).join("");
+      }
+    }
+    dashboardCard.scrollIntoView({ behavior: "smooth" });
+  }
+
+  // Rejected Partner: Open Edit & Re-submit Form
+  document.getElementById("btnOpenResubmit").addEventListener("click", () => {
+    if (!currentPartnerData) return;
+    document.getElementById("editName").value = currentPartnerData.name || "";
+    document.getElementById("editCity").value = currentPartnerData.city || "";
+    document.getElementById("editSocial").value = currentPartnerData.socialLink || "";
+    document.getElementById("editHolderName").value = currentPartnerData.holderName || "";
+    document.getElementById("editBankName").value = currentPartnerData.bankName || "";
+    document.getElementById("editAccountNo").value = currentPartnerData.accountNo || "";
+    document.getElementById("editIfsc").value = currentPartnerData.ifsc || "";
+    document.getElementById("editUpi").value = currentPartnerData.upiId || "";
+    document.getElementById("resubmitForm").classList.remove("hidden");
+  });
+
+  document.getElementById("btnCancelResubmit").addEventListener("click", () => {
+    document.getElementById("resubmitForm").classList.add("hidden");
+  });
+
+  document.getElementById("resubmitForm").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    if (!currentPartnerDocId) return;
+
+    const updatedFields = {
+      name: document.getElementById("editName").value.trim(),
+      city: document.getElementById("editCity").value.trim(),
+      socialLink: document.getElementById("editSocial").value.trim(),
+      holderName: document.getElementById("editHolderName").value.trim(),
+      bankName: document.getElementById("editBankName").value.trim(),
+      accountNo: document.getElementById("editAccountNo").value.trim(),
+      ifsc: document.getElementById("editIfsc").value.trim().toUpperCase(),
+      upiId: document.getElementById("editUpi").value.trim().toLowerCase(),
+      status: "pending",
+      rejectionReason: ""
+    };
+
+    await updateDoc(doc(db, "partners", currentPartnerDocId), updatedFields);
+    alert("Application updated and re-submitted for Admin Verification!");
+    renderPartnerPortal(currentPartnerDocId, { ...currentPartnerData, ...updatedFields });
+  });
+
+  document.getElementById("btnCopyCoupon").addEventListener("click", () => {
+    const code = document.getElementById("dashCouponCode").textContent;
+    navigator.clipboard.writeText(code);
+    alert("Coupon code copied: " + code);
+  });
+
+  document.getElementById("btnPartnerLogout").addEventListener("click", () => {
+    currentPartnerDocId = null;
+    currentPartnerData = null;
+    dashboardCard.classList.add("hidden");
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  });
+</script>
+</body>
+</html>
