@@ -1,6 +1,5 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-import { getFirestore, collection, getDocs, getDoc, setDoc, addDoc, query, where, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-import { getAuth, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+import { getFirestore, collection, getDocs, getDoc, setDoc, addDoc, query, where, doc, updateDoc, increment, arrayUnion } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
 // =========================================================================
 // 🔧 CONFIGURATION
@@ -20,8 +19,6 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
-const auth = getAuth(app);
-const googleProvider = new GoogleAuthProvider();
 
 let allTests = [], appSettings = {}, allCA = [], allExamCategories = [], allJobUpdates = [];
 let userPastResults = {}; 
@@ -564,87 +561,6 @@ function startSingleSessionWatcher() {
     }, 20000);
 }
 
-window.loginWithGoogle = async function() {
-    try {
-        googleProvider.setCustomParameters({ prompt: 'select_account' });
-        const result = await signInWithPopup(auth, googleProvider);
-        const gUser = result.user;
-        if (!gUser || !gUser.email) {
-            alert("Google account email could not be retrieved. Please try again.");
-            return;
-        }
-
-        const gEmail = gUser.email.trim().toLowerCase();
-        const gName = gUser.displayName || gEmail.split('@')[0];
-
-        resetSessionMemory();
-
-        // Check if student already exists with this Gmail (case-insensitive check)
-        let snap = await getDocs(query(collection(db, "students"), where("email", "==", gEmail)));
-        if (snap.empty) {
-            const allSnap = await getDocs(collection(db, "students"));
-            const matchedDoc = allSnap.docs.find(d => (d.data().email || "").trim().toLowerCase() === gEmail);
-            if (matchedDoc) {
-                await finalizeStudentLoginSession(matchedDoc);
-                return;
-            }
-        } else {
-            await finalizeStudentLoginSession(snap.docs[0]);
-            return;
-        }
-
-        // New Google user -> create verified account automatically (no password required)
-        const allStudentsSnap = await getDocs(collection(db, "students"));
-        let maxNum = 0;
-        allStudentsSnap.forEach(d => {
-            let lid = d.data().loginId;
-            if (lid && lid.startsWith("TG")) {
-                let num = parseInt(lid.replace("TG", ""), 10);
-                if (!isNaN(num) && num > maxNum) maxNum = num;
-            }
-        });
-        const newId = "TG" + String(maxNum + 1).padStart(4, '0');
-
-        const newDocRef = await addDoc(collection(db, "students"), {
-            name: gName,
-            email: gEmail,
-            mobile: "",
-            loginId: newId,
-            password: "",
-            authProvider: "google",
-            isPaid: false,
-            expiryDate: "",
-            createdAt: new Date().toISOString(),
-            device1: getDeviceId(),
-            device2: ""
-        });
-
-        callEmailService({
-            action: "welcome",
-            email: gEmail,
-            name: gName,
-            studentId: newId,
-            mobile: "Google Account",
-            password: "Login anytime using 'Continue with Google' button"
-        });
-
-        const createdSnap = await getDoc(newDocRef);
-        await finalizeStudentLoginSession(createdSnap);
-    } catch (e) {
-        console.error("Google Sign-In Error:", e);
-        if (e.code === 'auth/popup-closed-by-user') return;
-        if (e.code === 'auth/api-key-not-valid.-please-pass-a-valid-api-key.' || e.code === 'auth/api-key-not-valid') {
-            alert("⚠️ Google Sign-In Setup Pending in Firebase Console:\n1. Open Firebase Console -> Authentication -> Sign-in method -> Enable 'Google'.\n2. In Google Cloud Console -> Credentials -> API Key -> Allow 'taiyarighar.in'.\n\nTab tak aap Email OTP se register/login kar sakte hain.");
-        } else if (e.code === 'auth/operation-not-allowed') {
-            alert("⚠️ Firebase Console mein 'Google' Sign-In provider abhi Enable nahi hai. Authentication -> Sign-in method mein jakar Google ko Enable karein.");
-        } else if (e.code === 'auth/unauthorized-domain') {
-            alert("⚠️ Firebase Console -> Authentication -> Settings -> Authorized domains mein 'taiyarighar.in' add karein.");
-        } else {
-            alert("❌ Google Sign-In Error: " + e.message);
-        }
-    }
-};
-
 window.doLogin = async function() {
     const inputVal = document.getElementById('loginId').value.trim(); 
     const pass = document.getElementById('loginPass').value.trim();
@@ -659,7 +575,7 @@ window.doLogin = async function() {
         
         if(!snapshot.empty) {
             await finalizeStudentLoginSession(snapshot.docs[0]);
-        } else { alert("❌ Invalid Credentials! Please check your Email/Mobile and Password (or use Continue with Google)."); }
+        } else { alert("❌ Invalid Credentials! Please check your Email/Mobile and Password."); }
     } catch (e) { console.error(e); alert("Database Error: " + e.message); }
 }
 
@@ -911,6 +827,24 @@ function syncSubscriptionPlansFromSettings() {
     });
 }
 
+let appliedPartnerCoupon = null;
+
+function getEffectiveCheckoutDetails() {
+    const plan = subscriptionPlans[selectedPlanMonths];
+    const baseDiscount = Math.max(0, plan.mrp - plan.price);
+    let couponDiscount = 0;
+    let extraDays = 0;
+
+    if (appliedPartnerCoupon) {
+        couponDiscount = Number(appliedPartnerCoupon.discountAmount || 0);
+        extraDays = Number(appliedPartnerCoupon.extraDays || 0);
+    }
+
+    const finalPayable = Math.max(1, plan.price - couponDiscount);
+    const totalDays = plan.days + extraDays;
+    return { plan, baseDiscount, couponDiscount, extraDays, finalPayable, totalDays };
+}
+
 window.selectSubscriptionPlan = function(months) {
     selectedPlanMonths = months;
     [3, 6, 12].forEach(m => {
@@ -921,21 +855,106 @@ window.selectSubscriptionPlan = function(months) {
         }
     });
 
-    const plan = subscriptionPlans[months];
-    const discount = Math.max(0, plan.mrp - plan.price);
+    const { plan, baseDiscount, couponDiscount, extraDays, finalPayable, totalDays } = getEffectiveCheckoutDetails();
 
     document.getElementById('selPlanLabel').innerText = plan.label;
+    if (document.getElementById('selPlanValidity')) {
+        document.getElementById('selPlanValidity').innerText = extraDays > 0
+            ? `${plan.days} + ${extraDays} Bonus = ${totalDays} Days`
+            : `${plan.days} Days`;
+    }
     document.getElementById('selPlanMrp').innerText = plan.mrp;
-    document.getElementById('selPlanDiscount').innerText = discount;
-    document.getElementById('selPlanFinal').innerText = plan.price;
-    document.getElementById('payBtnAmount').innerText = plan.price;
+    document.getElementById('selPlanDiscount').innerText = baseDiscount;
+
+    const cRow = document.getElementById('couponDiscountRow');
+    const cBonusText = document.getElementById('selCouponBonusText');
+    if (cRow && cBonusText) {
+        if (appliedPartnerCoupon) {
+            cRow.classList.remove('hide');
+            cBonusText.innerText = `- ₹${couponDiscount} + ${extraDays} Extra Days (${appliedPartnerCoupon.couponCode})`;
+        } else {
+            cRow.classList.add('hide');
+        }
+    }
+
+    document.getElementById('selPlanFinal').innerText = finalPayable;
+    document.getElementById('payBtnAmount').innerText = finalPayable;
 }
+
+window.applyStudentReferralCoupon = async function() {
+    const inputEl = document.getElementById('studentCouponInput');
+    const msgEl = document.getElementById('couponStatusMsg');
+    const btnEl = document.getElementById('btnApplyStudentCoupon');
+    if (!inputEl || !msgEl) return;
+
+    const code = inputEl.value.trim().toUpperCase();
+    if (!code) {
+        appliedPartnerCoupon = null;
+        selectSubscriptionPlan(selectedPlanMonths);
+        msgEl.style.color = "#DC2626";
+        msgEl.innerText = "Please enter a coupon code.";
+        return;
+    }
+
+    if (btnEl) { btnEl.disabled = true; btnEl.innerText = "Checking..."; }
+    msgEl.style.color = "#4F46E5";
+    msgEl.innerText = "Verifying coupon code...";
+
+    try {
+        const snap = await getDocs(query(collection(db, "partners"), where("couponCode", "==", code)));
+        if (snap.empty) {
+            appliedPartnerCoupon = null;
+            selectSubscriptionPlan(selectedPlanMonths);
+            msgEl.style.color = "#DC2626";
+            msgEl.innerText = "❌ Invalid coupon code.";
+            return;
+        }
+
+        const pDoc = snap.docs[0];
+        const pData = pDoc.data();
+
+        if (pData.status !== "approved") {
+            appliedPartnerCoupon = null;
+            selectSubscriptionPlan(selectedPlanMonths);
+            msgEl.style.color = "#DC2626";
+            msgEl.innerText = "❌ This coupon code is currently inactive.";
+            return;
+        }
+
+        if ((pData.usedCount || 0) >= (pData.maxUsageLimit || 0)) {
+            appliedPartnerCoupon = null;
+            selectSubscriptionPlan(selectedPlanMonths);
+            msgEl.style.color = "#DC2626";
+            msgEl.innerText = "❌ This coupon code has reached its usage limit.";
+            return;
+        }
+
+        // Valid (works for both first-time purchase & expired plan renewal)
+        appliedPartnerCoupon = { docId: pDoc.id, ...pData };
+        selectSubscriptionPlan(selectedPlanMonths);
+
+        const disc = Number(pData.discountAmount || 0);
+        const ext = Number(pData.extraDays || 0);
+        msgEl.style.color = "#059669";
+        msgEl.innerText = `✅ Applied! You get ₹${disc} instant discount + ${ext} extra validity days!`;
+    } catch (e) {
+        appliedPartnerCoupon = null;
+        selectSubscriptionPlan(selectedPlanMonths);
+        msgEl.style.color = "#DC2626";
+        msgEl.innerText = "Error checking coupon. Please try again.";
+    } finally {
+        if (btnEl) { btnEl.disabled = false; btnEl.innerText = "Apply"; }
+    }
+};
 
 window.openPaymentModal = function() {
     if (!isLoggedIn) {
         alert("Please login or register first to choose a subscription plan!");
         return showLogin();
     }
+    appliedPartnerCoupon = null;
+    if (document.getElementById('studentCouponInput')) document.getElementById('studentCouponInput').value = "";
+    if (document.getElementById('couponStatusMsg')) document.getElementById('couponStatusMsg').innerText = "";
     syncSubscriptionPlansFromSettings();
     selectSubscriptionPlan(12);
     document.getElementById('paymentModal').classList.remove('hide');
@@ -949,19 +968,20 @@ window.initiateRazorpayPayment = function() {
         return alert("Razorpay Key ID is not configured yet in student-app.js!");
     }
 
-    const plan = subscriptionPlans[selectedPlanMonths];
-    const discountAmount = Math.max(0, plan.mrp - plan.price);
+    const { plan, baseDiscount, couponDiscount, extraDays, finalPayable, totalDays } = getEffectiveCheckoutDetails();
+    const totalDiscount = baseDiscount + couponDiscount;
+    const usedCouponSnapshot = appliedPartnerCoupon ? { ...appliedPartnerCoupon } : null;
 
     const options = {
         "key": RAZORPAY_KEY_ID,
-        "amount": Math.round(plan.price * 100),
+        "amount": Math.round(finalPayable * 100),
         "currency": "INR",
         "name": "TaiyariGhar",
-        "description": `${plan.label} (MRP ₹${plan.mrp} - Discount ₹${discountAmount})`,
+        "description": `${plan.label} (${totalDays} Days)`,
         "image": "logo.png",
         "handler": async function (response) {
             closeModal();
-            await handleSuccessfulRazorpayPayment(response.razorpay_payment_id, plan);
+            await handleSuccessfulRazorpayPayment(response.razorpay_payment_id, plan, finalPayable, totalDays, totalDiscount, usedCouponSnapshot);
         },
         "prefill": {
             "name": currentStudent.name,
@@ -972,8 +992,9 @@ window.initiateRazorpayPayment = function() {
             "loginId": currentStudent.loginId,
             "plan": plan.label,
             "mrp": plan.mrp,
-            "discount": discountAmount,
-            "finalPaid": plan.price
+            "discount": totalDiscount,
+            "finalPaid": finalPayable,
+            "couponCode": usedCouponSnapshot ? usedCouponSnapshot.couponCode : "NONE"
         },
         "theme": {
             "color": "#4F46E5"
@@ -987,13 +1008,15 @@ window.initiateRazorpayPayment = function() {
     rzp.open();
 }
 
-async function handleSuccessfulRazorpayPayment(paymentId, plan) {
+async function handleSuccessfulRazorpayPayment(paymentId, plan, finalPayable, totalDays, totalDiscount, usedCoupon) {
     try {
         const today = new Date();
-        const expiryDateObj = new Date(today.getTime() + plan.days * 24 * 60 * 60 * 1000);
+        const baseStart = (currentStudent.isPaid && currentStudent.expiry && new Date(currentStudent.expiry) > today)
+            ? new Date(currentStudent.expiry)
+            : today;
+        const expiryDateObj = new Date(baseStart.getTime() + totalDays * 24 * 60 * 60 * 1000);
         const expiryStr = expiryDateObj.toISOString().split('T')[0];
         const invoiceNumber = "INV-" + Date.now().toString().slice(-6);
-        const discountAmount = Math.max(0, plan.mrp - plan.price);
 
         if (currentStudent.docId) {
             await updateDoc(doc(db, "students", currentStudent.docId), {
@@ -1014,13 +1037,36 @@ async function handleSuccessfulRazorpayPayment(paymentId, plan) {
             mobile: currentStudent.mobile,
             planName: plan.label,
             mrp: plan.mrp,
-            discount: discountAmount,
-            amount: plan.price,
-            validityDays: plan.days,
+            discount: totalDiscount,
+            amount: finalPayable,
+            validityDays: totalDays,
             expiryDate: expiryStr,
+            couponCode: usedCoupon ? usedCoupon.couponCode : "",
+            partnerId: usedCoupon ? usedCoupon.partnerId : "",
             timestamp: today.toISOString()
         });
 
+        // Credit Partner Commission ONLY after successful Razorpay payment
+        if (usedCoupon && usedCoupon.docId) {
+            const commPct = Number(usedCoupon.commissionPercent || 10);
+            const commissionEarned = Number(((finalPayable * commPct) / 100).toFixed(2));
+            const maskedStudent = (currentStudent.name || "Student").slice(0, 3) + "***";
+            const todayStr = today.toLocaleDateString('en-IN');
+
+            await updateDoc(doc(db, "partners", usedCoupon.docId), {
+                usedCount: increment(1),
+                totalSales: increment(Number(finalPayable)),
+                totalCommission: increment(commissionEarned),
+                conversions: arrayUnion({
+                    date: todayStr,
+                    studentMasked: maskedStudent,
+                    paidAmount: Number(finalPayable),
+                    commission: commissionEarned
+                })
+            });
+        }
+
+        appliedPartnerCoupon = null;
         currentStudent.isPaid = true;
         currentStudent.expiry = expiryStr;
         localStorage.setItem('tg_user', JSON.stringify(currentStudent));
@@ -1035,16 +1081,19 @@ async function handleSuccessfulRazorpayPayment(paymentId, plan) {
             mobile: currentStudent.mobile,
             planName: plan.label,
             mrp: plan.mrp,
-            discount: discountAmount,
-            amount: plan.price,
-            validityDays: plan.days,
+            discount: totalDiscount,
+            amount: finalPayable,
+            validityDays: totalDays,
             expiryDate: expiryStr,
             date: today.toLocaleDateString('en-IN'),
             gstEnabled: appSettings.GST_Enabled || "No",
             gstNumber: appSettings.GST_Number || ""
         });
 
-        alert(`🎉 Payment Successful!\n\nYour ${plan.label} is now ACTIVE till ${expiryStr}.\nAn official PDF Invoice (${invoiceNumber}) has been sent to ${currentStudent.email}.`);
+        alert(`🎉 Payment Successful!
+
+Your ${plan.label} (${totalDays} Days) is now ACTIVE till ${expiryStr}.
+An official PDF Invoice (${invoiceNumber}) has been sent to ${currentStudent.email}.`);
         renderCandidateProfilePopover();
         fetchSettingsAndTests();
     } catch (e) {
