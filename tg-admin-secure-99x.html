@@ -20,6 +20,7 @@
       line-height: 1.45;
     }
     .hidden { display: none !important; }
+    #approvePartnerModal:not(.hidden) { display: flex !important; }
     .admin-layout { display: flex; min-height: 100vh; }
     .sidebar {
       width: 215px; background: #0f172a; color: #cbd5e1;
@@ -284,7 +285,7 @@
   </div>
 
   <!-- Partner Approval / Coupon Modal -->
-  <div id="approvePartnerModal" class="hidden" style="position:fixed; inset:0; background:rgba(15,23,42,0.5); display:flex; align-items:center; justify-content:center; z-index:9999;">
+  <div id="approvePartnerModal" class="hidden" style="position:fixed; inset:0; background:rgba(15,23,42,0.5); align-items:center; justify-content:center; z-index:9999;">
     <div style="background:#fff; border:1px solid #cbd5e1; border-radius:8px; padding:20px; max-width:420px; width:92%;">
       <h3 style="margin-bottom:10px;">Verify &amp; Activate Partner (<span id="apModalPid"></span>)</h3>
       <div style="margin-bottom:8px;"><label>Unique Coupon Code *</label><input type="text" id="apCouponCode" style="text-transform:uppercase;" /></div>
@@ -300,6 +301,6 @@
     </div>
   </div>
 
-  <script src="admin-app.js"></script>
+  <script src="admin-app.js?v=25.0"></script>
 </body>
 </html>
