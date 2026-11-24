@@ -1,662 +1,305 @@
-<!-- Copyright (c) 2026 TaiyariGhar. All Rights Reserved. -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="robots" content="noindex, nofollow">
-    <title>TaiyariGhar | Complete Admin Panel</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
-    <link rel="stylesheet" href="admin-style.css">
-    <style>
-        :root { --primary: #4F46E5; --primary-dark: #3730A3; --bg: #f3f4f6; --text: #1f2937; --white: #ffffff; --danger: #EF4444; --success: #10B981; --warning: #F59E0B; --purple: #8B5CF6; --sidebar-w: 250px; }
-        * { box-sizing: border-box; font-family: 'Poppins', sans-serif; margin: 0; padding: 0; }
-        body { background-color: var(--bg); color: var(--text); min-height: 100vh; }
-
-        /* Lock Screen */
-        #lockScreen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #1a3a6b; display: flex; justify-content: center; align-items: center; z-index: 9999; }
-        .lock-box { background: white; padding: 40px; border-radius: 16px; text-align: center; width: 90%; max-width: 400px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
-        .lock-box h2 { color: #1a3a6b; margin-bottom: 10px; }
-        .lock-box input { width: 100%; padding: 14px; margin-bottom: 14px; border: 2px solid #ccc; border-radius: 8px; font-size: 15px; }
-        .lock-box button { width: 100%; padding: 14px; background: var(--primary); color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: 600; cursor: pointer; }
-        .err-msg { color: #EF4444; font-size: 13px; display: none; margin-top: 10px; font-weight: 500; }
-
-        /* Top Sticky Header */
-        .header {
-            position: sticky; top: 0; z-index: 1000;
-            background: var(--primary); color: white; padding: 12px 20px;
-            display: flex; justify-content: space-between; align-items: center;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.12);
-        }
-        .header-left { display: flex; align-items: center; gap: 14px; }
-        .sidebar-toggle-btn {
-            background: rgba(255,255,255,0.16); color: white; border: 1px solid rgba(255,255,255,0.28);
-            width: 38px; height: 38px; border-radius: 8px; font-size: 18px; cursor: pointer;
-            display: inline-flex; align-items: center; justify-content: center; transition: 0.2s;
-        }
-        .sidebar-toggle-btn:hover { background: rgba(255,255,255,0.28); }
-        .header h1 { font-size: 18px; font-weight: 700; }
-        .logout-btn { background: white; color: var(--primary); border: none; padding: 8px 16px; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 13px; }
-
-        /* Admin Workspace Layout (Collapsible Left Sidebar + Fluid Content) */
-        .admin-layout { display: flex; min-height: calc(100vh - 62px); position: relative; }
-
-        .admin-sidebar {
-            width: var(--sidebar-w);
-            background: #1E1B4B;
-            color: #E0E7FF;
-            flex-shrink: 0;
-            display: flex;
-            flex-direction: column;
-            padding: 16px 10px;
-            transition: width 0.25s ease, transform 0.25s ease, padding 0.25s ease;
-            overflow-x: hidden;
-            z-index: 950;
-        }
-        .admin-sidebar.collapsed {
-            width: 68px;
-            padding: 16px 8px;
-        }
-        .sidebar-brand-label {
-            font-size: 11px; text-transform: uppercase; letter-spacing: 1px;
-            color: #94A3B8; font-weight: 700; padding: 0 12px 10px;
-            white-space: nowrap; transition: opacity 0.2s;
-        }
-        .admin-sidebar.collapsed .sidebar-brand-label { opacity: 0; height: 0; padding: 0; overflow: hidden; }
-
-        .tabs {
-            display: flex; flex-direction: column; gap: 6px;
-            background: transparent; margin: 0; box-shadow: none; border-radius: 0;
-        }
-        .tab-btn {
-            width: 100%; display: flex; align-items: center; gap: 12px;
-            padding: 12px 14px; border: none; border-radius: 10px;
-            background: transparent; color: #CBD5E1;
-            font-size: 13.5px; font-weight: 500; text-align: left;
-            cursor: pointer; transition: all 0.2s; white-space: nowrap;
-            border-bottom: none !important;
-        }
-        .tab-btn:hover { background: rgba(255,255,255,0.09); color: #ffffff; }
-        .tab-btn.active {
-            background: linear-gradient(135deg, #4F46E5 0%, #6366F1 100%);
-            color: #ffffff; font-weight: 600;
-            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.4);
-        }
-        .tab-icon { font-size: 17px; min-width: 24px; text-align: center; display: inline-block; }
-        .tab-label { transition: opacity 0.2s; }
-        .admin-sidebar.collapsed .tab-btn { justify-content: center; padding: 12px 0; }
-        .admin-sidebar.collapsed .tab-label { display: none; }
-
-        .sidebar-footer-toggle {
-            margin-top: auto; padding-top: 14px; border-top: 1px solid rgba(255,255,255,0.1);
-        }
-        .collapse-pill-btn {
-            width: 100%; padding: 10px; border-radius: 8px;
-            background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.14);
-            color: #CBD5E1; font-size: 12px; font-weight: 600; cursor: pointer;
-            display: flex; align-items: center; justify-content: center; gap: 6px;
-        }
-        .collapse-pill-btn:hover { background: rgba(255,255,255,0.16); color: #fff; }
-        .admin-sidebar.collapsed .collapse-text { display: none; }
-
-        /* Main Content Area */
-        .container { flex: 1; padding: 22px 24px 50px; max-width: 100%; overflow-x: hidden; margin: 0; }
-        .section { display: none; background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 20px; }
-        .section.active { display: block; }
-        h2.title { color: var(--primary); font-size: 18px; margin-bottom: 20px; border-bottom: 2px solid #eee; padding-bottom: 10px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
-        input, select, textarea { width: 100%; padding: 10px; margin-bottom: 10px; border: 1px solid #ccc; border-radius: 8px; font-size: 13px; }
-        button.save-btn { background: var(--primary); color: white; border: none; padding: 12px 20px; border-radius: 8px; cursor: pointer; font-size: 15px; font-weight: 600; width: 100%; margin-bottom: 15px; }
-        .row { display: flex; gap: 10px; flex-wrap: wrap; }
-        .row > div { flex: 1; min-width: 150px; }
-        .table-wrapper { overflow-x: auto; width: 100%; }
-        table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 13px; }
-        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-        th { background: #f8fafc; color: var(--primary); }
-        .btn-approve { background: var(--success); color: white; border: none; padding: 6px 10px; border-radius: 5px; cursor: pointer; font-size: 11px; }
-        .btn-unpaid, .btn-delete { background: var(--danger); color: white; border: none; padding: 6px 10px; border-radius: 5px; cursor: pointer; font-size: 11px; }
-        .btn-export { background: #10B981; color: white; border: none; padding: 8px 15px; border-radius: 6px; cursor: pointer; font-size: 12px; }
-        .status-paid { color: var(--success); font-weight: bold; }
-        .status-free { color: var(--danger); font-weight: bold; }
-        .msg { color: var(--success); font-weight: bold; margin-top: 10px; text-align: center; }
-        #loading { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.8); display: none; justify-content: center; align-items: center; z-index: 10000; font-size: 20px; font-weight: bold; color: var(--primary); }
-
-        /* Mobile Drawer Behavior */
-        .sidebar-backdrop { display: none; position: fixed; inset: 0; background: rgba(15,23,42,0.55); z-index: 940; }
-        @media (max-width: 768px) {
-            .header h1 { font-size: 15px; }
-            .admin-sidebar {
-                position: fixed; top: 62px; left: 0; bottom: 0;
-                width: 250px !important; padding: 16px 10px !important;
-                transform: translateX(-100%);
-            }
-            .admin-sidebar.mobile-open { transform: translateX(0); }
-            .admin-sidebar.mobile-open .tab-label { display: inline !important; }
-            .admin-sidebar.mobile-open .tab-btn { justify-content: flex-start !important; padding: 12px 14px !important; }
-            .sidebar-backdrop.show { display: block; }
-            .container { padding: 15px 12px 50px; }
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TaiyariGhar Admin Control Panel</title>
+  <link rel="icon" type="image/png" href="https://taiyarighar.in/logo.png" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #f1f5f9;
+      color: #1e293b;
+      font-size: 12.5px;
+      line-height: 1.45;
+    }
+    .hidden { display: none !important; }
+    .admin-layout { display: flex; min-height: 100vh; }
+    .sidebar {
+      width: 215px; background: #0f172a; color: #cbd5e1;
+      padding: 14px 10px; flex-shrink: 0; display: flex; flex-direction: column;
+    }
+    .sidebar-brand {
+      font-size: 15px; font-weight: 700; color: #ffffff;
+      padding: 6px 10px 14px; border-bottom: 1px solid #1e293b; margin-bottom: 10px;
+    }
+    .nav-item {
+      padding: 8px 10px; border-radius: 5px; cursor: pointer;
+      font-size: 12.5px; font-weight: 500; margin-bottom: 3px;
+      color: #cbd5e1; display: flex; justify-content: space-between; align-items: center;
+    }
+    .nav-item:hover { background: #1e293b; color: #ffffff; }
+    .nav-item.active { background: #2563eb; color: #ffffff; font-weight: 600; }
+    .main-area { flex: 1; padding: 16px 20px; overflow-x: auto; }
+    .topbar {
+      background: #ffffff; border: 1px solid #e2e8f0; border-radius: 6px;
+      padding: 10px 14px; margin-bottom: 14px;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .panel-card {
+      background: #ffffff; border: 1px solid #e2e8f0; border-radius: 6px;
+      padding: 14px 16px; margin-bottom: 14px;
+    }
+    .panel-card h3 { font-size: 14px; font-weight: 700; color: #0f172a; margin-bottom: 10px; }
+    .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin-bottom: 14px; }
+    .kpi-box { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 6px; padding: 10px 12px; }
+    .kpi-label { font-size: 11px; color: #64748b; }
+    .kpi-val { font-size: 17px; font-weight: 700; color: #0f172a; margin-top: 2px; }
+    .form-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; margin-bottom: 10px; }
+    label { display: block; font-size: 11.5px; font-weight: 600; color: #475569; margin-bottom: 3px; }
+    input, select, textarea {
+      width: 100%; padding: 6px 9px; border: 1px solid #cbd5e1;
+      border-radius: 5px; font-size: 12.5px; font-family: inherit;
+    }
+    .btn {
+      padding: 6px 12px; border-radius: 5px; font-size: 12px;
+      font-weight: 600; cursor: pointer; border: 1px solid transparent;
+    }
+    .btn-primary { background: #2563eb; color: #ffffff; }
+    .btn-outline { background: #ffffff; color: #334155; border-color: #cbd5e1; }
+    .btn-danger { background: #ffffff; color: #dc2626; border-color: #fecaca; }
+    table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    th, td { padding: 7px 9px; border-bottom: 1px solid #e2e8f0; text-align: left; }
+    th { background: #f8fafc; font-weight: 600; color: #475569; }
+    .tag {
+      display: inline-block; padding: 2px 7px; border-radius: 4px;
+      font-size: 11px; font-weight: 600; background: #f1f5f9; color: #334155;
+    }
+    .tag-ok { background: #dcfce7; color: #166534; }
+    .tag-warn { background: #fef3c7; color: #92400e; }
+    .tag-err { background: #fee2e2; color: #991b1b; }
+    .login-gate {
+      max-width: 360px; margin: 80px auto; background: #ffffff;
+      border: 1px solid #e2e8f0; border-radius: 8px; padding: 22px;
+    }
+  </style>
 </head>
 <body>
 
-    <div id="loading">Processing... Please wait.</div>
-
-    <!-- Admin Login Screen -->
-    <div id="lockScreen">
-        <div class="lock-box">
-            <h2>🔐 Admin Secure Login</h2>
-            <p style="font-size: 12px; color: #6B7280; margin-bottom: 15px;">Sign in with your Admin Credentials</p>
-            <input type="email" id="adminEmail" value="madhupverma8@gmail.com" placeholder="Admin Email">
-            <input type="password" id="adminPass" placeholder="Password" onkeypress="if(event.key==='Enter') checkPass()">
-            <button id="btnUnlock" onclick="checkPass()">Unlock Panel</button>
-            <p id="errMsg" class="err-msg">❌ Incorrect Email or Password!</p>
-        </div>
+  <!-- Admin Login Gate -->
+  <div id="adminLoginGate" class="login-gate">
+    <h2 style="font-size:16px; margin-bottom:4px;">TaiyariGhar Admin Login</h2>
+    <p style="font-size:12px; color:#64748b; margin-bottom:14px;">Sign in with your authorized administrator credentials.</p>
+    <div style="margin-bottom:10px;">
+      <label>Admin Email</label>
+      <input type="email" id="admEmail" value="madhupverma8@gmail.com" />
     </div>
-
-    <!-- Main Admin Dashboard -->
-    <div id="adminPanel" style="display: none;">
-        <div class="header">
-            <div class="header-left">
-                <button class="sidebar-toggle-btn" onclick="toggleAdminSidebar()" title="Show / Hide Sidebar">☰</button>
-                <h1>TaiyariGhar Admin Control Panel</h1>
-            </div>
-            <button class="logout-btn" onclick="logoutAdmin()">Logout</button>
-        </div>
-
-        <div id="sidebarBackdrop" class="sidebar-backdrop" onclick="closeMobileSidebar()"></div>
-
-        <div class="admin-layout">
-            <!-- Collapsible Left Sidebar Navigation -->
-            <aside id="adminSidebar" class="admin-sidebar">
-                <div class="sidebar-brand-label">Navigation Menu</div>
-                <div class="tabs">
-                    <button class="tab-btn active" title="Settings & Pricing" onclick="openTab('tabSettings', this); closeMobileSidebar();"><span class="tab-icon">⚙️</span><span class="tab-label">Settings & Pricing</span></button>
-                    <button class="tab-btn" title="Students" onclick="openTab('tabStudents', this); closeMobileSidebar();"><span class="tab-icon">👨‍🎓</span><span class="tab-label">Students</span></button>
-                    <button class="tab-btn" title="Referral Partners" onclick="openTab('tabPartners', this); closeMobileSidebar();"><span class="tab-icon">🤝</span><span class="tab-label">Partners & Coupons</span></button>
-                    <button class="tab-btn" title="Exam Types" onclick="openTab('tabCategories', this); closeMobileSidebar();"><span class="tab-icon">🗂️</span><span class="tab-label">Exam Types</span></button>
-                    <button class="tab-btn" title="Tests & Live" onclick="openTab('tabTests', this); closeMobileSidebar();"><span class="tab-icon">📝</span><span class="tab-label">Tests & Live</span></button>
-                    <button class="tab-btn" title="Questions" onclick="openTab('tabQuestions', this); closeMobileSidebar();"><span class="tab-icon">❓</span><span class="tab-label">Questions</span></button>
-                    <button class="tab-btn" title="Reported Questions" onclick="openTab('tabReports', this); closeMobileSidebar();"><span class="tab-icon">🚨</span><span class="tab-label">Reported Qs</span></button>
-                    <button class="tab-btn" title="Results" onclick="openTab('tabResults', this); closeMobileSidebar();"><span class="tab-icon">📊</span><span class="tab-label">Results</span></button>
-                    <button class="tab-btn" title="Current Affairs" onclick="openTab('tabCA', this); closeMobileSidebar();"><span class="tab-icon">📰</span><span class="tab-label">Current Affairs</span></button>
-                    <button class="tab-btn" title="Jobs & Syllabus" onclick="openTab('tabUpdates', this); closeMobileSidebar();"><span class="tab-icon">📢</span><span class="tab-label">Jobs & Syllabus</span></button>
-                    <button class="tab-btn" title="Bulk Upload" onclick="openTab('tabUpload', this); closeMobileSidebar();"><span class="tab-icon">🚀</span><span class="tab-label">Bulk Upload</span></button>
-                </div>
-                <div class="sidebar-footer-toggle">
-                    <button class="collapse-pill-btn" onclick="toggleAdminSidebar()">
-                        <span id="collapseArrow">◀</span>
-                        <span class="collapse-text">Hide Sidebar</span>
-                    </button>
-                </div>
-            </aside>
-
-            <div class="container">
-
-            <!-- TAB 1: Settings & 3-Tier Pricing -->
-            <div id="tabSettings" class="section active">
-                <h2 class="title">3-Tier Subscription Pricing & Payment Settings</h2>
-                
-                <div style="background: #F8FAFC; padding: 20px; border-radius: 10px; border: 1px solid #E2E8F0; margin-bottom: 20px;">
-                    <h3 style="margin-bottom: 15px; color: var(--primary); font-size: 15px;">💳 Subscription Plans (MRP & Offer Price)</h3>
-                    <div class="row" style="margin-bottom: 12px;">
-                        <div><label>3 Months MRP (₹)</label><input type="number" id="plan3Mrp" value="149"></div>
-                        <div><label>3 Months Offer Price (₹)</label><input type="number" id="plan3Price" value="99"></div>
-                    </div>
-                    <div class="row" style="margin-bottom: 12px;">
-                        <div><label>6 Months MRP (₹)</label><input type="number" id="plan6Mrp" value="249"></div>
-                        <div><label>6 Months Offer Price (₹)</label><input type="number" id="plan6Price" value="199"></div>
-                    </div>
-                    <div class="row" style="margin-bottom: 12px;">
-                        <div><label>12 Months MRP (₹)</label><input type="number" id="plan12Mrp" value="399"></div>
-                        <div><label>12 Months Offer Price (₹)</label><input type="number" id="plan12Price" value="249"></div>
-                    </div>
-                </div>
-
-                <div class="row">
-                    <div><label>UPI ID / Razorpay Handle</label><input type="text" id="setUpi" value="taiyarighar@ptye"></div>
-                    <div><label>WhatsApp Support Number</label><input type="text" id="setMobile" value="9140281870"></div>
-                </div>
-                <button class="save-btn" onclick="saveSettings()">Save Settings & Prices</button>
-                <p id="settingsMsg" class="msg" style="display: none;">✅ Settings Saved Successfully!</p>
-            </div>
-
-            <!-- TAB 2: Students & Payments -->
-            <div id="tabStudents" class="section">
-                <h2 class="title">Students & Payments 
-                    <div style="display:flex; gap:8px; flex-wrap:wrap;">
-                        <button class="btn-export" onclick="exportStudents()">📥 Export Excel</button>
-                        <button class="btn-export" style="background:#DC2626;" onclick="exportTableToPdf('studentsTableWrap', 'TaiyariGhar_Students_Report')">📄 Download PDF</button>
-                    </div>
-                </h2>
-                <div class="row" style="background:#F8FAFC; padding:12px; border-radius:8px; border:1px solid #E2E8F0; margin-bottom:12px;">
-                    <div style="flex:3;"><input type="text" id="searchStudentInput" placeholder="🔍 Search Student by Name, Mobile, Student ID (TG0004), or Email..." style="margin-bottom:0;" onkeyup="filterAdminTable('students')"></div>
-                    <div style="flex:1;"><button class="save-btn" style="margin-bottom:0; background:#4F46E5;" onclick="toggleAdminTable('studentsTableWrap', this, loadStudents)">👁️ Show All</button></div>
-                </div>
-                <div id="studentsTableWrap" class="table-wrapper" style="display:none;">
-                    <table id="studentsTable">
-                        <thead>
-                            <tr>
-                                <th>Name</th>
-                                <th>Mobile (Login)</th>
-                                <th>ID</th>
-                                <th>Email</th>
-                                <th>Status</th>
-                                <th>Expiry</th>
-                                <th>Devices</th>
-                                <th>Action</th>
-                            </tr>
-                        </thead>
-                        <tbody></tbody>
-                    </table>
-                </div>
-            </div>
-
-
-            <!-- TAB 2B: Official Referral Partners & Coupons -->
-            <div id="tabPartners" class="section">
-                <h2 class="title">🤝 Official Referral Partners & Coupons
-                    <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
-                        <span style="font-size:12px; color:#475569;">New Partner Registration:</span>
-                        <button type="button" id="btnToggleRegistration" class="btn-approve" style="padding:7px 14px; font-size:12px; font-weight:700;" onclick="togglePartnerRegistrationSetting()">Loading...</button>
-                        <button type="button" class="btn-export" onclick="exportFullPartnersCsv()">📥 Full Data Excel</button>
-                        <button type="button" class="btn-export" style="background:#0F766E;" onclick="exportMonthlyPayoutCsv()">💸 Payout Sheet Excel</button>
-                    </div>
-                </h2>
-
-                <!-- Filter Tabs with Live Counts -->
-                <div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:14px;">
-                    <button type="button" id="tabPendingBtn" onclick="switchPartnerFilter('pending')" style="padding:8px 14px; border-radius:8px; border:1.5px solid #D97706; background:#FFFBEB; color:#92400E; font-weight:700; font-size:12.5px; cursor:pointer;">
-                        ⏳ Pending Verification (<span id="cntPending">0</span>)
-                    </button>
-                    <button type="button" id="tabCompletedBtn" onclick="switchPartnerFilter('completed')" style="padding:8px 14px; border-radius:8px; border:1.5px solid #059669; background:#ECFDF5; color:#065F46; font-weight:700; font-size:12.5px; cursor:pointer;">
-                        ✅ Verification Completed (<span id="cntCompleted">0</span>)
-                    </button>
-                    <button type="button" id="tabRejectedBtn" onclick="switchPartnerFilter('rejected')" style="padding:8px 14px; border-radius:8px; border:1.5px solid #DC2626; background:#FEF2F2; color:#991B1B; font-weight:700; font-size:12.5px; cursor:pointer;">
-                        ❌ Rejected (<span id="cntRejected">0</span>)
-                    </button>
-                    <button type="button" onclick="loadAllPartnersAdmin()" style="padding:8px 14px; border-radius:8px; border:1px solid #CBD5E1; background:#F8FAFC; color:#334155; font-weight:600; font-size:12.5px; cursor:pointer;">
-                        🔄 Refresh
-                    </button>
-                </div>
-
-                <!-- Search Box (Verified Partners stay hidden until searched) -->
-                <div class="row" style="background:#F8FAFC; padding:12px; border-radius:8px; border:1px solid #E2E8F0; margin-bottom:10px;">
-                    <div style="flex:3;"><input type="text" id="adminPartnerSearch" placeholder="🔍 Search by Partner ID (e.g. TGP-1001), Coupon Code, Mobile, or Name..." style="margin-bottom:0;" onkeyup="renderPartnerAdminList()"></div>
-                    <div style="flex:1;"><button type="button" class="save-btn" style="margin-bottom:0; background:#64748B;" onclick="document.getElementById('adminPartnerSearch').value=''; renderPartnerAdminList();">Clear</button></div>
-                </div>
-                <p style="font-size:12px; color:#64748B; margin-bottom:14px;">All verified partners remain hidden by default to keep your dashboard fast. Search by Partner ID, Coupon Code, Mobile, or Name above to view & manage.</p>
-
-                <div id="partnerAdminList"></div>
-            </div>
-
-            <!-- Verify & Configure Partner Coupon Modal -->
-            <div id="approvePartnerModal" style="display:none; position:fixed; inset:0; background:rgba(15,23,42,0.65); z-index:10002; align-items:center; justify-content:center; padding:14px;">
-                <div style="background:#fff; max-width:480px; width:100%; border-radius:14px; padding:22px; box-shadow:0 15px 35px rgba(0,0,0,0.25);">
-                    <h3 style="margin:0 0 6px; color:#1E1B4B; font-size:18px;">✅ Verify & Configure Partner Coupon</h3>
-                    <p id="modalPartnerSummary" style="font-size:12.5px; color:#475569; margin-bottom:14px; background:#F8FAFC; padding:8px 10px; border-radius:6px;"></p>
-
-                    <input type="hidden" id="editPartnerDocId" />
-                    <div class="row">
-                        <div style="flex:1 1 100%;">
-                            <label style="font-size:12px; font-weight:600;">Unique Coupon Code (Auto-generated, Editable)</label>
-                            <input type="text" id="cfgCouponCode" style="text-transform:uppercase; font-weight:700;" />
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div>
-                            <label style="font-size:12px; font-weight:600;">Student Discount (₹ Off)</label>
-                            <input type="number" id="cfgDiscount" min="0" value="20" />
-                        </div>
-                        <div>
-                            <label style="font-size:12px; font-weight:600;">Extra Validity Days</label>
-                            <input type="number" id="cfgExtraDays" min="0" value="15" />
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div>
-                            <label style="font-size:12px; font-weight:600;">Max Paid Usage Limit</label>
-                            <input type="number" id="cfgMaxLimit" min="1" value="100" />
-                        </div>
-                        <div>
-                            <label style="font-size:12px; font-weight:600;">Partner Commission (%)</label>
-                            <input type="number" id="cfgCommPct" min="1" max="100" value="10" />
-                        </div>
-                    </div>
-
-                    <div style="margin-top:12px; display:flex; justify-content:flex-end; gap:10px;">
-                        <button type="button" onclick="document.getElementById('approvePartnerModal').style.display='none'" style="padding:9px 16px; border:1px solid #CBD5E1; background:#fff; border-radius:8px; cursor:pointer; font-weight:600;">Cancel</button>
-                        <button type="button" onclick="confirmApprovePartner()" style="padding:9px 18px; background:#10B981; color:#fff; border:none; border-radius:8px; font-weight:700; cursor:pointer;">Save & Activate Partner</button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- TAB 3: Categories & Exam Types -->
-            <div id="tabCategories" class="section">
-                <h2 class="title">Manage Categories & Exam Types</h2>
-                <input type="hidden" id="editCatId">
-                <div class="row">
-                    <div><input type="text" id="newMainCat" placeholder="Main Category (e.g., Railway Exams)"></div>
-                    <div><input type="text" id="newSubCat" placeholder="Sub Category (e.g., RPF)"></div>
-                    <div><input type="text" id="newExamName" placeholder="Exam Name/Type (e.g., Full Length Mock)"></div>
-                    <div><button class="save-btn" id="catBtn" style="margin-bottom:0; background:var(--success);" onclick="saveCategory()">Add Category</button></div>
-                </div>
-
-                <div class="row" style="margin-top: 15px; background: #f8fafc; padding: 15px; border-radius: 8px; border: 1px dashed #cbd5e1;">
-                    <div style="flex: 2;"><input type="file" id="categoriesCsvFile" accept=".csv" style="margin-bottom:0; background:white;"></div>
-                    <div style="flex: 1;"><button class="save-btn" style="background:var(--purple); margin-bottom:0;" onclick="uploadCategoriesCsv()">Bulk Upload</button></div>
-                    <div style="flex: 1;"><button onclick="downloadCategoriesTemplate()" style="background:none; border:1px solid var(--purple); color:var(--purple); padding:10px; border-radius:8px; cursor:pointer; font-size:13px; width:100%; font-weight:600;">📥 Download Template</button></div>
-                </div>
-
-                <div class="row" style="margin-top:14px; background:#F8FAFC; padding:12px; border-radius:8px; border:1px solid #E2E8F0;">
-                    <div style="flex:2;"><input type="text" id="searchCatInput" placeholder="🔍 Search Category, Sub-Category, or Exam Type..." style="margin-bottom:0;" onkeyup="filterAdminTable('categories')"></div>
-                    <div style="flex:1;"><button class="save-btn" style="margin-bottom:0; background:#4F46E5;" onclick="toggleAdminTable('categoriesTableWrap', this, loadCategories)">👁️ Show All</button></div>
-                    <div style="flex:1;"><button class="btn-export" style="width:100%; height:40px;" onclick="exportCategoriesExcel()">📥 Excel</button></div>
-                    <div style="flex:1;"><button class="btn-export" style="width:100%; height:40px; background:#DC2626;" onclick="exportTableToPdf('categoriesTableWrap', 'TaiyariGhar_Categories')">📄 PDF</button></div>
-                </div>
-                <div id="categoriesTableWrap" class="table-wrapper" style="display:none;">
-                    <table id="categoriesTable">
-                        <thead><tr><th>Main Category</th><th>Sub-Category</th><th>Exam Name (Test Type)</th><th>Action</th></tr></thead>
-                        <tbody></tbody>
-                    </table>
-                </div>
-            </div>
-
-            <!-- TAB 4: Tests & Live Exams -->
-            <div id="tabTests" class="section">
-                <h2 class="title">Manage Tests & Live Exams <button class="btn-export" onclick="exportTests()">📥 Export to Excel</button></h2>
-                <input type="hidden" id="editTestId">
-                <div class="row">
-                    <div><input type="text" id="tId" placeholder="Test ID (e.g., T1)"></div>
-                    <div><select id="tMain" onchange="updateSubCatDropdown()"><option value="">Select Main Category</option></select></div>
-                    <div><select id="tSub" onchange="updateExamNameDropdown()"><option value="">Select Sub Category</option></select></div>
-                    <div><select id="tExam"><option value="">Select Exam Name / Type</option></select></div>
-                </div>
-                <div class="row">
-                    <div><input type="text" id="tName" placeholder="Test Name (e.g., Mock Test 01)"></div>
-                    <div><input type="number" id="tDur" placeholder="Duration (Mins)"></div>
-                    <div><input type="number" id="tMarks" placeholder="Total Marks"></div>
-                    <div><input type="number" id="tTotalQs" placeholder="Total Questions"></div>
-                </div>
-                <div class="row">
-                    <div><select id="tLanguage"><option value="Both">Language: Hindi + English</option><option value="Hindi">Language: Only Hindi</option><option value="English">Language: Only English</option></select></div>
-                    <div><select id="tHasNeg" onchange="toggleTestNeg()"><option value="No">Negative Marking? No</option><option value="Yes">Negative Marking? Yes</option></select></div>
-                    <div id="tNegBox" style="display:none;"><input type="number" step="0.01" id="tNegMark" placeholder="Neg Mark (e.g., 0.33)"></div>
-                    <div><select id="tFree"><option value="Yes">Is Free? Yes</option><option value="No">Is Free? No</option></select></div>
-                </div>
-                
-                <!-- Live Exam Controls with Start & End Date-Time -->
-                <div class="row" style="background: #FEF2F2; padding: 12px; border-radius: 8px; border: 1px solid #FECACA; margin-bottom: 12px;">
-                    <div><label style="color: #991B1B; font-weight:700; font-size:12px;">Is All-India Live Test?</label><select id="tIsLive"><option value="No">No (Normal Practice Test)</option><option value="Yes">Yes (All-India Live Exam)</option></select></div>
-                    <div><label style="color: #991B1B; font-weight:700; font-size:12px;">Live Start Date & Time</label><input type="datetime-local" id="tLiveStart"></div>
-                    <div><label style="color: #991B1B; font-weight:700; font-size:12px;">Live End & Result Release Date-Time</label><input type="datetime-local" id="tLiveEnd"></div>
-                </div>
-
-                <button class="save-btn" id="testBtn" onclick="saveTest()">Add Test</button>
-                <div class="row" style="background:#F8FAFC; padding:12px; border-radius:8px; border:1px solid #E2E8F0; margin-bottom:10px;">
-                    <div style="flex:2;"><input type="text" id="searchTestListInput" placeholder="🔍 Search Test by ID (RRB005), Category, or Test Name..." style="margin-bottom:0;" onkeyup="filterAdminTable('tests')"></div>
-                    <div style="flex:1;"><button class="save-btn" style="margin-bottom:0; background:#4F46E5;" onclick="toggleAdminTable('testsTableWrap', this, loadTests)">👁️ Show All</button></div>
-                    <div style="flex:1;"><button class="btn-export" style="width:100%; height:40px; background:#DC2626;" onclick="exportTableToPdf('testsTableWrap', 'TaiyariGhar_Tests_List')">📄 PDF</button></div>
-                </div>
-                <div id="testsTableWrap" class="table-wrapper" style="display:none;">
-                    <table id="testsTable">
-                        <thead><tr><th>ID</th><th>Category</th><th>Test Name</th><th>Live?</th><th>Marks</th><th>Qs</th><th>Neg</th><th>Action</th></tr></thead>
-                        <tbody></tbody>
-                    </table>
-                </div>
-            </div>
-
-            <!-- TAB 5: Questions -->
-            <div id="tabQuestions" class="section">
-                <h2 class="title">Manage Questions (Search & Edit)</h2>
-                <input type="hidden" id="editQId">
-                
-                <div style="background: #f8fafc; padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #e2e8f0;">
-                    <h3 style="margin-bottom: 10px; font-size: 15px; color: var(--primary);">🔍 Search by Test ID or Unique Q-ID & Bulk Download (Excel / PDF)</h3>
-                    <div class="row">
-                        <div style="flex: 2.5;"><input type="text" id="searchTestId" placeholder="Enter Test ID (e.g., RRB001) OR Unique Q-ID (e.g., RRB001-Q01)" style="margin-bottom:0;" onkeypress="if(event.key==='Enter') searchQuestions()"></div>
-                        <div style="flex: 1;"><button class="save-btn" style="margin-bottom:0; background: var(--primary);" onclick="searchQuestions()">🔍 Search</button></div>
-                        <div style="flex: 1;"><button class="save-btn" style="margin-bottom:0; background: var(--success);" onclick="downloadTestQuestions()">📥 Excel</button></div>
-                        <div style="flex: 1;"><button class="save-btn" style="margin-bottom:0; background: #DC2626;" onclick="downloadTestQuestionsPdf()">📄 PDF</button></div>
-                    </div>
-                </div>
-
-                <div id="questionListContainer" style="display: none;">
-                    <h3 style="margin-bottom: 10px; font-size: 15px; color: var(--purple);">Showing Questions for Test ID: <span id="displaySearchTestId" style="font-weight:bold;"></span></h3>
-                    <div class="table-wrapper">
-                        <table id="questionsTable">
-                            <thead><tr><th>Q-ID</th><th>Question (Hindi)</th><th>Question (English)</th><th>Marks</th><th>Action</th></tr></thead>
-                            <tbody></tbody>
-                        </table>
-                    </div>
-                </div>
-
-                <div style="border-top: 2px dashed #ccc; padding-top: 20px; margin-top: 20px;">
-                    <h3 style="margin-bottom: 10px; font-size: 14px; color: #555;">Add / Edit Question Manually</h3>
-                    <div class="row"><div><input type="text" id="qTestId" placeholder="Test ID (e.g., T1)"></div></div>
-                    
-                    <div class="row">
-                        <div style="flex:2;"><input type="text" id="qTextHindi" placeholder="Question in Hindi"></div>
-                        <div style="flex:2;"><input type="text" id="qTextEnglish" placeholder="Question in English"></div>
-                    </div>
-                    <div class="row"><div><input type="text" id="qOptAHindi" placeholder="Option A (Hindi)"></div><div><input type="text" id="qOptAEnglish" placeholder="Option A (English)"></div></div>
-                    <div class="row"><div><input type="text" id="qOptBHindi" placeholder="Option B (Hindi)"></div><div><input type="text" id="qOptBEnglish" placeholder="Option B (English)"></div></div>
-                    <div class="row"><div><input type="text" id="qOptCHindi" placeholder="Option C (Hindi)"></div><div><input type="text" id="qOptCEnglish" placeholder="Option C (English)"></div></div>
-                    <div class="row"><div><input type="text" id="qOptDHindi" placeholder="Option D (Hindi)"></div><div><input type="text" id="qOptDEnglish" placeholder="Option D (English)"></div></div>
-                    <div class="row"><div><input type="text" id="qOptEHindi" placeholder="Option E (Hindi - Optional)"></div><div><input type="text" id="qOptEEnglish" placeholder="Option E (English - Optional)"></div></div>
-
-                    <div class="row">
-                        <div><select id="qAns"><option value="0">Correct: A</option><option value="1">Correct: B</option><option value="2">Correct: C</option><option value="3">Correct: D</option><option value="4">Correct: E</option></select></div>
-                        <div><input type="number" step="0.01" id="qMarks" placeholder="Marks (e.g., 1)"></div>
-                        <div><input type="number" step="0.01" id="qNeg" placeholder="Neg Marks (e.g., 0.33)"></div>
-                    </div>
-                    <div class="row"><div style="flex:1;"><input type="text" id="qExp" placeholder="Explanation (Optional)"></div></div>
-                    
-                    <button class="save-btn" id="qBtn" onclick="saveQuestion()">Add Question</button>
-                </div>
-            </div>
-
-            <!-- TAB 5B: Reported Questions -->
-            <div id="tabReports" class="section">
-                <h2 class="title">🚨 Student Reported Questions
-                    <div style="display:flex; gap:8px; flex-wrap:wrap;">
-                        <button class="btn-export" style="background:#4F46E5;" onclick="loadReportedQuestions()">🔄 Refresh Reports</button>
-                        <button class="btn-export" onclick="exportReportsExcel()">📥 Export Excel</button>
-                        <button class="btn-export" style="background:#DC2626;" onclick="exportTableToPdf('reportsTableWrap', 'TaiyariGhar_Reported_Questions')">📄 Download PDF</button>
-                    </div>
-                </h2>
-                <div class="row" style="background:#F8FAFC; padding:12px; border-radius:8px; border:1px solid #E2E8F0; margin-bottom:12px;">
-                    <div style="flex:3;"><input type="text" id="searchReportInput" placeholder="🔍 Search Reported Q by Unique Q-ID, Test ID, or Student..." style="margin-bottom:0;" onkeyup="filterAdminTable('reports')"></div>
-                </div>
-                <div id="reportsTableWrap" class="table-wrapper">
-                    <table id="reportsTable">
-                        <thead>
-                            <tr>
-                                <th>Date</th>
-                                <th>Unique Q-ID</th>
-                                <th>Issue & Suggested Fix</th>
-                                <th>Screenshot</th>
-                                <th>Reported By</th>
-                                <th>Status</th>
-                                <th>Action</th>
-                            </tr>
-                        </thead>
-                        <tbody><tr><td colspan="7" style="text-align:center;">Click Refresh Reports to load...</td></tr></tbody>
-                    </table>
-                </div>
-            </div>
-
-            <!-- TAB 6: Results -->
-            <div id="tabResults" class="section">
-                <h2 class="title">Student Results 
-                    <div style="display:flex; gap:8px; flex-wrap:wrap;">
-                        <button class="btn-export" style="background:#4F46E5;" onclick="releaseLiveResultsAndSendEmails()">📧 Release Live Results & Emails</button>
-                        <button class="btn-export" style="background:#F59E0B;" onclick="cleanDuplicateResults()">🧹 Remove Duplicates</button>
-                        <button class="btn-export" onclick="exportResults()">📥 Excel</button>
-                        <button class="btn-export" style="background:#DC2626;" onclick="exportTableToPdf('resultsTableWrap', 'TaiyariGhar_Student_Results')">📄 PDF</button>
-                    </div>
-                </h2>
-                <div class="row" style="background:#F8FAFC; padding:12px; border-radius:8px; border:1px solid #E2E8F0; margin-bottom:12px;">
-                    <div style="flex:3;"><input type="text" id="searchResultInput" placeholder="🔍 Search Results by Student Name, Login ID, Test Name, or Date..." style="margin-bottom:0;" onkeyup="filterAdminTable('results')"></div>
-                    <div style="flex:1;"><button class="save-btn" style="margin-bottom:0; background:#4F46E5;" onclick="toggleAdminTable('resultsTableWrap', this, loadResults)">👁️ Show All</button></div>
-                </div>
-                <div id="resultsTableWrap" class="table-wrapper" style="display:none;">
-                    <table id="resultsTable">
-                        <thead><tr><th>Date</th><th>Student</th><th>Test</th><th>Correct</th><th>Wrong</th><th>Neg</th><th>Score</th></tr></thead>
-                        <tbody></tbody>
-                    </table>
-                </div>
-            </div>
-
-            <!-- TAB 7: Current Affairs -->
-            <div id="tabCA" class="section">
-                <h2 class="title">Manage Current Affairs</h2>
-                <input type="hidden" id="editCaId">
-                <div class="row">
-                    <div><select id="caType"><option value="Daily">Daily</option><option value="Monthly">Monthly</option></select></div>
-                    <div><input type="date" id="caDate"></div>
-                    <div><input type="text" id="caTitle" placeholder="Title"></div>
-                    <div><input type="url" id="caLink" placeholder="Article/PDF Link"></div>
-                </div>
-                <div class="row">
-                    <div style="flex:2;"><input type="text" id="caQ" placeholder="Question"></div>
-                    <div><input type="text" id="caOptA" placeholder="Option A"></div>
-                    <div><input type="text" id="caOptB" placeholder="Option B"></div>
-                    <div><input type="text" id="caOptC" placeholder="Option C"></div>
-                    <div><input type="text" id="caOptD" placeholder="Option D"></div>
-                    <div><input type="text" id="caOptE" placeholder="Option E (Optional)"></div>
-                </div>
-                <div class="row">
-                    <div><select id="caAns"><option value="0">Correct: A</option><option value="1">Correct: B</option><option value="2">Correct: C</option><option value="3">Correct: D</option><option value="4">Correct: E</option></select></div>
-                    <div style="flex:2;"><input type="text" id="caExp" placeholder="Explanation (For Monthly only)"></div>
-                </div>
-                <button class="save-btn" id="caBtn" onclick="saveCA()">Add Current Affairs</button>
-                <div class="row" style="background:#F8FAFC; padding:12px; border-radius:8px; border:1px solid #E2E8F0; margin-bottom:10px;">
-                    <div style="flex:2;"><input type="text" id="searchCaInput" placeholder="🔍 Search Current Affairs by Title, Date, or Question..." style="margin-bottom:0;" onkeyup="filterAdminTable('ca')"></div>
-                    <div style="flex:1;"><button class="save-btn" style="margin-bottom:0; background:#4F46E5;" onclick="toggleAdminTable('caTableWrap', this, loadCA)">👁️ Show All</button></div>
-                    <div style="flex:1;"><button class="btn-export" style="width:100%; height:40px;" onclick="exportCaExcel()">📥 Excel</button></div>
-                    <div style="flex:1;"><button class="btn-export" style="width:100%; height:40px; background:#DC2626;" onclick="exportTableToPdf('caTableWrap', 'TaiyariGhar_Current_Affairs')">📄 PDF</button></div>
-                </div>
-                <div id="caTableWrap" class="table-wrapper" style="display:none;">
-                    <table id="caTable">
-                        <thead><tr><th>Type</th><th>Date</th><th>Title</th><th>Question</th><th>Action</th></tr></thead>
-                        <tbody></tbody>
-                    </table>
-                </div>
-            </div>
-
-            <!-- TAB 7B: Jobs, Syllabus & Updates -->
-            <div id="tabUpdates" class="section">
-                <h2 class="title">Manage Jobs, Exam Syllabus & Updates</h2>
-                <div class="row">
-                    <div>
-                        <label style="font-size:12px; font-weight:600;">Category</label>
-                        <select id="updCategory">
-                            <option value="Latest Job">💼 Latest Job Notification</option>
-                            <option value="Syllabus">📚 Exam Syllabus & Pattern</option>
-                            <option value="Admit Card / Result">🔔 Admit Card / Result / Update</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label style="font-size:12px; font-weight:600;">Exam / Department Name</label>
-                        <input type="text" id="updExam" placeholder="e.g., RRB Group D / SSC CGL / UP Police">
-                    </div>
-                    <div>
-                        <label style="font-size:12px; font-weight:600;">Publish / Last Date</label>
-                        <input type="text" id="updDate" placeholder="e.g., Last Date: 30 Nov 2026">
-                    </div>
-                </div>
-                <div class="row">
-                    <div style="flex:2;">
-                        <input type="text" id="updTitle" placeholder="Post Title (e.g., RRB Group D 2026 Complete Syllabus & Exam Pattern PDF)">
-                    </div>
-                    <div style="flex:1;">
-                        <input type="url" id="updLink" placeholder="Official Notification / PDF Link (https://...)">
-                    </div>
-                </div>
-                <div>
-                    <textarea id="updDesc" rows="3" placeholder="Short details, eligibility, vacancy count, or syllabus highlights..."></textarea>
-                </div>
-                <button class="save-btn" onclick="saveJobUpdate()">Publish Job / Syllabus Update</button>
-
-                <div class="row" style="margin-top: 10px; background: #f8fafc; padding: 15px; border-radius: 8px; border: 1px dashed #cbd5e1;">
-                    <div style="flex: 2;"><input type="file" id="updatesCsvFile" accept=".csv" style="margin-bottom:0; background:white;"></div>
-                    <div style="flex: 1;"><button class="save-btn" style="background:var(--purple); margin-bottom:0;" onclick="uploadUpdatesCsv()">Bulk Upload Updates</button></div>
-                    <div style="flex: 1;"><button onclick="downloadUpdatesTemplate()" style="background:none; border:1px solid var(--purple); color:var(--purple); padding:10px; border-radius:8px; cursor:pointer; font-size:13px; width:100%; font-weight:600;">📥 Download Template</button></div>
-                </div>
-
-                <div class="row" style="margin-top:12px; background:#F8FAFC; padding:12px; border-radius:8px; border:1px solid #E2E8F0; margin-bottom:10px;">
-                    <div style="flex:2;"><input type="text" id="searchUpdInput" placeholder="🔍 Search Jobs & Syllabus by Exam, Category, or Title..." style="margin-bottom:0;" onkeyup="filterAdminTable('updates')"></div>
-                    <div style="flex:1;"><button class="save-btn" style="margin-bottom:0; background:#4F46E5;" onclick="toggleAdminTable('updatesTableWrap', this, loadJobUpdates)">👁️ Show All</button></div>
-                    <div style="flex:1;"><button class="btn-export" style="width:100%; height:40px;" onclick="exportUpdatesExcel()">📥 Excel</button></div>
-                    <div style="flex:1;"><button class="btn-export" style="width:100%; height:40px; background:#DC2626;" onclick="exportTableToPdf('updatesTableWrap', 'TaiyariGhar_Jobs_Syllabus')">📄 PDF</button></div>
-                </div>
-                <div id="updatesTableWrap" class="table-wrapper" style="display:none;">
-                    <table id="updatesTable">
-                        <thead><tr><th>Category</th><th>Exam</th><th>Title</th><th>Date / Last Date</th><th>Link</th><th>Action</th></tr></thead>
-                        <tbody></tbody>
-                    </table>
-                </div>
-            </div>
-
-            <!-- TAB 8: Bulk Upload -->
-            <div id="tabUpload" class="section">
-                <h2 class="title">Bulk Upload (CSV)</h2>
-                <div class="row">
-                    <div style="border: 2px dashed #ccc; padding: 15px; border-radius: 10px; text-align: center;">
-                        <h3 style="font-size: 14px; margin-bottom: 10px;">1. Upload Tests</h3>
-                        <input type="file" id="testsCsvFile" accept=".csv" style="border: none; margin-bottom: 10px;">
-                        <button class="save-btn" style="background: #8B5CF6;" onclick="uploadTestsCsv()">Upload Tests</button>
-                        <button onclick="downloadTestsTemplate()" style="background:none; border:1px solid #8B5CF6; color:#8B5CF6; padding:6px 12px; border-radius:6px; cursor:pointer; font-size:12px; margin-top:5px; width:100%;">📥 Download Test Template</button>
-                    </div>
-                    
-                    <div style="border: 2px dashed #ccc; padding: 15px; border-radius: 10px; text-align: center;">
-                        <h3 style="font-size: 14px; margin-bottom: 10px;">2. Upload Questions</h3>
-                        <input type="file" id="questionsCsvFile" accept=".csv" style="border: none; margin-bottom: 10px;">
-                        <button class="save-btn" style="background: #EC4899;" onclick="uploadQuestionsCsv()">Upload Questions</button>
-                        <button onclick="downloadQuestionsTemplate()" style="background:none; border:1px solid #EC4899; color:#EC4899; padding:6px 12px; border-radius:6px; cursor:pointer; font-size:12px; margin-top:5px; width:100%;">📥 Download Question Template</button>
-                    </div>
-
-                    <div style="border: 2px dashed #ccc; padding: 15px; border-radius: 10px; text-align: center;">
-                        <h3 style="font-size: 14px; margin-bottom: 10px;">3. Upload Current Affairs</h3>
-                        <input type="file" id="caCsvFile" accept=".csv" style="border: none; margin-bottom: 10px;">
-                        <button class="save-btn" style="background: #F59E0B;" onclick="uploadCaCsv()">Upload CA</button>
-                        <button onclick="downloadCaTemplate()" style="background:none; border:1px solid #F59E0B; color:#F59E0B; padding:6px 12px; border-radius:6px; cursor:pointer; font-size:12px; margin-top:5px; width:100%;">📥 Download CA Template</button>
-                    </div>
-                </div>
-                <p id="bulkStatus" style="text-align: center; font-weight: bold; margin-top: 20px; color: var(--primary);"></p>
-            </div>
-
-        </div>
+    <div style="margin-bottom:12px;">
+      <label>Password</label>
+      <input type="password" id="admPass" placeholder="Enter admin password" onkeydown="if(event.key==='Enter') loginAdmin()" />
     </div>
+    <div id="admLoginErr" style="color:#dc2626; font-size:12px; margin-bottom:8px;"></div>
+    <button class="btn btn-primary" style="width:100%;" onclick="loginAdmin()">Sign In</button>
+  </div>
 
+  <!-- Admin Main Workspace -->
+  <div id="adminWorkspace" class="admin-layout hidden">
+    <aside class="sidebar">
+      <div class="sidebar-brand">TaiyariGhar Admin</div>
+      <div class="nav-item active" id="nav-overview" onclick="switchAdminTab('overview')">Overview &amp; Stats</div>
+      <div class="nav-item" id="nav-tests" onclick="switchAdminTab('tests')">Mock &amp; Live Tests</div>
+      <div class="nav-item" id="nav-practice" onclick="switchAdminTab('practice')">Practice Bank (Bundles)</div>
+      <div class="nav-item" id="nav-partners" onclick="switchAdminTab('partners')">Partners &amp; Coupons</div>
+      <div class="nav-item" id="nav-students" onclick="switchAdminTab('students')">Students &amp; Passes</div>
+      <div class="nav-item" id="nav-payments" onclick="switchAdminTab('payments')">Payments &amp; Invoices</div>
+      <div class="nav-item" id="nav-updates" onclick="switchAdminTab('updates')">Current Affairs &amp; Jobs</div>
+      <div style="margin-top:auto; padding-top:12px;">
+        <button class="btn btn-outline" style="width:100%; background:#1e293b; color:#e2e8f0; border-color:#334155;" onclick="logoutAdmin()">Logout</button>
+      </div>
+    </aside>
 
-    </div> <!-- End .admin-layout -->
+    <main class="main-area">
+      <div class="topbar">
+        <strong id="topbarTitle">Overview &amp; Platform Summary</strong>
+        <span style="font-size:11.5px; color:#64748b;">Signed in as madhupverma8@gmail.com</span>
+      </div>
 
-    <script>
-        window.toggleAdminSidebar = function() {
-            const sidebar = document.getElementById('adminSidebar');
-            const backdrop = document.getElementById('sidebarBackdrop');
-            const arrow = document.getElementById('collapseArrow');
-            if (!sidebar) return;
+      <!-- TAB 1: OVERVIEW -->
+      <div id="tab-overview">
+        <div class="kpi-grid">
+          <div class="kpi-box"><div class="kpi-label">Registered Students</div><div class="kpi-val" id="kpiStudents">0</div></div>
+          <div class="kpi-box"><div class="kpi-label">Active Pro Passes</div><div class="kpi-val" id="kpiPro">0</div></div>
+          <div class="kpi-box"><div class="kpi-label">Total Mock Tests</div><div class="kpi-val" id="kpiTests">0</div></div>
+          <div class="kpi-box"><div class="kpi-label">Practice Bank Qs</div><div class="kpi-val" id="kpiPracticeQs">0</div></div>
+          <div class="kpi-box"><div class="kpi-label">Verified Partners</div><div class="kpi-val" id="kpiPartners">0</div></div>
+        </div>
+      </div>
 
-            if (window.innerWidth <= 768) {
-                sidebar.classList.toggle('mobile-open');
-                if (backdrop) backdrop.classList.toggle('show');
-            } else {
-                sidebar.classList.toggle('collapsed');
-                if (arrow) arrow.textContent = sidebar.classList.contains('collapsed') ? '▶' : '◀';
-            }
-        };
+      <!-- TAB 2: MOCK & LIVE TESTS -->
+      <div id="tab-tests" class="hidden">
+        <div class="panel-card">
+          <h3>Create New Mock / All-India Live Test</h3>
+          <div class="form-row">
+            <div><label>Test Title *</label><input type="text" id="tTitle" placeholder="e.g., SSC CGL Tier-1 Full Mock 01" /></div>
+            <div><label>Category *</label><input type="text" id="tCat" placeholder="e.g., SSC, Railway, UP Police" /></div>
+            <div>
+              <label>Test Mode *</label>
+              <select id="tType">
+                <option value="mock">Standard Mock Test</option>
+                <option value="live">All-India Live Test</option>
+              </select>
+            </div>
+            <div>
+              <label>Access Type *</label>
+              <select id="tFree">
+                <option value="false">Pro Pass Required</option>
+                <option value="true">Free for All</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-row">
+            <div><label>Duration (Minutes)</label><input type="number" id="tDuration" value="60" /></div>
+            <div><label>Positive Marks / Q</label><input type="number" step="0.25" id="tPos" value="2" /></div>
+            <div><label>Negative Marks / Q</label><input type="number" step="0.05" id="tNeg" value="0.50" /></div>
+            <div><label>Live Test End Time (If Live)</label><input type="datetime-local" id="tLiveEnd" /></div>
+          </div>
+          <div class="form-row">
+            <div><label>Upload Questions Excel / CSV *</label><input type="file" id="tFile" accept=".xlsx,.xls,.csv" /></div>
+          </div>
+          <button class="btn btn-primary" onclick="createTestFromExcel()">Publish Test</button>
+          <span id="tUploadMsg" style="margin-left:10px; font-weight:600;"></span>
+        </div>
 
-        window.closeMobileSidebar = function() {
-            const sidebar = document.getElementById('adminSidebar');
-            const backdrop = document.getElementById('sidebarBackdrop');
-            if (sidebar) sidebar.classList.remove('mobile-open');
-            if (backdrop) backdrop.classList.remove('show');
-        };
-    </script>
+        <div class="panel-card">
+          <h3>Published Tests</h3>
+          <table>
+            <thead><tr><th>Title</th><th>Category</th><th>Mode</th><th>Questions</th><th>Access</th><th>Action</th></tr></thead>
+            <tbody id="testsTableBody"></tbody>
+          </table>
+        </div>
+      </div>
 
-    <script type="module" src="admin-app.js?v=20261123"></script>
+      <!-- TAB 3: UNLIMITED SMART PRACTICE BANK (100-Q BUNDLES) -->
+      <div id="tab-practice" class="hidden">
+        <div class="panel-card">
+          <h3>Upload Questions to Unlimited Smart Practice Bank (100-Q Smart Bundles)</h3>
+          <p style="color:#64748b; margin-bottom:10px;">Upload Excel/CSV with columns: <strong>Subject, Topic, Question, OptionA, OptionB, OptionC, OptionD, CorrectOption (A/B/C/D), Explanation</strong>. Questions are automatically grouped into 100-question bundles to keep Firestore reads minimal, and Mix Practice builds automatically.</p>
+          <div class="form-row">
+            <div><label>Default Subject (if column empty)</label><input type="text" id="pbDefSubject" placeholder="e.g., Hindi, Maths, Reasoning, GS" /></div>
+            <div><label>Default Topic (if column empty)</label><input type="text" id="pbDefTopic" placeholder="e.g., Vilom Shabd, Percentage" /></div>
+            <div><label>Select Excel / CSV File *</label><input type="file" id="pbExcelFile" accept=".xlsx,.xls,.csv" /></div>
+          </div>
+          <div style="display:flex; gap:8px; align-items:center;">
+            <button class="btn btn-primary" id="btnUploadPb" onclick="uploadPracticeBankExcel()">Upload &amp; Bundle Questions</button>
+            <button class="btn btn-outline" onclick="downloadSamplePracticeTemplate()">Download Sample Excel Template</button>
+            <span id="pbUploadStatus" style="font-weight:600;"></span>
+          </div>
+        </div>
+
+        <div class="panel-card">
+          <h3>Uploaded Smart Practice Bundles</h3>
+          <table>
+            <thead><tr><th>Bundle ID</th><th>Subject</th><th>Topic</th><th>Pack #</th><th>Questions</th><th>Action</th></tr></thead>
+            <tbody id="pbBundlesBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- TAB 4: PARTNERS & COUPONS -->
+      <div id="tab-partners" class="hidden">
+        <div class="panel-card" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+          <div>
+            <strong>New Partner Registration Status:</strong>
+            <span id="partnerRegStatusText" class="tag tag-ok" style="margin-left:6px;">OPEN</span>
+          </div>
+          <div style="display:flex; gap:8px; flex-wrap:wrap;">
+            <button class="btn btn-outline" onclick="togglePartnerRegSetting()">Toggle Open / Close</button>
+            <button class="btn btn-outline" onclick="exportPartnersCsv('full')">Export Full CSV</button>
+            <button class="btn btn-primary" onclick="exportPartnersCsv('payout')">Export RazorpayX / NEFT Payout CSV</button>
+          </div>
+        </div>
+
+        <div class="panel-card">
+          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:10px;">
+            <div style="display:flex; gap:6px;">
+              <button class="btn btn-primary" id="pSub-pending" onclick="filterPartnersTab('pending')">Pending</button>
+              <button class="btn btn-outline" id="pSub-approved" onclick="filterPartnersTab('approved')">Completed / Approved</button>
+              <button class="btn btn-outline" id="pSub-rejected" onclick="filterPartnersTab('rejected')">Rejected</button>
+            </div>
+            <input type="text" id="partnerSearchBox" placeholder="Search Partner ID, Coupon, Mobile or Name..." style="max-width:280px;" oninput="renderPartnersTable()" />
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th>Partner ID</th><th>Name &amp; Channel</th><th>Mobile / Email</th>
+                <th>Bank / IFSC / UPI</th><th>Coupon &amp; Offer</th><th>Sales / Earned</th><th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="partnersTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- TAB 5: STUDENTS -->
+      <div id="tab-students" class="hidden">
+        <div class="panel-card">
+          <h3>Registered Candidates</h3>
+          <table>
+            <thead><tr><th>Student ID</th><th>Name</th><th>Email / Mobile</th><th>Target Exam</th><th>City / State</th><th>Pass Status</th></tr></thead>
+            <tbody id="studentsTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- TAB 6: PAYMENTS -->
+      <div id="tab-payments" class="hidden">
+        <div class="panel-card">
+          <h3>Subscription Payments &amp; Invoices</h3>
+          <table>
+            <thead><tr><th>Invoice</th><th>Student</th><th>Plan</th><th>Amount</th><th>Coupon</th><th>Payment ID</th></tr></thead>
+            <tbody id="paymentsTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- TAB 7: CURRENT AFFAIRS & JOBS -->
+      <div id="tab-updates" class="hidden">
+        <div class="panel-card">
+          <h3>Post Current Affairs or Job / Syllabus Update</h3>
+          <div class="form-row">
+            <div>
+              <label>Post Type</label>
+              <select id="updType">
+                <option value="current_affairs">Current Affairs</option>
+                <option value="job_updates">Govt Job / Syllabus Update</option>
+              </select>
+            </div>
+            <div><label>Headline / Title *</label><input type="text" id="updTitle" placeholder="Enter title" /></div>
+          </div>
+          <div style="margin-bottom:10px;">
+            <label>Details / Summary *</label>
+            <textarea id="updBody" rows="3" placeholder="Enter details"></textarea>
+          </div>
+          <button class="btn btn-primary" onclick="publishContentUpdate()">Publish Post</button>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <!-- Partner Approval / Coupon Modal -->
+  <div id="approvePartnerModal" class="hidden" style="position:fixed; inset:0; background:rgba(15,23,42,0.5); display:flex; align-items:center; justify-content:center; z-index:9999;">
+    <div style="background:#fff; border:1px solid #cbd5e1; border-radius:8px; padding:20px; max-width:420px; width:92%;">
+      <h3 style="margin-bottom:10px;">Verify &amp; Activate Partner (<span id="apModalPid"></span>)</h3>
+      <div style="margin-bottom:8px;"><label>Unique Coupon Code *</label><input type="text" id="apCouponCode" style="text-transform:uppercase;" /></div>
+      <div class="form-row">
+        <div><label>Student Discount (&#8377;)</label><input type="number" id="apDiscount" value="20" /></div>
+        <div><label>Extra Validity Days</label><input type="number" id="apExtraDays" value="15" /></div>
+        <div><label>Partner Commission (&#8377;)</label><input type="number" id="apCommission" value="25" /></div>
+      </div>
+      <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:12px;">
+        <button class="btn btn-outline" onclick="document.getElementById('approvePartnerModal').classList.add('hidden')">Cancel</button>
+        <button class="btn btn-primary" onclick="confirmApprovePartner()">Save &amp; Activate</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="admin-app.js"></script>
 </body>
 </html>
