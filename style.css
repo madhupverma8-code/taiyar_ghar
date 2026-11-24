@@ -26,7 +26,8 @@ body {
     overflow-x: hidden;
 }
 
-.hide {
+.hide,
+.hidden {
     display: none !important;
 }
 
@@ -93,13 +94,18 @@ body {
     gap: 6px;
 }
 
+.btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
 .btn-primary {
     background: var(--primary);
     color: var(--white);
     box-shadow: 0 4px 12px rgba(79, 70, 229, 0.25);
 }
 
-.btn-primary:hover {
+.btn-primary:hover:not(:disabled) {
     background: var(--primary-dark);
     transform: translateY(-1px);
 }
@@ -110,7 +116,7 @@ body {
     box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25);
 }
 
-.btn-accent:hover {
+.btn-accent:hover:not(:disabled) {
     background: #059669;
     transform: translateY(-1px);
 }
@@ -121,7 +127,7 @@ body {
     border: 1.5px solid #CBD5E1;
 }
 
-.btn-outline:hover {
+.btn-outline:hover:not(:disabled) {
     border-color: var(--primary);
     color: var(--primary);
     background: #EEF2FF;
@@ -133,7 +139,7 @@ body {
     border: 1px solid #FECACA;
 }
 
-.btn-danger-soft:hover {
+.btn-danger-soft:hover:not(:disabled) {
     background: #FEE2E2;
 }
 
@@ -202,6 +208,7 @@ body {
     transition: transform 0.25s ease, box-shadow 0.25s ease;
     position: relative;
     overflow: hidden;
+    cursor: pointer;
 }
 
 .cat-card:hover {
