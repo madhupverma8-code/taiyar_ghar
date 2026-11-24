@@ -8,6 +8,7 @@
     <link rel="icon" type="image/png" sizes="48x48" href="https://taiyarighar.in/logo.png">
     <link rel="apple-touch-icon" href="https://taiyarighar.in/logo.png">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="student-style.css">
 
     <!-- Google Site Name & Sitelinks Schema -->
@@ -52,8 +53,42 @@
     <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 
     <style>
-        body { font-family: 'Inter', sans-serif; color: #1e293b; }
+        * { box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; color: #1e293b; background: #f8fafc; margin: 0; }
         .hidden { display: none !important; }
+
+        /* Fallback Header, Nav, Buttons & Footer styling so UI never breaks */
+        .header {
+            background: #ffffff; border-bottom: 1px solid #e2e8f0;
+            padding: 12px 24px; display: flex; align-items: center;
+            justify-content: space-between; gap: 16px; flex-wrap: wrap;
+            position: sticky; top: 0; z-index: 1000;
+        }
+        .logo { cursor: pointer; display: flex; align-items: center; }
+        .nav-links { display: flex; align-items: center; gap: 18px; flex-wrap: wrap; }
+        .nav-links a {
+            text-decoration: none; color: #334155; font-size: 13.5px;
+            font-weight: 600; transition: color 0.15s;
+        }
+        .nav-links a:hover { color: #2563eb; }
+        .header-right { display: flex; align-items: center; gap: 8px; }
+        .btn {
+            padding: 8px 15px; border-radius: 6px; font-size: 13px;
+            font-weight: 600; cursor: pointer; border: 1px solid transparent;
+            display: inline-flex; align-items: center; justify-content: center;
+            gap: 6px; font-family: inherit; transition: 0.15s;
+        }
+        .btn:disabled { opacity: 0.6; cursor: not-allowed; }
+        .btn-primary { background: #2563eb; color: #ffffff; }
+        .btn-primary:hover:not(:disabled) { background: #1d4ed8; }
+        .btn-outline { background: #ffffff; color: #1e293b; border-color: #cbd5e1; }
+        .btn-outline:hover:not(:disabled) { background: #f1f5f9; }
+        .categories-grid {
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px;
+        }
+        .footer {
+            background: #0f172a; color: #cbd5e1; padding: 24px 20px; font-size: 13px;
+        }
 
         /* Processing Overlay (Test Loading & Login) */
         .tg-proc-overlay {
@@ -101,9 +136,7 @@
             border: 1.5px solid #cbd5e1; border-radius: 8px; padding: 12px 10px;
             text-align: center; cursor: pointer; background: #ffffff; transition: 0.15s;
         }
-        .plan-item-clean.active {
-            border-color: #2563eb; background: #f8fafc;
-        }
+        .plan-item-clean.active { border-color: #2563eb; background: #f8fafc; }
         .plan-tag-clean {
             display: inline-block; font-size: 10.5px; font-weight: 600;
             color: #475569; background: #f1f5f9; border: 1px solid #e2e8f0;
@@ -145,14 +178,8 @@
         }
         .auth-field input:focus, .auth-field select:focus { outline: none; border-color: #2563eb; }
         .auth-field input[readonly] { background: #f1f5f9; color: #475569; }
-        .inline-error-text {
-            font-size: 12px; font-weight: 600; color: #dc2626;
-            margin-top: 5px; display: block;
-        }
-        .inline-ok-text {
-            font-size: 12px; font-weight: 600; color: #15803d;
-            margin-top: 5px; display: block;
-        }
+        .inline-error-text { font-size: 12px; font-weight: 600; color: #dc2626; margin-top: 5px; display: block; }
+        .inline-ok-text { font-size: 12px; font-weight: 600; color: #15803d; margin-top: 5px; display: block; }
 
         /* Unlimited Smart Practice Bank Card & Workspace */
         .practice-banner-card {
@@ -180,9 +207,9 @@
         }
         .pb-subject-card {
             border: 1px solid #cbd5e1; border-radius: 8px; padding: 14px;
-            background: #f8fafc; cursor: pointer; transition: 0.15s;
+            background: #ffffff; cursor: pointer; transition: 0.15s;
         }
-        .pb-subject-card:hover { border-color: #2563eb; background: #ffffff; }
+        .pb-subject-card:hover { border-color: #2563eb; background: #f8fafc; }
         .pb-topic-row {
             display: flex; justify-content: space-between; align-items: center;
             padding: 11px 14px; border: 1px solid #e2e8f0; border-radius: 7px;
@@ -233,7 +260,7 @@
     <!-- Header -->
     <header class="header" id="mainHeader">
         <div class="logo" onclick="navigateTo('home')">
-            <img src="logo.png" alt="TaiyariGhar" style="height:36px;" onerror="this.outerHTML='<span style='font-size:21px; font-weight:800; color:#0f172a;'>Taiyari<span style='color:#2563eb;'>Ghar</span></span>'">
+            <img src="logo.png" alt="TaiyariGhar" style="height:38px;" onerror="this.outerHTML='<span style=\'font-size:21px; font-weight:800; color:#0f172a;\'>Taiyari<span style=\'color:#2563eb;\'>Ghar</span></span>'">
         </div>
         <nav class="nav-links" id="navLinks">
             <a href="index.html" onclick="event.preventDefault(); navigateTo('home')">Home</a>
@@ -250,58 +277,43 @@
     </header>
 
     <!-- Main Container -->
-    <main id="appMain" style="max-width:1180px; width:100%; margin:0 auto; padding:16px;">
+    <main id="appMain" style="max-width:1180px; width:100%; margin:0 auto; padding:18px 16px;">
 
         <!-- HOME VIEW -->
         <section id="view-home">
-            <div class="hero-section" style="background:#ffffff; border:1px solid #e2e8f0; border-radius:10px; padding:26px 28px; display:flex; align-items:center; justify-content:space-between; gap:20px; flex-wrap:wrap; margin-bottom:18px;">
-                <div style="max-width:600px;">
-                    <div style="font-size:12px; font-weight:600; color:#2563eb; margin-bottom:6px;">MEHNAT AAPKI, SAATH HAMARA</div>
-                    <h1 style="font-size:26px; font-weight:800; color:#0f172a; line-height:1.25; margin-bottom:10px;">Crack Your Dream Govt Job with Real CBT Mock Tests</h1>
-                    <p style="font-size:13.5px; color:#475569; margin-bottom:16px;">Bilingual (Hindi + English) Test Series, All-India Live Exams, and Unlimited Smart Practice Bank for SSC, Railway, UP Police, Banking &amp; State Exams.</p>
+            <div class="hero-section" style="background:#ffffff; border:1px solid #e2e8f0; border-radius:10px; padding:26px 28px; display:flex; align-items:center; justify-content:space-between; gap:24px; flex-wrap:wrap; margin-bottom:18px;">
+                <div style="flex:1; min-width:280px;">
+                    <div style="font-size:12px; font-weight:700; color:#2563eb; margin-bottom:6px; letter-spacing:0.4px;">MEHNAT AAPKI, SAATH HAMARA</div>
+                    <h1 style="font-size:26px; font-weight:800; color:#0f172a; line-height:1.25; margin:0 0 10px;">Crack Your Dream Govt Job with Real CBT Mock Tests</h1>
+                    <p style="font-size:13.5px; color:#475569; margin:0 0 16px; line-height:1.6;">Bilingual (Hindi + English) Test Series, All-India Live Exams, and Unlimited Smart Practice Bank for SSC, Railway, UP Police, Banking &amp; State Exams.</p>
                     <div style="display:flex; gap:10px; flex-wrap:wrap;">
                         <button class="btn btn-primary" onclick="navigateTo('register')">Start Free Practice</button>
                         <button class="btn btn-outline" onclick="openSmartPracticeBank()">Unlimited Smart Practice Bank</button>
                     </div>
                 </div>
-                <div id="heroStatsBox" style="display:grid; grid-template-columns:repeat(2,1fr); gap:10px; min-width:240px;">
-                    <div style="background:#f8fafc; border:1px solid #e2e8f0; padding:12px; border-radius:8px;">
-                        <div style="font-size:18px; font-weight:700; color:#0f172a;">500+</div>
-                        <div style="font-size:11.5px; color:#64748b;">Bilingual Mock Tests</div>
-                    </div>
-                    <div style="background:#f8fafc; border:1px solid #e2e8f0; padding:12px; border-radius:8px;">
-                        <div style="font-size:18px; font-weight:700; color:#0f172a;">All-India</div>
-                        <div style="font-size:11.5px; color:#64748b;">Live Rank Exams</div>
-                    </div>
-                    <div style="background:#f8fafc; border:1px solid #e2e8f0; padding:12px; border-radius:8px;">
-                        <div style="font-size:18px; font-weight:700; color:#0f172a;">10,000+</div>
-                        <div style="font-size:11.5px; color:#64748b;">Practice Bank Qs</div>
-                    </div>
-                    <div style="background:#f8fafc; border:1px solid #e2e8f0; padding:12px; border-radius:8px;">
-                        <div style="font-size:18px; font-weight:700; color:#0f172a;">PYQ + New</div>
-                        <div style="font-size:11.5px; color:#64748b;">Latest Exam Pattern</div>
-                    </div>
+                <div style="flex:0 0 auto; max-width:340px; width:100%; text-align:center;">
+                    <img src="hero-laptop.jpg" alt="TaiyariGhar CBT Mock Test" style="width:100%; border-radius:8px; border:1px solid #e2e8f0;" onerror="this.style.display='none'">
                 </div>
             </div>
 
             <!-- Unlimited Smart Practice Bank Card (Home Page) -->
             <div class="practice-banner-card" onclick="openSmartPracticeBank()">
-                <div>
+                <div style="flex:1; min-width:250px;">
                     <span class="pb-badge">NEW &bull; PYQs + EXPECTED QUESTIONS</span>
-                    <h2 style="font-size:17px; font-weight:700; color:#0f172a; margin-bottom:3px;">Unlimited Smart Practice Bank</h2>
-                    <p style="font-size:13px; color:#475569;">Subject-wise &amp; Mix Practice (Hindi, English, Maths, Reasoning, GS, GK) with instant explanations, speed timer, and Attempted / Not Attempted tracking. First 15 questions per topic free!</p>
+                    <h2 style="font-size:17px; font-weight:700; color:#0f172a; margin:0 0 4px;">Unlimited Smart Practice Bank</h2>
+                    <p style="font-size:13px; color:#475569; margin:0;">Subject-wise &amp; Mix Practice (Hindi, English, Maths, Reasoning, GS, GK) with instant explanations, speed timer, and Attempted / Not Attempted tracking. First 15 questions per topic free!</p>
                 </div>
                 <button type="button" class="btn btn-primary" style="white-space:nowrap;">Start Smart Practice &rarr;</button>
             </div>
 
             <!-- Exam Categories -->
-            <div style="margin-top:20px;">
-                <h2 style="font-size:17px; font-weight:700; color:#0f172a; margin-bottom:12px;">Explore Exam Categories</h2>
+            <div style="margin-top:22px;">
+                <h2 style="font-size:17px; font-weight:700; color:#0f172a; margin:0 0 12px;">Explore Exam Categories</h2>
                 <div id="homeCategoriesGrid" class="categories-grid"></div>
             </div>
         </section>
 
-        <!-- LOGIN VIEW (Clean, Inline Password Error, Processing State) -->
+        <!-- LOGIN VIEW -->
         <section id="view-login" class="hidden">
             <div class="auth-box-clean">
                 <h2>Candidate Login</h2>
@@ -352,13 +364,12 @@
             </div>
         </section>
 
-        <!-- CLEAN 2-STEP REGISTRATION VIEW (Like Partner Portal) -->
+        <!-- CLEAN 2-STEP REGISTRATION VIEW -->
         <section id="view-register" class="hidden">
             <div class="auth-box-clean">
                 <h2>Create Candidate Account</h2>
                 <p class="auth-sub" id="regStepSubtitle">Step 1: Verify your Email ID to unlock the registration form.</p>
 
-                <!-- Step 1: Only Email & OTP -->
                 <div id="candRegStep1">
                     <div class="auth-field">
                         <label>Valid Email ID (Gmail Recommended) *</label>
@@ -380,7 +391,6 @@
                     </div>
                 </div>
 
-                <!-- Step 2: Clean Details Form after OTP Verification -->
                 <form id="candRegStep2" class="hidden" onsubmit="completeCandidateRegistration(event)">
                     <div class="auth-field">
                         <label>Verified Email ID</label>
@@ -425,7 +435,7 @@
         <section id="view-dashboard" class="hidden">
             <div style="background:#ffffff; border:1px solid #e2e8f0; border-radius:10px; padding:18px 22px; margin-bottom:16px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
                 <div>
-                    <h2 id="dashWelcomeName" style="font-size:18px; font-weight:700; color:#0f172a;">Welcome, Aspirant</h2>
+                    <h2 id="dashWelcomeName" style="font-size:18px; font-weight:700; color:#0f172a; margin:0;">Welcome, Aspirant</h2>
                     <div id="dashStudentMeta" style="font-size:12.5px; color:#64748b; margin-top:2px;">Student ID: - &bull; Target: -</div>
                 </div>
                 <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
@@ -437,15 +447,14 @@
 
             <!-- Unlimited Smart Practice Bank Card (Dashboard) -->
             <div class="practice-banner-card" onclick="openSmartPracticeBank()">
-                <div>
+                <div style="flex:1; min-width:250px;">
                     <span class="pb-badge">UNLIMITED PRACTICE &bull; TOPIC-WISE + MIX</span>
-                    <h3 style="font-size:16px; font-weight:700; color:#0f172a; margin-bottom:2px;">Unlimited Smart Practice Bank</h3>
-                    <p style="font-size:12.5px; color:#475569;">Practice PYQs &amp; Expected Questions by Subject &amp; Topic or Mix Mode. Track speed, accuracy &amp; unattempted questions.</p>
+                    <h3 style="font-size:16px; font-weight:700; color:#0f172a; margin:0 0 3px;">Unlimited Smart Practice Bank</h3>
+                    <p style="font-size:12.5px; color:#475569; margin:0;">Practice PYQs &amp; Expected Questions by Subject &amp; Topic or Mix Mode. Track speed, accuracy &amp; unattempted questions.</p>
                 </div>
                 <button type="button" class="btn btn-primary" style="white-space:nowrap;">Practice Now &rarr;</button>
             </div>
 
-            <!-- Dashboard Tabs -->
             <div style="display:flex; gap:8px; margin-bottom:14px; flex-wrap:wrap;">
                 <button class="btn btn-primary" id="dtab-tests" onclick="switchDashTab('tests')">Available Mock Tests</button>
                 <button class="btn btn-outline" id="dtab-results" onclick="switchDashTab('results')">My Results &amp; Live Ranks</button>
@@ -460,7 +469,7 @@
             <div class="pb-workspace">
                 <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; padding-bottom:12px; border-bottom:1px solid #e2e8f0;">
                     <div>
-                        <h2 id="pbHeaderTitle" style="font-size:18px; font-weight:700; color:#0f172a;">Unlimited Smart Practice Bank</h2>
+                        <h2 id="pbHeaderTitle" style="font-size:18px; font-weight:700; color:#0f172a; margin:0;">Unlimited Smart Practice Bank</h2>
                         <div id="pbHeaderSub" style="font-size:12.5px; color:#64748b;">Select a subject to begin Topic-Wise or Mix Practice</div>
                     </div>
                     <div style="display:flex; gap:8px;">
@@ -469,7 +478,6 @@
                     </div>
                 </div>
 
-                <!-- Performance & Timing Analytics Strip -->
                 <div id="pbAnalyticsBar" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(130px, 1fr)); gap:10px; margin-top:14px;">
                     <div style="background:#f8fafc; border:1px solid #e2e8f0; padding:10px 12px; border-radius:6px;">
                         <div style="font-size:11px; color:#64748b;">Total Practiced</div>
@@ -485,18 +493,16 @@
                     </div>
                 </div>
 
-                <!-- Level 1: Subjects List -->
                 <div id="pbLevelSubjects" class="pb-subject-grid"></div>
 
-                <!-- Level 2: Subject Modes (Topic-Wise vs Mix) -->
                 <div id="pbLevelModes" class="hidden" style="margin-top:16px;">
                     <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(240px, 1fr)); gap:12px; margin-bottom:18px;">
-                        <div class="pb-subject-card" style="background:#ffffff; border:1.5px solid #2563eb;" onclick="startSubjectMixPractice()">
+                        <div class="pb-subject-card" style="border:1.5px solid #2563eb;" onclick="startSubjectMixPractice()">
                             <div style="font-size:11.5px; font-weight:700; color:#2563eb; margin-bottom:4px;">ALL TOPICS COMBINED</div>
                             <div style="font-size:15px; font-weight:700; color:#0f172a;">Mix Question Practice</div>
                             <p style="font-size:12px; color:#64748b; margin-top:4px;">Randomly rotates questions across every topic in this subject continuously.</p>
                         </div>
-                        <div class="pb-subject-card" style="background:#ffffff;" onclick="document.getElementById('pbTopicsListWrap').scrollIntoView({behavior:'smooth'})">
+                        <div class="pb-subject-card" onclick="document.getElementById('pbTopicsListWrap').scrollIntoView({behavior:'smooth'})">
                             <div style="font-size:11.5px; font-weight:700; color:#475569; margin-bottom:4px;">CHAPTER BY CHAPTER</div>
                             <div style="font-size:15px; font-weight:700; color:#0f172a;">Topic-Wise Practice</div>
                             <p style="font-size:12px; color:#64748b; margin-top:4px;">Choose any topic below. First 15 questions per topic are free for all registered students.</p>
@@ -508,7 +514,6 @@
                     </div>
                 </div>
 
-                <!-- Level 3: Active Question Arena -->
                 <div id="pbLevelArena" class="hidden">
                     <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-top:14px; padding:10px 12px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:7px;">
                         <div style="display:flex; gap:6px; align-items:center;">
@@ -521,7 +526,6 @@
                     </div>
 
                     <div id="pbArenaBody" class="pb-arena-grid">
-                        <!-- Left: Question & Options -->
                         <div style="border:1px solid #e2e8f0; border-radius:8px; padding:16px;">
                             <div id="pbStreakBanner" class="streak-toast hidden"></div>
                             <div style="display:flex; justify-content:space-between; font-size:11.5px; color:#64748b; margin-bottom:8px;">
@@ -536,7 +540,6 @@
                             </div>
                         </div>
 
-                        <!-- Right (Desktop) / Bottom (Mobile): Instant Explanation & Session Summary -->
                         <div class="pb-side-panel">
                             <div style="font-size:12px; font-weight:700; color:#0f172a; margin-bottom:6px;">SOLUTION &amp; EXPLANATION</div>
                             <div id="pbExplanationBox" style="color:#475569; line-height:1.6;">
@@ -553,7 +556,6 @@
             </div>
         </section>
 
-        <!-- OTHER DYNAMIC SECTIONS (Live Tests, Current Affairs, Updates, Exam Interface) -->
         <section id="view-dynamic" class="hidden"></section>
     </main>
 
@@ -615,16 +617,16 @@
     <footer class="footer" id="mainFooter" style="margin-top:36px;">
         <div style="max-width:1180px; margin:0 auto; display:flex; justify-content:space-between; flex-wrap:wrap; gap:16px; text-align:left;">
             <div>
-                <strong>TaiyariGhar</strong><br />
-                <span style="font-size:12px; opacity:0.85;">Bilingual Mock Tests, All-India Live Exams &amp; Unlimited Smart Practice Bank.</span>
+                <strong style="color:#ffffff;">TaiyariGhar</strong><br />
+                <span style="font-size:12px; color:#94a3b8;">Bilingual Mock Tests, All-India Live Exams &amp; Unlimited Smart Practice Bank.</span>
             </div>
             <div style="font-size:12.5px; display:flex; gap:16px; flex-wrap:wrap;">
-                <a href="about.html" style="color:inherit;">About Us</a>
-                <a href="partner.html" style="color:inherit; font-weight:600;">Careers: Official Referral Partner</a>
-                <a href="mailto:support@taiyarighar.in" style="color:inherit;">Support</a>
+                <a href="about.html" style="color:#e2e8f0; text-decoration:none;">About Us</a>
+                <a href="partner.html" style="color:#93c5fd; font-weight:600; text-decoration:none;">Careers: Official Referral Partner</a>
+                <a href="mailto:support@taiyarighar.in" style="color:#e2e8f0; text-decoration:none;">Support</a>
             </div>
         </div>
-        <div style="margin-top:12px; font-size:12px; opacity:0.8;">&copy; 2026 TaiyariGhar (taiyarighar.in). All Rights Reserved.</div>
+        <div style="max-width:1180px; margin:12px auto 0; font-size:12px; color:#94a3b8;">&copy; 2026 TaiyariGhar (taiyarighar.in). All Rights Reserved.</div>
     </footer>
 
     <script src="student-app.js"></script>
