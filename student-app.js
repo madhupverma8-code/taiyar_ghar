@@ -1,2491 +1,1342 @@
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-import { getFirestore, collection, getDocs, getDoc, setDoc, addDoc, query, where, doc, updateDoc, increment, arrayUnion } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+// ============================================================================
+// TaiyariGhar Candidate Portal Engine (student-app.js)
+// ============================================================================
 
-// =========================================================================
-// 🔧 CONFIGURATION
-// =========================================================================
-const RAZORPAY_KEY_ID = "rzp_live_Ttffsg1nwh5gBU";
-const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxvoU_mH8BjfE7QdC_UOQyzDfmJsUoVcIvq9Kp3VtXutzYTFRFY0vXpzw6Uv2XAjnng5Q/exec";
+const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbx_REPLACE_WITH_YOUR_DEPLOYED_WEB_APP_URL/exec";
+const RAZORPAY_KEY_ID = "rzp_live_REPLACE_WITH_YOUR_KEY";
 
-// Firebase Configuration
 const firebaseConfig = {
-    apiKey: "AIzaSyA7x6gQziPYlxrXnyVJJ80mvJkh3VCm24", 
-    authDomain: "taiyarighar.firebaseapp.com",
-    projectId: "taiyarighar",
-    storageBucket: "taiyarighar.firebasestorage.app",
-    messagingSenderId: "329150812714",
-    appId: "1:329150812714:web:1f292d05aaba0cb918e953"
+  apiKey: "AIzaSyDummyKeyReplaceWithYourConfig",
+  authDomain: "taiyarighar.firebaseapp.com",
+  projectId: "taiyarighar",
+  storageBucket: "taiyarighar.appspot.com",
+  messagingSenderId: "123456789",
+  appId: "1:123456789:web:abcdef"
 };
 
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
+if (!firebase.apps.length) {
+  firebase.initializeApp(firebaseConfig);
+}
+const db = firebase.firestore();
 
-let allTests = [], appSettings = {}, allCA = [], allExamCategories = [], allJobUpdates = [];
-let userPastResults = {}; 
-let isDataLoaded = false;
+let currentStudent = null;
+let candRegOtp = "";
+let fpOtpCode = "";
+let candOtpTimer = null;
 
-let currentStudent = { docId: "", name: "", email: "", mobile: "", loginId: "", isPaid: false, expiry: "" };
-let isLoggedIn = false;
-let isFirstLoginSession = false;
-let recommendedTestData = null;
-let nav = { mainCat: "", subCat: "", examName: "" };
+// Checkout state
+let selectedPlan = { id: "3m", name: "3 Months Pass", mrp: 149, price: 119, days: 90 };
+let appliedPartner = null;
 
-let selectedPlanMonths = 12;
-let subscriptionPlans = {
-    3:  { months: 3,  days: 90,  label: "3 Months Pass",  mrp: 149, price: 99 },
-    6:  { months: 6,  days: 180, label: "6 Months Pass",  mrp: 249, price: 199 },
-    12: { months: 12, days: 365, label: "12 Months Pass", mrp: 399, price: 249 }
+// Smart Practice Bank state
+let pbMetaIndex = [];       // List of bundle docs metadata
+let pbLoadedBundles = {};   // Cache bundleId -> questions array
+let pbCurrentSubject = "";
+let pbCurrentMode = "";     // "topic" or "mix"
+let pbCurrentTopic = "";
+let pbPoolMode = "unattempted"; // "unattempted" or "attempted"
+let pbActiveQuestions = [];
+let pbCurrentIndex = 0;
+let pbUserProgress = {
+  attemptedMap: {}, // qId -> { isCorrect, chosen, timeSec }
+  totalAttempted: 0,
+  totalCorrect: 0,
+  totalTimeSec: 0
 };
+let pbStreakCount = 0;      // Positive for consecutive right, negative for consecutive wrong
+let pbSessionCorrect = 0;
+let pbSessionWrong = 0;
+let pbTimerInterval = null;
+let pbQuestionSeconds = 0;
+let pbUnsavedWrites = 0;
 
-let regGeneratedOtp = "";
-let regOtpExpiry = 0;
-let isRegEmailVerified = false;
-let verifiedRegEmail = "";
-
-let forgotGeneratedOtp = "";
-let forgotOtpExpiry = 0;
-let forgotTargetDocId = "";
-let forgotTargetEmail = "";
-
-let testQuestions = [], currentQIndex = 0, userAnswers = {}, markedForReview = {}, visitedQuestions = {};
-let timerInterval, liveCountdownInterval, timeLeft = 0, totalTime = 0;
-let currentTestId = "", currentTestName = "", currentTestMarks = 0, currentTestNegMark = 0, currentTestPosMark = 1, currentTestLanguage = "Both";
-let isCurrentTestLive = false, currentLiveEndTime = "";
-let tabSwitchWarnings = 0;
-let isTestSubmitting = false;
-let testStartTimestamp = 0;
-let lastWarningTimestamp = 0;
-
-let pendingTestDetails = null;
-let currentResultData = null;
-let currentScreen = 'homeScreen'; 
-
-const defaultMainCategories = [
-    { name: "SSC Exams", icon: "🏛️", gradient: "linear-gradient(135deg, #1E3A8A 0%, #3B82F6 100%)", subText: "CGL, CHSL, MTS, GD, Stenographer" },
-    { name: "Railway Exams", icon: "🚂", gradient: "linear-gradient(135deg, #065F46 0%, #10B981 100%)", subText: "NTPC, Group D, ALP, RPF" },
-    { name: "UP State Exams", icon: "🏛️", gradient: "linear-gradient(135deg, #7C2D12 0%, #EA580C 100%)", subText: "PCS, RO/ARO, VDO, BEO" },
-    { name: "Banking Exams", icon: "🏦", gradient: "linear-gradient(135deg, #0F766E 0%, #06B6D4 100%)", subText: "IBPS PO, Clerk, SBI PO, SO" },
-    { name: "UP Police", icon: "👮", gradient: "linear-gradient(135deg, #312E81 0%, #6366F1 100%)", subText: "Constable, SI (Daroga), Home Guard" },
-    { name: "Other Central Exams", icon: "🌍", gradient: "linear-gradient(135deg, #1E293B 0%, #475569 100%)", subText: "IBPS RRB, LIC, Army, Navy" },
-    { name: "Other State Exams", icon: "🗺️", gradient: "linear-gradient(135deg, #831843 0%, #DB2777 100%)", subText: "BPSC, UKPSC, JPSC, JSSC" }
-];
-
-const translations = {
-    "en": { "nav_home": "Home", "nav_exams": "All Exams", "nav_ca": "Current Affairs", "nav_login": "Login", "nav_register": "Register", "nav_dash": "Dashboard", "nav_purchase": "My Purchases", "nav_logout": "Logout", "hero_h1": "Crack Your Dream Govt Job with Confidence.", "hero_p": "All-in-one mock test platform for SSC, Railway, Police & All State Exams. Latest syllabus, real-time rankings, and unlimited tests in one subscription.", "sec_cats": "🎯 Exam Categories", "ca_h2": "📰 Current Affairs Hub", "ca_p": "Stay updated with Daily, Weekly, and Monthly Current Affairs.", "btn_explore": "Explore Now", "login_h2": "Login to Your Account", "login_btn": "Login", "login_new": "New user?", "login_reg": "Register Here", "reg_h2": "Create an Account", "reg_btn": "Complete Registration", "dash_h2": "Crack Your Dream Govt Job with Confidence.", "dash_qv": "📊 Dashboard Quick View", "qv_explore": "Explore Tests", "qv_browse": "Browse all available tests", "qv_view": "View Tests", "qv_rec": "Recommended Next", "qv_loading": "Loading...", "qv_start": "Start Now", "qv_recent": "Recent Performance", "qv_not_att": "Not Attempted Yet", "qv_take": "Take a test to see your score", "btn_back_cat": "← Back to Dashboard", "pay_unlock": "Unlock all premium mock tests & Live All-India Exams for", "pay_close": "Close" },
-    "hi": { "nav_home": "होम", "nav_exams": "सभी परीक्षाएं", "nav_ca": "करंट अफेयर्स", "nav_login": "लॉगिन", "nav_register": "रजिस्टर", "nav_dash": "डैशबोर्ड", "nav_purchase": "मेरी खरीदारी", "nav_logout": "लॉगआउट", "hero_h1": "TayariGhar के साथ पाएं अपनी ड्रीम गवर्नमेंट जॉब।", "hero_p": "SSC, रेलवे, पुलिस और सभी राज्य परीक्षाओं के लिए ऑल-इन-वन मॉक टेस्ट प्लेटफॉर्म। नवीनतम सिलेबस, रियल-टाइम रैंकिंग और वन सब्सक्रिप्शन में अनलिमिटेड टेस्ट।", "sec_cats": "🎯 परीक्षा श्रेणियाँ", "ca_h2": "📰 करंट अफेयर्स हब", "ca_p": "दैनिक, साप्ताहिक और मासिक करंट अफेयर्स के साथ अपडेट रहें।", "btn_explore": "अभी देखें", "login_h2": "अपने खाते में लॉगिन करें", "login_btn": "लॉगिन", "login_new": "नए उपयोगकर्ता हैं?", "login_reg": "यहाँ रजिस्टर करें", "reg_h2": "खाता बनाएँ", "reg_btn": "रजिस्ट्रेशन पूरा करें", "dash_h2": "TayariGhar के साथ पाएं अपनी ड्रीम गवर्नमेंट जॉब।", "dash_qv": "📊 डैशबोर्ड त्वरित दृश्य", "qv_explore": "टेस्ट खोजें", "qv_browse": "सभी उपलब्ध टेस्ट ब्राउज़ करें", "qv_view": "टेस्ट देखें", "qv_rec": "अगला सुझाव", "qv_loading": "लोड हो रहा है...", "qv_start": "अभी शुरू करें", "qv_recent": "हालिया प्रदर्शन", "qv_not_att": "अभी तक प्रयास नहीं किया", "qv_take": "अपना स्कोर देखने के लिए टेस्ट दें", "btn_back_cat": "← डैशबोर्ड पर वापस", "pay_unlock": "सभी प्रीमियम मॉक टेस्ट और लाइव ऑल-इंडिया परीक्षाएं अनलॉक करें", "pay_close": "बंद करें" }
-};
-
-let currentLang = localStorage.getItem('tg_lang') || 'en';
-
-function resetSessionMemory() {
-    userPastResults = {};
-    recommendedTestData = null;
-    isDataLoaded = false;
-    nav = { mainCat: "", subCat: "", examName: "" };
-    if (document.getElementById('dashHistoryContainer')) document.getElementById('dashHistoryContainer').innerHTML = '';
-    if (document.getElementById('testListContainer')) document.getElementById('testListContainer').innerHTML = '';
-    if (document.getElementById('recentTestName')) document.getElementById('recentTestName').innerText = 'Not Attempted Yet';
-    if (document.getElementById('recentTestScore')) document.getElementById('recentTestScore').innerText = 'Take a test to see your score';
-    if (document.getElementById('totalAttemptedCount')) document.getElementById('totalAttemptedCount').innerText = '0 Tests';
+// ----------------------------------------------------------------------------
+// Processing Overlay Helpers
+// ----------------------------------------------------------------------------
+function showProcessing(title = "Processing, please wait...", sub = "Please do not close this window") {
+  const ov = document.getElementById("tgProcessingOverlay");
+  if (!ov) return;
+  document.getElementById("tgProcessingText").textContent = title;
+  document.getElementById("tgProcessingSub").textContent = sub;
+  ov.classList.remove("hidden");
 }
 
-async function callEmailService(payload) {
-    if (!APPS_SCRIPT_URL || APPS_SCRIPT_URL === "YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL") {
-        console.warn("Google Apps Script URL not configured yet. Payload:", payload);
-        return { status: "not_configured" };
-    }
-    try {
-        const response = await fetch(APPS_SCRIPT_URL, {
-            method: "POST",
-            headers: { "Content-Type": "text/plain;charset=utf-8" },
-            body: JSON.stringify(payload)
-        });
-        return await response.json();
-    } catch (err) {
-        console.error("Email service error:", err);
-        return { status: "error", message: err.message };
-    }
+function hideProcessing() {
+  const ov = document.getElementById("tgProcessingOverlay");
+  if (ov) ov.classList.add("hidden");
 }
 
-// =========================================================================
-// 🖥️ SCREEN NAVIGATION & DYNAMIC URL ROUTING
-// =========================================================================
-const ALL_SCREENS = [
-    'homeScreen', 'loginScreen', 'registerScreen', 'forgotPasswordScreen',
-    'dashboardScreen', 'subCatScreen', 'caScreen', 'updatesScreen', 'instructionsScreen',
-    'testScreen', 'liveSubmittedScreen', 'resultScreen', 'solutionsScreen',
-    'aboutScreen', 'contactScreen', 'privacyScreen', 'termsScreen', 'refundScreen'
-];
-
-function showScreen(screenId, pushHistory = true) {
-    ALL_SCREENS.forEach(s => {
-        const el = document.getElementById(s);
-        if(el) el.classList.add('hide');
-    });
-    
-    if (screenId === 'testScreen') {
-        document.getElementById('mainHeader').classList.add('hide');
-        document.getElementById('mainFooter').classList.add('hide');
-        enableAntiCheating();
+function startButtonCooldown(btnId, defaultText) {
+  const btn = document.getElementById(btnId);
+  if (!btn) return;
+  let sec = 30;
+  btn.disabled = true;
+  btn.textContent = `Resend (${sec}s)`;
+  clearInterval(candOtpTimer);
+  candOtpTimer = setInterval(() => {
+    sec--;
+    if (sec <= 0) {
+      clearInterval(candOtpTimer);
+      btn.disabled = false;
+      btn.textContent = defaultText;
     } else {
-        document.getElementById('mainHeader').classList.remove('hide');
-        document.getElementById('mainFooter').classList.remove('hide');
-        disableAntiCheating();
+      btn.textContent = `Resend (${sec}s)`;
     }
-    
-    const target = document.getElementById(screenId);
-    if(target) target.classList.remove('hide');
-    currentScreen = screenId;
-    window.scrollTo(0, 0);
-
-    if (pushHistory && history.state?.screen !== screenId) {
-        const pageMap = {
-            'homeScreen': window.location.pathname,
-            'aboutScreen': '?page=about',
-            'contactScreen': '?page=contact',
-            'privacyScreen': '?page=privacy',
-            'termsScreen': '?page=terms',
-            'refundScreen': '?page=refund',
-            'loginScreen': '?page=login',
-            'registerScreen': '?page=register',
-            'forgotPasswordScreen': '?page=reset-password',
-            'dashboardScreen': '?page=dashboard',
-            'caScreen': '?page=current-affairs',
-            'updatesScreen': '?page=updates'
-        };
-        const nextUrl = pageMap[screenId] || window.location.search;
-        history.pushState({ screen: screenId }, '', nextUrl);
-    }
+  }, 1000);
 }
 
-window.openInfoSection = function(sectionId) {
-    showScreen(sectionId, true);
-};
+// ----------------------------------------------------------------------------
+// Navigation & Session Bootstrap
+// ----------------------------------------------------------------------------
+function navigateTo(view) {
+  const sections = ["view-home", "view-login", "view-register", "view-dashboard", "view-practice-bank", "view-dynamic"];
+  sections.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.classList.add("hidden");
+  });
 
-window.onpopstate = function(event) {
-    if (currentScreen === 'testScreen' && !isTestSubmitting && testQuestions.length > 0) {
-        history.pushState({ screen: 'testScreen' }, '', window.location.search);
-        if (isCurrentTestLive) {
-            handleAntiCheatViolation("Back button navigation is strictly blocked during Live Exam!");
-        } else {
-            if (confirm("Are you sure you want to submit and exit the test?")) {
-                finalSubmitTest();
-            }
-        }
-        return;
-    }
-
-    if (event.state && event.state.screen) {
-        showScreen(event.state.screen, false);
-    } else {
-        checkUrlRouting();
-    }
-};
-
-async function checkUrlRouting() {
-    const urlParams = new URLSearchParams(window.location.search);
-    const pageParam = urlParams.get('page');
-    const catSlug = urlParams.get('category');
-    const subCatSlug = urlParams.get('subcat');
-
-    if (pageParam) {
-        const routeMap = {
-            'about': 'aboutScreen',
-            'contact': 'contactScreen',
-            'privacy': 'privacyScreen',
-            'terms': 'termsScreen',
-            'refund': 'refundScreen',
-            'login': 'loginScreen',
-            'register': 'registerScreen',
-            'reset-password': 'forgotPasswordScreen',
-            'current-affairs': 'caScreen',
-            'updates': 'updatesScreen',
-            'dashboard': isLoggedIn ? 'dashboardScreen' : 'loginScreen'
-        };
-        if (routeMap[pageParam]) {
-            if (routeMap[pageParam] === 'dashboardScreen') {
-                goDashboard();
-            } else if (routeMap[pageParam] === 'caScreen') {
-                showCurrentAffairs();
-            } else if (routeMap[pageParam] === 'updatesScreen') {
-                openUpdatesHub();
-            } else {
-                showScreen(routeMap[pageParam], false);
-            }
-            return;
-        }
-    }
-
-    if (catSlug) {
-        let targetCat = allTests.map(t => t.mainCat).find(c => c.toLowerCase().replace(/\s+/g, '-') === catSlug);
-        if (!targetCat) {
-            targetCat = defaultMainCategories.map(c => c.name).find(c => c.toLowerCase().replace(/\s+/g, '-') === catSlug);
-        }
-        
-        if (targetCat) {
-            if(!isLoggedIn) {
-                sessionStorage.setItem('pendingCat', targetCat);
-                showLogin();
-            } else {
-                openCategory(targetCat, true); 
-                if (subCatSlug) {
-                    let normalizedMain = targetCat.toLowerCase().replace("exams", "").trim();
-                    let targetSub = allTests.map(t => t.subCat).find(sc => 
-                        allTests.some(t => t.mainCat.toLowerCase().replace("exams", "").trim() === normalizedMain && t.subCat.toLowerCase().replace(/\s+/g, '-') === subCatSlug)
-                    );
-                    if(targetSub) loadTestsForSubCat(targetSub, null, true);
-                }
-            }
-        }
-    } else if (window.location.pathname.endsWith('/') || window.location.pathname.endsWith('index.html')) {
-        if (isLoggedIn) goDashboard();
-        else goHome();
-    }
+  if (view === "home") {
+    document.getElementById("view-home")?.classList.remove("hidden");
+    loadHomeCategories();
+  } else if (view === "login") {
+    document.getElementById("view-login")?.classList.remove("hidden");
+    document.getElementById("loginInlineError")?.classList.add("hidden");
+  } else if (view === "register") {
+    document.getElementById("view-register")?.classList.remove("hidden");
+  } else if (view === "dashboard") {
+    if (!currentStudent) return navigateTo("login");
+    document.getElementById("view-dashboard")?.classList.remove("hidden");
+    renderStudentDashboard();
+  } else if (view === "live-tests") {
+    document.getElementById("view-dynamic")?.classList.remove("hidden");
+    renderLiveTestsPage();
+  } else if (view === "current-affairs") {
+    document.getElementById("view-dynamic")?.classList.remove("hidden");
+    renderCurrentAffairsPage();
+  } else if (view === "updates") {
+    document.getElementById("view-dynamic")?.classList.remove("hidden");
+    renderUpdatesPage();
+  }
+  window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
-window.addEventListener('scroll', () => {
-    const header = document.getElementById('mainHeader');
-    if (window.scrollY > 50) header.classList.add('scrolled');
-    else header.classList.remove('scrolled');
-});
-
-window.toggleLanguage = function() {
-    currentLang = currentLang === 'en' ? 'hi' : 'en';
-    localStorage.setItem('tg_lang', currentLang);
-    applyLanguage();
-    if(isLoggedIn && currentScreen === 'dashboardScreen') { updateWelcomeMessage(isFirstLoginSession); }
-}
-
-function applyLanguage() {
-    const btnText = currentLang === 'en' ? 'हिंदी' : 'English';
-    if(document.getElementById('langBtn')) document.getElementById('langBtn').innerText = btnText;
-    if(document.getElementById('langBtnProfile')) document.getElementById('langBtnProfile').innerText = btnText;
-    document.querySelectorAll('[data-translate]').forEach(el => {
-        const key = el.getAttribute('data-translate');
-        if(translations[currentLang][key]) {
-            if(el.tagName === 'INPUT') { el.placeholder = translations[currentLang][key]; } 
-            else { el.innerText = translations[currentLang][key]; }
-        }
-    });
-}
-
-let deferredPrompt;
-window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); deferredPrompt = e; });
-window.installPWA = function() {
-    if (deferredPrompt) {
-        deferredPrompt.prompt();
-        deferredPrompt.userChoice.then((choiceResult) => { if (choiceResult.outcome === 'accepted') console.log('User accepted'); deferredPrompt = null; });
-    } else { alert(currentLang === 'en' ? "To install, tap browser menu and select 'Add to Home Screen'." : "इंस्टॉल करने के लिए, ब्राउज़र मेनू से 'Add to Home Screen' चुनें।"); }
-}
-
-function getDeviceId() {
-    // Stable hardware/browser signature so clearing browser cache on the same laptop/phone does not consume a 2nd device slot
-    try {
-        const rawSig = [
-            navigator.platform || '',
-            navigator.hardwareConcurrency || '',
-            screen.width + 'x' + screen.height,
-            screen.colorDepth || '',
-            Intl.DateTimeFormat().resolvedOptions().timeZone || ''
-        ].join('|');
-        let hash = 0;
-        for (let i = 0; i < rawSig.length; i++) {
-            hash = ((hash << 5) - hash) + rawSig.charCodeAt(i);
-            hash |= 0;
-        }
-        const stableId = 'hw_' + Math.abs(hash).toString(36);
-        localStorage.setItem('tg_device_id', stableId);
-        return stableId;
-    } catch (e) {
-        let devId = localStorage.getItem('tg_device_id');
-        if(!devId) { devId = 'dev_' + Math.random().toString(36).substr(2, 9); localStorage.setItem('tg_device_id', devId); }
-        return devId;
-    }
-}
-
-window.goHome = function() { 
-    window.history.pushState({ screen: 'homeScreen' }, '', window.location.pathname); 
-    showScreen('homeScreen', false); 
-    updateHeaderUI(); 
-}
-
-window.goDashboard = async function() { 
-    if(!isLoggedIn) return showLogin(); 
-    window.history.pushState({ screen: 'dashboardScreen' }, '', '?page=dashboard');
-    showScreen('dashboardScreen', false); 
-    updateHeaderUI(); 
-    renderCandidateProfilePopover();
-    updateWelcomeMessage(isFirstLoginSession); 
-    if (!isDataLoaded) {
-        await fetchSettingsAndTests();
-    } else {
-        await fetchDashboardData();
-    }
-}
-
-window.showLogin = function() { showScreen('loginScreen'); }
-window.showRegister = function() { 
-    isRegEmailVerified = false;
-    verifiedRegEmail = "";
-    document.getElementById('regOtpBox').classList.add('hide');
-    document.getElementById('regPasswordBox').classList.add('hide');
-    document.getElementById('regEmail').disabled = false;
-    document.getElementById('btnSendRegOtp').disabled = false;
-    document.getElementById('btnSendRegOtp').innerText = "Send OTP";
-    showScreen('registerScreen'); 
-}
-window.showForgotPassword = function() { 
-    document.getElementById('forgotOtpStepBox').classList.add('hide');
-    document.getElementById('forgotEmail').disabled = false;
-    showScreen('forgotPasswordScreen'); 
-}
-window.logout = function() { 
-    isLoggedIn = false; 
-    currentStudent = { docId: "", name: "", email: "", mobile: "", loginId: "", isPaid: false, expiry: "" }; 
-    resetSessionMemory();
-    localStorage.removeItem('tg_user'); 
-    closeProfilePopover();
-    goHome(); 
-}
-
-// =========================================================================
-// 👤 PRO LMS PROFILE POPOVER & LIVE TESTS HUB CONTROLS
-// =========================================================================
-window.toggleProfilePopover = function(e) {
-    if (e) e.stopPropagation();
-    const pop = document.getElementById('profilePopoverCard');
-    if (pop) pop.classList.toggle('hide');
-};
-
-window.closeProfilePopover = function() {
-    const pop = document.getElementById('profilePopoverCard');
-    if (pop) pop.classList.add('hide');
-};
-
-document.addEventListener('click', function(e) {
-    const pop = document.getElementById('profilePopoverCard');
-    const trigger = document.querySelector('.lms-avatar-trigger');
-    if (pop && !pop.classList.contains('hide') && !pop.contains(e.target) && (!trigger || !trigger.contains(e.target))) {
-        pop.classList.add('hide');
-    }
-});
-
-window.openLiveTestsHub = function() {
-    renderLiveTestsShowcase();
-    document.getElementById('liveHubModal').classList.remove('hide');
-};
-
-window.closeLiveTestsHub = function() {
-    document.getElementById('liveHubModal').classList.add('hide');
-};
-
-window.openAttemptedHistoryModal = async function() {
-    if (!isLoggedIn) return showLogin();
-    const modal = document.getElementById('historyModal');
-    if (modal) modal.classList.remove('hide');
-    await fetchDashboardData();
-};
-
-window.closeAttemptedHistoryModal = function() {
-    const modal = document.getElementById('historyModal');
-    if (modal) modal.classList.add('hide');
-};
-
-function updateHeaderUI() {
-    if(isLoggedIn) {
-        document.getElementById('headerAuth').classList.add('hide');
-        document.getElementById('headerProfile').classList.remove('hide');
-        document.getElementById('navStudentName').innerText = currentStudent.name.split(' ')[0]; 
-        document.getElementById('navAvatarCircle').innerText = currentStudent.name.charAt(0).toUpperCase();
-        renderCandidateProfilePopover();
-    } else {
-        document.getElementById('headerAuth').classList.remove('hide');
-        document.getElementById('headerProfile').classList.add('hide');
-    }
-}
-
-function renderCandidateProfilePopover() {
-    if (!isLoggedIn) return;
-    const initial = currentStudent.name.charAt(0).toUpperCase();
-    document.getElementById('popAvatarLg').innerText = initial;
-    document.getElementById('popStudentName').innerText = currentStudent.name;
-    document.getElementById('popStudentId').innerText = "ID: " + currentStudent.loginId;
-    document.getElementById('popStudentEmail').innerText = currentStudent.email || "Not Set";
-    document.getElementById('popStudentMobile').innerText = currentStudent.mobile || "Not Set";
-
-    const badge = document.getElementById('popSubBadge');
-    const expiryEl = document.getElementById('popSubExpiry');
-    const upgBtn = document.getElementById('popUpgradeBtn');
-
-    if (currentStudent.isPaid) {
-        badge.className = "sub-badge pro";
-        badge.innerText = "⭐ PRO ALL-ACCESS";
-        expiryEl.innerText = "Valid till: " + (currentStudent.expiry || "Active");
-        upgBtn.classList.add('hide');
-    } else {
-        badge.className = "sub-badge free";
-        badge.innerText = "FREE PLAN";
-        expiryEl.innerText = "Upgrade to unlock Live Exams & All Tests";
-        upgBtn.classList.remove('hide');
-    }
-}
-
-function updateWelcomeMessage(isFirst) {
-    let firstName = currentStudent.name.split(' ')[0];
-    let msgEl = document.getElementById('welcomeMessage');
-    if(isFirst) msgEl.innerHTML = currentLang === 'en' ? `🎉 Welcome, ${firstName}! Your Govt Job preparation workspace is ready.` : `🎉 स्वागत है, ${firstName}! आपकी तैयारी का डैशबोर्ड तैयार है।`;
-    else msgEl.innerHTML = currentLang === 'en' ? `💪 Welcome back, ${firstName}! Consistency is the key to success.` : `💪 वापसी पर स्वागत है, ${firstName}! सफलता उन्हीं को मिलती है जो रोज़ मेहनत करते हैं।`;
-}
-
-window.scrollToCategories = function() { 
-    if(!isLoggedIn) { 
-        if (currentScreen !== 'homeScreen') goHome();
-        setTimeout(() => { document.getElementById('homeCategories').scrollIntoView({behavior: 'smooth'}); }, 100);
-    } else if (currentScreen === 'dashboardScreen') {
-        document.getElementById('dashCategories').scrollIntoView({behavior: 'smooth'}); 
-    } else {
-        goDashboard();
-        setTimeout(() => { document.getElementById('dashCategories').scrollIntoView({behavior: 'smooth'}); }, 400);
-    }
-}
-
-window.scrollToLiveTests = function() {
-    openLiveTestsHub();
-}
-
-window.showPurchases = function() { 
-    if(!isLoggedIn) return; 
-    let status = currentStudent.isPaid ? "PRO All-Access (Active)" : "Free Plan"; 
-    alert(`--- MY SUBSCRIPTION & INVOICES ---\n\nName: ${currentStudent.name}\nLogin ID: ${currentStudent.loginId}\nPlan: ${status}\nValid Till: ${currentStudent.expiry || "N/A"}\n\nNote: Official PDF invoices are automatically emailed to ${currentStudent.email}.`); 
-}
-
-let sessionMonitorInterval = null;
-
-async function finalizeStudentLoginSession(studentDoc) {
-    const studentData = studentDoc.data();
-    const docRef = doc(db, "students", studentDoc.id);
-
-    let isPaidActive = studentData.isPaid || false;
-    if (isPaidActive && studentData.expiryDate) {
-        const expDate = new Date(studentData.expiryDate + "T23:59:59");
-        if (new Date() > expDate) {
-            isPaidActive = false;
-            await updateDoc(docRef, { isPaid: false });
-        }
-    }
-
-    // Smart Device Registration: Same physical device (hw_...) ALWAYS counts as 1 device, replacing old random dev_ IDs
-    let dev1 = studentData.device1 || "";
-    let dev2 = studentData.device2 || "";
-    const myDev = getDeviceId();
-
-    // Clean legacy random dev_ IDs or duplicate device slots
-    if (dev1.startsWith("dev_")) dev1 = "";
-    if (dev2.startsWith("dev_")) dev2 = "";
-    if (dev1 === dev2) dev2 = "";
-
-    if (dev1 === myDev || dev2 === myDev) {
-        // Already registered on this exact laptop/phone -> keep count unchanged!
-    } else if (!dev1) {
-        dev1 = myDev;
-    } else if (!dev2) {
-        dev2 = myDev;
-    } else {
-        // 3rd physical device -> shift oldest out so max 2 devices remain
-        dev1 = dev2;
-        dev2 = myDev;
-    }
-
-    // Single Active Session Token: logging in here automatically invalidates any concurrent session on another device
-    const newSessionToken = "sess_" + Date.now() + "_" + Math.random().toString(36).substr(2, 6);
-    localStorage.setItem("tg_session_token", newSessionToken);
-
-    await updateDoc(docRef, {
-        device1: dev1,
-        device2: dev2,
-        activeSessionToken: newSessionToken,
-        lastLoginAt: new Date().toISOString()
-    });
-
-    currentStudent = {
-        docId: studentDoc.id,
-        name: studentData.name,
-        email: studentData.email || "",
-        mobile: studentData.mobile || "",
-        loginId: studentData.loginId,
-        isPaid: isPaidActive,
-        expiry: studentData.expiryDate || "",
-        sessionToken: newSessionToken
-    };
-    isLoggedIn = true;
-
-    let hasLoggedInBefore = localStorage.getItem('tg_has_logged_in_' + studentData.loginId);
-    if (!hasLoggedInBefore) {
-        isFirstLoginSession = true;
-        localStorage.setItem('tg_has_logged_in_' + studentData.loginId, 'true');
-    } else {
-        isFirstLoginSession = false;
-    }
-
-    localStorage.setItem('tg_user', JSON.stringify(currentStudent));
-    startSingleSessionWatcher();
-
-    await fetchSettingsAndTests();
-
-    let pendingCat = sessionStorage.getItem('pendingCat');
-    if (pendingCat) {
-        sessionStorage.removeItem('pendingCat');
-        openCategory(pendingCat);
-    } else {
-        goDashboard();
-    }
-}
-
-function startSingleSessionWatcher() {
-    clearInterval(sessionMonitorInterval);
-    sessionMonitorInterval = setInterval(async () => {
-        if (!isLoggedIn || !currentStudent.docId) return;
-        const localToken = localStorage.getItem("tg_session_token");
-        if (!localToken) return;
-        try {
-            const snap = await getDoc(doc(db, "students", currentStudent.docId));
-            if (snap.exists()) {
-                const remoteToken = snap.data().activeSessionToken;
-                if (remoteToken && remoteToken !== localToken) {
-                    clearInterval(sessionMonitorInterval);
-                    alert("⚠️ Aapki ID kisi doosre device (Phone/Laptop) par login ho gayi hai. Ek samay mein sirf 1 device par hi session chal sakta hai, isliye yahan se logout kiya ja raha hai.");
-                    logout();
-                }
-            }
-        } catch (e) {}
-    }, 20000);
-}
-
-window.doLogin = async function() {
-    const inputVal = document.getElementById('loginId').value.trim(); 
-    const pass = document.getElementById('loginPass').value.trim();
-    if(!inputVal || !pass) return alert("Enter Email ID, Mobile Number, or Login ID and Password!");
-    
-    resetSessionMemory();
-
-    try {
-        let snapshot = await getDocs(query(collection(db, "students"), where("email", "==", inputVal.toLowerCase()), where("password", "==", pass)));
-        if(snapshot.empty) snapshot = await getDocs(query(collection(db, "students"), where("mobile", "==", inputVal), where("password", "==", pass)));
-        if(snapshot.empty) snapshot = await getDocs(query(collection(db, "students"), where("loginId", "==", inputVal.toUpperCase()), where("password", "==", pass)));
-        
-        if(!snapshot.empty) {
-            await finalizeStudentLoginSession(snapshot.docs[0]);
-        } else { alert("❌ Invalid Credentials! Please check your Email/Mobile and Password."); }
-    } catch (e) { console.error(e); alert("Database Error: " + e.message); }
-}
-
-window.sendRegisterOtp = async function() {
-    const name = document.getElementById('regName').value.trim();
-    const mobile = document.getElementById('regMobile').value.trim();
-    const email = document.getElementById('regEmail').value.trim().toLowerCase();
-
-    if (!name) return alert("Please enter your Full Name first!");
-    if (!mobile || mobile.length < 10) return alert("Please enter a valid 10-digit Mobile Number!");
-    if (!email || !email.includes("@")) return alert("Please enter a valid Email ID!");
-
-    const btn = document.getElementById('btnSendRegOtp');
-    btn.disabled = true;
-    btn.innerText = "Sending...";
-
-    try {
-        const emailCheck = await getDocs(query(collection(db, "students"), where("email", "==", email)));
-        if (!emailCheck.empty) {
-            btn.disabled = false;
-            btn.innerText = "Send OTP";
-            return alert("❌ This Email ID is already registered! Please login instead.");
-        }
-
-        const mobileCheck = await getDocs(query(collection(db, "students"), where("mobile", "==", mobile)));
-        if (!mobileCheck.empty) {
-            btn.disabled = false;
-            btn.innerText = "Send OTP";
-            return alert("❌ This Mobile Number is already registered! Please login instead.");
-        }
-
-        regGeneratedOtp = Math.floor(100000 + Math.random() * 900000).toString();
-        regOtpExpiry = Date.now() + 10 * 60 * 1000;
-
-        const res = await callEmailService({
-            action: "send_otp",
-            email: email,
-            name: name,
-            otp: regGeneratedOtp,
-            purpose: "Registration Verification"
-        });
-
-        if (res.status === "not_configured") {
-            alert(`[Setup Mode] Google Apps Script URL not linked yet.\nYour Test OTP is: ${regGeneratedOtp}`);
-        } else if (res.status === "success") {
-            alert(`✅ A 6-digit OTP has been sent to ${email}. Please check your Inbox or Spam folder.`);
-        } else {
-            throw new Error(res.message || "Failed to send OTP email");
-        }
-
-        document.getElementById('regOtpBox').classList.remove('hide');
-        btn.innerText = "Resend OTP";
-        btn.disabled = false;
-    } catch (e) {
-        console.error(e);
-        alert("Error sending OTP: " + e.message);
-        btn.disabled = false;
-        btn.innerText = "Send OTP";
-    }
-}
-
-window.verifyRegisterOtp = function() {
-    const userOtp = document.getElementById('regOtpInput').value.trim();
-    const email = document.getElementById('regEmail').value.trim().toLowerCase();
-
-    if (!userOtp || userOtp.length !== 6) return alert("Please enter the 6-digit OTP!");
-    if (Date.now() > regOtpExpiry) return alert("❌ OTP has expired! Please click Resend OTP.");
-    if (userOtp !== regGeneratedOtp) return alert("❌ Incorrect OTP! Please check your email and try again.");
-
-    isRegEmailVerified = true;
-    verifiedRegEmail = email;
-
-    document.getElementById('regEmail').disabled = true;
-    document.getElementById('btnSendRegOtp').disabled = true;
-    document.getElementById('regOtpBox').classList.add('hide');
-    document.getElementById('regPasswordBox').classList.remove('hide');
-}
-
-window.doRegister = async function() {
-    const name = document.getElementById('regName').value.trim();
-    const mobile = document.getElementById('regMobile').value.trim();
-    const pass = document.getElementById('regPass').value.trim();
-    const passConfirm = document.getElementById('regPassConfirm').value.trim();
-
-    if (!isRegEmailVerified || !verifiedRegEmail) return alert("Please verify your Email ID with OTP first!");
-    if (!pass || pass.length < 4) return alert("Please create a password (minimum 4 characters)!");
-    if (pass !== passConfirm) return alert("Passwords do not match!");
-
-    try {
-        const allStudentsSnap = await getDocs(collection(db, "students"));
-        let maxNum = 0;
-        allStudentsSnap.forEach(d => {
-            let lid = d.data().loginId;
-            if (lid && lid.startsWith("TG")) {
-                let num = parseInt(lid.replace("TG", ""), 10);
-                if (!isNaN(num) && num > maxNum) maxNum = num;
-            }
-        });
-        const newId = "TG" + String(maxNum + 1).padStart(4, '0');
-
-        await addDoc(collection(db, "students"), {
-            name: name, 
-            email: verifiedRegEmail,
-            mobile: mobile, 
-            loginId: newId, 
-            password: pass, 
-            isPaid: false, 
-            expiryDate: "", 
-            createdAt: new Date().toISOString(),
-            device1: getDeviceId(), 
-            device2: ""
-        });
-
-        callEmailService({
-            action: "welcome",
-            email: verifiedRegEmail,
-            name: name,
-            studentId: newId,
-            mobile: mobile,
-            password: pass
-        });
-
-        document.getElementById('newLoginId').innerText = newId;
-        document.getElementById('newLoginEmail').innerText = verifiedRegEmail;
-        document.getElementById('newLoginPass').innerText = pass;
-        
-        document.getElementById('registerSuccessModal').classList.remove('hide');
-    } catch (e) { console.error(e); alert("Database Error: " + e.message); }
-}
-
-window.closeRegModal = function() {
-    document.getElementById('registerSuccessModal').classList.add('hide');
-    document.getElementById('regName').value = ''; 
-    document.getElementById('regMobile').value = ''; 
-    document.getElementById('regEmail').value = '';
-    document.getElementById('regOtpInput').value = '';
-    document.getElementById('regPass').value = ''; 
-    document.getElementById('regPassConfirm').value = '';
-    showLogin();
-}
-
-function setForgotStatus(msg, isError = false) {
-    const box = document.getElementById('forgotStatusMsg');
-    if (!box) return;
-    box.classList.remove('hide');
-    box.style.background = isError ? '#FEF2F2' : '#ECFDF5';
-    box.style.color = isError ? '#991B1B' : '#065F46';
-    box.style.border = isError ? '1px solid #FECACA' : '1px solid #A7F3D0';
-    box.innerHTML = msg;
-}
-
-window.sendForgotOtp = async function() {
-    const rawEmail = document.getElementById('forgotEmail').value.trim();
-    const email = rawEmail.toLowerCase();
-    if (!email || !email.includes("@")) return alert("Please enter your registered Email ID!");
-
-    const btn = document.getElementById('btnSendForgotOtp');
-    btn.disabled = true;
-    btn.innerText = "Sending...";
-    setForgotStatus("⏳ Checking account & sending 6-digit OTP to your Gmail...", false);
-
-    try {
-        // Case-insensitive search in Firestore students
-        let snap = await getDocs(query(collection(db, "students"), where("email", "==", email)));
-        let studentDoc = !snap.empty ? snap.docs[0] : null;
-        if (!studentDoc) {
-            const allSnap = await getDocs(collection(db, "students"));
-            studentDoc = allSnap.docs.find(d => (d.data().email || "").trim().toLowerCase() === email) || null;
-        }
-
-        if (!studentDoc) {
-            btn.disabled = false;
-            btn.innerText = "Send OTP";
-            setForgotStatus("❌ Is Email ID se koi account registered nahi hai. Pehle Register karein.", true);
-            return;
-        }
-
-        forgotTargetDocId = studentDoc.id;
-        forgotTargetEmail = email;
-        forgotGeneratedOtp = Math.floor(100000 + Math.random() * 900000).toString();
-        forgotOtpExpiry = Date.now() + 10 * 60 * 1000;
-
-        const res = await callEmailService({
-            action: "send_otp",
-            email: email,
-            name: studentDoc.data().name || "Student",
-            otp: forgotGeneratedOtp,
-            purpose: "Password Reset"
-        });
-
-        if (res.status === "success") {
-            setForgotStatus(`✅ 6-Digit OTP <b>${email}</b> par bhej diya gaya hai! Inbox ya Spam folder check karein.`, false);
-            document.getElementById('forgotOtpStepBox').classList.remove('hide');
-        } else {
-            throw new Error(res.message || "Email server did not confirm delivery");
-        }
-
-        btn.innerText = "Resend OTP";
-        btn.disabled = false;
-    } catch (e) {
-        console.error("Forgot OTP Error:", e);
-        setForgotStatus(`❌ OTP bhejne mein samasya aayi: ${e.message}. Kripya Google Apps Script deployment check karein.`, true);
-        btn.disabled = false;
-        btn.innerText = "Send OTP";
-    }
-};
-
-window.doResetPassword = async function() {
-    const otpInput = document.getElementById('forgotOtpInput').value.trim();
-    const newPass = document.getElementById('forgotNewPass').value.trim();
-
-    if (!otpInput || otpInput.length !== 6) return alert("Please enter the 6-digit OTP!");
-    if (Date.now() > forgotOtpExpiry) return alert("❌ OTP expired! Please click Resend OTP.");
-    if (otpInput !== forgotGeneratedOtp) return alert("❌ Incorrect OTP! Please check your Gmail and enter the exact 6 digits.");
-    if (!newPass || newPass.length < 4) return alert("Please enter a new password (minimum 4 characters)!");
-
-    const btn = document.getElementById('btnDoResetPass');
-    if (btn) { btn.disabled = true; btn.innerText = "Updating Password..."; }
-
-    try {
-        await updateDoc(doc(db, "students", forgotTargetDocId), { password: newPass });
-        alert("✅ Password Reset Successful! Ab aap naye password se login kar sakte hain.");
-        document.getElementById('forgotOtpInput').value = '';
-        document.getElementById('forgotNewPass').value = '';
-        document.getElementById('forgotStatusMsg').classList.add('hide');
-        showLogin();
-    } catch (e) {
-        console.error(e);
-        alert("Error updating password: " + e.message);
-    } finally {
-        if (btn) { btn.disabled = false; btn.innerText = "Verify OTP & Update Password"; }
-    }
-};
-
-function syncSubscriptionPlansFromSettings() {
-    subscriptionPlans[3].mrp    = parseFloat(appSettings.Plan3_MRP    || 149);
-    subscriptionPlans[3].price  = parseFloat(appSettings.Plan3_Price  || 99);
-    subscriptionPlans[6].mrp    = parseFloat(appSettings.Plan6_MRP    || 249);
-    subscriptionPlans[6].price  = parseFloat(appSettings.Plan6_Price  || 199);
-    subscriptionPlans[12].mrp   = parseFloat(appSettings.Plan12_MRP   || 399);
-    subscriptionPlans[12].price = parseFloat(appSettings.Plan12_Price || 249);
-
-    [3, 6, 12].forEach(m => {
-        const p = subscriptionPlans[m];
-        const disc = Math.max(0, p.mrp - p.price);
-        if (document.getElementById(`planMrp${m}`)) document.getElementById(`planMrp${m}`).innerText = p.mrp;
-        if (document.getElementById(`planPrice${m}`)) document.getElementById(`planPrice${m}`).innerText = p.price;
-        if (document.getElementById(`planSave${m}`)) document.getElementById(`planSave${m}`).innerText = disc > 0 ? `SAVE ₹${disc}` : "SPECIAL OFFER";
-    });
-}
-
-let appliedPartnerCoupon = null;
-
-function getEffectiveCheckoutDetails() {
-    const plan = subscriptionPlans[selectedPlanMonths];
-    const baseDiscount = Math.max(0, plan.mrp - plan.price);
-    let couponDiscount = 0;
-    let extraDays = 0;
-
-    if (appliedPartnerCoupon) {
-        couponDiscount = Number(appliedPartnerCoupon.discountAmount || 0);
-        extraDays = Number(appliedPartnerCoupon.extraDays || 0);
-    }
-
-    const finalPayable = Math.max(1, plan.price - couponDiscount);
-    const totalDays = plan.days + extraDays;
-    return { plan, baseDiscount, couponDiscount, extraDays, finalPayable, totalDays };
-}
-
-window.selectSubscriptionPlan = function(months) {
-    selectedPlanMonths = months;
-    [3, 6, 12].forEach(m => {
-        const card = document.getElementById(`planCard${m}`);
-        if (card) {
-            if (m === months) card.classList.add('selected');
-            else card.classList.remove('selected');
-        }
-    });
-
-    const { plan, baseDiscount, couponDiscount, extraDays, finalPayable, totalDays } = getEffectiveCheckoutDetails();
-
-    document.getElementById('selPlanLabel').innerText = plan.label;
-    if (document.getElementById('selPlanValidity')) {
-        document.getElementById('selPlanValidity').innerText = extraDays > 0
-            ? `${plan.days} + ${extraDays} Bonus = ${totalDays} Days`
-            : `${plan.days} Days`;
-    }
-    document.getElementById('selPlanMrp').innerText = plan.mrp;
-    document.getElementById('selPlanDiscount').innerText = baseDiscount;
-
-    const cRow = document.getElementById('couponDiscountRow');
-    const cBonusText = document.getElementById('selCouponBonusText');
-    if (cRow && cBonusText) {
-        if (appliedPartnerCoupon) {
-            cRow.classList.remove('hide');
-            cBonusText.innerText = `- ₹${couponDiscount} + ${extraDays} Extra Days (${appliedPartnerCoupon.couponCode})`;
-        } else {
-            cRow.classList.add('hide');
-        }
-    }
-
-    document.getElementById('selPlanFinal').innerText = finalPayable;
-    document.getElementById('payBtnAmount').innerText = finalPayable;
-}
-
-window.applyStudentReferralCoupon = async function() {
-    const inputEl = document.getElementById('studentCouponInput');
-    const msgEl = document.getElementById('couponStatusMsg');
-    const btnEl = document.getElementById('btnApplyStudentCoupon');
-    if (!inputEl || !msgEl) return;
-
-    const code = inputEl.value.trim().toUpperCase();
-    if (!code) {
-        appliedPartnerCoupon = null;
-        selectSubscriptionPlan(selectedPlanMonths);
-        msgEl.style.color = "#DC2626";
-        msgEl.innerText = "Please enter a coupon code.";
-        return;
-    }
-
-    if (btnEl) { btnEl.disabled = true; btnEl.innerText = "Checking..."; }
-    msgEl.style.color = "#4F46E5";
-    msgEl.innerText = "Verifying coupon code...";
-
-    try {
-        const snap = await getDocs(query(collection(db, "partners"), where("couponCode", "==", code)));
-        if (snap.empty) {
-            appliedPartnerCoupon = null;
-            selectSubscriptionPlan(selectedPlanMonths);
-            msgEl.style.color = "#DC2626";
-            msgEl.innerText = "❌ Invalid coupon code.";
-            return;
-        }
-
-        const pDoc = snap.docs[0];
-        const pData = pDoc.data();
-
-        if (pData.status !== "approved") {
-            appliedPartnerCoupon = null;
-            selectSubscriptionPlan(selectedPlanMonths);
-            msgEl.style.color = "#DC2626";
-            msgEl.innerText = "❌ This coupon code is currently inactive.";
-            return;
-        }
-
-        if ((pData.usedCount || 0) >= (pData.maxUsageLimit || 0)) {
-            appliedPartnerCoupon = null;
-            selectSubscriptionPlan(selectedPlanMonths);
-            msgEl.style.color = "#DC2626";
-            msgEl.innerText = "❌ This coupon code has reached its usage limit.";
-            return;
-        }
-
-        // Valid (works for both first-time purchase & expired plan renewal)
-        appliedPartnerCoupon = { docId: pDoc.id, ...pData };
-        selectSubscriptionPlan(selectedPlanMonths);
-
-        const disc = Number(pData.discountAmount || 0);
-        const ext = Number(pData.extraDays || 0);
-        msgEl.style.color = "#059669";
-        msgEl.innerText = `✅ Applied! You get ₹${disc} instant discount + ${ext} extra validity days!`;
-    } catch (e) {
-        appliedPartnerCoupon = null;
-        selectSubscriptionPlan(selectedPlanMonths);
-        msgEl.style.color = "#DC2626";
-        msgEl.innerText = "Error checking coupon. Please try again.";
-    } finally {
-        if (btnEl) { btnEl.disabled = false; btnEl.innerText = "Apply"; }
-    }
-};
-
-window.openPaymentModal = function() {
-    if (!isLoggedIn) {
-        alert("Please login or register first to choose a subscription plan!");
-        return showLogin();
-    }
-    appliedPartnerCoupon = null;
-    if (document.getElementById('studentCouponInput')) document.getElementById('studentCouponInput').value = "";
-    if (document.getElementById('couponStatusMsg')) document.getElementById('couponStatusMsg').innerText = "";
-    syncSubscriptionPlansFromSettings();
-    selectSubscriptionPlan(12);
-    document.getElementById('paymentModal').classList.remove('hide');
-}
-
-window.closeModal = function() { document.getElementById('paymentModal').classList.add('hide'); }
-
-window.initiateRazorpayPayment = function() {
-    if (!isLoggedIn) return showLogin();
-    if (!RAZORPAY_KEY_ID || RAZORPAY_KEY_ID === "rzp_test_YOUR_KEY_HERE") {
-        return alert("Razorpay Key ID is not configured yet in student-app.js!");
-    }
-
-    const { plan, baseDiscount, couponDiscount, extraDays, finalPayable, totalDays } = getEffectiveCheckoutDetails();
-    const totalDiscount = baseDiscount + couponDiscount;
-    const usedCouponSnapshot = appliedPartnerCoupon ? { ...appliedPartnerCoupon } : null;
-
-    const options = {
-        "key": RAZORPAY_KEY_ID,
-        "amount": Math.round(finalPayable * 100),
-        "currency": "INR",
-        "name": "TaiyariGhar",
-        "description": `${plan.label} (${totalDays} Days)`,
-        "image": "logo.png",
-        "handler": async function (response) {
-            closeModal();
-            await handleSuccessfulRazorpayPayment(response.razorpay_payment_id, plan, finalPayable, totalDays, totalDiscount, usedCouponSnapshot);
-        },
-        "prefill": {
-            "name": currentStudent.name,
-            "email": currentStudent.email,
-            "contact": currentStudent.mobile
-        },
-        "notes": {
-            "loginId": currentStudent.loginId,
-            "plan": plan.label,
-            "mrp": plan.mrp,
-            "discount": totalDiscount,
-            "finalPaid": finalPayable,
-            "couponCode": usedCouponSnapshot ? usedCouponSnapshot.couponCode : "NONE"
-        },
-        "theme": {
-            "color": "#4F46E5"
-        }
-    };
-
-    const rzp = new Razorpay(options);
-    rzp.on('payment.failed', function (response) {
-        alert("❌ Payment Failed: " + response.error.description);
-    });
-    rzp.open();
-}
-
-async function handleSuccessfulRazorpayPayment(paymentId, plan, finalPayable, totalDays, totalDiscount, usedCoupon) {
-    try {
-        const today = new Date();
-        const baseStart = (currentStudent.isPaid && currentStudent.expiry && new Date(currentStudent.expiry) > today)
-            ? new Date(currentStudent.expiry)
-            : today;
-        const expiryDateObj = new Date(baseStart.getTime() + totalDays * 24 * 60 * 60 * 1000);
-        const expiryStr = expiryDateObj.toISOString().split('T')[0];
-        const invoiceNumber = "INV-" + Date.now().toString().slice(-6);
-
-        if (currentStudent.docId) {
-            await updateDoc(doc(db, "students", currentStudent.docId), {
-                isPaid: true,
-                expiryDate: expiryStr,
-                activePlan: plan.label,
-                lastPaymentId: paymentId,
-                lastPaymentDate: today.toISOString()
-            });
-        }
-
-        await addDoc(collection(db, "payments"), {
-            invoiceNumber: invoiceNumber,
-            paymentId: paymentId,
-            loginId: currentStudent.loginId,
-            studentName: currentStudent.name,
-            email: currentStudent.email,
-            mobile: currentStudent.mobile,
-            planName: plan.label,
-            mrp: plan.mrp,
-            discount: totalDiscount,
-            amount: finalPayable,
-            validityDays: totalDays,
-            expiryDate: expiryStr,
-            couponCode: usedCoupon ? usedCoupon.couponCode : "",
-            partnerId: usedCoupon ? usedCoupon.partnerId : "",
-            timestamp: today.toISOString()
-        });
-
-        // Credit Partner Commission ONLY after successful Razorpay payment
-        if (usedCoupon && usedCoupon.docId) {
-            const commPct = Number(usedCoupon.commissionPercent || 10);
-            const commissionEarned = Number(((finalPayable * commPct) / 100).toFixed(2));
-            const maskedStudent = (currentStudent.name || "Student").slice(0, 3) + "***";
-            const todayStr = today.toLocaleDateString('en-IN');
-
-            await updateDoc(doc(db, "partners", usedCoupon.docId), {
-                usedCount: increment(1),
-                totalSales: increment(Number(finalPayable)),
-                totalCommission: increment(commissionEarned),
-                conversions: arrayUnion({
-                    date: todayStr,
-                    studentMasked: maskedStudent,
-                    paidAmount: Number(finalPayable),
-                    commission: commissionEarned
-                })
-            });
-        }
-
-        appliedPartnerCoupon = null;
-        currentStudent.isPaid = true;
-        currentStudent.expiry = expiryStr;
-        localStorage.setItem('tg_user', JSON.stringify(currentStudent));
-
-        callEmailService({
-            action: "send_invoice",
-            invoiceNumber: invoiceNumber,
-            paymentId: paymentId,
-            studentName: currentStudent.name,
-            loginId: currentStudent.loginId,
-            email: currentStudent.email,
-            mobile: currentStudent.mobile,
-            planName: plan.label,
-            mrp: plan.mrp,
-            discount: totalDiscount,
-            amount: finalPayable,
-            validityDays: totalDays,
-            expiryDate: expiryStr,
-            date: today.toLocaleDateString('en-IN'),
-            gstEnabled: appSettings.GST_Enabled || "No",
-            gstNumber: appSettings.GST_Number || ""
-        });
-
-        alert(`🎉 Payment Successful!
-
-Your ${plan.label} (${totalDays} Days) is now ACTIVE till ${expiryStr}.
-An official PDF Invoice (${invoiceNumber}) has been sent to ${currentStudent.email}.`);
-        renderCandidateProfilePopover();
-        fetchSettingsAndTests();
-    } catch (e) {
-        console.error("Post-payment error:", e);
-        alert("Payment received (ID: " + paymentId + "), but there was a delay updating your profile.");
-    }
-}
-
-// =========================================================================
-// 🔴 FIXED LIVE TEST CHECKER (Works seamlessly with Admin `isLive: "Yes"`)
-// =========================================================================
-function isLiveTestCurrentlyActive(t) {
-    if (String(t.isLive).trim().toLowerCase() !== "yes") return false;
-    const now = new Date();
-    const start = t.liveStart ? new Date(t.liveStart) : null;
-    const end = t.liveEnd ? new Date(t.liveEnd) : null;
-    if (!start && !end) return true;
-    if (start && !end) return now >= start;
-    if (!start && end) return now <= end;
-    return now >= start && now <= end;
-}
-
-function isLiveTestEnded(t) {
-    if (String(t.isLive).trim().toLowerCase() !== "yes") return false;
-    const now = new Date();
-    const end = t.liveEnd ? new Date(t.liveEnd) : null;
-    return end ? now > end : false;
-}
-
-function formatDateTimeReadable(isoStr) {
-    if (!isoStr) return "12:00 AM";
-    const d = new Date(isoStr);
-    if (isNaN(d.getTime())) return isoStr;
-    return d.toLocaleString('en-IN', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit', hour12: true });
-}
-
-function renderLiveTestsShowcase() {
-    const activeLiveTests = allTests.filter(t => isLiveTestCurrentlyActive(t));
-    const homeContainer = document.getElementById('homeLiveTestsContainer');
-    const dashContainer = document.getElementById('dashLiveTestsContainer');
-    const modalContainer = document.getElementById('modalLiveTestsContainer');
-    const liveBadgeEl = document.getElementById('liveCountBadge');
-
-    if (liveBadgeEl) liveBadgeEl.innerText = activeLiveTests.length;
-
-    if (activeLiveTests.length === 0) {
-        if (homeContainer) homeContainer.innerHTML = "";
-        if (dashContainer) dashContainer.innerHTML = "";
-        if (modalContainer) {
-            modalContainer.innerHTML = `<div style="text-align:center; padding:30px; background:#F8FAFC; border-radius:12px;"><p style="color:#6B7280; font-size:15px;">No All-India Live Exams are running at this moment. Check back soon or attempt regular mock tests!</p></div>`;
-        }
-        return;
-    }
-
-    let cardsHtml = `<h2 class="section-title" style="display:flex; align-items:center; gap:8px;"><span class="live-dot-nav"></span> All-India Live Exams (Happening Now)</h2><div class="live-showcase-grid">`;
-    let modalGridHtml = `<div class="live-showcase-grid">`;
-
-    activeLiveTests.forEach(t => {
-        const lookupId = t.testId || t.id;
-        const alreadyAttempted = Boolean(isLoggedIn && userPastResults && (userPastResults[lookupId] || userPastResults[t.id]));
-        const endDisplay = t.liveEnd ? formatDateTimeReadable(t.liveEnd) : (t.liveReleaseTime || "12:00 AM");
-        let actionBtnHtml = "";
-
-        if (!isLoggedIn) {
-            actionBtnHtml = `<button class="btn" style="background:#FDE047; color:#1E1B4B; font-weight:700;" onclick="closeLiveTestsHub(); showLogin()">Login to Attempt Live Exam</button>`;
-        } else if (String(t.isFree).trim().toLowerCase() !== "yes" && !currentStudent.isPaid) {
-            actionBtnHtml = `<button class="btn" style="background:#FDE047; color:#1E1B4B; font-weight:700;" onclick="closeLiveTestsHub(); openPaymentModal()">🔒 Subscribe to Enter Live Exam</button>`;
-        } else if (alreadyAttempted) {
-            actionBtnHtml = `<button class="btn" style="background:rgba(255,255,255,0.2); color:#FFF; cursor:default;">✅ Submitted (Result at ${endDisplay})</button>`;
-        } else {
-            actionBtnHtml = `<button class="btn btn-accent" style="font-weight:700;" onclick="closeLiveTestsHub(); showInstructions('${lookupId}', '${t.testName.replace(/'/g, "\\'")}', ${t.duration}, ${t.marks}, ${t.negativeMark || 0}, '${t.hasNegative}', '${t.language || 'Both'}', false, true, '${t.liveEnd || t.liveReleaseTime || ''}', ${t.positiveMark || 1})">🚀 Attempt Live Exam Now</button>`;
-        }
-
-        const singleCard = `
-            <div class="live-card">
-                <div>
-                    <div class="live-badge-pill"><span class="live-dot-nav" style="background:white;"></span> ${t.mainCat} • LIVE</div>
-                    <h3>${t.testName}</h3>
-                    <p>${t.subCat} | ⏱️ ${t.duration} Mins | 🏆 ${t.marks} Marks</p>
-                </div>
-                <div class="live-timer-strip">
-                    <span>⏳ Result: ${endDisplay}</span>
-                    <span class="live-countdown-clock" data-endtime="${t.liveEnd || ''}">LIVE</span>
-                </div>
-                ${actionBtnHtml}
-            </div>
-        `;
-        cardsHtml += singleCard;
-        modalGridHtml += singleCard;
-    });
-
-    cardsHtml += `</div>`;
-    modalGridHtml += `</div>`;
-
-    if (homeContainer) homeContainer.innerHTML = cardsHtml;
-    if (dashContainer) dashContainer.innerHTML = cardsHtml;
-    if (modalContainer) modalContainer.innerHTML = modalGridHtml;
-
-    startLiveShowcaseCountdowns();
-}
-
-function startLiveShowcaseCountdowns() {
-    clearInterval(liveCountdownInterval);
-    liveCountdownInterval = setInterval(() => {
-        document.querySelectorAll('.live-countdown-clock').forEach(el => {
-            const endStr = el.getAttribute('data-endtime');
-            if (!endStr) {
-                el.innerText = "LIVE NOW";
-                return;
-            }
-            const diff = new Date(endStr) - new Date();
-            if (isNaN(diff)) {
-                el.innerText = "LIVE NOW";
-            } else if (diff <= 0) {
-                el.innerText = "Ended";
-            } else {
-                const hrs = Math.floor(diff / (1000 * 60 * 60));
-                const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-                const secs = Math.floor((diff % (1000 * 60)) / 1000);
-                el.innerText = `${hrs}h ${mins}m ${secs}s left`;
-            }
-        });
-    }, 1000);
-}
-
-// =========================================================================
-// ⚡ CROSS-EXAM QUICK PRACTICE BY TEST TYPE (Previous Year, Full, Mini, Chapter)
-// =========================================================================
-window.openCrossExamTypeFilter = async function(typeKey) {
-    if(!isLoggedIn) return showLogin();
-    if (!isDataLoaded) await fetchSettingsAndTests();
-
-    const titleMap = {
-        'previous': '📋 All Previous Year Papers (Across All Exams)',
-        'full': '✅ All Full-Length Mock Tests (Across All Exams)',
-        'mini': '⚡ Mini & Speed Booster Tests (Across All Exams)',
-        'chapter': '📚 Chapter & Topic-Wise Tests (Across All Exams)'
-    };
-
-    const filteredTests = allTests.filter(t => {
-        const eName = (t.examName || "").toLowerCase();
-        const tName = (t.testName || "").toLowerCase();
-        if (typeKey === 'previous') {
-            return eName.includes('previous') || eName.includes('pyp') || eName.includes('memory') || tName.includes('pyp') || tName.includes('previous');
-        } else if (typeKey === 'full') {
-            return eName.includes('full') || tName.includes('full');
-        } else if (typeKey === 'mini') {
-            return eName.includes('mini') || eName.includes('speed') || tName.includes('mini') || tName.includes('speed');
-        } else if (typeKey === 'chapter') {
-            return eName.includes('chapter') || eName.includes('topic') || eName.includes('ncert') || tName.includes('chapter') || tName.includes('topic');
-        }
-        return false;
-    });
-
-    document.getElementById('subCatTitle').innerText = titleMap[typeKey] || "Filtered Mock Tests";
-    document.getElementById('subCatPills').innerHTML = `
-        <div class="sub-cat-pill ${typeKey === 'previous' ? 'active' : ''}" onclick="openCrossExamTypeFilter('previous')">📋 Previous Year Papers</div>
-        <div class="sub-cat-pill ${typeKey === 'full' ? 'active' : ''}" onclick="openCrossExamTypeFilter('full')">✅ Full-Length Mocks</div>
-        <div class="sub-cat-pill ${typeKey === 'mini' ? 'active' : ''}" onclick="openCrossExamTypeFilter('mini')">⚡ Mini / Speed Tests</div>
-        <div class="sub-cat-pill ${typeKey === 'chapter' ? 'active' : ''}" onclick="openCrossExamTypeFilter('chapter')">📚 Chapter / Topic Tests</div>
+function updateHeaderAuthUI() {
+  const area = document.getElementById("headerAuthArea");
+  if (!area) return;
+  if (currentStudent) {
+    area.innerHTML = `
+      <button class="btn btn-outline" onclick="navigateTo('dashboard')">My Dashboard</button>
+      <button class="btn btn-primary" onclick="openUpgradeModal()">Pass</button>
     `;
-    document.getElementById('examNamePills').innerHTML = "";
-    renderTestList(filteredTests, true);
-    showScreen('subCatScreen', true);
-};
-
-// =========================================================================
-// 🔒 STRICT SEQUENTIAL FETCH (Prevents Race Condition & Cross-User Leakage)
-// =========================================================================
-async function fetchSettingsAndTests() {
-    try {
-        userPastResults = {};
-
-        const setSnap = await getDoc(doc(db, "settings", "global"));
-        if(setSnap.exists()) appSettings = setSnap.data();
-        else appSettings = { Plan3_MRP: "149", Plan3_Price: "99", Plan6_MRP: "249", Plan6_Price: "199", Plan12_MRP: "399", Plan12_Price: "249", GST_Enabled: "No", GST_Number: "" };
-
-        syncSubscriptionPlansFromSettings();
-
-        const testSnap = await getDocs(collection(db, "tests"));
-        allTests = testSnap.docs.map(d => ({ id: d.id, ...d.data() }));
-        
-        const catSnap = await getDocs(collection(db, "exam_categories"));
-        allExamCategories = catSnap.docs.map(d => d.data());
-
-        if(isLoggedIn && currentStudent && currentStudent.loginId) {
-            const activeLoginId = String(currentStudent.loginId).trim();
-            const resSnap = await getDocs(query(collection(db, "results"), where("loginId", "==", activeLoginId)));
-            resSnap.forEach(docItem => {
-                let data = docItem.data();
-                if(data.loginId && String(data.loginId).trim() === activeLoginId && data.testId) {
-                    if(!userPastResults[data.testId] || new Date(data.timestamp) > new Date(userPastResults[data.testId].timestamp)) {
-                        userPastResults[data.testId] = data;
-                    }
-                }
-            });
-        }
-
-        isDataLoaded = true;
-
-        renderLiveTestsShowcase();
-        renderMainCategories();
-        if (isLoggedIn) {
-            await fetchDashboardData();
-        }
-
-        const caSnap = await getDocs(collection(db, "current_affairs"));
-        allCA = caSnap.docs.map(d => ({ id: d.id, ...d.data() }));
-        
-        checkUrlRouting();
-    } catch (e) { console.log("Data load error", e); }
+  } else {
+    area.innerHTML = `
+      <button class="btn btn-outline" onclick="navigateTo('login')">Login</button>
+      <button class="btn btn-primary" onclick="navigateTo('register')">Register Free</button>
+    `;
+  }
 }
 
-async function fetchDashboardData() {
-    if (!isLoggedIn || !currentStudent || !currentStudent.loginId) return;
-    try {
-        const activeLoginId = String(currentStudent.loginId).trim();
-        const qRes = query(collection(db, "results"), where("loginId", "==", activeLoginId));
-        const resSnap = await getDocs(qRes);
-        
-        let lastTest = null, attemptedTestIds = [];
-        let results = [];
-        userPastResults = {};
-
-        if(!resSnap.empty) {
-            resSnap.docs.forEach(d => {
-                const data = d.data();
-                if (data.loginId && String(data.loginId).trim() === activeLoginId) {
-                    results.push(data);
-                    if (data.testId) {
-                        if(!userPastResults[data.testId] || new Date(data.timestamp) > new Date(userPastResults[data.testId].timestamp)) {
-                            userPastResults[data.testId] = data;
-                        }
-                    }
-                }
-            });
-            results.sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp));
-            attemptedTestIds = results.map(r => r.testId);
-            lastTest = results.find(r => !r.isLivePending || (r.liveEndTime && !isNaN(new Date(r.liveEndTime)) && new Date() > new Date(r.liveEndTime)));
-        }
-
-        // Deduplicate by testId (keep latest attempt per unique test so duplicate rows never clutter the list)
-        const uniqueResultsList = [];
-        const seenTestKeys = new Set();
-        results.forEach(r => {
-            const key = r.testId || r.testName;
-            if (!seenTestKeys.has(key)) {
-                seenTestKeys.add(key);
-                uniqueResultsList.push(r);
-            }
-        });
-
-        const totalAttEl = document.getElementById('totalAttemptedCount');
-        if (totalAttEl) totalAttEl.innerText = `${uniqueResultsList.length} Test${uniqueResultsList.length === 1 ? '' : 's'}`;
-        const bannerBadgeEl = document.getElementById('bannerAttemptedBadge');
-        if (bannerBadgeEl) bannerBadgeEl.innerText = uniqueResultsList.length;
-
-        if(lastTest) {
-            document.getElementById('recentTestName').innerText = lastTest.testName;
-            document.getElementById('recentTestScore').innerText = `Score: ${lastTest.finalScore}/${lastTest.totalMarks} (${lastTest.percent}%)`;
-        } else {
-            document.getElementById('recentTestName').innerText = "Not Attempted Yet";
-            document.getElementById('recentTestScore').innerText = "Take a test to see your score";
-        }
-
-        const historyContainer = document.getElementById('dashHistoryContainer');
-        if (historyContainer) {
-            if (uniqueResultsList.length === 0) {
-                historyContainer.innerHTML = `<div class="history-item"><span style="color:#6B7280; font-size:14px;">You haven't attempted any tests yet. Select an exam category above to start!</span></div>`;
-            } else {
-                let histHtml = "";
-                uniqueResultsList.forEach(r => {
-                    const isStillPending = r.isLivePending && (!r.liveEndTime || isNaN(new Date(r.liveEndTime)) || new Date() <= new Date(r.liveEndTime));
-                    if (isStillPending) {
-                        histHtml += `
-                            <div class="history-item" style="border-left: 4px solid #F59E0B;">
-                                <div>
-                                    <span style="background:#FEF3C7; color:#92400E; font-size:11px; font-weight:700; padding:2px 8px; border-radius:12px;">⏳ LIVE RESULT PENDING</span>
-                                    <h4 style="font-size:15px; color:#1E1B4B; margin-top:4px;">${r.testName}</h4>
-                                    <p style="font-size:12px; color:#6B7280;">Attempted on ${new Date(r.timestamp).toLocaleDateString()} • Result releases at ${formatDateTimeReadable(r.liveEndTime)}</p>
-                                </div>
-                                <span style="font-size:13px; font-weight:600; color:#D97706;">Locked till release</span>
-                            </div>`;
-                    } else {
-                        histHtml += `
-                            <div class="history-item" style="border-left: 4px solid var(--accent);">
-                                <div>
-                                    <h4 style="font-size:15px; color:#1E1B4B;">${r.testName}</h4>
-                                    <p style="font-size:12px; color:#6B7280;">Date: ${new Date(r.timestamp).toLocaleDateString()} | Score: <b style="color:var(--primary);">${r.finalScore}/${r.totalMarks}</b> (${r.percent}%)</p>
-                                </div>
-                                <button class="btn btn-outline" style="padding:6px 14px; font-size:12px;" onclick="closeAttemptedHistoryModal(); viewPastAnalysis('${r.testId}')">📊 View Result & Rank</button>
-                            </div>`;
-                    }
-                });
-                historyContainer.innerHTML = histHtml;
-            }
-        }
-
-        let recTest = allTests.find(t => !attemptedTestIds.includes(t.testId || t.id) && !isLiveTestCurrentlyActive(t));
-        if(!recTest && allTests.length > 0) recTest = allTests.find(t => !isLiveTestCurrentlyActive(t)) || allTests[0];
-
-        if(recTest) {
-            recommendedTestData = recTest;
-            document.getElementById('recTestName').innerText = recTest.testName;
-            document.getElementById('recTestDetails').innerText = `⏱️ ${recTest.duration} Mins | ${recTest.marks} Marks`;
-        } else {
-            document.getElementById('recTestName').innerText = "No tests available";
-        }
-    } catch (e) { console.log("Error fetching dashboard data", e); }
+function isStudentProActive() {
+  if (!currentStudent || !currentStudent.passExpiry) return false;
+  const exp = new Date(currentStudent.passExpiry);
+  return exp.getTime() > Date.now();
 }
 
-window.startRecommendedTest = function() { 
-    if(recommendedTestData) {
-        const isLocked = (String(recommendedTestData.isFree).trim().toLowerCase() !== "yes" && !currentStudent.isPaid);
-        if (isLocked) return openPaymentModal();
-        const tid = recommendedTestData.testId || recommendedTestData.id;
-        showInstructions(tid, recommendedTestData.testName, recommendedTestData.duration, recommendedTestData.marks, recommendedTestData.negativeMark || 0, recommendedTestData.hasNegative, recommendedTestData.language || 'Both', false, false, '', recommendedTestData.positiveMark || 1);
-    } else scrollToCategories(); 
-}
+// ----------------------------------------------------------------------------
+// 1. Clean 2-Step Candidate Registration
+// ----------------------------------------------------------------------------
+async function sendCandidateRegOtp() {
+  const email = document.getElementById("regCandEmail").value.trim().toLowerCase();
+  const msg = document.getElementById("candRegOtpMsg");
+  const btn = document.getElementById("btnSendCandOtp");
 
-function renderMainCategories() {
-    let finalMainCats = [...defaultMainCategories];
-    
-    const testMainCats = [...new Set(allTests.map(t => t.mainCat))];
-    testMainCats.forEach(catName => {
-        if (!catName) return;
-        let isDuplicate = finalMainCats.some(c => {
-            let cName = c.name.toLowerCase().replace("exams", "").trim();
-            let tName = catName.toLowerCase().replace("exams", "").trim();
-            return cName === tName || cName.includes(tName) || tName.includes(cName);
-        });
-        if(!isDuplicate) finalMainCats.push({ name: catName, icon: "📚", gradient: "linear-gradient(135deg, #3730A3 0%, #4F46E5 100%)", subText: "Explore Tests" });
+  msg.classList.add("hidden");
+  if (!email || !email.includes("@")) {
+    msg.className = "inline-error-text";
+    msg.textContent = "Please enter a valid email address.";
+    msg.classList.remove("hidden");
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = "Checking...";
+
+  try {
+    const existing = await db.collection("students").where("email", "==", email).get();
+    if (!existing.empty) {
+      btn.disabled = false;
+      btn.textContent = "Send OTP";
+      msg.className = "inline-error-text";
+      msg.textContent = "This Email ID is already registered. Please log in.";
+      msg.classList.remove("hidden");
+      return;
+    }
+
+    candRegOtp = String(Math.floor(100000 + Math.random() * 900000));
+    startButtonCooldown("btnSendCandOtp", "Send OTP");
+
+    await fetch(APPS_SCRIPT_URL, {
+      method: "POST",
+      body: JSON.stringify({
+        action: "send_otp",
+        email: email,
+        otp: candRegOtp,
+        purpose: "Account Verification"
+      })
     });
 
-    let gridHtml = "";
-    finalMainCats.forEach(cat => {
-        let slug = cat.name.toLowerCase().replace(/\s+/g, '-');
-        gridHtml += `<a href="?category=${slug}" class="cat-card" style="background: ${cat.gradient}; text-decoration: none; color: #ffffff; display: block;" 
-                        onclick="event.preventDefault(); openCategory('${cat.name}');">
-            <div class="cat-icon">${cat.icon}</div>
-            <div class="cat-title" style="color: #ffffff;">${cat.name}</div>
-            <div class="cat-sub-text" style="color: #ffffff;">${cat.subText || ''}</div>
-        </a>`;
-    });
-
-    const finalHtml = `<div class="category-grid">${gridHtml}</div>`;
-    document.getElementById('homeCatContainer').innerHTML = finalHtml;
-    document.getElementById('dashCatContainer').innerHTML = finalHtml;
+    document.getElementById("candOtpVerifyBox").classList.remove("hidden");
+    msg.className = "inline-ok-text";
+    msg.textContent = "6-digit verification code sent to your Email Primary Inbox.";
+    msg.classList.remove("hidden");
+  } catch (err) {
+    btn.disabled = false;
+    btn.textContent = "Send OTP";
+    msg.className = "inline-error-text";
+    msg.textContent = "Unable to send OTP: " + err.message;
+    msg.classList.remove("hidden");
+  }
 }
 
-window.openCategory = async function(mainCat, fromUrl = false) {
-    if(!isLoggedIn) return showLogin();
-    if (!isDataLoaded) await fetchSettingsAndTests();
-    nav.mainCat = mainCat;
-    
-    let normalizedMain = mainCat.toLowerCase().replace("exams", "").trim();
-    let subCats = allExamCategories.filter(c => c.mainCat && c.mainCat.toLowerCase().replace("exams", "").trim() === normalizedMain).map(c => c.subCat);
-    
-    const testSubCats = allTests.filter(t => t.mainCat && t.mainCat.toLowerCase().replace("exams", "").trim() === normalizedMain).map(t => t.subCat);
-    subCats = [...new Set([...subCats, ...testSubCats])].filter(Boolean);
-
-    let pillsHtml = "";
-    if(subCats.length > 0) subCats.forEach(sc => pillsHtml += `<div class="sub-cat-pill" onclick="loadTestsForSubCat('${sc}', this)">${sc}</div>`);
-    else pillsHtml = `<p style="color:#666; font-style:italic;">No sub-categories added yet for this exam.</p>`;
-
-    document.getElementById('subCatTitle').innerText = mainCat + " - Select Exam Type"; 
-    document.getElementById('subCatPills').innerHTML = pillsHtml;
-    document.getElementById('examNamePills').innerHTML = ""; 
-    document.getElementById('testListContainer').innerHTML = ""; 
-    
-    if(!fromUrl) {
-        let slug = mainCat.toLowerCase().replace(/\s+/g, '-');
-        window.history.pushState({ screen: 'subCatScreen' }, '', `?category=${slug}`);
-    }
-    
-    showScreen('subCatScreen', false);
+function verifyCandidateRegOtp() {
+  const entered = document.getElementById("candRegOtpInput").value.trim();
+  const msg = document.getElementById("candRegOtpMsg");
+  if (!candRegOtp || entered !== candRegOtp) {
+    msg.className = "inline-error-text";
+    msg.textContent = "Wrong OTP entered. Please check your email and try again.";
+    msg.classList.remove("hidden");
+    return;
+  }
+  const email = document.getElementById("regCandEmail").value.trim().toLowerCase();
+  document.getElementById("regVerifiedEmail").value = email;
+  document.getElementById("candRegStep1").classList.add("hidden");
+  document.getElementById("candRegStep2").classList.remove("hidden");
+  document.getElementById("regStepSubtitle").textContent = "Step 2: Complete your profile details to create your account.";
 }
 
-window.loadTestsForSubCat = function(subCat, pillElement, fromUrl = false) {
-    document.querySelectorAll('#subCatPills .sub-cat-pill').forEach(p => p.classList.remove('active'));
-    if(pillElement) pillElement.classList.add('active');
+async function completeCandidateRegistration(e) {
+  e.preventDefault();
+  const btn = document.getElementById("btnCompleteCandReg");
+  const errEl = document.getElementById("candRegFinalError");
+  errEl.classList.add("hidden");
 
-    nav.subCat = subCat;
-    let normalizedMain = nav.mainCat.toLowerCase().replace("exams", "").trim();
-    let normalizedSub = subCat.toLowerCase().trim();
+  const email = document.getElementById("regVerifiedEmail").value.trim().toLowerCase();
+  const name = document.getElementById("regCandName").value.trim();
+  const mobile = document.getElementById("regCandMobile").value.trim();
+  const targetExam = document.getElementById("regCandExam").value;
+  const cityState = document.getElementById("regCandCityState").value.trim();
+  const password = document.getElementById("regCandPassword").value;
 
-    const filteredTests = allTests.filter(t => t.mainCat && t.subCat && t.mainCat.toLowerCase().replace("exams", "").trim() === normalizedMain && t.subCat.toLowerCase().trim() === normalizedSub);
+  if (!/^[6-9]\d{9}$/.test(mobile)) {
+    errEl.textContent = "Please enter a valid 10-digit mobile number.";
+    errEl.classList.remove("hidden");
+    return;
+  }
 
-    const uniqueExamNames = [...new Set([
-        ...allExamCategories.filter(c => c.mainCat && c.subCat && c.mainCat.toLowerCase().replace("exams", "").trim() === normalizedMain && c.subCat.toLowerCase().trim() === normalizedSub).map(c => c.examName),
-        ...filteredTests.map(t => t.examName)
-    ])].filter(name => name); 
+  btn.disabled = true;
+  btn.textContent = "Creating Account...";
+  showProcessing("Creating your TaiyariGhar account...", "Setting up your candidate dashboard");
 
-    const examNameContainer = document.getElementById('examNamePills');
-    examNameContainer.innerHTML = ""; 
-
-    if(uniqueExamNames.length > 0) {
-        uniqueExamNames.forEach(ename => {
-            let icon = '📝';
-            let lowerName = ename.toLowerCase();
-            if(lowerName.includes('ncert')) icon = '⭐';
-            else if(lowerName.includes('current') || lowerName.includes('gk')) icon = '🌍';
-            else if(lowerName.includes('mini') || lowerName.includes('speed')) icon = '⚡';
-            else if(lowerName.includes('memory')) icon = '📄';
-            else if(lowerName.includes('previous') || lowerName.includes('pyp')) icon = '📋';
-            else if(lowerName.includes('full')) icon = '✅';
-            else if(lowerName.includes('chapter') || lowerName.includes('topic')) icon = '📚';
-
-            examNameContainer.innerHTML += `<div class="exam-name-card" onclick="loadTestsForExamName('${ename}', this)"><div class="e-icon">${icon}</div><div class="e-title">${ename}</div></div>`;
-        });
-        document.getElementById('testListContainer').innerHTML = `<p style="text-align:center; color:#666; padding:20px;">Select a Test Type above to view tests.</p>`;
-    } else {
-        renderTestList(filteredTests, false);
-    }
-    
-    if(!fromUrl) {
-        let mainSlug = nav.mainCat.toLowerCase().replace(/\s+/g, '-');
-        let subSlug = subCat.toLowerCase().replace(/\s+/g, '-');
-        window.history.pushState({ screen: 'subCatScreen' }, '', `?category=${mainSlug}&subcat=${subSlug}`);
-    }
-}
-
-window.loadTestsForExamName = function(examName, cardElement) {
-    document.querySelectorAll('#examNamePills .exam-name-card').forEach(p => p.classList.remove('active'));
-    if(cardElement) cardElement.classList.add('active');
-
-    nav.examName = examName;
-    let normalizedMain = nav.mainCat.toLowerCase().replace("exams", "").trim();
-    let normalizedSub = nav.subCat.toLowerCase().trim();
-
-    const filteredTests = allTests.filter(t => t.mainCat && t.subCat && t.mainCat.toLowerCase().replace("exams", "").trim() === normalizedMain && t.subCat.toLowerCase().trim() === normalizedSub && t.examName === examName);
-    renderTestList(filteredTests, false);
-}
-
-function renderTestList(filtered, showExamBadge = false) {
-    let html = "";
-    if(filtered.length === 0) html = `<p style="text-align:center; color:#666; padding:20px;">No tests uploaded in this section yet. Please check back soon!</p>`;
-    else {
-        filtered.forEach(t => {
-            const lookupId = t.testId || t.id;
-            const currentlyLive = isLiveTestCurrentlyActive(t);
-            const isLocked = (String(t.isFree).trim().toLowerCase() !== "yes" && !currentStudent.isPaid);
-            
-            const rawPastRes = (isLoggedIn && userPastResults) ? (userPastResults[lookupId] || userPastResults[t.id]) : null;
-            const pastRes = (rawPastRes && String(rawPastRes.loginId).trim() === String(currentStudent.loginId).trim()) ? rawPastRes : null;
-            
-            const resumeKey = 'tg_resume_' + currentStudent.loginId + '_' + lookupId;
-            const inProgressData = !currentlyLive ? localStorage.getItem(resumeKey) : null;
-            
-            let btnHtml = "";
-            let examCategoryBadge = showExamBadge ? `<span style="background:#EEF2FF; color:#4F46E5; font-size:11px; font-weight:700; padding:2px 8px; border-radius:8px; margin-right:6px;">${t.mainCat} • ${t.subCat}</span>` : "";
-            let badgeTag = currentlyLive ? `<span style="background:#FEE2E2; color:#DC2626; font-size:11px; font-weight:700; padding:2px 8px; border-radius:10px; margin-left:6px;">🔴 LIVE NOW</span>` : (isLiveTestEnded(t) ? `<span style="background:#EEF2FF; color:#4F46E5; font-size:11px; font-weight:600; padding:2px 8px; border-radius:10px; margin-left:6px;">Archived Live Test</span>` : "");
-
-            if(isLocked) {
-                btnHtml = `<button class="btn" style="background:#F3F4F6; color:#6B7280; border:1px solid #E5E7EB;" onclick="openPaymentModal()">🔒 Unlock</button>`;
-            } else if (currentlyLive && pastRes) {
-                btnHtml = `<span style="font-size:12px; font-weight:600; color:#D97706;">⏳ Result releases at ${formatDateTimeReadable(t.liveEnd || t.liveReleaseTime)}</span>`;
-            } else {
-                if(inProgressData) {
-                    btnHtml = `<div style="display:flex; gap:10px;"><button class="btn btn-primary" onclick="showInstructions('${lookupId}', '${t.testName.replace(/'/g, "\\'")}', ${t.duration}, ${t.marks}, ${t.negativeMark || 0}, '${t.hasNegative}', '${t.language || 'Both'}', true, false, '', ${t.positiveMark || 1})">▶ Resume</button><button class="btn btn-outline" style="color:var(--danger); border-color:var(--danger);" onclick="clearResumeData('${lookupId}', '${t.examName}')">Clear</button></div>`;
-                } else {
-                    btnHtml = `<button class="btn btn-accent" onclick="showInstructions('${lookupId}', '${t.testName.replace(/'/g, "\\'")}', ${t.duration}, ${t.marks}, ${t.negativeMark || 0}, '${t.hasNegative}', '${t.language || 'Both'}', false, ${currentlyLive}, '${t.liveEnd || t.liveReleaseTime || ''}', ${t.positiveMark || 1})">${currentlyLive ? '🚀 Start Live Test' : 'Start Test'}</button>`;
-                }
-                
-                if(pastRes && !(pastRes.isLivePending && (!pastRes.liveEndTime || isNaN(new Date(pastRes.liveEndTime)) || new Date() <= new Date(pastRes.liveEndTime)))) {
-                    btnHtml += `<button class="btn" style="background:#4F46E5; color:white; margin-left:10px;" onclick="viewPastAnalysis('${lookupId}')">📊 Analysis</button>`;
-                }
-            }
-
-            let posMarkText = t.positiveMark || 1;
-            let negMarkText = t.hasNegative === "Yes" ? `-${t.negativeMark}` : "No Neg";
-
-            html += `<div class="test-item ${isLocked ? 'locked' : ''}">
-                <div>
-                    ${examCategoryBadge}
-                    <h3 style="color: var(--primary); margin-bottom: 5px; margin-top:4px; font-size:16px;">${t.testName} ${badgeTag}</h3>
-                    <p style="font-size: 13px; color: #666;">⏱️ ${t.duration} Mins | ${t.marks} Marks | +${posMarkText} / ${negMarkText} | Lang: ${t.language || 'Both'}</p>
-                </div>
-                <div style="display:flex; align-items:center;">${btnHtml}</div>
-            </div>`;
-        });
-    }
-    document.getElementById('testListContainer').innerHTML = html;
-}
-
-window.clearResumeData = function(testId, examName) {
-    if(confirm("Are you sure? Your progress will be lost.")) {
-        localStorage.removeItem('tg_resume_' + currentStudent.loginId + '_' + testId);
-        const activeCard = document.querySelector('.exam-name-card.active');
-        if (activeCard) loadTestsForExamName(nav.examName, activeCard);
-        else goDashboard();
-    }
-}
-
-window.goBackToSubCat = function() { history.back(); }
-
-let caStreak = 0, caCorrectCount = 0, caWrongCount = 0;
-
-window.showCurrentAffairs = function() {
-    document.getElementById('caLiveScoreCorrect').innerText = "0";
-    document.getElementById('caLiveScoreWrong').innerText = "0";
-    caCorrectCount = 0; caWrongCount = 0; caStreak = 0;
-    filterCA('Daily', document.querySelector('.ca-tab'));
-    showScreen('caScreen');
-}
-
-window.filterCA = function(type, btn) {
-    document.querySelectorAll('.ca-tab').forEach(b => b.classList.remove('active'));
-    if(btn) btn.classList.add('active');
-    
-    const container = document.getElementById('caContentContainer');
-    container.innerHTML = '';
-    
-    const filtered = allCA.filter(c => c.type.toLowerCase() === type.toLowerCase());
-    if(filtered.length === 0) { container.innerHTML = '<p style="text-align:center;">No current affairs available.</p>'; return; }
-
-    const grouped = {};
-    filtered.forEach(c => {
-        if(!grouped[c.title]) grouped[c.title] = { date: c.date, link: c.link, questions: [] };
-        grouped[c.title].questions.push(c);
-    });
-
-    for(let title in grouped) {
-        const article = grouped[title];
-        let articleHtml = `<div class="ca-article"><h3 style="color:var(--primary); margin-bottom:5px;">${title}</h3><p style="font-size:13px; color:#666; margin-bottom:10px;">📅 ${article.date}</p>`;
-        if(type === 'Daily' && article.link) articleHtml += `<a href="${article.link}" target="_blank" class="btn btn-outline" style="padding:6px 12px; font-size:12px;">📄 Read Full Article / PDF</a>`;
-        articleHtml += `</div>`;
-
-        let qHtml = '';
-        article.questions.forEach((q, idx) => {
-            qHtml += `<div class="ca-question" id="caQ_${q.id}"><p style="font-weight:600; margin-bottom:15px;">Q${idx+1}. ${q.question}</p><div class="ca-options">`;
-            q.options.forEach((opt, i) => { if(opt && opt.trim() !== "") qHtml += `<label class="ca-option" onclick="checkCAAnswer('${q.id}', ${i}, ${q.correctAnswer}, '${type}', '${(q.explanation || '').replace(/'/g, "\\'")}')">${String.fromCharCode(65+i)}) ${opt}</label>`; });
-            qHtml += `</div><div class="ca-explanation" id="caExp_${q.id}"><b>Explanation:</b> ${q.explanation || 'N/A'}</div></div>`;
-        });
-        container.innerHTML += articleHtml + qHtml;
-    }
-}
-
-window.checkCAAnswer = function(qId, selectedIndex, correctIndex, type, explanation) {
-    const qDiv = document.getElementById(`caQ_${qId}`);
-    if(qDiv.getAttribute('data-answered') === 'true') return;
-    qDiv.setAttribute('data-answered', 'true');
-
-    qDiv.querySelectorAll('.ca-option').forEach((opt, i) => {
-        opt.style.pointerEvents = 'none'; 
-        if(i === correctIndex) opt.classList.add('correct'); 
-        if(i === selectedIndex && i !== correctIndex) opt.classList.add('wrong'); 
-    });
-
-    if(type === 'Monthly' && explanation) document.getElementById(`caExp_${qId}`).style.display = 'block';
-
-    if(selectedIndex === correctIndex) {
-        caCorrectCount++; caStreak = caStreak > 0 ? caStreak + 1 : 1; 
-        if(caStreak >= 3) { showPopup('popupSuccess'); caStreak = 0; }
-    } else {
-        caWrongCount++; caStreak = caStreak < 0 ? caStreak - 1 : -1;
-        if(caStreak <= -3) { showPopup('popupWarning'); caStreak = 0; }
-    }
-    document.getElementById('caLiveScoreCorrect').innerText = caCorrectCount;
-    document.getElementById('caLiveScoreWrong').innerText = caWrongCount;
-}
-
-function showPopup(id) {
-    const popup = document.getElementById(id);
-    popup.classList.add('show');
-    setTimeout(() => { popup.classList.remove('show'); }, 3000);
-}
-
-function handleVisibilityChange() {
-    if (document.hidden && currentScreen === 'testScreen' && !isTestSubmitting && isCurrentTestLive) {
-        handleAntiCheatViolation("Tab switching or minimizing the browser window is strictly prohibited!");
-    }
-}
-
-function handleWindowBlur() {
-    // Disabled false-positive blur triggers on laptop/mobile fullscreen transition & dialogs
-}
-
-function updateFullScreenButtonLabel() {
-    const lbl = document.getElementById('fsBtnText');
-    if (lbl) lbl.innerText = document.fullscreenElement ? "Exit Full Screen" : "Full Screen";
-}
-
-function handleFullScreenChange() {
-    updateFullScreenButtonLabel();
-    if (!document.fullscreenElement && currentScreen === 'testScreen' && !isTestSubmitting && isCurrentTestLive) {
-        if (Date.now() - testStartTimestamp > 5000) {
-            handleAntiCheatViolation("You exited Full-Screen mode! Live Exam must be taken in Full-Screen.");
-        }
-    }
-}
-
-function handleContextMenu(e) {
-    if (currentScreen === 'testScreen') e.preventDefault();
-}
-
-function handleKeyDownAntiCheat(e) {
-    if (currentScreen !== 'testScreen') return;
-    if (e.key === 'PrintScreen' || (e.ctrlKey && ['c','v','u','s','p','a'].includes(e.key.toLowerCase())) || e.key === 'F12') {
-        e.preventDefault();
-        if (e.key === 'PrintScreen') {
-            document.body.style.filter = "blur(15px)";
-            setTimeout(() => { document.body.style.filter = "none"; }, 2000);
-            alert("⚠️ Screenshot shortcut detected! This attempt is watermarked with your ID.");
-        }
-    }
-}
-
-function handleBeforeUnload(e) {
-    if (currentScreen === 'testScreen' && !isTestSubmitting) {
-        e.preventDefault();
-        e.returnValue = '';
-    }
-}
-
-function enableAntiCheating() {
-    document.addEventListener("visibilitychange", handleVisibilityChange);
-    window.addEventListener("blur", handleWindowBlur);
-    document.addEventListener("fullscreenchange", handleFullScreenChange);
-    document.addEventListener("contextmenu", handleContextMenu);
-    document.addEventListener("keydown", handleKeyDownAntiCheat);
-    window.addEventListener("beforeunload", handleBeforeUnload);
-}
-
-function disableAntiCheating() {
-    document.removeEventListener("visibilitychange", handleVisibilityChange);
-    window.removeEventListener("blur", handleWindowBlur);
-    document.removeEventListener("fullscreenchange", handleFullScreenChange);
-    document.removeEventListener("contextmenu", handleContextMenu);
-    document.removeEventListener("keydown", handleKeyDownAntiCheat);
-    window.removeEventListener("beforeunload", handleBeforeUnload);
-}
-
-function handleAntiCheatViolation(reason) {
-    if (isTestSubmitting) return;
-    const now = Date.now();
-    if (now - testStartTimestamp < 4000) return;
-    if (now - lastWarningTimestamp < 3000) return;
-    lastWarningTimestamp = now;
-    tabSwitchWarnings++;
-    const badge = document.getElementById('warningCounterBadge');
-    if (badge) {
-        badge.classList.remove('hide');
-        badge.innerText = `Warnings: ${tabSwitchWarnings}/3`;
+  try {
+    const dupMob = await db.collection("students").where("mobile", "==", mobile).get();
+    if (!dupMob.empty) {
+      hideProcessing();
+      btn.disabled = false;
+      btn.textContent = "Complete Registration";
+      errEl.textContent = "This mobile number is already registered with another account.";
+      errEl.classList.remove("hidden");
+      return;
     }
 
-    if (tabSwitchWarnings >= 3) {
-        alert(`🚨 FINAL WARNING (3/3): ${reason}\n\nYour test is being auto-submitted immediately due to exam rule violations.`);
-        finalSubmitTest();
-    } else {
-        alert(`⚠️ EXAM WARNING (${tabSwitchWarnings}/3): ${reason}\n\nPlease stay on the test screen. On the 3rd warning, your test will be automatically submitted!`);
-        try {
-            if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(() => {});
-        } catch(e) {}
-    }
-}
-
-window.showInstructions = function(id, name, duration, marks, negMark, hasNeg, lang, isResume = false, isLive = false, liveEnd = "", posMark = 1) {
-    pendingTestDetails = { id, name, duration, marks, negMark, hasNeg, lang, isResume, isLive, liveEnd, posMark };
-    
-    document.getElementById('instTestName').innerText = name;
-    document.getElementById('instDuration').innerText = duration;
-    document.getElementById('instDuration2').innerText = duration;
-    document.getElementById('instMarks').innerText = marks;
-
-    const posEl = document.getElementById('instPosRule');
-    if (posEl) posEl.innerText = `You will be awarded +${posMark} mark(s) for each correct answer.`;
-    
-    if(hasNeg === "Yes") {
-        document.getElementById('instNegRule').innerText = `There is negative marking: ${negMark} mark(s) will be deducted for each wrong answer.`;
-        document.getElementById('instNegRule').style.color = "var(--danger)";
-    } else {
-        document.getElementById('instNegRule').innerText = "There is NO negative marking for wrong answers.";
-        document.getElementById('instNegRule').style.color = "var(--accent)";
-    }
-
-    const liveBadge = document.getElementById('instLiveBadge');
-    const acBox = document.getElementById('instAntiCheatBox');
-    if (isLive) {
-        liveBadge.classList.remove('hide');
-        acBox.classList.remove('hide');
-        document.getElementById('instLiveEndTime').innerText = formatDateTimeReadable(liveEnd);
-    } else {
-        liveBadge.classList.add('hide');
-        acBox.classList.add('hide');
-    }
-
-    if(lang === "Both") document.getElementById('langSelectBox').classList.remove('hide');
-    else document.getElementById('langSelectBox').classList.add('hide');
-    
-    document.getElementById('instCheckbox').checked = false;
-    document.getElementById('btnStartActualTest').disabled = true;
-    document.getElementById('btnStartActualTest').style.opacity = '0.5';
-    document.getElementById('btnStartActualTest').style.cursor = 'not-allowed';
-
-    showScreen('instructionsScreen');
-}
-
-window.toggleStartButton = function() {
-    const isChecked = document.getElementById('instCheckbox').checked;
-    const btn = document.getElementById('btnStartActualTest');
-    btn.disabled = !isChecked;
-    btn.style.opacity = isChecked ? '1' : '0.5';
-    btn.style.cursor = isChecked ? 'pointer' : 'not-allowed';
-}
-
-window.startActualTest = function() {
-    let selectedLang = pendingTestDetails.lang;
-    if(selectedLang === "Both") selectedLang = document.getElementById('instLangSelect').value;
-    
-    try {
-        if (!document.fullscreenElement) document.documentElement.requestFullscreen().then(updateFullScreenButtonLabel).catch(() => {});
-    } catch(e) {}
-
-    initTest(
-        pendingTestDetails.id, 
-        pendingTestDetails.name, 
-        pendingTestDetails.duration, 
-        pendingTestDetails.marks, 
-        pendingTestDetails.negMark, 
-        pendingTestDetails.hasNeg, 
-        selectedLang, 
-        pendingTestDetails.isResume,
-        pendingTestDetails.isLive,
-        pendingTestDetails.liveEnd,
-        pendingTestDetails.posMark
-    );
-}
-
-async function initTest(testId, testName, duration, marks, negMark, hasNeg, lang, isResume, isLive = false, liveEnd = "", posMark = 1) {
-    isTestSubmitting = false;
-    tabSwitchWarnings = 0;
-    testStartTimestamp = Date.now();
-    lastWarningTimestamp = 0;
-    isCurrentTestLive = isLive;
-    currentLiveEndTime = liveEnd;
-
-    showScreen('testScreen');
-    
-    currentTestId = testId; 
-    currentTestName = testName; 
-    currentTestMarks = marks; 
-    currentTestPosMark = Number(posMark) || 1;
-    currentTestNegMark = hasNeg === "Yes" ? Number(negMark) : 0;
-    currentTestLanguage = lang || "Both";
-    const switcher = document.getElementById('liveTestLangSwitcher');
-    if (switcher) switcher.value = currentTestLanguage;
-
-    const wm = document.getElementById('antiCheatWatermark');
-    if (wm) wm.innerText = `${currentStudent.name} | ${currentStudent.loginId} | ${currentStudent.email || currentStudent.mobile}`;
-
-    const liveTag = document.getElementById('testLiveTag');
-    const warnBadge = document.getElementById('warningCounterBadge');
-    if (isLive) {
-        liveTag.classList.remove('hide');
-        warnBadge.classList.remove('hide');
-        warnBadge.innerText = "Warnings: 0/3";
-    } else {
-        liveTag.classList.add('hide');
-        warnBadge.classList.add('hide');
-    }
-
-    document.getElementById('examHeaderName').innerText = testName;
-    document.getElementById('paletteName').innerText = currentStudent.name;
-    document.getElementById('paletteId').innerText = currentStudent.loginId;
-    document.getElementById('paletteAvatar').innerText = currentStudent.name.charAt(0).toUpperCase();
-    document.getElementById('questionText').innerText = "Loading Questions...";
-    
-    try {
-        const q = query(collection(db, "questions"), where("testId", "==", testId));
-        const qSnap = await getDocs(q);
-        
-        if(!qSnap.empty) {
-            const resumeKey = 'tg_resume_' + currentStudent.loginId + '_' + testId;
-            let resumeData = !isLive ? localStorage.getItem(resumeKey) : null;
-            if(isResume && resumeData) {
-                let parsed = JSON.parse(resumeData);
-                testQuestions = parsed.testQuestions; userAnswers = parsed.userAnswers; markedForReview = parsed.markedForReview; visitedQuestions = parsed.visitedQuestions; timeLeft = parsed.timeLeft; currentQIndex = parsed.currentQIndex; totalTime = duration * 60;
-            } else {
-                let rawQuestions = qSnap.docs.map(d => d.data());
-                rawQuestions.sort(() => Math.random() - 0.5);
-
-                testQuestions = rawQuestions.map(qData => {
-                    let optsArray = [], hOpts = qData.optionsHindi || qData.options || [], eOpts = qData.optionsEnglish || [];
-                    for(let i=0; i<hOpts.length; i++) optsArray.push({ h: hOpts[i], e: eOpts[i] || "" });
-                    
-                    let correctObj = { h: hOpts[qData.correctAnswer], e: eOpts[qData.correctAnswer] || "" };
-                    optsArray.sort(() => Math.random() - 0.5);
-                    let newAnsIndex = optsArray.findIndex(o => o.h === correctObj.h && o.e === correctObj.e);
-                    
-                    let qPos = (qData.questionMarks !== undefined && Number(qData.questionMarks) > 0) ? Number(qData.questionMarks) : currentTestPosMark;
-                    let qNeg = (qData.questionNeg !== undefined && Number(qData.questionNeg) > 0) ? Number(qData.questionNeg) : currentTestNegMark;
-
-                    const autoUid = qData.uniqueId || `${testId}-Q${String(Math.floor(100 + Math.random()*900))}`;
-                    return { 
-                        qH: qData.questionHindi || qData.question || "", 
-                        qE: qData.questionEnglish || "", 
-                        uniqueId: autoUid, 
-                        opts: optsArray, 
-                        ans: newAnsIndex, 
-                        exp: qData.explanation || "No explanation provided.", 
-                        marks: qPos, 
-                        neg: qNeg 
-                    };
-                });
-
-                totalTime = duration * 60; timeLeft = totalTime; currentQIndex = 0; userAnswers = {}; markedForReview = {}; visitedQuestions = {};
-            }
-            
-            const container = document.getElementById('paletteContainer'); container.innerHTML = '';
-            testQuestions.forEach((_, i) => {
-                const btn = document.createElement('button'); btn.className = 'pallet-btn'; btn.innerText = i + 1;
-                btn.onclick = () => { currentQIndex = i; loadQuestion(); }; container.appendChild(btn);
-            });
-
-            loadQuestion(); startTimer();
-        } else { 
-            isTestSubmitting = true;
-            disableAntiCheating();
-            if (document.fullscreenElement) { try { document.exitFullscreen().catch(() => {}); } catch(e) {} }
-            alert("⚠️ No questions found for Test ID: " + testId + ". Please check Test ID in Admin Panel."); 
-            goDashboard(); 
-            return;
-        }
-    } catch (e) { 
-        console.error(e); 
-        isTestSubmitting = true;
-        disableAntiCheating();
-        if (document.fullscreenElement) { try { document.exitFullscreen().catch(() => {}); } catch(e) {} }
-        alert("Failed to load test: " + e.message); 
-        goDashboard(); 
-    }
-}
-
-let saveProgressTimer = null;
-function saveProgress() {
-    if (!isCurrentTestLive && isLoggedIn && currentStudent.loginId) {
-        clearTimeout(saveProgressTimer);
-        saveProgressTimer = setTimeout(() => {
-            const resumeKey = 'tg_resume_' + currentStudent.loginId + '_' + currentTestId;
-            try {
-                localStorage.setItem(resumeKey, JSON.stringify({ testQuestions, userAnswers, markedForReview, visitedQuestions, timeLeft, currentQIndex }));
-            } catch (e) {}
-        }, 400);
-    }
-}
-
-function startTimer() {
-    clearInterval(timerInterval); const timerEl = document.getElementById('timerDisplay'); timerEl.classList.remove('timer-danger');
-    timerInterval = setInterval(() => {
-        timeLeft--; if(timeLeft % 5 === 0) saveProgress();
-        let h = Math.floor(timeLeft / 3600), m = Math.floor((timeLeft % 3600) / 60), s = timeLeft % 60;
-        timerEl.innerText = `${h>0?h+':':''}${m < 10 ? '0'+m : m}:${s < 10 ? '0'+s : s}`;
-        if(timeLeft <= (totalTime * 0.2) && timeLeft > 0) timerEl.classList.add('timer-danger');
-        if(timeLeft <= 0) { clearInterval(timerInterval); finalSubmitTest(); }
-    }, 1000);
-}
-
-function loadQuestion() {
-    const q = testQuestions[currentQIndex]; visitedQuestions[currentQIndex] = true;
-    const scrollBox = document.getElementById('cbtQuestionScrollBox');
-    if (scrollBox) scrollBox.scrollTop = 0;
-    document.getElementById('currentQNum').innerText = currentQIndex + 1;
-    
-    document.getElementById('markPositive').innerText = q.marks || currentTestPosMark;
-    if (q.neg > 0) {
-        document.getElementById('negBadge').style.display = 'inline-block';
-        document.getElementById('markNegative').innerText = q.neg;
-    } else {
-        document.getElementById('negBadge').style.display = 'none';
-    }
-
-    document.getElementById('questionUniqueId').innerText = "Q-ID: " + (q.uniqueId || "N/A");
-    
-    let qHtml = "";
-    if(currentTestLanguage === "Hindi") qHtml = `<div>${q.qH || q.qE}</div>`;
-    else if(currentTestLanguage === "English") qHtml = `<div>${q.qE || q.qH}</div>`;
-    else {
-        qHtml = `<div>${q.qH || ''}</div>` + (q.qE && q.qE !== q.qH ? `<div class="q-lang-en" style="margin-top:8px; color:#334155; font-size:15px;">${q.qE}</div>` : '');
-    }
-    document.getElementById('questionText').innerHTML = qHtml;
-
-    const optContainer = document.getElementById('optionsContainer'); optContainer.innerHTML = '';
-    q.opts.forEach((opt, i) => {
-        let labelHtml = "";
-        if(currentTestLanguage === "Hindi") labelHtml = opt.h || opt.e;
-        else if(currentTestLanguage === "English") labelHtml = opt.e || opt.h;
-        else {
-            labelHtml = (opt.h && opt.e && opt.h !== opt.e) ? `${opt.h} <span class="opt-en" style="color:#475569; font-size:13.5px;">(${opt.e})</span>` : (opt.h || opt.e);
-        }
-
-        if(labelHtml && labelHtml.trim() !== "") {
-            const isSel = userAnswers[currentQIndex] === i;
-            const label = document.createElement('label');
-            label.className = 'cbt-option-card' + (isSel ? ' selected-opt' : '');
-            label.innerHTML = `<input type="radio" name="option" value="${i}" ${isSel ? 'checked' : ''}> <div style="flex:1; font-size:15px;">${labelHtml}</div>`;
-            label.querySelector('input').onchange = () => {
-                userAnswers[currentQIndex] = i;
-                optContainer.querySelectorAll('.cbt-option-card').forEach(c => c.classList.remove('selected-opt'));
-                label.classList.add('selected-opt');
-                saveProgress();
-                updatePalette();
-            };
-            optContainer.appendChild(label);
-        }
-    });
-
-    const markBtn = document.getElementById('markBtn');
-    if(markedForReview[currentQIndex]) { markBtn.classList.add('marked'); markBtn.innerText = "❌ Remove Mark"; }
-    else { markBtn.classList.remove('marked'); markBtn.innerText = "⭐ Mark for Review & Next"; }
-
-    document.getElementById('btnPrev').disabled = (currentQIndex === 0);
-    document.getElementById('btnPrev').style.opacity = (currentQIndex === 0) ? '0.5' : '1';
-    document.getElementById('btnNext').innerText = currentQIndex === testQuestions.length - 1 ? "Save & Review" : "Save & Next →";
-    updatePalette();
-}
-
-function updatePalette() {
-    const buttons = document.getElementById('paletteContainer').children;
-    let cAns = 0, cNotAns = 0, cNotVis = 0, cMarked = 0;
-    for (let i = 0; i < testQuestions.length; i++) {
-        buttons[i].className = 'pallet-btn';
-        if (userAnswers[i] !== undefined && markedForReview[i]) { buttons[i].classList.add('answered-marked'); cMarked++; cAns++; }
-        else if (markedForReview[i]) { buttons[i].classList.add('marked'); cMarked++; }
-        else if (userAnswers[i] !== undefined) { buttons[i].classList.add('answered'); cAns++; }
-        else if (visitedQuestions[i]) { buttons[i].classList.add('not-answered'); cNotAns++; }
-        else { cNotVis++; }
-        if (i === currentQIndex) buttons[i].classList.add('active');
-    }
-    if (document.getElementById('legAnswered')) document.getElementById('legAnswered').innerText = cAns;
-    if (document.getElementById('legNotAnswered')) document.getElementById('legNotAnswered').innerText = cNotAns;
-    if (document.getElementById('legNotVisited')) document.getElementById('legNotVisited').innerText = cNotVis;
-    if (document.getElementById('legMarked')) document.getElementById('legMarked').innerText = cMarked;
-}
-
-window.toggleCbtSidebar = function() {
-    const sb = document.getElementById('cbtRightSidebar');
-    const arrow = document.getElementById('cbtSidebarArrow');
-    const btnText = document.getElementById('paletteBtnText');
-    const topBtn = document.getElementById('btnTogglePaletteTop');
-    if (!sb) return;
-    if (window.innerWidth <= 820) {
-        sb.classList.toggle('mobile-drawer-open');
-        const isOpen = sb.classList.contains('mobile-drawer-open');
-        if (btnText) btnText.innerText = isOpen ? 'Hide Palette' : 'Show Palette';
-    } else {
-        sb.classList.toggle('hidden-sidebar');
-        const isHidden = sb.classList.contains('hidden-sidebar');
-        if (arrow) arrow.textContent = isHidden ? '‹' : '›';
-        if (btnText) btnText.innerText = isHidden ? 'Show Palette' : 'Hide Palette';
-        if (topBtn) topBtn.classList.toggle('active-pill', !isHidden);
-    }
-};
-
-window.switchTestLanguageLive = function(newLang) {
-    currentTestLanguage = newLang;
-    loadQuestion();
-};
-
-let repScreenshotBase64 = "";
-
-window.reportCurrentQuestion = function() {
-    const q = testQuestions[currentQIndex];
-    if (!q) return;
-    repScreenshotBase64 = "";
-    if (document.getElementById('repModalQId')) document.getElementById('repModalQId').innerText = `${q.uniqueId} (Test: ${currentTestId})`;
-    if (document.getElementById('repWrongDesc')) document.getElementById('repWrongDesc').value = "";
-    if (document.getElementById('repCorrectSuggestion')) document.getElementById('repCorrectSuggestion').value = "";
-    if (document.getElementById('repScreenshotFile')) document.getElementById('repScreenshotFile').value = "";
-    if (document.getElementById('repScreenshotUrl')) document.getElementById('repScreenshotUrl').value = "";
-    if (document.getElementById('repScreenshotPreviewBox')) document.getElementById('repScreenshotPreviewBox').classList.add('hide');
-    const modal = document.getElementById('reportQuestionModal');
-    if (modal) modal.classList.remove('hide');
-};
-
-window.closeReportQuestionModal = function() {
-    const modal = document.getElementById('reportQuestionModal');
-    if (modal) modal.classList.add('hide');
-};
-
-window.handleReportScreenshotSelect = function(input) {
-    const file = input.files && input.files[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = function(e) {
-        const img = new Image();
-        img.onload = function() {
-            const canvas = document.createElement('canvas');
-            const maxW = 720;
-            const scale = img.width > maxW ? (maxW / img.width) : 1;
-            canvas.width = img.width * scale;
-            canvas.height = img.height * scale;
-            const ctx = canvas.getContext('2d');
-            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-            repScreenshotBase64 = canvas.toDataURL('image/jpeg', 0.65);
-            const prevImg = document.getElementById('repScreenshotPreviewImg');
-            const prevBox = document.getElementById('repScreenshotPreviewBox');
-            if (prevImg) prevImg.src = repScreenshotBase64;
-            if (prevBox) prevBox.classList.remove('hide');
-        };
-        img.src = e.target.result;
-    };
-    reader.readAsDataURL(file);
-};
-
-window.submitStructuredQuestionReport = async function() {
-    const q = testQuestions[currentQIndex];
-    if (!q) return;
-    const issueType = document.getElementById('repIssueType').value;
-    const wrongDesc = document.getElementById('repWrongDesc').value.trim();
-    const correctSugg = document.getElementById('repCorrectSuggestion').value.trim();
-    const imgUrl = document.getElementById('repScreenshotUrl').value.trim();
-
-    if (!wrongDesc && !correctSugg) {
-        alert("Kripya batayein ki kya galti hai ya sahi jawab kya hoga!");
-        return;
-    }
-
-    const btn = document.getElementById('btnSubmitReportQ');
-    if (btn) { btn.disabled = true; btn.innerText = "Sending Report..."; }
-
-    const reportPayload = {
-        testId: currentTestId,
-        testName: currentTestName,
-        uniqueId: q.uniqueId,
-        questionHindi: q.qH || "",
-        questionEnglish: q.qE || "",
-        issueType: issueType,
-        issue: wrongDesc,
-        suggestedCorrection: correctSugg,
-        screenshotData: repScreenshotBase64 || imgUrl || "",
-        status: "Pending",
-        reportedBy: `${currentStudent.name || 'Student'} (${currentStudent.loginId || 'N/A'})`,
-        reporterEmail: currentStudent.email || "",
-        timestamp: new Date().toISOString()
+    const studentId = "TG" + Math.floor(100000 + Math.random() * 900000);
+    const studentDoc = {
+      studentId,
+      name,
+      email,
+      mobile,
+      targetExam,
+      cityState,
+      password,
+      passPlan: "Free",
+      passExpiry: null,
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
     };
 
-    try {
-        await addDoc(collection(db, "reported_questions"), reportPayload);
+    await db.collection("students").doc(studentId).set(studentDoc);
 
-        // Send Instant Notification Email to Admin via Google Apps Script
-        callEmailService({
-            action: "report_question",
-            uniqueId: q.uniqueId,
-            testId: currentTestId,
-            testName: currentTestName,
-            questionHindi: q.qH || "",
-            questionEnglish: q.qE || "",
-            issueType: issueType,
-            issue: wrongDesc,
-            suggestedCorrection: correctSugg,
-            screenshotUrl: imgUrl || (repScreenshotBase64 ? "[Screenshot Attached in Admin Panel]" : "No Screenshot"),
-            reportedBy: reportPayload.reportedBy,
-            reporterEmail: reportPayload.reporterEmail
-        });
+    fetch(APPS_SCRIPT_URL, {
+      method: "POST",
+      body: JSON.stringify({
+        action: "welcome",
+        email,
+        name,
+        studentId,
+        mobile,
+        password
+      })
+    }).catch(() => {});
 
-        closeReportQuestionModal();
-        alert(`✅ Report Sent! Question ID (${q.uniqueId}) ki jankari Admin ko email aur dashboard par bhej di gayi hai.`);
-    } catch (e) {
-        alert("Error submitting report: " + e.message);
-    } finally {
-        if (btn) { btn.disabled = false; btn.innerText = "🚀 Send Report to Admin"; }
-    }
-};
-
-window.nextQuestion = function() { saveProgress(); if (currentQIndex < testQuestions.length - 1) { currentQIndex++; loadQuestion(); } else showSubmitModal(); }
-window.prevQuestion = function() { saveProgress(); if (currentQIndex > 0) { currentQIndex--; loadQuestion(); } }
-window.toggleMark = function() { markedForReview[currentQIndex] = !markedForReview[currentQIndex]; saveProgress(); loadQuestion(); }
-window.clearResponse = function() { delete userAnswers[currentQIndex]; saveProgress(); loadQuestion(); }
-window.toggleFullScreen = function() {
-    if (!document.fullscreenElement) {
-        document.documentElement.requestFullscreen().then(updateFullScreenButtonLabel).catch(() => {});
-    } else if (document.exitFullscreen) {
-        document.exitFullscreen().then(updateFullScreenButtonLabel).catch(() => {});
-    }
-};
-
-window.showSubmitModal = function() {
-    let answered = 0, notAnswered = 0, marked = 0, notVisited = 0;
-    testQuestions.forEach((_, i) => {
-        if(!visitedQuestions[i]) notVisited++;
-        else if(userAnswers[i] !== undefined) answered++;
-        else notAnswered++;
-        if(markedForReview[i]) marked++;
-    });
-
-    document.getElementById('smTotal').innerText = testQuestions.length;
-    document.getElementById('smAnswered').innerText = answered;
-    document.getElementById('smNotAnswered').innerText = notAnswered;
-    document.getElementById('smMarked').innerText = marked;
-    document.getElementById('smNotVisited').innerText = notVisited;
-    document.getElementById('submitModal').classList.remove('hide');
+    currentStudent = studentDoc;
+    localStorage.setItem("tg_student_session", JSON.stringify(currentStudent));
+    updateHeaderAuthUI();
+    hideProcessing();
+    navigateTo("dashboard");
+  } catch (err) {
+    hideProcessing();
+    btn.disabled = false;
+    btn.textContent = "Complete Registration";
+    errEl.textContent = "Registration failed: " + err.message;
+    errEl.classList.remove("hidden");
+  }
 }
 
-window.closeSubmitModal = function() { document.getElementById('submitModal').classList.add('hide'); }
+// ----------------------------------------------------------------------------
+// 2. Strict Candidate Login (Inline Error, No False Login, Processing State)
+// ----------------------------------------------------------------------------
+async function handleCandidateLogin() {
+  const identifier = document.getElementById("loginIdentifier").value.trim();
+  const password = document.getElementById("loginPassword").value;
+  const errEl = document.getElementById("loginInlineError");
+  const btn = document.getElementById("btnCandidateLogin");
 
-window.finalSubmitTest = async function() {
-    if (isTestSubmitting && currentScreen !== 'testScreen') return;
-    isTestSubmitting = true;
-    closeSubmitModal(); 
-    clearInterval(timerInterval); 
-    if (isLoggedIn && currentStudent.loginId) {
-        localStorage.removeItem('tg_resume_' + currentStudent.loginId + '_' + currentTestId); 
-    }
+  errEl.classList.add("hidden");
+  errEl.textContent = "";
 
-    if (document.fullscreenElement) {
-        try { document.exitFullscreen().catch(() => {}); } catch(e) {}
-    }
-    
-    let score = 0, correctCount = 0, wrongCount = 0, skippedCount = 0, negDeducted = 0;
-    testQuestions.forEach((q, i) => {
-        const qPos = Number(q.marks) || currentTestPosMark;
-        const qNeg = Number(q.neg) || 0;
-        if(userAnswers[i] === q.ans) { 
-            correctCount++; 
-            score += qPos; 
-        } else if(userAnswers[i] !== undefined) { 
-            wrongCount++; 
-            negDeducted += qNeg; 
-        } else {
-            skippedCount++;
-        }
-    });
-    score = score - negDeducted;
-    let percent = (score / currentTestMarks) * 100; if(percent < 0) percent = 0;
-    const percentStr = percent.toFixed(1);
+  if (!identifier || !password) {
+    errEl.textContent = "Please enter both Email/Student ID and Password.";
+    errEl.classList.remove("hidden");
+    return;
+  }
 
-    const nowIso = new Date().toISOString();
-    // Clean questions array so Firestore never rejects undefined fields
-    const cleanQuestionsState = testQuestions.map(q => ({
-        qH: q.qH || "",
-        qE: q.qE || "",
-        uniqueId: q.uniqueId || "",
-        opts: (q.opts || []).map(o => ({ h: o.h || "", e: o.e || "" })),
-        ans: Number(q.ans ?? 0),
-        exp: q.exp || "",
-        marks: Number(q.marks || 1),
-        neg: Number(q.neg || 0)
-    }));
+  btn.disabled = true;
+  btn.textContent = "Logging in... Processing";
+  showProcessing("Verifying credentials...", "Signing in to your TaiyariGhar dashboard");
 
-    const resultPayload = {
-        timestamp: nowIso, 
-        loginId: String(currentStudent.loginId || "").trim(), 
-        studentName: currentStudent.name || "Student",
-        studentEmail: currentStudent.email || "",
-        testId: currentTestId, 
-        testName: currentTestName, 
-        correctCount, 
-        wrongCount, 
-        negDeducted: negDeducted.toFixed(2), 
-        finalScore: score.toFixed(2), 
-        totalMarks: currentTestMarks, 
-        percent: percentStr, 
-        isLivePending: Boolean(isCurrentTestLive),
-        liveEndTime: currentLiveEndTime || "",
-        emailResultSent: false,
-        userAnswers: { ...userAnswers }, 
-        testQuestionsState: cleanQuestionsState
-    };
-
-    // Update local cache immediately so UI never freezes waiting for full DB reload
-    userPastResults[currentTestId] = resultPayload;
-
-    // 1. Show Result / Live Submitted Screen IMMEDIATELY (0ms delay)
-    if (isCurrentTestLive) {
-        showScreen('liveSubmittedScreen');
-        document.getElementById('liveReleaseTimeDisplay').innerText = formatDateTimeReadable(currentLiveEndTime);
-        document.getElementById('liveUserEmailDisplay').innerText = currentStudent.email || "your registered email";
+  try {
+    let snap = null;
+    if (identifier.includes("@")) {
+      snap = await db.collection("students").where("email", "==", identifier.toLowerCase()).limit(1).get();
     } else {
-        showScreen('resultScreen');
-        document.getElementById('resTestName').innerText = currentTestName;
-        document.getElementById('finalScore').innerText = score.toFixed(2); 
-        document.getElementById('totalScore').innerText = currentTestMarks;
-        document.getElementById('statCorrect').innerText = correctCount;
-        document.getElementById('statWrong').innerText = wrongCount;
-        document.getElementById('statSkipped').innerText = skippedCount;
-        document.getElementById('statNeg').innerText = negDeducted.toFixed(2);
-        document.getElementById('scoreCircle').style.background = `conic-gradient(var(--accent) ${percent}%, #E5E7EB ${percent}%)`;
-        document.getElementById('rankText').innerText = "Saving & Calculating Rank...";
-        currentResultData = { score: score.toFixed(2), total: currentTestMarks, rank: 1, totalStudents: 1, correct: correctCount, wrong: wrongCount, neg: negDeducted.toFixed(2), percent: percentStr };
+      snap = await db.collection("students").where("studentId", "==", identifier.toUpperCase()).limit(1).get();
     }
 
-    // 2. Save to Firestore in background and update Rank once saved
-    try {
-        await addDoc(collection(db, "results"), resultPayload);
-        if (!isCurrentTestLive) {
-            const rankSnap = await getDocs(query(collection(db, "results"), where("testId", "==", currentTestId)));
-            let allResults = rankSnap.docs.map(d => d.data()).sort((a, b) => parseFloat(b.finalScore) - parseFloat(a.finalScore));
-            let userRank = 1;
-            allResults.forEach((r, index) => { if(r.loginId === currentStudent.loginId && r.finalScore === score.toFixed(2)) userRank = index + 1; });
-            const rankEl = document.getElementById('rankText');
-            if (rankEl) rankEl.innerText = `Your Rank: ${userRank} out of ${allResults.length} students`;
-            currentResultData = { score: score.toFixed(2), total: currentTestMarks, rank: userRank, totalStudents: allResults.length, correct: correctCount, wrong: wrongCount, neg: negDeducted.toFixed(2), percent: percentStr };
-        }
-    } catch(e) {
-        console.error("Background result save error:", e);
+    if (!snap || snap.empty) {
+      hideProcessing();
+      btn.disabled = false;
+      btn.textContent = "Login to Dashboard";
+      errEl.textContent = "Account not found. Check your Email/Student ID or register free.";
+      errEl.classList.remove("hidden");
+      return;
     }
+
+    const userData = snap.docs[0].data();
+    // Strict exact match check
+    if (String(userData.password) !== String(password)) {
+      hideProcessing();
+      btn.disabled = false;
+      btn.textContent = "Login to Dashboard";
+      errEl.textContent = "Wrong password. Please enter the correct password.";
+      errEl.classList.remove("hidden");
+      return;
+    }
+
+    // Verified login
+    currentStudent = userData;
+    localStorage.setItem("tg_student_session", JSON.stringify(currentStudent));
+    await loadStudentPracticeProgress();
+    updateHeaderAuthUI();
+    hideProcessing();
+    btn.disabled = false;
+    btn.textContent = "Login to Dashboard";
+    navigateTo("dashboard");
+  } catch (err) {
+    hideProcessing();
+    btn.disabled = false;
+    btn.textContent = "Login to Dashboard";
+    errEl.textContent = "Login error: " + err.message;
+    errEl.classList.remove("hidden");
+  }
 }
 
-window.viewSolutions = function() {
-    const container = document.getElementById('solutionsContainer');
-    let html = "";
-    testQuestions.forEach((q, i) => {
-        let uAns = userAnswers[i];
-        let isCorrect = (uAns === q.ans);
-        let qHtml = "";
-        if(currentTestLanguage === "Hindi") qHtml = `<div>${q.qH}</div>`;
-        else if(currentTestLanguage === "English") qHtml = `<div>${q.qE}</div>`;
-        else qHtml = `<div>${q.qH}</div><div style="color:#6B7280; font-size:14px; margin-top:5px;">${q.qE}</div>`;
+function toggleForgotPassword(show) {
+  document.getElementById("loginPasswordForm").classList.toggle("hidden", show);
+  document.getElementById("forgotPasswordBox").classList.toggle("hidden", !show);
+}
 
-        html += `<div style="background: white; padding: 25px; border-radius: 12px; margin-bottom: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); border-left: 5px solid ${isCorrect ? 'var(--accent)' : (uAns !== undefined ? 'var(--danger)' : 'var(--grey)')};"><div style="font-size: 12px; color: #6B7280; margin-bottom: 5px;">Q-ID: ${q.uniqueId} | Marks: +${q.marks} / -${q.neg}</div><div style="font-weight: 600; font-size: 16px; margin-bottom: 15px;">Q${i+1}. ${qHtml}</div>`;
-        
-        q.opts.forEach((opt, j) => {
-            let labelHtml = currentTestLanguage === "Hindi" ? opt.h : (currentTestLanguage === "English" ? opt.e : `${opt.h} <span style="font-size:12px; color:#6B7280;">(${opt.e})</span>`);
-            let isUser = (uAns === j), isRight = (q.ans === j);
-            let bgColor = "#F9FAFB", borderColor = "transparent", textColor = "#374151";
-            if(isRight) { bgColor = "#D1FAE5"; borderColor = "var(--accent)"; textColor = "#065F46"; }
-            else if(isUser && !isRight) { bgColor = "#FEE2E2"; borderColor = "var(--danger)"; textColor = "#991B1B"; }
-            html += `<div style="padding: 12px; border-radius: 8px; background: ${bgColor}; border: 1px solid ${borderColor}; color: ${textColor}; margin-bottom: 8px; font-size: 14px;">${String.fromCharCode(65+j)}) ${labelHtml} ${isRight ? '✅' : ''} ${isUser && !isRight ? '❌' : ''}</div>`;
-        });
-        
-        if(uAns === undefined) html += `<div style="color: var(--danger); font-size: 13px; font-weight:600; margin-top:10px;">You did not attempt this question.</div>`;
-        if(q.exp) html += `<div style="background: #EFF6FF; padding: 15px; border-radius: 8px; color: #1E3A8A; font-size: 14px; margin-top: 15px; border-left: 4px solid #3B82F6;"><b>Explanation:</b> ${q.exp}</div>`;
-        html += `</div>`;
+async function sendForgotOtp() {
+  const email = document.getElementById("fpEmail").value.trim().toLowerCase();
+  const msg = document.getElementById("fpMsg");
+  const btn = document.getElementById("btnSendFpOtp");
+  msg.classList.add("hidden");
+
+  if (!email) {
+    msg.className = "inline-error-text"; msg.textContent = "Enter your registered email."; msg.classList.remove("hidden"); return;
+  }
+
+  btn.disabled = true; btn.textContent = "Checking...";
+  try {
+    const snap = await db.collection("students").where("email", "==", email).limit(1).get();
+    if (snap.empty) {
+      btn.disabled = false; btn.textContent = "Send OTP";
+      msg.className = "inline-error-text"; msg.textContent = "No account registered with this email."; msg.classList.remove("hidden"); return;
+    }
+    fpOtpCode = String(Math.floor(100000 + Math.random() * 900000));
+    startButtonCooldown("btnSendFpOtp", "Send OTP");
+
+    await fetch(APPS_SCRIPT_URL, {
+      method: "POST",
+      body: JSON.stringify({ action: "send_otp", email, otp: fpOtpCode, purpose: "Password Reset" })
     });
-    container.innerHTML = html;
-    showScreen('solutionsScreen');
+    document.getElementById("fpResetFields").classList.remove("hidden");
+    msg.className = "inline-ok-text"; msg.textContent = "6-digit OTP sent to your Email Inbox."; msg.classList.remove("hidden");
+  } catch (e) {
+    btn.disabled = false; btn.textContent = "Send OTP";
+    msg.className = "inline-error-text"; msg.textContent = e.message; msg.classList.remove("hidden");
+  }
 }
 
-window.viewPastAnalysis = async function(testId) {
-    let res = userPastResults[testId];
-    if(!res) return alert("Result not found!");
+async function completePasswordReset() {
+  const email = document.getElementById("fpEmail").value.trim().toLowerCase();
+  const otp = document.getElementById("fpOtp").value.trim();
+  const newPass = document.getElementById("fpNewPass").value;
+  const msg = document.getElementById("fpMsg");
 
-    if (res.isLivePending && (!res.liveEndTime || isNaN(new Date(res.liveEndTime)) || new Date() <= new Date(res.liveEndTime))) {
-        return alert(`⏳ Live Test results are locked until ${formatDateTimeReadable(res.liveEndTime)}.`);
-    }
-    
-    testQuestions = res.testQuestionsState || []; userAnswers = res.userAnswers || {}; currentTestLanguage = "Both"; currentTestName = res.testName;
-    showScreen('resultScreen');
-    
-    document.getElementById('resTestName').innerText = res.testName;
-    document.getElementById('finalScore').innerText = res.finalScore; 
-    document.getElementById('totalScore').innerText = res.totalMarks;
-    document.getElementById('statCorrect').innerText = res.correctCount;
-    document.getElementById('statWrong').innerText = res.wrongCount;
-    let skipped = (testQuestions.length || res.totalMarks) - res.correctCount - res.wrongCount;
-    document.getElementById('statSkipped').innerText = skipped > 0 ? skipped : 0;
-    document.getElementById('statNeg').innerText = res.negDeducted;
-    
-    let percent = parseFloat(res.percent); if(percent < 0) percent = 0;
-    document.getElementById('scoreCircle').style.background = `conic-gradient(var(--accent) ${percent}%, #E5E7EB ${percent}%)`;
-    document.getElementById('rankText').innerText = "Calculating All-India Rank...";
+  if (!fpOtpCode || otp !== fpOtpCode) {
+    msg.className = "inline-error-text"; msg.textContent = "Invalid OTP."; msg.classList.remove("hidden"); return;
+  }
+  if (!newPass || newPass.length < 6) {
+    msg.className = "inline-error-text"; msg.textContent = "Password must be at least 6 characters."; msg.classList.remove("hidden"); return;
+  }
 
-    try {
-        const rankSnap = await getDocs(query(collection(db, "results"), where("testId", "==", testId)));
-        let allResults = rankSnap.docs.map(d => d.data()).sort((a, b) => parseFloat(b.finalScore) - parseFloat(a.finalScore));
-        let userRank = 1;
-        allResults.forEach((r, index) => { if(r.loginId === currentStudent.loginId) userRank = index + 1; });
-        document.getElementById('rankText').innerText = `All-India Rank: ${userRank} out of ${allResults.length} students`;
-        currentResultData = { score: res.finalScore, total: res.totalMarks, rank: userRank, totalStudents: allResults.length, correct: res.correctCount, wrong: res.wrongCount, neg: res.negDeducted, percent: res.percent };
-    } catch(e) {
-        document.getElementById('rankText').innerText = "Previous Attempt Analysis";
-        currentResultData = { score: res.finalScore, total: res.totalMarks, rank: '-', totalStudents: '-', correct: res.correctCount, wrong: res.wrongCount, neg: res.negDeducted, percent: res.percent };
-    }
+  showProcessing("Updating password...", "Please wait");
+  const snap = await db.collection("students").where("email", "==", email).limit(1).get();
+  if (!snap.empty) {
+    await snap.docs[0].ref.update({ password: newPass });
+  }
+  hideProcessing();
+  toggleForgotPassword(false);
+  const loginErr = document.getElementById("loginInlineError");
+  loginErr.className = "inline-ok-text";
+  loginErr.textContent = "Password updated successfully. Please log in with your new password.";
+  loginErr.classList.remove("hidden");
 }
 
-window.downloadScorecard = function() {
-    if(!currentResultData) return alert("No result data available!");
-    let html = `<html><head><title>Scorecard - TaiyariGhar</title><style>body{font-family:sans-serif; text-align:center; padding:50px;} h1{color:#4F46E5;} table{margin:20px auto; border-collapse:collapse; width:70%;} th,td{border:1px solid #ddd; padding:12px;} .footer{margin-top:30px; font-size:12px; color:#666;}</style></head><body><h1>🏠 TaiyariGhar</h1><h2>Test Scorecard</h2><table><tr><th>Student Name</th><td>${currentStudent.name}</td></tr><tr><th>Login ID</th><td>${currentStudent.loginId}</td></tr><tr><th>Test Name</th><td>${currentTestName}</td></tr><tr><th>Total Questions</th><td>${testQuestions.length}</td></tr><tr><th>Correct Answers</th><td style="color:green; font-weight:bold;">${currentResultData.correct}</td></tr><tr><th>Wrong Answers</th><td style="color:red; font-weight:bold;">${currentResultData.wrong}</td></tr><tr><th>Negative Deducted</th><td style="color:red;">-${currentResultData.neg}</td></tr><tr><th>Final Score</th><td>${currentResultData.score} / ${currentResultData.total}</td></tr><tr><th>Percentage</th><td>${currentResultData.percent}%</td></tr><tr><th>Rank</th><td>${currentResultData.rank} ${currentResultData.totalStudents !== '-' ? '(out of '+currentResultData.totalStudents+')' : ''}</td></tr></table><div class="footer">मेहनत आपकी, साथ हमारा! | Official Support: support@taiyarighar.in</div></body></html>`;
-    let w = window.open('', '_blank'); w.document.write(html); w.document.close(); setTimeout(() => w.print(), 500);
+function logoutCandidate() {
+  currentStudent = null;
+  localStorage.removeItem("tg_student_session");
+  updateHeaderAuthUI();
+  navigateTo("home");
 }
 
-window.downloadQuestionPaper = function() {
-    if(!testQuestions || testQuestions.length === 0) return alert("No questions available!");
-    let html = `<html><head><title>Question Paper - TaiyariGhar</title><style>body{font-family:sans-serif; padding:30px;} .q{margin-bottom:20px; border-bottom:1px solid #eee; padding-bottom:15px;} .correct{color:green; font-weight:bold;} .wrong{color:red; font-weight:bold;} .exp{background:#f0fdf4; padding:10px; border-radius:5px; font-size:14px; margin-top:8px;} .uid{font-size:12px; color:#666;}</style></head><body><h1 style="text-align:center;">🏠 TaiyariGhar - Question Paper</h1><h3>Test: ${currentTestName} | Student: ${currentStudent.name}</h3><hr>`;
-    
-    testQuestions.forEach((q, i) => {
-        let userAns = userAnswers[i];
-        let qText = (currentTestLanguage === "English") ? q.qE : (currentTestLanguage === "Hindi" ? q.qH : `${q.qH} <br><span style="font-size:14px; color:#555;">${q.qE}</span>`);
-        html += `<div class="q"><div class="uid">Q-ID: ${q.uniqueId}</div><p><b>Q${i+1}. ${qText}</b></p>`;
-        q.opts.forEach((opt, j) => {
-            let labelHtml = (currentTestLanguage === "English") ? opt.e : (currentTestLanguage === "Hindi" ? opt.h : `${opt.h} (${opt.e})`);
-            if(labelHtml && labelHtml.trim() !== "") {
-                let style = ""; if(j === q.ans) style = 'class="correct"'; else if(j === userAns) style = 'class="wrong"';
-                html += `<p ${style}>${String.fromCharCode(65+j)}) ${labelHtml}</p>`;
-            }
-        });
-        html += `<p style="margin-top:10px;">Your Answer: ${userAns !== undefined ? String.fromCharCode(65+userAns) : 'Not Attempted'}</p><p>Correct Answer: ${String.fromCharCode(65+q.ans)}</p>`;
-        if(q.exp) html += `<div class="exp"><b>Explanation:</b> ${q.exp}</div>`;
-        html += `</div>`;
-    });
-    html += `</body></html>`;
-    let w = window.open('', '_blank'); w.document.write(html); w.document.close(); setTimeout(() => w.print(), 500);
+// ----------------------------------------------------------------------------
+// 3. Dashboard & Simultaneous Live Test Results Release (NO Emails Sent)
+// ----------------------------------------------------------------------------
+function switchDashTab(tab) {
+  document.getElementById("dashContentTests").classList.toggle("hidden", tab !== "tests");
+  document.getElementById("dashContentResults").classList.toggle("hidden", tab !== "results");
+  document.getElementById("dtab-tests").className = tab === "tests" ? "btn btn-primary" : "btn btn-outline";
+  document.getElementById("dtab-results").className = tab === "results" ? "btn btn-primary" : "btn btn-outline";
+  if (tab === "results") renderStudentResultsTab();
 }
 
-if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => { navigator.serviceWorker.register('sw.js').catch(err => console.log('SW err', err)); });
-}
+async function renderStudentDashboard() {
+  if (!currentStudent) return;
+  document.getElementById("dashWelcomeName").textContent = "Welcome, " + currentStudent.name;
+  document.getElementById("dashStudentMeta").textContent =
+    `Student ID: ${currentStudent.studentId} • Target: ${currentStudent.targetExam || "Govt Exams"} • ${currentStudent.cityState || ""}`;
 
-history.replaceState({ screen: 'homeScreen' }, '', '');
+  const badge = document.getElementById("dashPassBadge");
+  if (isStudentProActive()) {
+    const expDate = new Date(currentStudent.passExpiry).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
+    badge.style.background = "#dcfce7";
+    badge.style.color = "#166534";
+    badge.textContent = `Active Pass (Valid till ${expDate})`;
+  } else {
+    badge.style.background = "#f1f5f9";
+    badge.style.color = "#334155";
+    badge.textContent = "Free Plan (15 Qs/Topic Free)";
+  }
 
-window.onload = async () => {
-    applyLanguage(); 
-    resetSessionMemory();
-    let savedUser = localStorage.getItem('tg_user');
-    if(savedUser) { 
-        try {
-            const parsedUser = JSON.parse(savedUser);
-            if (parsedUser && parsedUser.loginId) {
-                currentStudent = parsedUser;
-                isLoggedIn = true;
-                isFirstLoginSession = false;
-                updateHeaderUI();
-                startSingleSessionWatcher();
-                await fetchSettingsAndTests();
-                return;
-            }
-        } catch(e) {
-            localStorage.removeItem('tg_user');
-        }
-    }
-    await fetchSettingsAndTests();
-};
+  const wrap = document.getElementById("dashContentTests");
+  wrap.innerHTML = `<div style="padding:16px; color:#64748b;">Loading mock tests...</div>`;
 
-
-// =========================================================================
-// 📢 JOBS, EXAM SYLLABUS & LATEST UPDATES HUB
-// =========================================================================
-window.openUpdatesHub = async function() {
-    showScreen('updatesScreen');
-    const container = document.getElementById('updatesContentContainer');
-    if (container) container.innerHTML = `<div style="text-align:center; padding:30px; color:#6B7280;">Loading Jobs & Exam Syllabus...</div>`;
-    try {
-        const snap = await getDocs(collection(db, "job_updates"));
-        allJobUpdates = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-        allJobUpdates.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
-    } catch (e) {
-        console.error("Error loading job updates:", e);
-    }
-    const defaultTab = document.querySelector('.upd-tab');
-    filterUpdates('All', defaultTab);
-};
-
-window.filterUpdates = function(categoryFilter, btn) {
-    document.querySelectorAll('.upd-tab').forEach(b => {
-        b.classList.remove('active', 'btn-primary');
-        b.classList.add('btn-outline');
-    });
-    if (btn) {
-        btn.classList.add('active', 'btn-primary');
-        btn.classList.remove('btn-outline');
+  try {
+    const snap = await db.collection("tests").orderBy("createdAt", "desc").limit(30).get();
+    if (snap.empty) {
+      wrap.innerHTML = `<div style="background:#fff; border:1px solid #e2e8f0; padding:18px; border-radius:8px;">No mock tests published yet. Try the Unlimited Smart Practice Bank above!</div>`;
+      return;
     }
 
-    const container = document.getElementById('updatesContentContainer');
-    if (!container) return;
-
-    const filtered = categoryFilter === 'All'
-        ? allJobUpdates
-        : allJobUpdates.filter(u => (u.category || '').toLowerCase() === categoryFilter.toLowerCase());
-
-    if (filtered.length === 0) {
-        container.innerHTML = `<div style="text-align:center; padding:35px; background:#ffffff; border-radius:14px; border:1px solid #E2E8F0; color:#6B7280;">No updates published in this category yet. Check back soon!</div>`;
-        return;
-    }
-
-    let html = `<div style="display:grid; gap:14px;">`;
-    filtered.forEach(u => {
-        const cat = u.category || 'Latest Job';
-        let badgeBg = '#EEF2FF', badgeColor = '#4F46E5', icon = '💼';
-        if (cat.toLowerCase().includes('syllabus')) {
-            badgeBg = '#ECFDF5'; badgeColor = '#059669'; icon = '📚';
-        } else if (cat.toLowerCase().includes('admit') || cat.toLowerCase().includes('result')) {
-            badgeBg = '#FEF3C7'; badgeColor = '#D97706'; icon = '🔔';
-        }
-
-        html += `
-            <div style="background:#ffffff; border:1px solid #E2E8F0; border-left:4px solid ${badgeColor}; border-radius:12px; padding:18px 20px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:14px; box-shadow:0 2px 8px rgba(0,0,0,0.03);">
-                <div style="flex:1; min-width:250px;">
-                    <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-bottom:6px;">
-                        <span style="background:${badgeBg}; color:${badgeColor}; font-size:11px; font-weight:700; padding:3px 10px; border-radius:20px;">${icon} ${cat}</span>
-                        ${u.exam ? `<span style="background:#F1F5F9; color:#334155; font-size:11px; font-weight:600; padding:3px 9px; border-radius:6px;">${u.exam}</span>` : ''}
-                        ${u.date ? `<span style="font-size:12px; color:#64748B; font-weight:500;">📅 ${u.date}</span>` : ''}
-                    </div>
-                    <h3 style="color:#1E1B4B; font-size:16px; margin:0 0 6px;">${u.title}</h3>
-                    ${u.description ? `<p style="font-size:13px; color:#475569; margin:0; line-height:1.55;">${u.description}</p>` : ''}
-                </div>
-                <div>
-                    ${u.link ? `<a href="${u.link}" target="_blank" rel="noopener" class="btn btn-primary" style="text-decoration:none; font-size:13px; padding:9px 16px;">View / Download →</a>` : ''}
-                </div>
-            </div>
-        `;
+    let html = `<div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(280px, 1fr)); gap:12px;">`;
+    snap.forEach(doc => {
+      const t = doc.data();
+      const isLive = t.testType === "live";
+      const isFree = t.isFree === true;
+      const locked = !isFree && !isStudentProActive();
+      html += `
+        <div style="background:#ffffff; border:1px solid #e2e8f0; border-radius:8px; padding:15px;">
+          <div style="display:flex; justify-content:space-between; font-size:11px; margin-bottom:6px;">
+            <span style="font-weight:700; color:${isLive ? "#dc2626" : "#2563eb"};">${isLive ? "ALL-INDIA LIVE TEST" : (t.category || "MOCK TEST")}</span>
+            <span style="font-weight:600; color:${isFree ? "#15803d" : "#475569"};">${isFree ? "FREE" : "PRO PASS"}</span>
+          </div>
+          <div style="font-size:14.5px; font-weight:700; color:#0f172a; margin-bottom:6px;">${t.title || "Untitled Test"}</div>
+          <div style="font-size:12px; color:#64748b; margin-bottom:12px;">${t.totalQuestions || 0} Qs &bull; ${t.durationMinutes || 60} Mins &bull; ${t.totalMarks || 100} Marks</div>
+          ${locked
+            ? `<button class="btn btn-outline" style="width:100%;" onclick="openUpgradeModal()">Unlock with Pass</button>`
+            : `<button class="btn btn-primary" style="width:100%;" onclick="launchMockTest('${doc.id}')">Start Test</button>`
+          }
+        </div>
+      `;
     });
     html += `</div>`;
-    container.innerHTML = html;
-};
+    wrap.innerHTML = html;
+  } catch (e) {
+    wrap.innerHTML = `<div style="color:#dc2626;">Error loading tests: ${e.message}</div>`;
+  }
+}
+
+async function renderStudentResultsTab() {
+  const wrap = document.getElementById("dashContentResults");
+  wrap.innerHTML = `<div style="padding:16px; color:#64748b;">Loading your results &amp; live ranks...</div>`;
+
+  try {
+    const resSnap = await db.collection("results").where("studentId", "==", currentStudent.studentId).get();
+    if (resSnap.empty) {
+      wrap.innerHTML = `<div style="background:#fff; border:1px solid #e2e8f0; padding:18px; border-radius:8px;">You have not attempted any mock or live test yet.</div>`;
+      return;
+    }
+
+    let html = `<div style="display:flex; flex-direction:column; gap:10px;">`;
+    for (const doc of resSnap.docs) {
+      const r = doc.data();
+      let liveLocked = false;
+      let releaseTimeText = "";
+      let rankBadge = "";
+
+      if (r.testType === "live" && r.liveEnd) {
+        const endMs = new Date(r.liveEnd).getTime();
+        if (Date.now() < endMs) {
+          liveLocked = true;
+          releaseTimeText = new Date(endMs).toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" });
+        } else {
+          // Live window ended -> compute simultaneous All-India Rank on dashboard
+          const allAttempts = await db.collection("results").where("testId", "==", r.testId).get();
+          const scores = allAttempts.docs.map(d => Number(d.data().finalScore || 0)).sort((a, b) => b - a);
+          const myRank = scores.indexOf(Number(r.finalScore || 0)) + 1;
+          rankBadge = `<span style="background:#dcfce7; color:#166534; padding:3px 9px; border-radius:5px; font-size:12px; font-weight:700;">All-India Rank: #${myRank} / ${scores.length}</span>`;
+        }
+      }
+
+      if (liveLocked) {
+        html += `
+          <div style="background:#fffbeb; border:1px solid #fde68a; border-radius:8px; padding:14px 16px;">
+            <div style="font-size:14px; font-weight:700; color:#92400e;">${r.testName} (All-India Live Exam)</div>
+            <div style="font-size:12.5px; color:#78350f; margin-top:4px;">Your response has been recorded. All-India Rank, Scorecard, and Solutions will be released simultaneously on this dashboard after <strong>${releaseTimeText}</strong>.</div>
+          </div>
+        `;
+      } else {
+        html += `
+          <div style="background:#ffffff; border:1px solid #e2e8f0; border-radius:8px; padding:14px 16px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+            <div>
+              <div style="font-size:14.5px; font-weight:700; color:#0f172a;">${r.testName}</div>
+              <div style="font-size:12.5px; color:#475569; margin-top:3px;">
+                Score: <strong>${r.finalScore} / ${r.totalMarks}</strong> &bull; Correct: ${r.correctCount} &bull; Wrong: ${r.wrongCount}
+              </div>
+            </div>
+            <div>${rankBadge}</div>
+          </div>
+        `;
+      }
+    }
+    html += `</div>`;
+    wrap.innerHTML = html;
+  } catch (e) {
+    wrap.innerHTML = `<div style="color:#dc2626;">Error loading results: ${e.message}</div>`;
+  }
+}
+
+// Launch Mock Test with Processing Indicator while downloading questions
+async function launchMockTest(testId) {
+  showProcessing("Downloading Test & Questions...", "Preparing your bilingual CBT exam screen");
+  try {
+    const testDoc = await db.collection("tests").doc(testId).get();
+    const qSnap = await db.collection("questions").where("testId", "==", testId).get();
+    hideProcessing();
+    if (!testDoc.exists || qSnap.empty) {
+      alert("Questions for this test are being updated. Please try again shortly.");
+      return;
+    }
+    // Render exam player in dynamic view
+    const t = testDoc.data();
+    const questions = qSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+    renderExamPlayer(testId, t, questions);
+  } catch (err) {
+    hideProcessing();
+    alert("Failed to load test: " + err.message);
+  }
+}
+
+function renderExamPlayer(testId, testMeta, questions) {
+  ["view-home", "view-login", "view-register", "view-dashboard", "view-practice-bank"].forEach(id => {
+    document.getElementById(id)?.classList.add("hidden");
+  });
+  const dyn = document.getElementById("view-dynamic");
+  dyn.classList.remove("hidden");
+
+  let idx = 0;
+  const answers = {};
+
+  function drawQ() {
+    const q = questions[idx];
+    const opts = [q.optionA, q.optionB, q.optionC, q.optionD];
+    dyn.innerHTML = `
+      <div style="background:#fff; border:1px solid #cbd5e1; border-radius:8px; padding:20px;">
+        <div style="display:flex; justify-content:space-between; border-bottom:1px solid #e2e8f0; padding-bottom:10px; margin-bottom:14px;">
+          <strong>${testMeta.title}</strong>
+          <span>Question ${idx + 1} of ${questions.length}</span>
+        </div>
+        <div style="font-size:15px; font-weight:600; margin-bottom:14px;">${q.questionText || q.question}</div>
+        <div>
+          ${opts.map((o, i) => `
+            <button class="pb-opt-btn ${answers[idx] === i ? "opt-correct" : ""}" onclick="window._pickExamOpt(${i})">
+              <strong>${String.fromCharCode(65 + i)}.</strong> ${o || ""}
+            </button>
+          `).join("")}
+        </div>
+        <div style="display:flex; justify-content:space-between; margin-top:16px;">
+          <button class="btn btn-outline" ${idx === 0 ? "disabled" : ""} onclick="window._prevExamQ()">Previous</button>
+          ${idx < questions.length - 1
+            ? `<button class="btn btn-primary" onclick="window._nextExamQ()">Save &amp; Next</button>`
+            : `<button class="btn btn-primary" onclick="window._submitExam()">Submit Exam</button>`
+          }
+        </div>
+      </div>
+    `;
+  }
+
+  window._pickExamOpt = (i) => { answers[idx] = i; drawQ(); };
+  window._prevExamQ = () => { if (idx > 0) { idx--; drawQ(); } };
+  window._nextExamQ = () => { if (idx < questions.length - 1) { idx++; drawQ(); } };
+  window._submitExam = async () => {
+    showProcessing("Submitting Exam & Calculating Score...", "Saving your result to dashboard");
+    let correct = 0, wrong = 0;
+    const pos = Number(testMeta.positiveMarks || 1);
+    const neg = Number(testMeta.negativeMarks || 0.25);
+    questions.forEach((q, i) => {
+      if (answers[i] === undefined) return;
+      const rightIdx = ["A", "B", "C", "D"].indexOf(String(q.correctOption || "A").trim().toUpperCase());
+      if (answers[i] === rightIdx) correct++;
+      else wrong++;
+    });
+    const finalScore = Number((correct * pos - wrong * neg).toFixed(2));
+    // Save result directly to Firestore (NO live result email sent)
+    await db.collection("results").add({
+      studentId: currentStudent.studentId,
+      studentName: currentStudent.name,
+      testId,
+      testName: testMeta.title,
+      testType: testMeta.testType || "mock",
+      liveEnd: testMeta.liveEnd || null,
+      finalScore,
+      totalMarks: testMeta.totalMarks || (questions.length * pos),
+      correctCount: correct,
+      wrongCount: wrong,
+      submittedAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    hideProcessing();
+    navigateTo("dashboard");
+    switchDashTab("results");
+  };
+
+  drawQ();
+}
+
+// ----------------------------------------------------------------------------
+// 4. Unlimited Smart Practice Bank (100-Q Smart Bundles, 15 Free Qs/Topic, Mix)
+// ----------------------------------------------------------------------------
+async function loadStudentPracticeProgress() {
+  if (!currentStudent) return;
+  try {
+    const snap = await db.collection("practice_progress").doc(currentStudent.studentId).get();
+    if (snap.exists) {
+      const d = snap.data();
+      pbUserProgress.attemptedMap = d.attemptedMap || {};
+      pbUserProgress.totalAttempted = d.totalAttempted || 0;
+      pbUserProgress.totalCorrect = d.totalCorrect || 0;
+      pbUserProgress.totalTimeSec = d.totalTimeSec || 0;
+    }
+  } catch (e) { console.error(e); }
+}
+
+async function flushPracticeProgressToFirestore() {
+  if (!currentStudent || pbUnsavedWrites === 0) return;
+  pbUnsavedWrites = 0;
+  try {
+    await db.collection("practice_progress").doc(currentStudent.studentId).set({
+      attemptedMap: pbUserProgress.attemptedMap,
+      totalAttempted: pbUserProgress.totalAttempted,
+      totalCorrect: pbUserProgress.totalCorrect,
+      totalTimeSec: pbUserProgress.totalTimeSec,
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    }, { merge: true });
+  } catch (e) { console.error(e); }
+}
+
+async function openSmartPracticeBank() {
+  if (!currentStudent) {
+    navigateTo("login");
+    const err = document.getElementById("loginInlineError");
+    if (err) {
+      err.textContent = "Please log in or register free to access Unlimited Smart Practice Bank.";
+      err.classList.remove("hidden");
+    }
+    return;
+  }
+
+  ["view-home", "view-login", "view-register", "view-dashboard", "view-dynamic"].forEach(id => {
+    document.getElementById(id)?.classList.add("hidden");
+  });
+  document.getElementById("view-practice-bank").classList.remove("hidden");
+  updatePbAnalyticsUI();
+
+  showProcessing("Loading Smart Practice Bank...", "Fetching subjects and topics");
+  try {
+    // Reads bundle index doc (only 1 Firestore read for entire catalog!)
+    const indexSnap = await db.collection("settings").doc("practice_catalog").get();
+    if (indexSnap.exists && Array.isArray(indexSnap.data().bundles)) {
+      pbMetaIndex = indexSnap.data().bundles;
+    } else {
+      // Fallback: list practice_bank docs if catalog doc not built yet
+      const bSnap = await db.collection("practice_bank").get();
+      pbMetaIndex = bSnap.docs.map(d => ({
+        bundleId: d.id,
+        subject: d.data().subject || "General",
+        topic: d.data().topic || "Mixed",
+        packIndex: d.data().packIndex || 1,
+        count: (d.data().questions || []).length
+      }));
+    }
+    hideProcessing();
+    renderPbSubjects();
+  } catch (e) {
+    hideProcessing();
+    alert("Could not load Practice Bank: " + e.message);
+  }
+}
+
+function exitSmartPracticeBank() {
+  clearInterval(pbTimerInterval);
+  flushPracticeProgressToFirestore();
+  navigateTo(currentStudent ? "dashboard" : "home");
+}
+
+function updatePbAnalyticsUI() {
+  const att = pbUserProgress.totalAttempted || 0;
+  const cor = pbUserProgress.totalCorrect || 0;
+  const sec = pbUserProgress.totalTimeSec || 0;
+  const acc = att > 0 ? Math.round((cor / att) * 100) : 0;
+  const avg = att > 0 ? Math.round(sec / att) : 0;
+
+  document.getElementById("pbStatAttempted").textContent = `${att} Qs`;
+  document.getElementById("pbStatAccuracy").textContent = `${acc}%`;
+  document.getElementById("pbStatAvgTime").textContent = `${avg}s`;
+}
+
+function renderPbSubjects() {
+  document.getElementById("pbHeaderTitle").textContent = "Unlimited Smart Practice Bank";
+  document.getElementById("pbHeaderSub").textContent = "Select a subject to start Topic-Wise or Mix Practice";
+  document.getElementById("pbBackBtn").classList.add("hidden");
+  document.getElementById("pbLevelSubjects").classList.remove("hidden");
+  document.getElementById("pbLevelModes").classList.add("hidden");
+  document.getElementById("pbLevelArena").classList.add("hidden");
+
+  const subjectMap = {};
+  pbMetaIndex.forEach(b => {
+    const s = b.subject || "General";
+    if (!subjectMap[s]) subjectMap[s] = { topics: new Set(), totalQs: 0 };
+    subjectMap[s].topics.add(b.topic);
+    subjectMap[s].totalQs += Number(b.count || 0);
+  });
+
+  const grid = document.getElementById("pbLevelSubjects");
+  const subjects = Object.keys(subjectMap);
+  if (subjects.length === 0) {
+    grid.innerHTML = `<div style="grid-column:1/-1; padding:16px; color:#64748b;">No practice questions uploaded yet. Check back soon!</div>`;
+    return;
+  }
+
+  grid.innerHTML = subjects.map(sub => `
+    <div class="pb-subject-card" onclick="selectPbSubject('${sub.replace(/'/g, "\\'")}')">
+      <div style="font-size:15.5px; font-weight:700; color:#0f172a; margin-bottom:4px;">${sub}</div>
+      <div style="font-size:12px; color:#64748b;">${subjectMap[sub].topics.size} Topics &bull; ${subjectMap[sub].totalQs} Questions</div>
+    </div>
+  `).join("");
+}
+
+function selectPbSubject(subject) {
+  pbCurrentSubject = subject;
+  document.getElementById("pbHeaderTitle").textContent = subject + " — Smart Practice";
+  document.getElementById("pbHeaderSub").textContent = "Choose Mix Practice or select a specific Topic below";
+  document.getElementById("pbBackBtn").classList.remove("hidden");
+  document.getElementById("pbBackBtn").onclick = renderPbSubjects;
+
+  document.getElementById("pbLevelSubjects").classList.add("hidden");
+  document.getElementById("pbLevelModes").classList.remove("hidden");
+  document.getElementById("pbLevelArena").classList.add("hidden");
+
+  const topicCounts = {};
+  pbMetaIndex.filter(b => b.subject === subject).forEach(b => {
+    topicCounts[b.topic] = (topicCounts[b.topic] || 0) + Number(b.count || 0);
+  });
+
+  const list = document.getElementById("pbTopicsList");
+  list.innerHTML = Object.keys(topicCounts).map(topic => `
+    <div class="pb-topic-row" onclick="startTopicPractice('${topic.replace(/'/g, "\\'")}')">
+      <div>
+        <strong style="font-size:13.5px; color:#0f172a;">${topic}</strong>
+        <div style="font-size:11.5px; color:#64748b;">First 15 Questions Free &bull; Total ${topicCounts[topic]} Questions</div>
+      </div>
+      <span style="font-size:12.5px; font-weight:600; color:#2563eb;">Practice &rarr;</span>
+    </div>
+  `).join("");
+}
+
+async function fetchBundleQuestions(bundleId) {
+  if (pbLoadedBundles[bundleId]) return pbLoadedBundles[bundleId];
+  const doc = await db.collection("practice_bank").doc(bundleId).get();
+  const qs = doc.exists ? (doc.data().questions || []) : [];
+  pbLoadedBundles[bundleId] = qs;
+  return qs;
+}
+
+// Start Topic-Wise Practice (First 15 questions free per topic; rest require Pro Pass)
+async function startTopicPractice(topic) {
+  pbCurrentMode = "topic";
+  pbCurrentTopic = topic;
+  showProcessing(`Loading ${topic}...`, "Fetching smart question bundle");
+
+  try {
+    const matchingBundles = pbMetaIndex
+      .filter(b => b.subject === pbCurrentSubject && b.topic === topic)
+      .sort((a, b) => (a.packIndex || 1) - (b.packIndex || 1));
+
+    let allTopicQs = [];
+    for (const b of matchingBundles) {
+      const qs = await fetchBundleQuestions(b.bundleId);
+      allTopicQs = allTopicQs.concat(qs);
+      // Free users only need Pack 1 (since first 15 Qs are in Pack 1) -> saves extra reads!
+      if (!isStudentProActive() && allTopicQs.length >= 15) break;
+    }
+
+    // Apply 15-question free limit per topic for non-Pro registered students
+    if (!isStudentProActive()) {
+      allTopicQs = allTopicQs.slice(0, 15);
+    }
+
+    hideProcessing();
+    launchPracticeArena(allTopicQs, `${pbCurrentSubject} • ${topic}`);
+  } catch (e) {
+    hideProcessing();
+    alert("Error loading topic: " + e.message);
+  }
+}
+
+// Start Mix Practice (Combines random questions across ALL topics of the subject)
+async function startSubjectMixPractice() {
+  pbCurrentMode = "mix";
+  pbCurrentTopic = "All Topics Mix";
+  showProcessing(`Preparing ${pbCurrentSubject} Mix Practice...`, "Combining questions from all topics");
+
+  try {
+    const subjectBundles = pbMetaIndex.filter(b => b.subject === pbCurrentSubject);
+    // Group by topic and take Pack 1 of each topic to keep Firestore reads minimal
+    const firstPackByTopic = {};
+    subjectBundles.forEach(b => {
+      if (!firstPackByTopic[b.topic] || (b.packIndex || 1) < (firstPackByTopic[b.topic].packIndex || 1)) {
+        firstPackByTopic[b.topic] = b;
+      }
+    });
+
+    let mixedPool = [];
+    for (const topicName of Object.keys(firstPackByTopic)) {
+      const qs = await fetchBundleQuestions(firstPackByTopic[topicName].bundleId);
+      const allowed = isStudentProActive() ? qs : qs.slice(0, 15);
+      mixedPool = mixedPool.concat(allowed);
+    }
+
+    // Shuffle mixed questions so topics rotate continuously (1 Vilom, 1 Paryayvachi, 1 Muhavra...)
+    for (let i = mixedPool.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [mixedPool[i], mixedPool[j]] = [mixedPool[j], mixedPool[i]];
+    }
+
+    hideProcessing();
+    launchPracticeArena(mixedPool, `${pbCurrentSubject} • Mix Practice`);
+  } catch (e) {
+    hideProcessing();
+    alert("Error starting Mix Practice: " + e.message);
+  }
+}
+
+function launchPracticeArena(allQuestions, titleLabel) {
+  window._pbFullQuestionPool = allQuestions;
+  pbSessionCorrect = 0;
+  pbSessionWrong = 0;
+  pbStreakCount = 0;
+
+  document.getElementById("pbHeaderTitle").textContent = titleLabel;
+  document.getElementById("pbHeaderSub").textContent = isStudentProActive()
+    ? "Pro Pass Active — Unlimited Access"
+    : "Free Tier: First 15 questions per topic unlocked. Upgrade Pass for full bank.";
+  document.getElementById("pbBackBtn").onclick = () => {
+    clearInterval(pbTimerInterval);
+    flushPracticeProgressToFirestore();
+    selectPbSubject(pbCurrentSubject);
+  };
+
+  document.getElementById("pbLevelModes").classList.add("hidden");
+  document.getElementById("pbLevelArena").classList.remove("hidden");
+  switchPbPool("unattempted");
+}
+
+function switchPbPool(poolType) {
+  pbPoolMode = poolType;
+  const fullPool = window._pbFullQuestionPool || [];
+  const unattempted = fullPool.filter(q => !pbUserProgress.attemptedMap[q.id]);
+  const attempted = fullPool.filter(q => !!pbUserProgress.attemptedMap[q.id]);
+
+  document.getElementById("pbUnattemptedCount").textContent = unattempted.length;
+  document.getElementById("pbAttemptedCount").textContent = attempted.length;
+
+  document.getElementById("pbFilterUnattempted").className = poolType === "unattempted" ? "btn btn-primary" : "btn btn-outline";
+  document.getElementById("pbFilterAttempted").className = poolType === "attempted" ? "btn btn-primary" : "btn btn-outline";
+
+  pbActiveQuestions = poolType === "unattempted" ? unattempted : attempted;
+  pbCurrentIndex = 0;
+  renderCurrentPracticeQuestion();
+}
+
+function startQuestionStopwatch() {
+  clearInterval(pbTimerInterval);
+  pbQuestionSeconds = 0;
+  document.getElementById("pbLiveTimer").textContent = "00:00";
+  pbTimerInterval = setInterval(() => {
+    pbQuestionSeconds++;
+    const m = String(Math.floor(pbQuestionSeconds / 60)).padStart(2, "0");
+    const s = String(pbQuestionSeconds % 60).padStart(2, "0");
+    document.getElementById("pbLiveTimer").textContent = `${m}:${s}`;
+  }, 1000);
+}
+
+function renderCurrentPracticeQuestion() {
+  const streakEl = document.getElementById("pbStreakBanner");
+  streakEl.classList.add("hidden");
+
+  if (!pbActiveQuestions || pbActiveQuestions.length === 0) {
+    clearInterval(pbTimerInterval);
+    document.getElementById("pbQMeta").textContent = pbCurrentTopic;
+    document.getElementById("pbQCounter").textContent = "0 / 0";
+    document.getElementById("pbQText").innerHTML = pbPoolMode === "unattempted"
+      ? (isStudentProActive()
+          ? "You have completed all available questions in this section! Switch to the <strong>Attempted</strong> tab to revise or re-practice."
+          : "You have completed all 15 free questions in this topic! <strong>Upgrade to All-Access Pass</strong> to unlock hundreds more questions.")
+      : "No attempted questions here yet. Switch to <strong>Not Attempted</strong> to start practicing!";
+    document.getElementById("pbOptionsWrap").innerHTML = !isStudentProActive() && pbPoolMode === "unattempted"
+      ? `<button class="btn btn-primary" onclick="openUpgradeModal()">Unlock Full Practice Bank</button>`
+      : "";
+    document.getElementById("pbExplanationBox").textContent = "Select a question to view its detailed explanation.";
+    return;
+  }
+
+  const q = pbActiveQuestions[pbCurrentIndex];
+  document.getElementById("pbQMeta").textContent = `Topic: ${q.topic || pbCurrentTopic}`;
+  document.getElementById("pbQCounter").textContent = `Q ${pbCurrentIndex + 1} of ${pbActiveQuestions.length}`;
+  document.getElementById("pbQText").textContent = q.question;
+
+  const opts = [q.optionA, q.optionB, q.optionC, q.optionD];
+  document.getElementById("pbOptionsWrap").innerHTML = opts.map((optText, i) => `
+    <button type="button" class="pb-opt-btn" id="pbOptBtn-${i}" onclick="answerPracticeQuestion(${i})">
+      <strong>${String.fromCharCode(65 + i)}.</strong> ${optText || ""}
+    </button>
+  `).join("");
+
+  document.getElementById("pbExplanationBox").innerHTML = `Select an option to check your answer and read the explanation.`;
+  startQuestionStopwatch();
+}
+
+function answerPracticeQuestion(chosenIdx) {
+  clearInterval(pbTimerInterval);
+  const q = pbActiveQuestions[pbCurrentIndex];
+  if (!q) return;
+
+  const rightIdx = ["A", "B", "C", "D"].indexOf(String(q.correctOption || "A").trim().toUpperCase());
+  const isCorrect = chosenIdx === rightIdx;
+
+  // Disable option buttons & highlight Green / Red
+  for (let i = 0; i < 4; i++) {
+    const btn = document.getElementById(`pbOptBtn-${i}`);
+    if (!btn) continue;
+    btn.disabled = true;
+    if (i === rightIdx) btn.classList.add("opt-correct");
+    else if (i === chosenIdx && !isCorrect) btn.classList.add("opt-wrong");
+  }
+
+  // Update streak & fun feedback
+  const streakEl = document.getElementById("pbStreakBanner");
+  if (isCorrect) {
+    pbSessionCorrect++;
+    pbStreakCount = pbStreakCount > 0 ? pbStreakCount + 1 : 1;
+    if (pbStreakCount >= 3 && pbStreakCount % 3 === 0) {
+      streakEl.className = "streak-toast streak-proud";
+      streakEl.textContent = `Hat-trick! ${pbStreakCount} Sahi Lagatar — Zabardast Taiyari!`;
+      streakEl.classList.remove("hidden");
+    } else {
+      streakEl.classList.add("hidden");
+    }
+  } else {
+    pbSessionWrong++;
+    pbStreakCount = pbStreakCount < 0 ? pbStreakCount - 1 : -1;
+    if (pbStreakCount <= -3 && Math.abs(pbStreakCount) % 3 === 0) {
+      streakEl.className = "streak-toast streak-sad";
+      streakEl.textContent = `3 Lagatar Galat Ho Gaye — Koi Baat Nahi, Neeche Explanation Dhyan Se Padhein!`;
+      streakEl.classList.remove("hidden");
+    } else {
+      streakEl.classList.add("hidden");
+    }
+  }
+
+  document.getElementById("pbSessCorrect").textContent = pbSessionCorrect;
+  document.getElementById("pbSessWrong").textContent = pbSessionWrong;
+
+  // Show instant explanation (Right panel on Desktop, Bottom on Mobile)
+  const statusLine = isCorrect
+    ? `<div style="color:#15803d; font-weight:700; margin-bottom:6px;">Sahi Jawab! (${pbQuestionSeconds}s)</div>`
+    : `<div style="color:#dc2626; font-weight:700; margin-bottom:6px;">Galat Jawab — Sahi Option: ${String.fromCharCode(65 + rightIdx)} (${pbQuestionSeconds}s)</div>`;
+  document.getElementById("pbExplanationBox").innerHTML = `
+    ${statusLine}
+    <div>${q.explanation || "Correct answer is Option " + String.fromCharCode(65 + rightIdx) + "."}</div>
+  `;
+
+  // Save progress locally & batch-sync to Firestore every 10 answers
+  const wasAlreadyAttempted = !!pbUserProgress.attemptedMap[q.id];
+  pbUserProgress.attemptedMap[q.id] = { isCorrect, chosen: chosenIdx, timeSec: pbQuestionSeconds };
+  if (!wasAlreadyAttempted) {
+    pbUserProgress.totalAttempted = (pbUserProgress.totalAttempted || 0) + 1;
+    if (isCorrect) pbUserProgress.totalCorrect = (pbUserProgress.totalCorrect || 0) + 1;
+    pbUserProgress.totalTimeSec = (pbUserProgress.totalTimeSec || 0) + pbQuestionSeconds;
+  }
+
+  updatePbAnalyticsUI();
+  pbUnsavedWrites++;
+  if (pbUnsavedWrites >= 10) {
+    flushPracticeProgressToFirestore();
+  }
+}
+
+function nextPracticeQuestion() {
+  if (pbCurrentIndex < pbActiveQuestions.length - 1) {
+    pbCurrentIndex++;
+    renderCurrentPracticeQuestion();
+  } else {
+    // Refresh pool counts
+    switchPbPool(pbPoolMode);
+  }
+}
+
+function prevPracticeQuestion() {
+  if (pbCurrentIndex > 0) {
+    pbCurrentIndex--;
+    renderCurrentPracticeQuestion();
+  }
+}
+
+// ----------------------------------------------------------------------------
+// 5. Clean Subscription Checkout & Referral Coupon Logic
+// ----------------------------------------------------------------------------
+function openUpgradeModal() {
+  if (!currentStudent) return navigateTo("login");
+  appliedPartner = null;
+  document.getElementById("checkoutCouponInput").value = "";
+  document.getElementById("couponStatusMsg").textContent = "";
+  selectSubscriptionPlan("3m", "3 Months Pass", 149, 119, 90);
+  document.getElementById("upgradeModal").classList.remove("hidden");
+}
+
+function closeUpgradeModal() {
+  document.getElementById("upgradeModal").classList.add("hidden");
+}
+
+function selectSubscriptionPlan(id, name, mrp, price, days) {
+  selectedPlan = { id, name, mrp, price, days };
+  ["3m", "6m", "12m"].forEach(k => {
+    document.getElementById("planCard-" + k)?.classList.toggle("active", k === id);
+  });
+  recalculateCheckoutSummary();
+}
+
+function recalculateCheckoutSummary() {
+  const offerDisc = selectedPlan.mrp - selectedPlan.price;
+  const couponDisc = appliedPartner ? Number(appliedPartner.discountAmount || 20) : 0;
+  const extraDays = appliedPartner ? Number(appliedPartner.extraDays || 15) : 0;
+  const finalPayable = Math.max(1, selectedPlan.price - couponDisc);
+  const totalDays = selectedPlan.days + extraDays;
+
+  document.getElementById("sumPlanName").textContent = selectedPlan.name;
+  document.getElementById("sumValidity").textContent = extraDays > 0
+    ? `${selectedPlan.days} + ${extraDays} Bonus = ${totalDays} Days`
+    : `${selectedPlan.days} Days`;
+  document.getElementById("sumMrp").innerHTML = `&#8377;${selectedPlan.mrp}`;
+  document.getElementById("sumOfferDisc").innerHTML = `- &#8377;${offerDisc}`;
+
+  const cRow = document.getElementById("sumCouponRow");
+  if (appliedPartner) {
+    cRow.classList.remove("hidden");
+    document.getElementById("sumCouponDisc").innerHTML = `- &#8377;${couponDisc} + ${extraDays} Extra Days (${appliedPartner.couponCode})`;
+  } else {
+    cRow.classList.add("hidden");
+  }
+
+  document.getElementById("sumTotalPayable").innerHTML = `&#8377;${finalPayable}`;
+  document.getElementById("btnPayRazorpay").innerHTML = `Pay &#8377;${finalPayable} Securely via Razorpay`;
+}
+
+async function applyReferralCoupon() {
+  const code = document.getElementById("checkoutCouponInput").value.trim().toUpperCase();
+  const msg = document.getElementById("couponStatusMsg");
+  if (!code) {
+    msg.style.color = "#dc2626"; msg.textContent = "Please enter a referral coupon code."; return;
+  }
+
+  msg.style.color = "#475569"; msg.textContent = "Verifying coupon...";
+  try {
+    const snap = await db.collection("partners")
+      .where("couponCode", "==", code)
+      .where("status", "==", "approved")
+      .limit(1)
+      .get();
+
+    if (snap.empty) {
+      appliedPartner = null;
+      msg.style.color = "#dc2626";
+      msg.textContent = "Invalid or inactive coupon code.";
+      recalculateCheckoutSummary();
+      return;
+    }
+
+    appliedPartner = { docId: snap.docs[0].id, ...snap.docs[0].data() };
+    msg.style.color = "#15803d";
+    msg.textContent = `Applied! You get Rs.${appliedPartner.discountAmount || 20} instant discount + ${appliedPartner.extraDays || 15} extra validity days.`;
+    recalculateCheckoutSummary();
+  } catch (e) {
+    msg.style.color = "#dc2626"; msg.textContent = "Error checking coupon: " + e.message;
+  }
+}
+
+function startRazorpayCheckout() {
+  const couponDisc = appliedPartner ? Number(appliedPartner.discountAmount || 20) : 0;
+  const extraDays = appliedPartner ? Number(appliedPartner.extraDays || 15) : 0;
+  const finalPayable = Math.max(1, selectedPlan.price - couponDisc);
+  const totalDays = selectedPlan.days + extraDays;
+
+  const options = {
+    key: RAZORPAY_KEY_ID,
+    amount: finalPayable * 100,
+    currency: "INR",
+    name: "TaiyariGhar",
+    description: `${selectedPlan.name} (${totalDays} Days)`,
+    prefill: {
+      name: currentStudent.name,
+      email: currentStudent.email,
+      contact: currentStudent.mobile
+    },
+    handler: async function (response) {
+      showProcessing("Activating your Pass...", "Generating receipt and updating validity");
+      try {
+        const now = new Date();
+        const currentExp = currentStudent.passExpiry && new Date(currentStudent.passExpiry) > now
+          ? new Date(currentStudent.passExpiry)
+          : now;
+        const newExpiry = new Date(currentExp.getTime() + totalDays * 86400000);
+        const expiryIso = newExpiry.toISOString();
+        const expiryFormatted = newExpiry.toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
+        const invoiceNumber = "INV-" + Date.now().toString().slice(-6);
+
+        await db.collection("students").doc(currentStudent.studentId).update({
+          passPlan: selectedPlan.name,
+          passExpiry: expiryIso
+        });
+
+        await db.collection("payments").add({
+          invoiceNumber,
+          paymentId: response.razorpay_payment_id,
+          studentId: currentStudent.studentId,
+          studentName: currentStudent.name,
+          email: currentStudent.email,
+          planName: selectedPlan.name,
+          amount: finalPayable,
+          validityDays: totalDays,
+          couponCode: appliedPartner ? appliedPartner.couponCode : "",
+          partnerId: appliedPartner ? appliedPartner.partnerId : "",
+          createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+
+        // Credit referral partner commission automatically
+        if (appliedPartner && appliedPartner.docId) {
+          const comm = Number(appliedPartner.commissionPerSale || 25);
+          await db.collection("partners").doc(appliedPartner.docId).update({
+            usedCount: firebase.firestore.FieldValue.increment(1),
+            totalCommission: firebase.firestore.FieldValue.increment(comm)
+          });
+        }
+
+        // Send invoice email
+        fetch(APPS_SCRIPT_URL, {
+          method: "POST",
+          body: JSON.stringify({
+            action: "send_invoice",
+            email: currentStudent.email,
+            invoiceNumber,
+            paymentId: response.razorpay_payment_id,
+            studentName: currentStudent.name,
+            loginId: currentStudent.studentId,
+            planName: selectedPlan.name,
+            mrp: selectedPlan.mrp,
+            discount: selectedPlan.mrp - finalPayable,
+            amount: finalPayable,
+            validityDays: totalDays,
+            expiryDate: expiryFormatted
+          })
+        }).catch(() => {});
+
+        currentStudent.passPlan = selectedPlan.name;
+        currentStudent.passExpiry = expiryIso;
+        localStorage.setItem("tg_student_session", JSON.stringify(currentStudent));
+
+        hideProcessing();
+        closeUpgradeModal();
+        renderStudentDashboard();
+        alert(`Payment Successful! Your ${selectedPlan.name} is active till ${expiryFormatted}.`);
+      } catch (err) {
+        hideProcessing();
+        alert("Payment captured, contact support if pass not updated: " + err.message);
+      }
+    }
+  };
+
+  const rzp = new Razorpay(options);
+  rzp.open();
+}
+
+// ----------------------------------------------------------------------------
+// 6. Home Categories, Live Tests, Current Affairs & Updates Pages
+// ----------------------------------------------------------------------------
+async function loadHomeCategories() {
+  const grid = document.getElementById("homeCategoriesGrid");
+  if (!grid) return;
+  try {
+    const snap = await db.collection("exam_categories").get();
+    if (snap.empty) {
+      grid.innerHTML = `<div style="color:#64748b; font-size:13px;">SSC, Railway, UP Police, Banking &amp; State Exam test series available after login.</div>`;
+      return;
+    }
+    grid.innerHTML = snap.docs.map(d => {
+      const c = d.data();
+      return `
+        <div class="pb-subject-card" onclick="navigateTo('dashboard')">
+          <div style="font-size:15px; font-weight:700; color:#0f172a;">${c.name || d.id}</div>
+          <div style="font-size:12px; color:#64748b; margin-top:4px;">${c.description || "Bilingual Mock Tests & PYQs"}</div>
+        </div>
+      `;
+    }).join("");
+  } catch (e) { console.error(e); }
+}
+
+async function renderLiveTestsPage() {
+  const dyn = document.getElementById("view-dynamic");
+  dyn.innerHTML = `<div style="padding:20px; color:#64748b;">Loading All-India Live Exams...</div>`;
+  const snap = await db.collection("tests").where("testType", "==", "live").get();
+  if (snap.empty) {
+    dyn.innerHTML = `<div class="pb-workspace"><h2>All-India Live Exams</h2><p style="color:#64748b; margin-top:6px;">No live exam scheduled right now. Check back soon!</p></div>`;
+    return;
+  }
+  dyn.innerHTML = `
+    <div class="pb-workspace">
+      <h2 style="margin-bottom:12px;">All-India Live Exams</h2>
+      <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(280px, 1fr)); gap:12px;">
+        ${snap.docs.map(doc => {
+          const t = doc.data();
+          return `
+            <div style="border:1px solid #cbd5e1; border-radius:8px; padding:15px;">
+              <div style="font-size:11px; font-weight:700; color:#dc2626;">LIVE EXAM</div>
+              <div style="font-size:15px; font-weight:700; margin:4px 0;">${t.title}</div>
+              <div style="font-size:12px; color:#64748b; margin-bottom:12px;">${t.totalQuestions || 0} Qs &bull; ${t.durationMinutes || 60} Mins</div>
+              <button class="btn btn-primary" style="width:100%;" onclick="${currentStudent ? `launchMockTest('${doc.id}')` : `navigateTo('login')`}">Attempt Live Exam</button>
+            </div>
+          `;
+        }).join("")}
+      </div>
+    </div>
+  `;
+}
+
+async function renderCurrentAffairsPage() {
+  const dyn = document.getElementById("view-dynamic");
+  dyn.innerHTML = `<div style="padding:20px; color:#64748b;">Loading Current Affairs...</div>`;
+  const snap = await db.collection("current_affairs").orderBy("createdAt", "desc").limit(20).get();
+  dyn.innerHTML = `
+    <div class="pb-workspace">
+      <h2 style="margin-bottom:12px;">Daily &amp; Monthly Current Affairs</h2>
+      ${snap.empty ? `<p style="color:#64748b;">No current affairs posts yet.</p>` : snap.docs.map(d => {
+        const item = d.data();
+        return `
+          <div style="border-bottom:1px solid #e2e8f0; padding:12px 0;">
+            <strong style="font-size:14.5px; color:#0f172a;">${item.title || "Current Affairs Update"}</strong>
+            <p style="font-size:13px; color:#475569; margin-top:4px;">${item.summary || item.content || ""}</p>
+          </div>
+        `;
+      }).join("")}
+    </div>
+  `;
+}
+
+async function renderUpdatesPage() {
+  const dyn = document.getElementById("view-dynamic");
+  dyn.innerHTML = `<div style="padding:20px; color:#64748b;">Loading Latest Govt Jobs &amp; Syllabus...</div>`;
+  const snap = await db.collection("job_updates").orderBy("createdAt", "desc").limit(20).get();
+  dyn.innerHTML = `
+    <div class="pb-workspace">
+      <h2 style="margin-bottom:12px;">Latest Govt Jobs, Admit Cards &amp; Syllabus</h2>
+      ${snap.empty ? `<p style="color:#64748b;">No job notifications posted yet.</p>` : snap.docs.map(d => {
+        const j = d.data();
+        return `
+          <div style="border-bottom:1px solid #e2e8f0; padding:12px 0;">
+            <strong style="font-size:14.5px; color:#0f172a;">${j.title || "Notification"}</strong>
+            <p style="font-size:13px; color:#475569; margin-top:4px;">${j.description || ""}</p>
+          </div>
+        `;
+      }).join("")}
+    </div>
+  `;
+}
+
+// Initialize on page load
+window.addEventListener("DOMContentLoaded", async () => {
+  const saved = localStorage.getItem("tg_student_session");
+  if (saved) {
+    try {
+      currentStudent = JSON.parse(saved);
+      await loadStudentPracticeProgress();
+    } catch (e) { currentStudent = null; }
+  }
+  updateHeaderAuthUI();
+
+  const params = new URLSearchParams(window.location.search);
+  const page = params.get("page");
+  if (page === "practice-bank") {
+    openSmartPracticeBank();
+  } else if (page && ["live-tests", "current-affairs", "updates", "login", "register", "dashboard"].includes(page)) {
+    navigateTo(page);
+  } else {
+    navigateTo("home");
+  }
+});
