@@ -1,1088 +1,632 @@
-<!-- Copyright (c) 2026 TaiyariGhar. All Rights Reserved. -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TaiyariGhar | Crack Your Dream Govt Job with Confidence</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css?v=6.0">
-    <link rel="stylesheet" href="student-style.css?v=6.0">
+    <meta name="description" content="TaiyariGhar (taiyarighar.in) — Bilingual Mock Tests, All-India Live Exams, Unlimited Smart Practice Bank, Current Affairs, and Govt Job Updates for SSC, Railway, UP Police, Banking & State Exams.">
+    <title>TaiyariGhar | Mock Tests, Live Exams &amp; Smart Practice Bank</title>
+    <link rel="icon" type="image/png" sizes="48x48" href="https://taiyarighar.in/logo.png">
+    <link rel="apple-touch-icon" href="https://taiyarighar.in/logo.png">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="student-style.css">
+
+    <!-- Google Site Name & Sitelinks Schema -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "WebSite",
+          "name": "TaiyariGhar",
+          "alternateName": ["Taiyari Ghar", "taiyarighar.in"],
+          "url": "https://taiyarighar.in/"
+        },
+        {
+          "@type": "Organization",
+          "name": "TaiyariGhar",
+          "url": "https://taiyarighar.in/",
+          "logo": "https://taiyarighar.in/logo.png",
+          "founder": {
+            "@type": "Person",
+            "name": "Madhup Verma"
+          }
+        },
+        {
+          "@type": "ItemList",
+          "itemListElement": [
+            { "@type": "SiteNavigationElement", "position": 1, "name": "All-India Live Tests", "url": "https://taiyarighar.in/index.html?page=live-tests" },
+            { "@type": "SiteNavigationElement", "position": 2, "name": "Unlimited Smart Practice Bank", "url": "https://taiyarighar.in/index.html?page=practice-bank" },
+            { "@type": "SiteNavigationElement", "position": 3, "name": "Current Affairs", "url": "https://taiyarighar.in/index.html?page=current-affairs" },
+            { "@type": "SiteNavigationElement", "position": 4, "name": "Jobs & Syllabus", "url": "https://taiyarighar.in/index.html?page=updates" },
+            { "@type": "SiteNavigationElement", "position": 5, "name": "About Us", "url": "https://taiyarighar.in/about.html" },
+            { "@type": "SiteNavigationElement", "position": 6, "name": "Official Referral Partner", "url": "https://taiyarighar.in/partner.html" }
+          ]
+        }
+      ]
+    }
+    </script>
+
+    <!-- Firebase & Razorpay SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
     <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+
     <style>
-        .hide { display: none !important; }
-        #paymentModal:not(.hide), #submitModal:not(.hide), #registerSuccessModal:not(.hide), #liveHubModal:not(.hide), #historyModal:not(.hide), #reportQuestionModal:not(.hide) {
-            display: flex !important;
+        body { font-family: 'Inter', sans-serif; color: #1e293b; }
+        .hidden { display: none !important; }
+
+        /* Processing Overlay (Test Loading & Login) */
+        .tg-proc-overlay {
+            position: fixed; inset: 0; background: rgba(15, 23, 42, 0.55);
+            display: flex; align-items: center; justify-content: center;
+            z-index: 99999; backdrop-filter: blur(2px);
+        }
+        .tg-proc-box {
+            background: #ffffff; padding: 24px 32px; border-radius: 10px;
+            border: 1px solid #e2e8f0; text-align: center;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.12); max-width: 320px; width: 90%;
+        }
+        .tg-spinner {
+            width: 34px; height: 34px; border: 3px solid #e2e8f0;
+            border-top-color: #2563eb; border-radius: 50%;
+            animation: tgSpin 0.75s linear infinite; margin: 0 auto 12px;
+        }
+        @keyframes tgSpin { to { transform: rotate(360deg); } }
+
+        /* Clean Corporate Checkout / Upgrade Modal */
+        .clean-modal-backdrop {
+            position: fixed; inset: 0; background: rgba(15, 23, 42, 0.5);
+            display: flex; align-items: center; justify-content: center;
+            z-index: 9500; padding: 14px;
+        }
+        .clean-modal-card {
+            background: #ffffff; border: 1px solid #cbd5e1; border-radius: 10px;
+            max-width: 580px; width: 100%; max-height: 92vh; overflow-y: auto;
+            padding: 22px 24px; box-shadow: 0 12px 30px rgba(0,0,0,0.12);
+        }
+        .clean-modal-head {
+            display: flex; justify-content: space-between; align-items: flex-start;
+            border-bottom: 1px solid #e2e8f0; padding-bottom: 12px; margin-bottom: 16px;
+        }
+        .clean-modal-head h3 { font-size: 17px; font-weight: 700; color: #0f172a; margin: 0; }
+        .clean-modal-head p { font-size: 12.5px; color: #64748b; margin: 3px 0 0; }
+        .clean-close-btn {
+            background: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 6px;
+            width: 28px; height: 28px; cursor: pointer; font-weight: 700; color: #334155;
+        }
+        .plan-grid-clean {
+            display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 16px;
+        }
+        .plan-item-clean {
+            border: 1.5px solid #cbd5e1; border-radius: 8px; padding: 12px 10px;
+            text-align: center; cursor: pointer; background: #ffffff; transition: 0.15s;
+        }
+        .plan-item-clean.active {
+            border-color: #2563eb; background: #f8fafc;
+        }
+        .plan-tag-clean {
+            display: inline-block; font-size: 10.5px; font-weight: 600;
+            color: #475569; background: #f1f5f9; border: 1px solid #e2e8f0;
+            padding: 2px 7px; border-radius: 4px; margin-bottom: 6px;
+        }
+        .plan-item-clean.active .plan-tag-clean {
+            background: #eff6ff; color: #1d4ed8; border-color: #bfdbfe;
+        }
+        .plan-title-clean { font-size: 13px; font-weight: 600; color: #1e293b; }
+        .plan-mrp-clean { font-size: 11.5px; color: #94a3b8; text-decoration: line-through; margin-top: 2px; }
+        .plan-price-clean { font-size: 20px; font-weight: 700; color: #0f172a; margin-top: 1px; }
+        .coupon-box-clean {
+            background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px;
+            padding: 12px; margin-bottom: 14px;
+        }
+        .summary-table-clean {
+            width: 100%; border-collapse: collapse; font-size: 12.5px; margin-bottom: 14px;
+        }
+        .summary-table-clean td { padding: 5px 2px; color: #475569; }
+        .summary-table-clean td:last-child { text-align: right; font-weight: 600; color: #0f172a; }
+        .summary-table-clean tr.total-row td {
+            border-top: 1px solid #cbd5e1; padding-top: 9px; font-size: 14.5px;
+            font-weight: 700; color: #0f172a;
         }
 
-        /* Full-Screen Banner Hero with Text Overlay (Homepage Intact) */
-        .hero-banner-section {
-            position: relative;
-            width: 100%;
-            min-height: 450px;
-            background-image: linear-gradient(180deg, rgba(15, 23, 42, 0.84) 0%, rgba(15, 23, 42, 0.76) 100%), url('hero-laptop.jpg');
-            background-size: cover;
-            background-position: center center;
-            background-repeat: no-repeat;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            text-align: center;
-            padding: 60px 5%;
-            border-bottom: 1px solid #E2E8F0;
+        /* Clean Partner-Style Auth Box */
+        .auth-box-clean {
+            max-width: 440px; width: 100%; margin: 28px auto;
+            background: #ffffff; border: 1px solid #e2e8f0;
+            border-radius: 8px; padding: 24px 26px;
         }
-        .hero-banner-container { max-width: 860px; width: 100%; margin: 0 auto; display: flex; justify-content: center; }
-        .hero-overlay-content { max-width: 740px; margin: 0 auto; color: #ffffff; text-align: center; }
-        .hero-badge {
-            display: inline-block;
-            background: rgba(99, 102, 241, 0.25);
-            border: 1px solid rgba(165, 180, 252, 0.45);
-            color: #E0E7FF;
-            font-size: 13px;
-            font-weight: 700;
-            padding: 6px 15px;
-            border-radius: 20px;
-            margin-bottom: 16px;
-            backdrop-filter: blur(4px);
+        .auth-box-clean h2 { font-size: 18px; font-weight: 700; color: #0f172a; margin-bottom: 4px; }
+        .auth-box-clean .auth-sub { font-size: 12.5px; color: #64748b; margin-bottom: 16px; }
+        .auth-field { margin-bottom: 12px; }
+        .auth-field label { display: block; font-size: 12px; font-weight: 600; color: #334155; margin-bottom: 4px; }
+        .auth-field input, .auth-field select {
+            width: 100%; padding: 9px 11px; border: 1px solid #cbd5e1;
+            border-radius: 6px; font-size: 13px; font-family: inherit;
         }
-        .hero-overlay-content h1 {
-            font-size: 40px;
-            line-height: 1.2;
-            font-weight: 800;
-            color: #ffffff;
-            margin-bottom: 16px;
-            text-shadow: 0 2px 12px rgba(0, 0, 0, 0.35);
+        .auth-field input:focus, .auth-field select:focus { outline: none; border-color: #2563eb; }
+        .auth-field input[readonly] { background: #f1f5f9; color: #475569; }
+        .inline-error-text {
+            font-size: 12px; font-weight: 600; color: #dc2626;
+            margin-top: 5px; display: block;
         }
-        .hero-overlay-content p { font-size: 16px; line-height: 1.65; color: #E2E8F0; margin-bottom: 28px; }
-        .hero-cta-group { display: flex; gap: 14px; flex-wrap: wrap; justify-content: center; }
-        .btn-hero-primary {
-            background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%);
-            color: #ffffff;
-            border: none;
-            padding: 14px 25px;
-            border-radius: 12px;
-            font-size: 15px;
-            font-weight: 700;
-            cursor: pointer;
-            box-shadow: 0 10px 25px rgba(79, 70, 229, 0.45);
-            transition: transform 0.2s, box-shadow 0.2s;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
+        .inline-ok-text {
+            font-size: 12px; font-weight: 600; color: #15803d;
+            margin-top: 5px; display: block;
         }
-        .btn-hero-primary:hover { transform: translateY(-2px); box-shadow: 0 14px 30px rgba(79, 70, 229, 0.55); }
-        .btn-hero-secondary {
-            background: rgba(255, 255, 255, 0.95);
-            color: #1E1B4B;
-            border: none;
-            padding: 14px 23px;
-            border-radius: 12px;
-            font-size: 15px;
-            font-weight: 700;
-            cursor: pointer;
-            transition: all 0.2s;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-        }
-        .btn-hero-secondary:hover { background: #ffffff; transform: translateY(-2px); }
-        .hero-trust-row { margin-top: 24px; display: flex; gap: 20px; flex-wrap: wrap; justify-content: center; font-size: 13px; color: #CBD5E1; font-weight: 500; }
 
-        /* Integrated About Us & Info Sections inside index.html */
-        .info-page-card {
-            max-width: 960px;
-            margin: 35px auto;
-            background: #ffffff;
-            padding: 35px;
-            border-radius: 16px;
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.05);
-            border: 1px solid #E2E8F0;
-            line-height: 1.75;
+        /* Unlimited Smart Practice Bank Card & Workspace */
+        .practice-banner-card {
+            background: #ffffff; border: 1.5px solid #cbd5e1; border-radius: 10px;
+            padding: 18px 22px; margin: 18px 0;
+            display: flex; align-items: center; justify-content: space-between;
+            gap: 16px; flex-wrap: wrap; cursor: pointer;
+            transition: border-color 0.15s, box-shadow 0.15s;
         }
-        .founder-flex {
-            display: flex;
-            align-items: center;
-            gap: 30px;
-            flex-wrap: wrap;
-            padding-bottom: 25px;
-            border-bottom: 1px solid #E5E7EB;
-            margin-bottom: 25px;
+        .practice-banner-card:hover {
+            border-color: #2563eb; box-shadow: 0 4px 14px rgba(37, 99, 235, 0.08);
         }
-        .founder-photo {
-            width: 175px;
-            height: 175px;
-            border-radius: 50%;
-            object-fit: cover;
-            border: 4px solid #EEF2FF;
-            box-shadow: 0 8px 20px rgba(79, 70, 229, 0.2);
+        .pb-badge {
+            display: inline-block; font-size: 11px; font-weight: 600;
+            color: #1d4ed8; background: #eff6ff; border: 1px solid #bfdbfe;
+            padding: 2px 8px; border-radius: 4px; margin-bottom: 5px;
         }
-        .policy-heading { color: #1E1B4B; font-size: 28px; margin-bottom: 6px; }
-        .policy-sub { color: #6B7280; font-size: 13px; margin-bottom: 22px; padding-bottom: 12px; border-bottom: 1px solid #E5E7EB; }
-        .policy-sec-title { color: #4F46E5; font-size: 18px; margin: 20px 0 8px; }
-
-
-        /* Refined Premium Exam Category Cards (Both Home & Candidate Dashboard) */
-        .cat-card {
-            border-radius: 16px !important;
-            padding: 22px 20px !important;
-            box-shadow: 0 8px 20px rgba(15, 23, 42, 0.08) !important;
-            border: 1px solid rgba(255, 255, 255, 0.18) !important;
-            transition: transform 0.22s ease, box-shadow 0.22s ease !important;
-            position: relative;
-            overflow: hidden;
+        .pb-workspace {
+            background: #ffffff; border: 1px solid #e2e8f0; border-radius: 10px;
+            padding: 20px; margin: 16px 0;
         }
-        .cat-card:hover {
-            transform: translateY(-4px) !important;
-            box-shadow: 0 14px 28px rgba(15, 23, 42, 0.14) !important;
+        .pb-subject-grid {
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+            gap: 12px; margin-top: 14px;
         }
-        .cat-card .cat-icon {
-            width: 46px; height: 46px; border-radius: 12px;
-            background: rgba(255, 255, 255, 0.16);
-            display: inline-flex; align-items: center; justify-content: center;
-            font-size: 24px; margin-bottom: 12px;
-            backdrop-filter: blur(4px);
+        .pb-subject-card {
+            border: 1px solid #cbd5e1; border-radius: 8px; padding: 14px;
+            background: #f8fafc; cursor: pointer; transition: 0.15s;
         }
-        .cat-card .cat-title {
-            font-size: 17px !important; font-weight: 700 !important; letter-spacing: 0.2px;
+        .pb-subject-card:hover { border-color: #2563eb; background: #ffffff; }
+        .pb-topic-row {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 11px 14px; border: 1px solid #e2e8f0; border-radius: 7px;
+            margin-bottom: 8px; cursor: pointer; background: #ffffff;
         }
-        .cat-card .cat-sub-text {
-            font-size: 12.5px !important; opacity: 0.88 !important; margin-top: 4px !important;
+        .pb-topic-row:hover { border-color: #2563eb; background: #f8fafc; }
+        .pb-arena-grid {
+            display: grid; grid-template-columns: 1.45fr 1fr; gap: 18px;
+            align-items: start; margin-top: 14px;
         }
+        .pb-opt-btn {
+            width: 100%; text-align: left; padding: 10px 13px;
+            border: 1.5px solid #cbd5e1; border-radius: 7px;
+            background: #ffffff; font-size: 13.5px; margin-bottom: 8px;
+            cursor: pointer; transition: 0.15s; color: #1e293b;
+        }
+        .pb-opt-btn:hover:not(:disabled) { border-color: #2563eb; background: #f8fafc; }
+        .pb-opt-btn.opt-correct { border-color: #16a34a; background: #f0fdf4; color: #14532d; font-weight: 600; }
+        .pb-opt-btn.opt-wrong { border-color: #dc2626; background: #fef2f2; color: #7f1d1d; font-weight: 600; }
+        .pb-side-panel {
+            background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px;
+            padding: 15px; font-size: 13px;
+        }
+        .streak-toast {
+            padding: 9px 12px; border-radius: 6px; font-size: 12.5px;
+            font-weight: 600; margin-bottom: 10px;
+        }
+        .streak-proud { background: #ecfdf5; border: 1px solid #a7f3d0; color: #065f46; }
+        .streak-sad { background: #fef2f2; border: 1px solid #fecaca; color: #991b1b; }
 
         @media (max-width: 768px) {
-            .hero-banner-section {
-                min-height: 380px;
-                padding: 38px 5%;
-                background-image: linear-gradient(180deg, rgba(15, 23, 42, 0.88) 0%, rgba(15, 23, 42, 0.78) 100%), url('hero-laptop.jpg');
-                background-position: center;
-            }
-            .hero-overlay-content h1 { font-size: 28px; }
-            .info-page-card { padding: 22px; margin: 20px 15px; }
+            .plan-grid-clean { grid-template-columns: 1fr; }
+            .pb-arena-grid { grid-template-columns: 1fr; }
         }
     </style>
 </head>
 <body>
 
-    <!-- Top Navigation Header -->
-    <header id="mainHeader" class="navbar">
-        <div class="nav-brand" onclick="goHome()" style="cursor:pointer; display:flex; align-items:center; gap:10px;">
-            <img src="logo.png" alt="TaiyariGhar" style="height:38px;">
-            <span style="font-weight:800; font-size:20px; color:#1E1B4B;">TaiyariGhar</span>
+    <!-- Global Processing Overlay -->
+    <div id="tgProcessingOverlay" class="tg-proc-overlay hidden">
+        <div class="tg-proc-box">
+            <div class="tg-spinner"></div>
+            <div id="tgProcessingText" style="font-size:14px; font-weight:600; color:#0f172a;">Processing, please wait...</div>
+            <div id="tgProcessingSub" style="font-size:12px; color:#64748b; margin-top:4px;">Preparing your exam environment</div>
         </div>
-        <nav class="nav-links">
-            <a href="javascript:void(0)" onclick="goHome()" data-translate="nav_home">Home</a>
-            <a href="javascript:void(0)" onclick="scrollToCategories()" data-translate="nav_exams">All Exams</a>
-            <a href="javascript:void(0)" onclick="openLiveTestsHub()" style="color:#DC2626; font-weight:700;"><span class="live-dot-nav"></span> Live Tests</a>
-            <a href="javascript:void(0)" onclick="showCurrentAffairs()" data-translate="nav_ca">Current Affairs</a>
-            <a href="javascript:void(0)" onclick="openUpdatesHub()" style="color:#4F46E5; font-weight:700;">📢 Jobs & Syllabus</a>
-            <a href="javascript:void(0)" onclick="openInfoSection('aboutScreen')">About Us</a>
-            <a href="javascript:void(0)" onclick="openInfoSection('contactScreen')">Contact Us</a>
+    </div>
+
+    <!-- Header -->
+    <header class="header" id="mainHeader">
+        <div class="logo" onclick="navigateTo('home')">
+            <img src="logo.png" alt="TaiyariGhar" style="height:36px;" onerror="this.outerHTML='<span style='font-size:21px; font-weight:800; color:#0f172a;'>Taiyari<span style='color:#2563eb;'>Ghar</span></span>'">
+        </div>
+        <nav class="nav-links" id="navLinks">
+            <a href="index.html" onclick="event.preventDefault(); navigateTo('home')">Home</a>
+            <a href="index.html?page=live-tests" onclick="event.preventDefault(); navigateTo('live-tests')">Live Tests</a>
+            <a href="index.html?page=practice-bank" onclick="event.preventDefault(); openSmartPracticeBank()">Smart Practice</a>
+            <a href="index.html?page=current-affairs" onclick="event.preventDefault(); navigateTo('current-affairs')">Current Affairs</a>
+            <a href="index.html?page=updates" onclick="event.preventDefault(); navigateTo('updates')">Jobs &amp; Syllabus</a>
+            <a href="about.html">About Us</a>
         </nav>
-        <div class="nav-actions">
-            <button id="langBtn" class="btn-lang" onclick="toggleLanguage()">हिंदी</button>
-            <button class="btn-install" onclick="installPWA()">📲 Install App</button>
-            <div id="headerAuth" style="display:flex; gap:8px;">
-                <button class="btn btn-outline" onclick="showLogin()" data-translate="nav_login">Login</button>
-                <button class="btn btn-primary" onclick="showRegister()" data-translate="nav_register">Register</button>
-            </div>
-            <!-- Logged-in Candidate Profile Avatar & Sleek LMS Popover -->
-            <div id="headerProfile" class="hide" style="position:relative;">
-                <button class="lms-avatar-trigger" onclick="toggleProfilePopover(event)">
-                    <span id="navAvatarCircle" class="avatar-circle-sm">S</span>
-                    <span id="navStudentName" style="font-weight:700; color:#1E1B4B;">Student</span>
-                    <span style="font-size:11px; color:#6B7280;">▼</span>
-                </button>
-                <div id="profilePopoverCard" class="lms-profile-popover hide">
-                    <div class="popover-header">
-                        <div id="popAvatarLg" class="avatar-circle-lg">S</div>
-                        <div>
-                            <h4 id="popStudentName" style="color:#1E1B4B; font-size:15px; margin:0;">Student Name</h4>
-                            <span id="popStudentId" style="font-size:12px; color:#4F46E5; font-weight:700;">ID: TG0001</span>
-                        </div>
-                    </div>
-                    <div class="popover-body">
-                        <div class="pop-info-row"><span>📧 Email:</span><b id="popStudentEmail">-</b></div>
-                        <div class="pop-info-row"><span>📱 Mobile:</span><b id="popStudentMobile">-</b></div>
-                        <div class="pop-info-row"><span>💳 Plan:</span><span id="popSubBadge" class="sub-badge free">FREE PLAN</span></div>
-                        <div id="popSubExpiry" style="font-size:11px; color:#6B7280; margin-top:4px; text-align:right;"></div>
-                    </div>
-                    <div class="popover-actions">
-                        <button class="btn btn-outline" style="width:100%; justify-content:flex-start;" onclick="goDashboard(); closeProfilePopover();">📊 My LMS Dashboard</button>
-                        <button class="btn btn-outline" style="width:100%; justify-content:flex-start;" onclick="showPurchases(); closeProfilePopover();">🧾 My Purchases & Invoices</button>
-                        <button id="popUpgradeBtn" class="btn btn-primary" style="width:100%;" onclick="openPaymentModal(); closeProfilePopover();">🚀 Upgrade to Pro Pass</button>
-                        <button class="btn" style="width:100%; background:#FEE2E2; color:#DC2626;" onclick="logout()" data-translate="nav_logout">🚪 Logout</button>
-                    </div>
-                </div>
-            </div>
+        <div class="header-right" id="headerAuthArea">
+            <button class="btn btn-outline" onclick="navigateTo('login')">Login</button>
+            <button class="btn btn-primary" onclick="navigateTo('register')">Register Free</button>
         </div>
     </header>
 
-    <!-- HOME SCREEN (Unchanged) -->
-    <div id="homeScreen">
-        <section class="hero-banner-section">
-            <div class="hero-banner-container">
-                <div class="hero-overlay-content">
-                    <span class="hero-badge">🎯 India's Trusted Exam Preparation Portal</span>
-                    <h1 data-translate="hero_h1">Crack Your Dream Govt Job with Confidence.</h1>
-                    <p data-translate="hero_p">All-in-one mock test platform for SSC, Railway, Police & All State Exams. Latest syllabus, real-time rankings, and unlimited tests in one subscription.</p>
-                    <div class="hero-cta-group">
-                        <button class="btn-hero-primary" onclick="openPaymentModal()">🚀 Get All-Access Subscription</button>
-                        <button class="btn-hero-secondary" onclick="scrollToCategories()">🌟 Try Free Mock Tests</button>
+    <!-- Main Container -->
+    <main id="appMain" style="max-width:1180px; width:100%; margin:0 auto; padding:16px;">
+
+        <!-- HOME VIEW -->
+        <section id="view-home">
+            <div class="hero-section" style="background:#ffffff; border:1px solid #e2e8f0; border-radius:10px; padding:26px 28px; display:flex; align-items:center; justify-content:space-between; gap:20px; flex-wrap:wrap; margin-bottom:18px;">
+                <div style="max-width:600px;">
+                    <div style="font-size:12px; font-weight:600; color:#2563eb; margin-bottom:6px;">MEHNAT AAPKI, SAATH HAMARA</div>
+                    <h1 style="font-size:26px; font-weight:800; color:#0f172a; line-height:1.25; margin-bottom:10px;">Crack Your Dream Govt Job with Real CBT Mock Tests</h1>
+                    <p style="font-size:13.5px; color:#475569; margin-bottom:16px;">Bilingual (Hindi + English) Test Series, All-India Live Exams, and Unlimited Smart Practice Bank for SSC, Railway, UP Police, Banking &amp; State Exams.</p>
+                    <div style="display:flex; gap:10px; flex-wrap:wrap;">
+                        <button class="btn btn-primary" onclick="navigateTo('register')">Start Free Practice</button>
+                        <button class="btn btn-outline" onclick="openSmartPracticeBank()">Unlimited Smart Practice Bank</button>
                     </div>
-                    <div class="hero-trust-row">
-                        <span>✅ Bilingual (Hindi & English)</span>
-                        <span>✅ All-India Live Rank</span>
-                        <span>✅ Detailed Solutions</span>
+                </div>
+                <div id="heroStatsBox" style="display:grid; grid-template-columns:repeat(2,1fr); gap:10px; min-width:240px;">
+                    <div style="background:#f8fafc; border:1px solid #e2e8f0; padding:12px; border-radius:8px;">
+                        <div style="font-size:18px; font-weight:700; color:#0f172a;">500+</div>
+                        <div style="font-size:11.5px; color:#64748b;">Bilingual Mock Tests</div>
                     </div>
-                    <div style="margin-top:22px; display:flex; align-items:center; justify-content:center; gap:10px; flex-wrap:wrap;">
-                        <span style="font-size:12px; color:#94A3B8; font-weight:600; text-transform:uppercase; letter-spacing:0.5px;">Join Community:</span>
-                        <a href="https://t.me/taiyarighar" target="_blank" rel="noopener" title="Telegram" style="width:32px; height:32px; border-radius:50%; background:rgba(255,255,255,0.12); border:1px solid rgba(255,255,255,0.22); display:inline-flex; align-items:center; justify-content:center; color:#fff; transition:0.2s;" onmouseover="this.style.background='#0088cc'" onmouseout="this.style.background='rgba(255,255,255,0.12)'">
-                            <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/></svg>
-                        </a>
-                        <a href="https://whatsapp.com/channel/0029Vb9IvdC1yT2EG3s1BV3q" target="_blank" rel="noopener" title="WhatsApp Channel" style="width:32px; height:32px; border-radius:50%; background:rgba(255,255,255,0.12); border:1px solid rgba(255,255,255,0.22); display:inline-flex; align-items:center; justify-content:center; color:#fff; transition:0.2s;" onmouseover="this.style.background='#25D366'" onmouseout="this.style.background='rgba(255,255,255,0.12)'">
-                            <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.582 2.128 2.182-.573c.978.58 1.911.928 3.145.929 3.178 0 5.767-2.587 5.768-5.766.001-3.187-2.575-5.77-5.764-5.771zm3.392 8.244c-.144.405-.837.774-1.17.824-.299.045-.677.063-1.092-.069-.252-.08-.575-.187-.988-.365-1.739-.751-2.874-2.502-2.961-2.617-.087-.116-.708-.94-.708-1.793s.448-1.273.607-1.446c.159-.173.346-.217.462-.217l.332.006c.106.005.249-.04.39.298.144.347.491 1.2.534 1.287.043.087.072.188.014.304-.058.116-.087.188-.173.289l-.26.304c-.087.086-.177.18-.076.354.101.174.449.741.964 1.201.662.591 1.221.774 1.394.86s.274.072.376-.043c.101-.116.433-.506.549-.68.116-.173.231-.145.39-.087s1.011.477 1.184.564.289.13.332.202c.045.072.045.419-.1.824zm-3.423-14.416c-6.627 0-12 5.373-12 12s5.373 12 12 12 12-5.373 12-12-5.373-12-12-12zm.029 18.88c-1.161 0-2.305-.292-3.318-.844l-3.677.964.984-3.595c-.607-1.052-.927-2.246-.926-3.468.001-3.825 3.113-6.937 6.937-6.937 1.856.001 3.598.723 4.907 2.034 1.31 1.311 2.031 3.054 2.03 4.908-.001 3.825-3.113 6.938-6.937 6.938z"/></svg>
-                        </a>
-                        <a href="https://youtube.com/@taiyarigharofficial" target="_blank" rel="noopener" title="YouTube" style="width:32px; height:32px; border-radius:50%; background:rgba(255,255,255,0.12); border:1px solid rgba(255,255,255,0.22); display:inline-flex; align-items:center; justify-content:center; color:#fff; transition:0.2s;" onmouseover="this.style.background='#FF0000'" onmouseout="this.style.background='rgba(255,255,255,0.12)'">
-                            <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
-                        </a>
-                        <a href="https://www.instagram.com/taiyarighar_official" target="_blank" rel="noopener" title="Instagram" style="width:32px; height:32px; border-radius:50%; background:rgba(255,255,255,0.12); border:1px solid rgba(255,255,255,0.22); display:inline-flex; align-items:center; justify-content:center; color:#fff; transition:0.2s;" onmouseover="this.style.background='#E1306C'" onmouseout="this.style.background='rgba(255,255,255,0.12)'">
-                            <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
-                        </a>
-                        <a href="https://www.facebook.com/profile.php?id=61596620462613" target="_blank" rel="noopener" title="Facebook" style="width:32px; height:32px; border-radius:50%; background:rgba(255,255,255,0.12); border:1px solid rgba(255,255,255,0.22); display:inline-flex; align-items:center; justify-content:center; color:#fff; transition:0.2s;" onmouseover="this.style.background='#1877F2'" onmouseout="this.style.background='rgba(255,255,255,0.12)'">
-                            <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M22.675 0h-21.35c-.732 0-1.325.593-1.325 1.325v21.351c0 .731.593 1.324 1.325 1.324h11.495v-9.294h-3.128v-3.622h3.128v-2.671c0-3.1 1.893-4.788 4.659-4.788 1.325 0 2.463.099 2.795.143v3.24l-1.918.001c-1.504 0-1.795.715-1.795 1.763v2.313h3.587l-.467 3.622h-3.12v9.293h6.116c.73 0 1.323-.593 1.323-1.325v-21.35c0-.732-.593-1.325-1.325-1.325z"/></svg>
-                        </a>
+                    <div style="background:#f8fafc; border:1px solid #e2e8f0; padding:12px; border-radius:8px;">
+                        <div style="font-size:18px; font-weight:700; color:#0f172a;">All-India</div>
+                        <div style="font-size:11.5px; color:#64748b;">Live Rank Exams</div>
+                    </div>
+                    <div style="background:#f8fafc; border:1px solid #e2e8f0; padding:12px; border-radius:8px;">
+                        <div style="font-size:18px; font-weight:700; color:#0f172a;">10,000+</div>
+                        <div style="font-size:11.5px; color:#64748b;">Practice Bank Qs</div>
+                    </div>
+                    <div style="background:#f8fafc; border:1px solid #e2e8f0; padding:12px; border-radius:8px;">
+                        <div style="font-size:18px; font-weight:700; color:#0f172a;">PYQ + New</div>
+                        <div style="font-size:11.5px; color:#64748b;">Latest Exam Pattern</div>
                     </div>
                 </div>
             </div>
-        </section>
 
-        <!-- Live Tests Showcase -->
-        <section id="homeLiveTestsSection" class="container" style="margin-top:30px;">
-            <div id="homeLiveTestsContainer"></div>
-        </section>
-
-        <!-- Exam Categories -->
-        <section id="homeCategories" class="container" style="padding: 40px 5%;">
-            <h2 class="section-title" data-translate="sec_cats">🎯 Exam Categories</h2>
-            <div id="homeCatContainer"></div>
-        </section>
-    </div>
-
-    <!-- ===================================================================== -->
-    <!-- SINGLE-PAGE INTEGRATED SECTIONS: ABOUT, CONTACT, PRIVACY, TERMS, REFUND -->
-    <!-- ===================================================================== -->
-
-    <!-- 1. ABOUT US SECTION -->
-    <div id="aboutScreen" class="hide">
-        <div class="info-page-card">
-            <button class="btn btn-outline" onclick="goHome()" style="margin-bottom:20px;">← Back to Home</button>
-            <div class="founder-flex">
-                <img src="founder.jpg" alt="Madhup Verma - Founder" class="founder-photo" onerror="this.src='founder.png'; this.onerror=function(){this.src='logo.png';};">
-                <div style="flex:1; min-width:260px;">
-                    <span style="background:#EEF2FF; color:#4F46E5; font-size:12px; font-weight:700; padding:4px 12px; border-radius:20px;">Founder & Educator</span>
-                    <h2 style="font-size:28px; color:#1E1B4B; margin:8px 0 4px;">Madhup Verma</h2>
-                    <p style="font-size:14px; color:#6B7280; margin-bottom:12px;">Founder, TaiyariGhar (www.taiyarighar.in)</p>
-                    <p style="font-size:14px; color:#374151; margin-bottom:10px;">
-                        Welcome to <b>TaiyariGhar</b>! My mission behind creating this platform is to ensure that every government job aspirant—whether from a village, kasba, or metro city—gets access to real-exam-pattern mock tests at an affordable price.
-                    </p>
-                    <p style="font-size:14px; color:#374151;">
-                        With bilingual (Hindi + English) test series, All-India Live Ranking exams, instant scorecards, and flexible 3, 6, and 12-month subscription passes, TaiyariGhar is built to help you turn your hard work into selection.
-                    </p>
-                </div>
-            </div>
-            <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(240px, 1fr)); gap:18px;">
-                <div style="background:#F8FAFC; padding:20px; border-radius:12px; border:1px solid #E2E8F0;">
-                    <h4 style="color:#4F46E5; margin-bottom:6px;">🎯 Latest Exam Pattern</h4>
-                    <p style="font-size:13px; color:#4B5563;">Updated mock tests for SSC, Railway, UP Police, Banking, and State PSC exams.</p>
-                </div>
-                <div style="background:#F8FAFC; padding:20px; border-radius:12px; border:1px solid #E2E8F0;">
-                    <h4 style="color:#4F46E5; margin-bottom:6px;">🏆 All-India Live Exams</h4>
-                    <p style="font-size:13px; color:#4B5563;">Scheduled nationwide live tests with anti-cheating protection and real-time rank.</p>
-                </div>
-                <div style="background:#F8FAFC; padding:20px; border-radius:12px; border:1px solid #E2E8F0;">
-                    <h4 style="color:#4F46E5; margin-bottom:6px;">💳 Pocket-Friendly Passes</h4>
-                    <p style="font-size:13px; color:#4B5563;">Unlimited access to all test series under one simple 3, 6, or 12-month pass.</p>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- 2. CONTACT US SECTION -->
-    <div id="contactScreen" class="hide">
-        <div class="info-page-card">
-            <button class="btn btn-outline" onclick="goHome()" style="margin-bottom:20px;">← Back to Home</button>
-            <h1 class="policy-heading">Contact & Student Support</h1>
-            <p class="policy-sub">Need help with Subscriptions, Invoices, Login OTP, or Mock Tests? Reach out to us directly.</p>
-            <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(280px, 1fr)); gap:25px;">
-                <div style="background:#F8FAFC; padding:22px; border-radius:12px; border:1px solid #E2E8F0; font-size:14px;">
-                    <h3 style="color:#4F46E5; margin-bottom:14px;">📬 Official Support Details</h3>
-                    <p style="margin-bottom:12px;"><b>Student Support Email:</b><br><a href="mailto:support@taiyarighar.in" style="color:#4F46E5; font-weight:600;">support@taiyarighar.in</a></p>
-                    <p style="margin-bottom:12px;"><b>General Inquiries:</b><br><a href="mailto:info@taiyarighar.in" style="color:#4F46E5; font-weight:600;">info@taiyarighar.in</a></p>
-                    <p style="margin-bottom:12px;"><b>Support Hours:</b><br>Mon – Sat, 10:00 AM to 6:00 PM IST<br><span style="font-size:12px; color:#6B7280;">(Response within 24 hours)</span></p>
-                    <p><b>Website:</b> www.taiyarighar.in</p>
-                </div>
+            <!-- Unlimited Smart Practice Bank Card (Home Page) -->
+            <div class="practice-banner-card" onclick="openSmartPracticeBank()">
                 <div>
-                    <h3 style="color:#1E1B4B; margin-bottom:12px; font-size:18px;">✉️ Send Quick Support Message</h3>
-                    <input type="text" id="contactName" placeholder="Your Full Name / Student ID" style="width:100%; padding:11px; margin-bottom:10px; border:1px solid #CBD5E1; border-radius:8px;">
-                    <input type="email" id="contactEmail" placeholder="Your Registered Email" style="width:100%; padding:11px; margin-bottom:10px; border:1px solid #CBD5E1; border-radius:8px;">
-                    <textarea id="contactMessage" rows="4" placeholder="Write your query or payment ID here..." style="width:100%; padding:11px; margin-bottom:12px; border:1px solid #CBD5E1; border-radius:8px;"></textarea>
-                    <button class="btn btn-primary" style="width:100%; padding:12px;" onclick="submitContactForm()">Send Email to Support</button>
+                    <span class="pb-badge">NEW &bull; PYQs + EXPECTED QUESTIONS</span>
+                    <h2 style="font-size:17px; font-weight:700; color:#0f172a; margin-bottom:3px;">Unlimited Smart Practice Bank</h2>
+                    <p style="font-size:13px; color:#475569;">Subject-wise &amp; Mix Practice (Hindi, English, Maths, Reasoning, GS, GK) with instant explanations, speed timer, and Attempted / Not Attempted tracking. First 15 questions per topic free!</p>
+                </div>
+                <button type="button" class="btn btn-primary" style="white-space:nowrap;">Start Smart Practice &rarr;</button>
+            </div>
+
+            <!-- Exam Categories -->
+            <div style="margin-top:20px;">
+                <h2 style="font-size:17px; font-weight:700; color:#0f172a; margin-bottom:12px;">Explore Exam Categories</h2>
+                <div id="homeCategoriesGrid" class="categories-grid"></div>
+            </div>
+        </section>
+
+        <!-- LOGIN VIEW (Clean, Inline Password Error, Processing State) -->
+        <section id="view-login" class="hidden">
+            <div class="auth-box-clean">
+                <h2>Candidate Login</h2>
+                <p class="auth-sub">Sign in using your registered Email ID / Student ID and Password.</p>
+
+                <div id="loginPasswordForm">
+                    <div class="auth-field">
+                        <label>Registered Email ID or Student ID</label>
+                        <input type="text" id="loginIdentifier" placeholder="Enter Email ID or Student ID" />
+                    </div>
+                    <div class="auth-field">
+                        <label>Password</label>
+                        <input type="password" id="loginPassword" placeholder="Enter your password" onkeydown="if(event.key==='Enter') handleCandidateLogin()" />
+                        <span id="loginInlineError" class="inline-error-text hidden"></span>
+                    </div>
+                    <button type="button" id="btnCandidateLogin" class="btn btn-primary" style="width:100%; margin-top:4px;" onclick="handleCandidateLogin()">Login to Dashboard</button>
+                    <div style="display:flex; justify-content:space-between; margin-top:12px; font-size:12.5px;">
+                        <a href="javascript:void(0)" onclick="toggleForgotPassword(true)" style="color:#2563eb; text-decoration:none; font-weight:600;">Forgot Password?</a>
+                        <a href="javascript:void(0)" onclick="navigateTo('register')" style="color:#334155; text-decoration:none;">New user? <strong>Register Free</strong></a>
+                    </div>
+                </div>
+
+                <!-- Forgot Password via Email OTP -->
+                <div id="forgotPasswordBox" class="hidden">
+                    <div class="auth-field">
+                        <label>Registered Email ID</label>
+                        <div style="display:flex; gap:8px;">
+                            <input type="email" id="fpEmail" placeholder="Enter your registered Gmail" />
+                            <button type="button" id="btnSendFpOtp" class="btn btn-primary" style="white-space:nowrap;" onclick="sendForgotOtp()">Send OTP</button>
+                        </div>
+                        <span id="fpMsg" class="inline-error-text hidden"></span>
+                    </div>
+                    <div id="fpResetFields" class="hidden">
+                        <div class="auth-field">
+                            <label>6-Digit Email OTP</label>
+                            <input type="text" id="fpOtp" maxlength="6" placeholder="Enter 6-digit OTP" />
+                        </div>
+                        <div class="auth-field">
+                            <label>New Password</label>
+                            <input type="password" id="fpNewPass" placeholder="Create new password" />
+                        </div>
+                        <button type="button" id="btnResetPass" class="btn btn-primary" style="width:100%;" onclick="completePasswordReset()">Update Password</button>
+                    </div>
+                    <div style="margin-top:12px; font-size:12.5px;">
+                        <a href="javascript:void(0)" onclick="toggleForgotPassword(false)" style="color:#2563eb; text-decoration:none;">&larr; Back to Password Login</a>
+                    </div>
                 </div>
             </div>
-        </div>
-    </div>
+        </section>
 
-    <!-- 3. PRIVACY POLICY SECTION -->
-    <div id="privacyScreen" class="hide">
-        <div class="info-page-card">
-            <button class="btn btn-outline" onclick="goHome()" style="margin-bottom:20px;">← Back to Home</button>
-            <h1 class="policy-heading">Privacy Policy</h1>
-            <p class="policy-sub">Last Updated: November 2026 | Applicable to www.taiyarighar.in</p>
-            <p style="font-size:14px; color:#374151; margin-bottom:12px;">At <b>TaiyariGhar</b>, protecting your personal privacy is our top priority. This policy outlines how we collect, protect, and use your information.</p>
-            <h3 class="policy-sec-title">1. Information We Collect</h3>
-            <p style="font-size:14px; color:#374151;">We collect your Full Name, Email Address, Mobile Number, and test performance records (scores, accuracy, and ranks) solely to provide mock test services and personalized analytics.</p>
-            <h3 class="policy-sec-title">2. Razorpay Payment Security</h3>
-            <p style="font-size:14px; color:#374151;">All payments are processed securely via <b>Razorpay</b>. TaiyariGhar never stores your card details, CVV, or UPI PIN. We only store your Razorpay Payment ID and Invoice Number to activate your pass and email your PDF receipt.</p>
-            <h3 class="policy-sec-title">3. Email OTP & Communication</h3>
-            <p style="font-size:14px; color:#374151;">Your email is used for 6-digit OTP verification, account credentials, PDF invoice delivery, and All-India Live Test scorecards. We never sell or rent student data to third parties.</p>
-        </div>
-    </div>
+        <!-- CLEAN 2-STEP REGISTRATION VIEW (Like Partner Portal) -->
+        <section id="view-register" class="hidden">
+            <div class="auth-box-clean">
+                <h2>Create Candidate Account</h2>
+                <p class="auth-sub" id="regStepSubtitle">Step 1: Verify your Email ID to unlock the registration form.</p>
 
-    <!-- 4. TERMS & CONDITIONS SECTION -->
-    <div id="termsScreen" class="hide">
-        <div class="info-page-card">
-            <button class="btn btn-outline" onclick="goHome()" style="margin-bottom:20px;">← Back to Home</button>
-            <h1 class="policy-heading">Terms & Conditions</h1>
-            <p class="policy-sub">Effective Date: November 2026 | Platform: www.taiyarighar.in</p>
-            <h3 class="policy-sec-title">1. Personal Account & 2-Device Limit</h3>
-            <p style="font-size:14px; color:#374151;">Each subscription pass is strictly for individual use and may be accessed on a <b>maximum of 2 devices</b>. Sharing login credentials publicly may lead to account suspension.</p>
-            <h3 class="policy-sec-title">2. Live Exam Fair-Play Rules</h3>
-            <p style="font-size:14px; color:#374151;">Tab switching, exiting full-screen mode, or taking screenshots during All-India Live Exams is strictly prohibited. Three warnings will trigger automatic test submission.</p>
-            <h3 class="policy-sec-title">3. Intellectual Property</h3>
-            <p style="font-size:14px; color:#374151;">All test questions, explanations, and study materials on TaiyariGhar are protected by copyright. Unauthorized copying or redistribution is prohibited.</p>
-        </div>
-    </div>
+                <!-- Step 1: Only Email & OTP -->
+                <div id="candRegStep1">
+                    <div class="auth-field">
+                        <label>Valid Email ID (Gmail Recommended) *</label>
+                        <div style="display:flex; gap:8px;">
+                            <input type="email" id="regCandEmail" placeholder="Enter your email address" />
+                            <button type="button" id="btnSendCandOtp" class="btn btn-primary" style="white-space:nowrap;" onclick="sendCandidateRegOtp()">Send OTP</button>
+                        </div>
+                        <span id="candRegOtpMsg" class="inline-error-text hidden"></span>
+                    </div>
+                    <div id="candOtpVerifyBox" class="auth-field hidden">
+                        <label>Enter 6-Digit Verification OTP *</label>
+                        <div style="display:flex; gap:8px;">
+                            <input type="text" id="candRegOtpInput" maxlength="6" placeholder="6-digit OTP" />
+                            <button type="button" class="btn btn-primary" onclick="verifyCandidateRegOtp()">Verify &amp; Continue</button>
+                        </div>
+                    </div>
+                    <div style="margin-top:14px; font-size:12.5px; text-align:center;">
+                        Already have an account? <a href="javascript:void(0)" onclick="navigateTo('login')" style="color:#2563eb; font-weight:600; text-decoration:none;">Login here</a>
+                    </div>
+                </div>
 
-    <!-- 5. REFUND POLICY SECTION -->
-    <div id="refundScreen" class="hide">
-        <div class="info-page-card">
-            <button class="btn btn-outline" onclick="goHome()" style="margin-bottom:20px;">← Back to Home</button>
-            <h1 class="policy-heading">Refund & Cancellation Policy</h1>
-            <p class="policy-sub">Last Updated: November 2026 | Platform: www.taiyarighar.in</p>
-            <div style="background:#FEF2F2; border-left:4px solid #DC2626; padding:14px 18px; border-radius:8px; color:#991B1B; font-size:14px; margin-bottom:18px;">
-                <b>Important Policy:</b> All subscription passes (3-Month, 6-Month, and 12-Month) are digital educational products that unlock immediately upon payment. Therefore, <b>all purchases are final and strictly non-refundable.</b>
+                <!-- Step 2: Clean Details Form after OTP Verification -->
+                <form id="candRegStep2" class="hidden" onsubmit="completeCandidateRegistration(event)">
+                    <div class="auth-field">
+                        <label>Verified Email ID</label>
+                        <input type="email" id="regVerifiedEmail" readonly />
+                    </div>
+                    <div class="auth-field">
+                        <label>Full Name *</label>
+                        <input type="text" id="regCandName" required placeholder="Enter your full name" />
+                    </div>
+                    <div class="auth-field">
+                        <label>10-Digit Mobile Number *</label>
+                        <input type="tel" id="regCandMobile" required maxlength="10" placeholder="Enter 10-digit mobile number" />
+                    </div>
+                    <div class="auth-field">
+                        <label>Target Exam (Kis Exam Ki Taiyari Kar Rahe Hain) *</label>
+                        <select id="regCandExam" required>
+                            <option value="">Select primary target exam</option>
+                            <option value="SSC (CGL / CHSL / MTS / GD)">SSC (CGL / CHSL / MTS / GD)</option>
+                            <option value="Railway (NTPC / Group D / ALP / RPF)">Railway (NTPC / Group D / ALP / RPF)</option>
+                            <option value="UP Police (Constable / SI)">UP Police (Constable / SI)</option>
+                            <option value="UPSSSC (PET / Lekhpal / VDO / RO-ARO)">UPSSSC (PET / Lekhpal / VDO / RO-ARO)</option>
+                            <option value="Banking (IBPS / SBI / RRB)">Banking (IBPS / SBI / RRB)</option>
+                            <option value="State PCS / BPSC / Other State Exams">State PCS / BPSC / Other State Exams</option>
+                            <option value="Defence / Teaching / Other Govt Exams">Defence / Teaching / Other Govt Exams</option>
+                        </select>
+                    </div>
+                    <div class="auth-field">
+                        <label>City &amp; State *</label>
+                        <input type="text" id="regCandCityState" required placeholder="e.g., Lakhimpur Kheri, Uttar Pradesh" />
+                    </div>
+                    <div class="auth-field">
+                        <label>Create Password (Min 6 Characters) *</label>
+                        <input type="password" id="regCandPassword" required minlength="6" placeholder="Create a strong password" />
+                    </div>
+                    <span id="candRegFinalError" class="inline-error-text hidden"></span>
+                    <button type="submit" id="btnCompleteCandReg" class="btn btn-primary" style="width:100%; margin-top:6px;">Complete Registration</button>
+                </form>
             </div>
-            <h3 class="policy-sec-title">1. Free Mock Tests Before Purchase</h3>
-            <p style="font-size:14px; color:#374151;">Students are encouraged to attempt our Free Mock Tests to evaluate the platform before purchasing any paid subscription pass.</p>
-            <h3 class="policy-sec-title">2. Duplicate Payment or Activation Delay</h3>
-            <p style="font-size:14px; color:#374151;">In case of a duplicate bank debit for the same order, the extra amount is refunded within 5–7 business days. If your pass is not activated after payment, email your Razorpay Payment ID to <b>support@taiyarighar.in</b> for immediate activation.</p>
-        </div>
-    </div>
+        </section>
 
-    <!-- LOGIN SCREEN -->
-    <div id="loginScreen" class="hide container" style="max-width:440px; margin:50px auto; background:white; padding:35px; border-radius:16px; box-shadow:0 10px 30px rgba(0,0,0,0.08);">
-        <h2 style="text-align:center; color:#1E1B4B; margin-bottom:18px;" data-translate="login_h2">Login to Your Account</h2>
-        <input type="text" id="loginId" placeholder="Email ID, Mobile Number, or Login ID" style="width:100%; padding:12px; margin-bottom:14px; border:1px solid #CBD5E1; border-radius:8px;">
-        <input type="password" id="loginPass" placeholder="Password" style="width:100%; padding:12px; margin-bottom:14px; border:1px solid #CBD5E1; border-radius:8px;">
-        <button class="btn btn-primary" style="width:100%; padding:13px;" onclick="doLogin()" data-translate="login_btn">Login</button>
-        <div style="display:flex; justify-content:space-between; margin-top:15px; font-size:13px;">
-            <a href="javascript:void(0)" onclick="showForgotPassword()" style="color:#4F46E5;">Forgot Password?</a>
-            <span><span data-translate="login_new">New user?</span> <a href="javascript:void(0)" onclick="showRegister()" style="color:#4F46E5; font-weight:600;" data-translate="login_reg">Register Here</a></span>
-        </div>
-    </div>
-
-    <!-- REGISTER SCREEN -->
-    <div id="registerScreen" class="hide container" style="max-width:460px; margin:40px auto; background:white; padding:35px; border-radius:16px; box-shadow:0 10px 30px rgba(0,0,0,0.08);">
-        <h2 style="text-align:center; color:#1E1B4B; margin-bottom:18px;" data-translate="reg_h2">Create an Account</h2>
-        <input type="text" id="regName" placeholder="Full Name" style="width:100%; padding:12px; margin-bottom:12px; border:1px solid #CBD5E1; border-radius:8px;">
-        <input type="tel" id="regMobile" placeholder="10-Digit Mobile Number" style="width:100%; padding:12px; margin-bottom:12px; border:1px solid #CBD5E1; border-radius:8px;">
-        <div style="display:flex; gap:8px; margin-bottom:12px;">
-            <input type="email" id="regEmail" placeholder="Valid Email ID" style="flex:1; padding:12px; border:1px solid #CBD5E1; border-radius:8px;">
-            <button id="btnSendRegOtp" class="btn btn-primary" onclick="sendRegisterOtp()">Send OTP</button>
-        </div>
-        <div id="regOtpBox" class="hide" style="background:#EEF2FF; padding:14px; border-radius:8px; margin-bottom:12px;">
-            <input type="text" id="regOtpInput" placeholder="Enter 6-Digit Email OTP" style="width:100%; padding:10px; margin-bottom:8px; border:1px solid #818CF8; border-radius:6px;">
-            <button class="btn btn-accent" style="width:100%;" onclick="verifyRegisterOtp()">Verify OTP</button>
-        </div>
-        <div id="regPasswordBox" class="hide">
-            <input type="password" id="regPass" placeholder="Create Password (min 4 chars)" style="width:100%; padding:12px; margin-bottom:12px; border:1px solid #CBD5E1; border-radius:8px;">
-            <input type="password" id="regPassConfirm" placeholder="Confirm Password" style="width:100%; padding:12px; margin-bottom:14px; border:1px solid #CBD5E1; border-radius:8px;">
-            <button class="btn btn-primary" style="width:100%; padding:13px;" onclick="doRegister()" data-translate="reg_btn">Complete Registration</button>
-        </div>
-        <p style="text-align:center; margin-top:15px; font-size:13px;">Already have an account? <a href="javascript:void(0)" onclick="showLogin()" style="color:#4F46E5; font-weight:600;">Login</a></p>
-    </div>
-
-    <!-- FORGOT PASSWORD SCREEN -->
-    <div id="forgotPasswordScreen" class="hide container" style="max-width:440px; margin:50px auto; background:white; padding:35px; border-radius:16px; box-shadow:0 10px 30px rgba(0,0,0,0.08);">
-        <h2 style="text-align:center; color:#1E1B4B; margin-bottom:8px;">Reset Password</h2>
-        <p style="text-align:center; font-size:12.5px; color:#64748B; margin-bottom:18px;">Enter your registered Email ID to receive a 6-digit verification OTP</p>
-        <div style="display:flex; gap:8px; margin-bottom:12px;">
-            <input type="email" id="forgotEmail" placeholder="Registered Email ID" style="flex:1; padding:12px; border:1px solid #CBD5E1; border-radius:8px;">
-            <button id="btnSendForgotOtp" class="btn btn-primary" onclick="sendForgotOtp()">Send OTP</button>
-        </div>
-        <div id="forgotStatusMsg" class="hide" style="font-size:12.5px; padding:10px 12px; border-radius:8px; margin-bottom:12px;"></div>
-        <div id="forgotOtpStepBox" class="hide">
-            <input type="text" id="forgotOtpInput" maxlength="6" placeholder="Enter 6-Digit Email OTP" style="width:100%; padding:12px; margin-bottom:12px; border:1px solid #818CF8; border-radius:8px; letter-spacing:2px; font-weight:700;">
-            <input type="password" id="forgotNewPass" placeholder="Create New Password (min 4 chars)" style="width:100%; padding:12px; margin-bottom:14px; border:1px solid #CBD5E1; border-radius:8px;">
-            <button id="btnDoResetPass" class="btn btn-accent" style="width:100%; padding:13px; font-weight:700;" onclick="doResetPassword()">Verify OTP & Update Password</button>
-        </div>
-        <p style="text-align:center; margin-top:15px; font-size:13px;"><a href="javascript:void(0)" onclick="showLogin()">← Back to Login</a></p>
-    </div>
-
-    <!-- ===================================================================== -->
-    <!-- 🌟 PRO ENTERPRISE LMS CANDIDATE DASHBOARD (CLEAN, BEST-LOOKING UI)    -->
-    <!-- ===================================================================== -->
-    <div id="dashboardScreen" class="hide lms-dashboard-wrapper">
-        <div class="container">
-            <!-- Top Welcome & Action Bar -->
-            <div class="lms-top-banner">
+        <!-- CANDIDATE DASHBOARD VIEW -->
+        <section id="view-dashboard" class="hidden">
+            <div style="background:#ffffff; border:1px solid #e2e8f0; border-radius:10px; padding:18px 22px; margin-bottom:16px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
                 <div>
-                    <div id="welcomeMessage" style="font-size:18px; font-weight:700; color:#1E1B4B;">Welcome back!</div>
-                    <p style="font-size:13px; color:#6B7280; margin-top:2px;">Your personalized exam preparation & analytics workspace</p>
+                    <h2 id="dashWelcomeName" style="font-size:18px; font-weight:700; color:#0f172a;">Welcome, Aspirant</h2>
+                    <div id="dashStudentMeta" style="font-size:12.5px; color:#64748b; margin-top:2px;">Student ID: - &bull; Target: -</div>
                 </div>
-                <div style="display:flex; gap:10px; flex-wrap:wrap;">
-                    <button class="btn btn-danger-soft" onclick="openLiveTestsHub()">
-                        <span class="live-dot-nav"></span> All-India Live Tests (<span id="liveCountBadge">0</span>)
-                    </button>
-                    <button class="btn btn-outline" style="background:#ffffff; border-color:#CBD5E1; color:#1E1B4B; font-weight:700;" onclick="openAttemptedHistoryModal()">
-                        📜 Attempted Tests (<span id="bannerAttemptedBadge">0</span>)
-                    </button>
-                    <button class="btn btn-primary" onclick="scrollToCategories()">📚 Browse Exam Categories</button>
+                <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+                    <span id="dashPassBadge" style="font-size:12px; font-weight:600; padding:5px 10px; border-radius:6px; background:#f1f5f9; color:#334155;">Free Plan</span>
+                    <button id="btnOpenUpgrade" class="btn btn-primary" onclick="openUpgradeModal()">Upgrade All-Access Pass</button>
+                    <button class="btn btn-outline" onclick="logoutCandidate()">Logout</button>
                 </div>
             </div>
 
-            <!-- 3-Column LMS KPI & Quick Action Cards -->
-            <div class="lms-kpi-grid">
-                <div class="lms-kpi-card">
-                    <div class="kpi-icon" style="background:#EEF2FF; color:#4F46E5;">🎯</div>
-                    <div class="kpi-content">
-                        <span class="kpi-label" data-translate="qv_rec">Recommended Next</span>
-                        <h4 id="recTestName" class="kpi-title">Loading...</h4>
-                        <p id="recTestDetails" class="kpi-sub"></p>
-                        <button class="btn btn-accent" style="margin-top:10px; padding:7px 14px; font-size:12px;" onclick="startRecommendedTest()" data-translate="qv_start">Start Now →</button>
-                    </div>
+            <!-- Unlimited Smart Practice Bank Card (Dashboard) -->
+            <div class="practice-banner-card" onclick="openSmartPracticeBank()">
+                <div>
+                    <span class="pb-badge">UNLIMITED PRACTICE &bull; TOPIC-WISE + MIX</span>
+                    <h3 style="font-size:16px; font-weight:700; color:#0f172a; margin-bottom:2px;">Unlimited Smart Practice Bank</h3>
+                    <p style="font-size:12.5px; color:#475569;">Practice PYQs &amp; Expected Questions by Subject &amp; Topic or Mix Mode. Track speed, accuracy &amp; unattempted questions.</p>
                 </div>
-
-                <div class="lms-kpi-card">
-                    <div class="kpi-icon" style="background:#ECFDF5; color:#059669;">📈</div>
-                    <div class="kpi-content">
-                        <span class="kpi-label" data-translate="qv_recent">Recent Performance</span>
-                        <h4 id="recentTestName" class="kpi-title">Not Attempted Yet</h4>
-                        <p id="recentTestScore" class="kpi-sub" style="color:#059669; font-weight:600;">Take a test to see your score</p>
-                    </div>
-                </div>
-
-                <div class="lms-kpi-card" onclick="openAttemptedHistoryModal()" style="cursor:pointer;">
-                    <div class="kpi-icon" style="background:#FEF3C7; color:#D97706;">🏆</div>
-                    <div class="kpi-content">
-                        <span class="kpi-label">Tests Completed</span>
-                        <h4 id="totalAttemptedCount" class="kpi-title">0 Tests</h4>
-                        <p class="kpi-sub">View unique attempted tests & scorecards</p>
-                        <button class="btn btn-outline" style="margin-top:10px; padding:6px 13px; font-size:12px; font-weight:700;" onclick="event.stopPropagation(); openAttemptedHistoryModal()">📜 View Attempted History →</button>
-                    </div>
-                </div>
+                <button type="button" class="btn btn-primary" style="white-space:nowrap;">Practice Now &rarr;</button>
             </div>
 
-            <!-- Centralized Live Tests Showcase on Dashboard -->
-            <div id="dashLiveTestsSection" style="margin-bottom:32px;">
-                <div id="dashLiveTestsContainer"></div>
+            <!-- Dashboard Tabs -->
+            <div style="display:flex; gap:8px; margin-bottom:14px; flex-wrap:wrap;">
+                <button class="btn btn-primary" id="dtab-tests" onclick="switchDashTab('tests')">Available Mock Tests</button>
+                <button class="btn btn-outline" id="dtab-results" onclick="switchDashTab('results')">My Results &amp; Live Ranks</button>
             </div>
 
-            <!-- Cross-Exam Quick Practice by Test Type (All PYPs, Full Mocks, Mini Tests, Topic Tests) -->
-            <div class="lms-quick-types-section" style="margin-bottom:35px;">
-                <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:16px;">
-                    <h2 class="section-title" style="margin:0;">⚡ Quick Practice by Test Type (All Exams)</h2>
-                    <span style="font-size:12px; color:#6B7280; font-weight:500;">Direct access across SSC, Railway, UP Police & State Exams</span>
-                </div>
-                <div class="lms-type-grid">
-                    <div class="lms-type-card" onclick="openCrossExamTypeFilter('previous')">
-                        <div class="lt-icon" style="background:#EEF2FF; color:#4F46E5;">📋</div>
-                        <div>
-                            <h4>Previous Year Papers</h4>
-                            <p>All uploaded PYP sets across exams</p>
-                        </div>
-                    </div>
-                    <div class="lms-type-card" onclick="openCrossExamTypeFilter('full')">
-                        <div class="lt-icon" style="background:#ECFDF5; color:#059669;">✅</div>
-                        <div>
-                            <h4>Full-Length Mocks</h4>
-                            <p>Complete exam-pattern mock tests</p>
-                        </div>
-                    </div>
-                    <div class="lms-type-card" onclick="openCrossExamTypeFilter('mini')">
-                        <div class="lt-icon" style="background:#FEF3C7; color:#D97706;">⚡</div>
-                        <div>
-                            <h4>Mini / Speed Tests</h4>
-                            <p>Quick time-bound booster quizzes</p>
-                        </div>
-                    </div>
-                    <div class="lms-type-card" onclick="openCrossExamTypeFilter('chapter')">
-                        <div class="lt-icon" style="background:#FCE7F3; color:#DB2777;">📚</div>
-                        <div>
-                            <h4>Chapter / Topic Tests</h4>
-                            <p>Subject-wise & topic-wise practice</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            <div id="dashContentTests"></div>
+            <div id="dashContentResults" class="hidden"></div>
+        </section>
 
-            <!-- Exam Categories Grid (Existing Categories Preserved) -->
-            <div id="dashCategories" style="margin-bottom:35px;">
-                <h2 class="section-title" data-translate="sec_cats">🎯 Exam Categories</h2>
-                <div id="dashCatContainer"></div>
-            </div>
-
-
-        </div>
-    </div>
-
-    <!-- CENTRALIZED LIVE TESTS HUB MODAL (Shows all running live exams across categories) -->
-    <div id="liveHubModal" class="hide" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(15,23,42,0.75); align-items:center; justify-content:center; z-index:10000; padding:15px;">
-        <div style="background:white; max-width:850px; width:100%; border-radius:18px; padding:28px; position:relative; max-height:90vh; overflow-y:auto;">
-            <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #E5E7EB; padding-bottom:14px; margin-bottom:20px;">
-                <div style="display:flex; align-items:center; gap:10px;">
-                    <span class="live-dot-nav"></span>
-                    <h2 style="color:#1E1B4B; font-size:20px; margin:0;">All-India Live Exams Hub</h2>
-                </div>
-                <button onclick="closeLiveTestsHub()" style="background:#F3F4F6; border:none; width:32px; height:32px; border-radius:50%; font-weight:700; cursor:pointer;">✕</button>
-            </div>
-            <p style="font-size:13px; color:#6B7280; margin-bottom:18px;">All currently active live tests across SSC, Railway, Banking, UP Police, and State Exams are listed below with exact closing times. Choose any live exam to begin:</p>
-            <div id="modalLiveTestsContainer"></div>
-        </div>
-    </div>
-
-    <!-- ATTEMPTED TEST HISTORY & SCORECARDS MODAL (Hidden until clicked) -->
-    <div id="historyModal" class="hide" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(15,23,42,0.75); align-items:center; justify-content:center; z-index:10000; padding:15px;">
-        <div style="background:white; max-width:820px; width:100%; border-radius:18px; padding:26px; position:relative; max-height:88vh; overflow-y:auto;">
-            <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #E5E7EB; padding-bottom:14px; margin-bottom:18px;">
-                <div style="display:flex; align-items:center; gap:10px;">
-                    <span style="font-size:22px;">📜</span>
+        <!-- UNLIMITED SMART PRACTICE BANK WORKSPACE VIEW -->
+        <section id="view-practice-bank" class="hidden">
+            <div class="pb-workspace">
+                <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; padding-bottom:12px; border-bottom:1px solid #e2e8f0;">
                     <div>
-                        <h2 style="color:#1E1B4B; font-size:19px; margin:0;">Attempted Test History & Scorecards</h2>
-                        <p style="font-size:12px; color:#6B7280; margin:2px 0 0;">Each attempted test is shown once with your latest scorecard & All-India Rank</p>
+                        <h2 id="pbHeaderTitle" style="font-size:18px; font-weight:700; color:#0f172a;">Unlimited Smart Practice Bank</h2>
+                        <div id="pbHeaderSub" style="font-size:12.5px; color:#64748b;">Select a subject to begin Topic-Wise or Mix Practice</div>
                     </div>
-                </div>
-                <button onclick="closeAttemptedHistoryModal()" style="background:#F3F4F6; border:none; width:34px; height:34px; border-radius:50%; font-weight:700; cursor:pointer; font-size:15px;">✕</button>
-            </div>
-            <div id="dashHistoryContainer"></div>
-        </div>
-    </div>
-
-    <!-- SUB-CATEGORIES & TEST LIST SCREEN -->
-    <div id="subCatScreen" class="hide container" style="padding:30px 5%;">
-        <button class="btn btn-outline" onclick="goDashboard()" style="margin-bottom:15px;" data-translate="btn_back_cat">← Back to Dashboard</button>
-        <h2 id="subCatTitle" style="color:#1E1B4B; margin-bottom:15px;">Select Exam</h2>
-        <div id="subCatPills" style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:20px;"></div>
-        <div id="examNamePills" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(180px, 1fr)); gap:12px; margin-bottom:25px;"></div>
-        <div id="testListContainer"></div>
-    </div>
-
-    <!-- CURRENT AFFAIRS SCREEN -->
-    <div id="caScreen" class="hide container" style="padding:30px 5%;">
-        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:20px;">
-            <h2 style="color:#1E1B4B;">📰 Current Affairs Hub</h2>
-            <div>
-                <span style="background:#D1FAE5; color:#065F46; padding:6px 12px; border-radius:8px; font-weight:700; margin-right:8px;">✅ <span id="caLiveScoreCorrect">0</span></span>
-                <span style="background:#FEE2E2; color:#991B1B; padding:6px 12px; border-radius:8px; font-weight:700;">❌ <span id="caLiveScoreWrong">0</span></span>
-            </div>
-        </div>
-        <div style="display:flex; gap:10px; margin-bottom:20px;">
-            <button class="ca-tab active btn btn-primary" onclick="filterCA('Daily', this)">Daily CA</button>
-            <button class="ca-tab btn btn-outline" onclick="filterCA('Monthly', this)">Monthly CA</button>
-        </div>
-        <div id="caContentContainer"></div>
-    </div>
-
-    <!-- JOBS, SYLLABUS & UPDATES SCREEN -->
-    <div id="updatesScreen" class="hide container" style="padding:30px 5%; max-width:1050px; margin:0 auto;">
-        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; margin-bottom:20px;">
-            <div>
-                <h2 style="color:#1E1B4B; margin:0; font-size:24px;">📢 Govt Jobs, Exam Syllabus & Latest Updates</h2>
-                <p style="font-size:13px; color:#6B7280; margin-top:4px;">Official Notifications, Complete Syllabus PDFs, Admit Cards & Results</p>
-            </div>
-            <button class="btn btn-outline" onclick="goHome()">← Back to Home</button>
-        </div>
-        <div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:22px;">
-            <button class="upd-tab active btn btn-primary" onclick="filterUpdates('All', this)">All Updates</button>
-            <button class="upd-tab btn btn-outline" onclick="filterUpdates('Latest Job', this)">💼 Latest Jobs</button>
-            <button class="upd-tab btn btn-outline" onclick="filterUpdates('Syllabus', this)">📚 Exam Syllabus</button>
-            <button class="upd-tab btn btn-outline" onclick="filterUpdates('Admit Card / Result', this)">🔔 Admit Card & Updates</button>
-        </div>
-        <div id="updatesContentContainer"></div>
-    </div>
-
-    <!-- INSTRUCTIONS SCREEN -->
-    <div id="instructionsScreen" class="hide container" style="max-width:750px; margin:30px auto; background:white; padding:30px; border-radius:14px; box-shadow:0 6px 25px rgba(0,0,0,0.06);">
-        <span id="instLiveBadge" class="hide" style="background:#FEE2E2; color:#DC2626; padding:4px 12px; border-radius:20px; font-size:12px; font-weight:700;">🔴 ALL-INDIA LIVE EXAM</span>
-        <h2 id="instTestName" style="color:#1E1B4B; margin:10px 0;">Test Instructions</h2>
-        <p style="font-size:14px; color:#4B5563; margin-bottom:15px;">Duration: <b id="instDuration">60</b> Mins | Total Marks: <b id="instMarks">100</b></p>
-        <ul style="font-size:14px; line-height:1.8; color:#374151; padding-left:20px; margin-bottom:20px;">
-            <li>Total duration of the test is <span id="instDuration2">60</span> minutes.</li>
-            <li id="instPosRule">You will be awarded +1 mark for each correct answer.</li>
-            <li id="instNegRule">Negative marking applies as per exam rules.</li>
-        </ul>
-        <div id="instAntiCheatBox" class="hide" style="background:#FEF2F2; border:1px solid #FECACA; padding:14px; border-radius:8px; margin-bottom:18px; font-size:13px; color:#991B1B;">
-            ⚠️ <b>Strict Anti-Cheating Active:</b> Do not switch tabs, minimize browser, or exit full-screen. Results release at <b id="instLiveEndTime">12:00 AM</b>.
-        </div>
-        <div id="langSelectBox" class="hide" style="margin-bottom:18px;">
-            <label style="font-weight:600; font-size:14px;">Choose Default Language: </label>
-            <select id="instLangSelect" style="padding:8px 12px; border-radius:6px; border:1px solid #CBD5E1;">
-                <option value="Both">Hindi + English (Bilingual)</option>
-                <option value="Hindi">Only Hindi</option>
-                <option value="English">Only English</option>
-            </select>
-        </div>
-        <label style="display:flex; align-items:center; gap:10px; font-size:14px; margin-bottom:20px; cursor:pointer;">
-            <input type="checkbox" id="instCheckbox" onchange="toggleStartButton()"> I have read and understood all instructions.
-        </label>
-        <div style="display:flex; gap:12px;">
-            <button class="btn btn-outline" onclick="history.back()">Cancel</button>
-            <button id="btnStartActualTest" class="btn btn-accent" disabled style="opacity:0.5; cursor:not-allowed;" onclick="startActualTest()">I am ready to begin →</button>
-        </div>
-    </div>
-
-    <!-- LIVE EXAM SCREEN (ULTRA-SMOOTH TESTBOOK / SSC CBT INTERFACE) -->
-    <style>
-        .cbt-wrapper {
-            display: flex; flex-direction: column; height: 100vh; background: #F1F5F9; overflow: hidden;
-        }
-        .cbt-topbar {
-            background: #1E1B4B; color: #ffffff; padding: 10px 16px;
-            display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.18); z-index: 50;
-        }
-        .cbt-top-btn {
-            background: rgba(255,255,255,0.14); color: #ffffff; border: 1px solid rgba(255,255,255,0.28);
-            padding: 6px 11px; border-radius: 7px; font-size: 12px; font-weight: 600; cursor: pointer;
-            display: inline-flex; align-items: center; gap: 5px; transition: background 0.15s ease;
-            white-space: nowrap;
-        }
-        .cbt-top-btn:hover { background: rgba(255,255,255,0.26); }
-        .cbt-top-btn.active-pill { background: #4F46E5; border-color: #818CF8; }
-        .cbt-lang-select {
-            background: rgba(255,255,255,0.14); color: #ffffff; border: 1px solid rgba(255,255,255,0.3);
-            padding: 6px 10px; border-radius: 7px; font-size: 12px; font-weight: 600; cursor: pointer;
-        }
-        .cbt-lang-select option { color: #1E1B4B; background: #ffffff; }
-        .cbt-main-body {
-            display: flex; flex: 1; overflow: hidden; position: relative;
-        }
-        .cbt-left-panel {
-            flex: 1; display: flex; flex-direction: column; background: #ffffff;
-            overflow: hidden; min-width: 0;
-        }
-        .cbt-q-header {
-            padding: 11px 20px; background: #F8FAFC; border-bottom: 1px solid #E2E8F0;
-            display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;
-        }
-        .cbt-q-scroll {
-            flex: 1; overflow-y: auto; padding: 20px 24px;
-            scroll-behavior: smooth; -webkit-overflow-scrolling: touch;
-        }
-        .cbt-option-card {
-            display: flex; align-items: flex-start; gap: 12px;
-            padding: 13px 16px; border: 1.5px solid #E2E8F0; border-radius: 10px;
-            background: #ffffff; cursor: pointer;
-            transition: border-color 0.12s ease, background-color 0.12s ease;
-            user-select: none;
-        }
-        .cbt-option-card:hover { border-color: #6366F1; background: #F5F3FF; }
-        .cbt-option-card.selected-opt { border-color: #4F46E5; background: #EEF2FF; box-shadow: 0 2px 6px rgba(79,70,229,0.12); }
-        .cbt-option-card input[type="radio"] { margin-top: 4px; accent-color: #4F46E5; width: 17px; height: 17px; cursor: pointer; }
-        .cbt-bottom-bar {
-            padding: 11px 20px; background: #F8FAFC; border-top: 1px solid #E2E8F0;
-            display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;
-        }
-        /* Collapsible Right Sidebar (27% width) */
-        .cbt-sidebar-toggle-handle {
-            width: 26px; background: #E2E8F0; border-left: 1px solid #CBD5E1; border-right: 1px solid #CBD5E1;
-            display: flex; align-items: center; justify-content: center; cursor: pointer;
-            color: #1E1B4B; font-weight: 800; font-size: 16px; user-select: none;
-            transition: background-color 0.15s ease, color 0.15s ease;
-        }
-        .cbt-sidebar-toggle-handle:hover { background: #4F46E5; color: #ffffff; }
-        .cbt-right-sidebar {
-            width: 27%; min-width: 270px; max-width: 340px;
-            background: #F8FAFC; border-left: 1px solid #E2E8F0;
-            display: flex; flex-direction: column; overflow: hidden;
-            transition: width 0.2s ease, min-width 0.2s ease, opacity 0.15s ease;
-            will-change: width, opacity;
-        }
-        .cbt-right-sidebar.hidden-sidebar {
-            width: 0 !important; min-width: 0 !important; max-width: 0 !important;
-            opacity: 0; pointer-events: none; border: none;
-        }
-        .cbt-legend-grid {
-            display: grid; grid-template-columns: 1fr 1fr; gap: 7px;
-            padding: 10px 12px; background: #ffffff; border-bottom: 1px solid #E2E8F0; font-size: 11.5px; font-weight: 600;
-        }
-        .cbt-legend-item { display: flex; align-items: center; gap: 6px; color: #334155; }
-        .cbt-badge-box {
-            width: 22px; height: 22px; border-radius: 6px; display: inline-flex; align-items: center; justify-content: center;
-            font-size: 11px; font-weight: 700; color: #fff; flex-shrink: 0;
-        }
-        .cbt-palette-scroll {
-            flex: 1; overflow-y: auto; padding: 12px;
-        }
-        .cbt-mobile-close-btn { display: none; }
-        @media (max-width: 820px) {
-            .cbt-wrapper { height: auto; min-height: 100vh; overflow: visible; }
-            .cbt-main-body { overflow: visible; }
-            .cbt-sidebar-toggle-handle { display: none; }
-            .cbt-mobile-close-btn { display: inline-flex; }
-            .cbt-right-sidebar {
-                position: fixed; top: 54px; right: 0; bottom: 0; width: 285px !important; min-width: 285px !important; max-width: 85vw !important;
-                z-index: 9998; box-shadow: -8px 0 25px rgba(0,0,0,0.22);
-                transform: translateX(100%); opacity: 1 !important; pointer-events: auto !important;
-                transition: transform 0.22s ease;
-            }
-            .cbt-right-sidebar.mobile-drawer-open {
-                transform: translateX(0);
-            }
-        }
-    </style>
-
-    <div id="testScreen" class="hide cbt-wrapper">
-        <div id="antiCheatWatermark" style="position:fixed; top:50%; left:50%; transform:translate(-50%,-50%) rotate(-25deg); font-size:22px; color:rgba(0,0,0,0.03); pointer-events:none; z-index:9999; white-space:nowrap;"></div>
-        
-        <!-- Top CBT Exam Header -->
-        <div class="cbt-topbar">
-            <div style="display:flex; align-items:center; gap:9px;">
-                <span id="testLiveTag" class="hide" style="background:#DC2626; padding:3px 9px; border-radius:6px; font-size:11px; font-weight:700;">🔴 LIVE</span>
-                <b id="examHeaderName" style="font-size:14.5px;">Mock Test</b>
-            </div>
-            <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
-                <!-- Live Language Switcher -->
-                <select id="liveTestLangSwitcher" class="cbt-lang-select" onchange="switchTestLanguageLive(this.value)" title="Switch Language">
-                    <option value="Both">हिंदी + English</option>
-                    <option value="Hindi">केवल हिंदी</option>
-                    <option value="English">Only English</option>
-                </select>
-
-                <!-- Always-Available Full-Screen Toggle Button -->
-                <button id="btnToggleFullScreenTop" class="cbt-top-btn" onclick="toggleFullScreen()" title="Enter / Exit Full Screen">
-                    ⛶ <span id="fsBtnText">Full Screen</span>
-                </button>
-
-                <!-- Always-Available Show/Hide Question Palette Button -->
-                <button id="btnTogglePaletteTop" class="cbt-top-btn active-pill" onclick="toggleCbtSidebar()" title="Show / Hide Question Palette">
-                    ◧ <span id="paletteBtnText">Hide Palette</span>
-                </button>
-
-                <span id="warningCounterBadge" class="hide" style="background:#F59E0B; color:#1E1B4B; padding:4px 9px; border-radius:6px; font-size:12px; font-weight:700;">Warnings: 0/3</span>
-                <span style="background:rgba(255,255,255,0.16); padding:6px 12px; border-radius:8px; font-weight:700; font-size:14px;">⏱️ <span id="timerDisplay">00:00</span></span>
-            </div>
-        </div>
-
-        <!-- Split CBT Workspace -->
-        <div class="cbt-main-body">
-            <!-- Left Question & Options Panel -->
-            <div class="cbt-left-panel">
-                <div class="cbt-q-header">
-                    <div style="display:flex; align-items:center; gap:10px;">
-                        <b style="color:#1E1B4B; font-size:15px;">Question No. <span id="currentQNum">1</span></b>
-                        <span id="questionUniqueId" style="background:#EEF2FF; color:#4F46E5; padding:3px 9px; border-radius:6px; font-size:12px; font-weight:700;">Q-ID: -</span>
-                    </div>
-                    <div style="display:flex; align-items:center; gap:8px; font-size:13px;">
-                        <span style="background:#ECFDF5; color:#059669; padding:3px 8px; border-radius:6px; font-weight:700;">+<span id="markPositive">1</span></span>
-                        <span id="negBadge" style="background:#FEF2F2; color:#DC2626; padding:3px 8px; border-radius:6px; font-weight:700;">-<span id="markNegative">0.33</span></span>
-                        <button onclick="reportCurrentQuestion()" style="background:#FFFBEB; color:#B45309; border:1px solid #FDE68A; padding:4px 9px; border-radius:6px; font-size:12px; font-weight:600; cursor:pointer;">⚠️ Report Q</button>
+                    <div style="display:flex; gap:8px;">
+                        <button id="pbBackBtn" class="btn btn-outline hidden" onclick="pbGoBack()">&larr; Back</button>
+                        <button class="btn btn-outline" onclick="exitSmartPracticeBank()">Exit Practice</button>
                     </div>
                 </div>
 
-                <div id="cbtQuestionScrollBox" class="cbt-q-scroll">
-                    <div id="questionText" style="font-size:16.5px; line-height:1.65; color:#0F172A; font-weight:500; margin-bottom:20px;"></div>
-                    <div id="optionsContainer" style="display:flex; flex-direction:column; gap:10px; max-width:860px;"></div>
+                <!-- Performance & Timing Analytics Strip -->
+                <div id="pbAnalyticsBar" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(130px, 1fr)); gap:10px; margin-top:14px;">
+                    <div style="background:#f8fafc; border:1px solid #e2e8f0; padding:10px 12px; border-radius:6px;">
+                        <div style="font-size:11px; color:#64748b;">Total Practiced</div>
+                        <div id="pbStatAttempted" style="font-size:16px; font-weight:700; color:#0f172a;">0 Qs</div>
+                    </div>
+                    <div style="background:#f8fafc; border:1px solid #e2e8f0; padding:10px 12px; border-radius:6px;">
+                        <div style="font-size:11px; color:#64748b;">Accuracy Rate</div>
+                        <div id="pbStatAccuracy" style="font-size:16px; font-weight:700; color:#15803d;">0%</div>
+                    </div>
+                    <div style="background:#f8fafc; border:1px solid #e2e8f0; padding:10px 12px; border-radius:6px;">
+                        <div style="font-size:11px; color:#64748b;">Avg Speed / Question</div>
+                        <div id="pbStatAvgTime" style="font-size:16px; font-weight:700; color:#2563eb;">0s</div>
+                    </div>
                 </div>
 
-                <div class="cbt-bottom-bar">
-                    <div style="display:flex; gap:8px; flex-wrap:wrap;">
-                        <button id="markBtn" class="btn btn-outline" style="font-size:13px;" onclick="toggleMark()">⭐ Mark for Review & Next</button>
-                        <button class="btn btn-outline" style="font-size:13px;" onclick="clearResponse()">Clear Response</button>
-                    </div>
-                    <div style="display:flex; gap:10px;">
-                        <button id="btnPrev" class="btn btn-outline" style="font-size:13px;" onclick="prevQuestion()">← Previous</button>
-                        <button id="btnNext" class="btn" style="background:#10B981; color:white; font-weight:700; font-size:13.5px; padding:10px 20px;" onclick="nextQuestion()">Save & Next →</button>
-                    </div>
-                </div>
-            </div>
+                <!-- Level 1: Subjects List -->
+                <div id="pbLevelSubjects" class="pb-subject-grid"></div>
 
-            <!-- Collapsible Handle (Desktop/Laptop) -->
-            <div class="cbt-sidebar-toggle-handle" onclick="toggleCbtSidebar()" title="Hide / Show Question Palette">
-                <span id="cbtSidebarArrow">›</span>
-            </div>
-
-            <!-- Right Sidebar (27% width): Candidate Info + 4-Color Legend + Palette + Submit -->
-            <aside id="cbtRightSidebar" class="cbt-right-sidebar">
-                <div style="display:flex; align-items:center; justify-content:space-between; padding:10px 14px; background:#EEF2FF; border-bottom:1px solid #CBD5E1;">
-                    <div style="display:flex; align-items:center; gap:10px;">
-                        <div id="paletteAvatar" style="width:34px; height:34px; border-radius:50%; background:#4F46E5; color:white; display:flex; align-items:center; justify-content:center; font-weight:700;">S</div>
-                        <div>
-                            <div id="paletteName" style="font-weight:700; font-size:13px; color:#1E1B4B;">Student</div>
-                            <div id="paletteId" style="font-size:11px; color:#4F46E5; font-weight:600;">TG0001</div>
+                <!-- Level 2: Subject Modes (Topic-Wise vs Mix) -->
+                <div id="pbLevelModes" class="hidden" style="margin-top:16px;">
+                    <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(240px, 1fr)); gap:12px; margin-bottom:18px;">
+                        <div class="pb-subject-card" style="background:#ffffff; border:1.5px solid #2563eb;" onclick="startSubjectMixPractice()">
+                            <div style="font-size:11.5px; font-weight:700; color:#2563eb; margin-bottom:4px;">ALL TOPICS COMBINED</div>
+                            <div style="font-size:15px; font-weight:700; color:#0f172a;">Mix Question Practice</div>
+                            <p style="font-size:12px; color:#64748b; margin-top:4px;">Randomly rotates questions across every topic in this subject continuously.</p>
+                        </div>
+                        <div class="pb-subject-card" style="background:#ffffff;" onclick="document.getElementById('pbTopicsListWrap').scrollIntoView({behavior:'smooth'})">
+                            <div style="font-size:11.5px; font-weight:700; color:#475569; margin-bottom:4px;">CHAPTER BY CHAPTER</div>
+                            <div style="font-size:15px; font-weight:700; color:#0f172a;">Topic-Wise Practice</div>
+                            <p style="font-size:12px; color:#64748b; margin-top:4px;">Choose any topic below. First 15 questions per topic are free for all registered students.</p>
                         </div>
                     </div>
-                    <button class="cbt-mobile-close-btn" onclick="toggleCbtSidebar()" style="background:#DC2626; color:white; border:none; border-radius:6px; padding:4px 9px; font-size:12px; font-weight:700;">✕</button>
+                    <div id="pbTopicsListWrap">
+                        <h3 style="font-size:14.5px; font-weight:700; color:#0f172a; margin-bottom:10px;">Select a Topic</h3>
+                        <div id="pbTopicsList"></div>
+                    </div>
                 </div>
 
-                <!-- 4-Color Status Legend with Live Counts -->
-                <div class="cbt-legend-grid">
-                    <div class="cbt-legend-item"><span id="legAnswered" class="cbt-badge-box" style="background:#10B981;">0</span> Answered</div>
-                    <div class="cbt-legend-item"><span id="legNotAnswered" class="cbt-badge-box" style="background:#EF4444;">0</span> Not Answered</div>
-                    <div class="cbt-legend-item"><span id="legNotVisited" class="cbt-badge-box" style="background:#94A3B8;">0</span> Not Visited</div>
-                    <div class="cbt-legend-item"><span id="legMarked" class="cbt-badge-box" style="background:#8B5CF6;">0</span> Marked</div>
-                </div>
+                <!-- Level 3: Active Question Arena -->
+                <div id="pbLevelArena" class="hidden">
+                    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-top:14px; padding:10px 12px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:7px;">
+                        <div style="display:flex; gap:6px; align-items:center;">
+                            <button id="pbFilterUnattempted" class="btn btn-primary" style="padding:5px 10px; font-size:12px;" onclick="switchPbPool('unattempted')">Not Attempted (<span id="pbUnattemptedCount">0</span>)</button>
+                            <button id="pbFilterAttempted" class="btn btn-outline" style="padding:5px 10px; font-size:12px;" onclick="switchPbPool('attempted')">Attempted (<span id="pbAttemptedCount">0</span>)</button>
+                        </div>
+                        <div style="font-size:12.5px; font-weight:600; color:#334155;">
+                            Question Timer: <span id="pbLiveTimer" style="color:#2563eb;">00:00</span>
+                        </div>
+                    </div>
 
-                <div class="cbt-palette-scroll">
-                    <div style="font-size:11.5px; font-weight:700; color:#475569; margin-bottom:9px; text-transform:uppercase;">Question Palette</div>
-                    <div id="paletteContainer" style="display:grid; grid-template-columns:repeat(5, 1fr); gap:7px;"></div>
-                </div>
+                    <div id="pbArenaBody" class="pb-arena-grid">
+                        <!-- Left: Question & Options -->
+                        <div style="border:1px solid #e2e8f0; border-radius:8px; padding:16px;">
+                            <div id="pbStreakBanner" class="streak-toast hidden"></div>
+                            <div style="display:flex; justify-content:space-between; font-size:11.5px; color:#64748b; margin-bottom:8px;">
+                                <span id="pbQMeta">Topic: -</span>
+                                <span id="pbQCounter">Q 1 / 1</span>
+                            </div>
+                            <div id="pbQText" style="font-size:14.5px; font-weight:600; color:#0f172a; margin-bottom:14px; line-height:1.55;"></div>
+                            <div id="pbOptionsWrap"></div>
+                            <div style="display:flex; justify-content:space-between; margin-top:14px; gap:8px;">
+                                <button class="btn btn-outline" onclick="prevPracticeQuestion()">&larr; Previous</button>
+                                <button id="pbNextBtn" class="btn btn-primary" onclick="nextPracticeQuestion()">Next Question &rarr;</button>
+                            </div>
+                        </div>
 
-                <div style="padding:11px 14px; background:#ffffff; border-top:1px solid #E2E8F0;">
-                    <button class="btn" style="width:100%; background:#4F46E5; color:white; font-weight:700; padding:10px;" onclick="showSubmitModal()">Submit Test</button>
-                </div>
-            </aside>
-        </div>
-    </div>
-
-    <!-- LIVE SUBMITTED SCREEN -->
-    <div id="liveSubmittedScreen" class="hide container" style="max-width:540px; margin:50px auto; background:white; padding:35px; border-radius:16px; text-align:center; box-shadow:0 10px 30px rgba(0,0,0,0.08);">
-        <div style="font-size:48px; margin-bottom:12px;">🎉</div>
-        <h2 style="color:#1E1B4B; margin-bottom:10px;">Live Exam Submitted Successfully!</h2>
-        <p style="font-size:14px; color:#4B5563; line-height:1.6; margin-bottom:20px;">Your All-India Live Test responses have been recorded securely. Your scorecard and All-India Rank will be released at <b id="liveReleaseTimeDisplay">12:00 AM</b> and sent to <b id="liveUserEmailDisplay">your email</b>.</p>
-        <button class="btn btn-primary" onclick="goDashboard()">Go to Dashboard</button>
-    </div>
-
-    <!-- RESULT SCREEN -->
-    <div id="resultScreen" class="hide container" style="max-width:750px; margin:30px auto; background:white; padding:30px; border-radius:16px; box-shadow:0 8px 25px rgba(0,0,0,0.06); text-align:center;">
-        <h2 id="resTestName" style="color:#1E1B4B; margin-bottom:8px;">Test Result</h2>
-        <p id="rankText" style="color:#4F46E5; font-weight:700; margin-bottom:20px;">Calculating Rank...</p>
-        <div id="scoreCircle" style="width:130px; height:130px; border-radius:50%; margin:0 auto 20px; display:flex; align-items:center; justify-content:center;">
-            <div style="width:106px; height:106px; border-radius:50%; background:white; display:flex; flex-direction:column; align-items:center; justify-content:center;">
-                <b id="finalScore" style="font-size:22px; color:#1E1B4B;">0</b>
-                <span style="font-size:12px; color:#6B7280;">out of <span id="totalScore">100</span></span>
-            </div>
-        </div>
-        <div style="display:grid; grid-template-columns:repeat(4, 1fr); gap:10px; margin-bottom:25px;">
-            <div style="background:#D1FAE5; padding:12px; border-radius:10px;"><b id="statCorrect" style="color:#065F46; font-size:18px;">0</b><div style="font-size:12px;">Correct</div></div>
-            <div style="background:#FEE2E2; padding:12px; border-radius:10px;"><b id="statWrong" style="color:#991B1B; font-size:18px;">0</b><div style="font-size:12px;">Wrong</div></div>
-            <div style="background:#F3F4F6; padding:12px; border-radius:10px;"><b id="statSkipped" style="color:#374151; font-size:18px;">0</b><div style="font-size:12px;">Skipped</div></div>
-            <div style="background:#FEF3C7; padding:12px; border-radius:10px;"><b id="statNeg" style="color:#92400E; font-size:18px;">0</b><div style="font-size:12px;">Neg Marks</div></div>
-        </div>
-        <div style="display:flex; justify-content:center; gap:12px; flex-wrap:wrap;">
-            <button class="btn btn-primary" onclick="viewSolutions()">📖 View Detailed Solutions</button>
-            <button class="btn btn-outline" onclick="downloadScorecard()">📥 Print Scorecard</button>
-            <button class="btn btn-outline" onclick="downloadQuestionPaper()">📄 Download Paper</button>
-            <button class="btn btn-accent" onclick="goDashboard()">Dashboard</button>
-        </div>
-    </div>
-
-    <!-- SOLUTIONS SCREEN -->
-    <div id="solutionsScreen" class="hide container" style="max-width:850px; margin:30px auto; padding:0 15px;">
-        <button class="btn btn-outline" onclick="showScreen('resultScreen')" style="margin-bottom:15px;">← Back to Scorecard</button>
-        <div id="solutionsContainer"></div>
-    </div>
-
-    <!-- 3-TIER SUBSCRIPTION PAYMENT MODAL -->
-    <div id="paymentModal" class="hide" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(15,23,42,0.75); align-items:center; justify-content:center; z-index:10000; padding:15px;">
-        <div style="background:white; max-width:650px; width:100%; border-radius:18px; padding:28px; position:relative; max-height:92vh; overflow-y:auto;">
-            <h2 style="text-align:center; color:#1E1B4B; margin-bottom:6px;">🚀 Unlock All-Access Subscription Pass</h2>
-            <p style="text-align:center; font-size:13px; color:#6B7280; margin-bottom:20px;">Unlimited Mock Tests, All-India Live Exams & Detailed Analytics</p>
-            
-            <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(170px, 1fr)); gap:12px; margin-bottom:20px;">
-                <div id="planCard3" class="plan-card" onclick="selectSubscriptionPlan(3)" style="border:2px solid #E2E8F0; border-radius:12px; padding:16px; text-align:center; cursor:pointer;">
-                    <span id="planSave3" style="background:#EEF2FF; color:#4F46E5; font-size:11px; font-weight:700; padding:3px 8px; border-radius:10px;">SAVE ₹50</span>
-                    <h3 style="margin:10px 0 4px; font-size:16px;">3 Months Pass</h3>
-                    <div style="font-size:13px; color:#9CA3AF; text-decoration:line-through;">₹<span id="planMrp3">149</span></div>
-                    <div style="font-size:26px; font-weight:800; color:#1E1B4B;">₹<span id="planPrice3">99</span></div>
-                </div>
-                <div id="planCard6" class="plan-card" onclick="selectSubscriptionPlan(6)" style="border:2px solid #E2E8F0; border-radius:12px; padding:16px; text-align:center; cursor:pointer;">
-                    <span id="planSave6" style="background:#EEF2FF; color:#4F46E5; font-size:11px; font-weight:700; padding:3px 8px; border-radius:10px;">SAVE ₹50</span>
-                    <h3 style="margin:10px 0 4px; font-size:16px;">6 Months Pass</h3>
-                    <div style="font-size:13px; color:#9CA3AF; text-decoration:line-through;">₹<span id="planMrp6">249</span></div>
-                    <div style="font-size:26px; font-weight:800; color:#1E1B4B;">₹<span id="planPrice6">199</span></div>
-                </div>
-                <div id="planCard12" class="plan-card selected" onclick="selectSubscriptionPlan(12)" style="border:2px solid #4F46E5; background:#F5F3FF; border-radius:12px; padding:16px; text-align:center; cursor:pointer;">
-                    <span id="planSave12" style="background:#10B981; color:white; font-size:11px; font-weight:700; padding:3px 8px; border-radius:10px;">BEST VALUE • SAVE ₹150</span>
-                    <h3 style="margin:10px 0 4px; font-size:16px;">12 Months Pass</h3>
-                    <div style="font-size:13px; color:#9CA3AF; text-decoration:line-through;">₹<span id="planMrp12">399</span></div>
-                    <div style="font-size:26px; font-weight:800; color:#4F46E5;">₹<span id="planPrice12">249</span></div>
+                        <!-- Right (Desktop) / Bottom (Mobile): Instant Explanation & Session Summary -->
+                        <div class="pb-side-panel">
+                            <div style="font-size:12px; font-weight:700; color:#0f172a; margin-bottom:6px;">SOLUTION &amp; EXPLANATION</div>
+                            <div id="pbExplanationBox" style="color:#475569; line-height:1.6;">
+                                Select an option to view the correct answer and detailed explanation immediately.
+                            </div>
+                            <div style="margin-top:14px; padding-top:12px; border-top:1px solid #e2e8f0; font-size:12px; color:#475569;">
+                                <strong>Current Session:</strong><br />
+                                Correct: <span id="pbSessCorrect" style="color:#15803d; font-weight:700;">0</span> &bull;
+                                Wrong: <span id="pbSessWrong" style="color:#dc2626; font-weight:700;">0</span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
+        </section>
 
-            <!-- Referral Partner Coupon Code Box -->
-            <div style="background:#F8FAFC; padding:12px 14px; border-radius:10px; border:1px dashed #94A3B8; margin-bottom:14px;">
-                <label style="display:block; font-size:12px; font-weight:700; color:#334155; margin-bottom:6px;">🎟️ Have a Referral Coupon Code? (Optional)</label>
-                <div style="display:flex; gap:8px;">
-                    <input type="text" id="studentCouponInput" placeholder="Enter Coupon Code (e.g. RAHUL78)" style="flex:1; padding:9px 11px; border:1px solid #CBD5E1; border-radius:8px; font-size:13px; text-transform:uppercase; font-weight:600; margin:0;">
-                    <button type="button" id="btnApplyStudentCoupon" class="btn btn-primary" style="padding:9px 16px; font-size:13px;" onclick="applyStudentReferralCoupon()">Apply</button>
-                </div>
-                <div id="couponStatusMsg" style="font-size:12px; margin-top:6px; font-weight:600;"></div>
-            </div>
+        <!-- OTHER DYNAMIC SECTIONS (Live Tests, Current Affairs, Updates, Exam Interface) -->
+        <section id="view-dynamic" class="hidden"></section>
+    </main>
 
-            <div style="background:#F8FAFC; padding:14px; border-radius:10px; font-size:13px; margin-bottom:18px; border:1px solid #E2E8F0;">
-                <div style="display:flex; justify-content:space-between; margin-bottom:4px;"><span>Selected Plan:</span><b id="selPlanLabel">12 Months Pass</b></div>
-                <div style="display:flex; justify-content:space-between; margin-bottom:4px;"><span>Validity:</span><b id="selPlanValidity" style="color:#059669;">365 Days</b></div>
-                <div style="display:flex; justify-content:space-between; margin-bottom:4px;"><span>Plan MRP:</span><span>₹<span id="selPlanMrp">399</span></span></div>
-                <div style="display:flex; justify-content:space-between; margin-bottom:4px; color:#059669;"><span>Offer Discount:</span><span>- ₹<span id="selPlanDiscount">150</span></span></div>
-                <div id="couponDiscountRow" class="hide" style="display:flex; justify-content:space-between; margin-bottom:4px; color:#4F46E5; font-weight:600;"><span>Referral Coupon Bonus:</span><span id="selCouponBonusText">- ₹0</span></div>
-                <div style="display:flex; justify-content:space-between; font-size:15px; font-weight:700; border-top:1px dashed #CBD5E1; padding-top:6px; margin-top:6px;"><span>Total Payable:</span><span style="color:#4F46E5;">₹<span id="selPlanFinal">249</span></span></div>
-            </div>
-
-            <button class="btn btn-primary" style="width:100%; padding:14px; font-size:16px; font-weight:700;" onclick="initiateRazorpayPayment()">💳 Pay ₹<span id="payBtnAmount">249</span> Securely via Razorpay</button>
-            <p style="text-align:center; font-size:11px; color:#6B7280; margin-top:10px;">Instant activation + Automatic PDF Invoice sent to your email. Subscription passes are non-refundable.</p>
-            <button onclick="closeModal()" style="display:block; margin:14px auto 0; background:none; border:none; color:#6B7280; cursor:pointer; font-weight:600;" data-translate="pay_close">Close</button>
-        </div>
-    </div>
-
-    <!-- SUBMIT CONFIRMATION MODAL -->
-    <div id="submitModal" class="hide" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); align-items:center; justify-content:center; z-index:10000;">
-        <div style="background:white; padding:25px; border-radius:14px; max-width:400px; width:90%; text-align:center;">
-            <h3 style="margin-bottom:15px;">Submit Test Summary</h3>
-            <p style="font-size:14px; margin-bottom:6px;">Total Questions: <b id="smTotal">0</b></p>
-            <p style="font-size:14px; color:#10B981; margin-bottom:6px;">Answered: <b id="smAnswered">0</b></p>
-            <p style="font-size:14px; color:#EF4444; margin-bottom:6px;">Not Answered: <b id="smNotAnswered">0</b></p>
-            <p style="font-size:14px; color:#8B5CF6; margin-bottom:6px;">Marked for Review: <b id="smMarked">0</b></p>
-            <p style="font-size:14px; color:#6B7280; margin-bottom:18px;">Not Visited: <b id="smNotVisited">0</b></p>
-            <div style="display:flex; gap:10px;">
-                <button class="btn btn-outline" style="flex:1;" onclick="closeSubmitModal()">Resume Test</button>
-                <button class="btn btn-accent" style="flex:1;" onclick="finalSubmitTest()">Confirm Submit</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- STRUCTURED REPORT QUESTION MODAL -->
-    <div id="reportQuestionModal" class="hide" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(15,23,42,0.72); align-items:center; justify-content:center; z-index:10001; padding:15px;">
-        <div style="background:white; max-width:500px; width:100%; border-radius:16px; padding:26px; position:relative; max-height:92vh; overflow-y:auto; box-shadow:0 20px 45px rgba(0,0,0,0.25);">
-            <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #E2E8F0; padding-bottom:12px; margin-bottom:16px;">
+    <!-- CLEAN PROFESSIONAL CHECKOUT / UPGRADE MODAL -->
+    <div id="upgradeModal" class="clean-modal-backdrop hidden">
+        <div class="clean-modal-card">
+            <div class="clean-modal-head">
                 <div>
-                    <h3 style="color:#1E1B4B; margin:0; font-size:18px;">⚠️ Report Question Issue</h3>
-                    <p style="font-size:12px; color:#64748B; margin-top:2px;">Question ID: <b id="repModalQId" style="color:#4F46E5;">-</b></p>
+                    <h3>All-Access Subscription Pass</h3>
+                    <p>Unlimited Mock Tests, All-India Live Exams &amp; Smart Practice Bank</p>
                 </div>
-                <button onclick="closeReportQuestionModal()" style="background:#F1F5F9; border:none; width:32px; height:32px; border-radius:50%; font-weight:700; cursor:pointer;">✕</button>
+                <button class="clean-close-btn" onclick="closeUpgradeModal()">&times;</button>
             </div>
 
-            <div style="margin-bottom:12px;">
-                <label style="display:block; font-size:12.5px; font-weight:600; color:#334155; margin-bottom:5px;">1. Galti Kis Type Ki Hai? (Issue Category)</label>
-                <select id="repIssueType" style="width:100%; padding:10px; border:1px solid #CBD5E1; border-radius:8px; font-size:13.5px;">
-                    <option value="Wrong Answer Key">❌ Wrong Answer Key (Galat Uttar)</option>
-                    <option value="Typing / Spelling Mistake">✍️ Typing / Spelling Mistake</option>
-                    <option value="Hindi-English Translation Mismatch">🌐 Hindi - English Translation Mismatch</option>
-                    <option value="Incomplete Question / Missing Image">🖼️ Incomplete Question / Missing Data</option>
-                    <option value="Other Issue">📌 Other Issue</option>
-                </select>
-            </div>
-
-            <div style="margin-bottom:12px;">
-                <label style="display:block; font-size:12.5px; font-weight:600; color:#334155; margin-bottom:5px;">2. Kya Galti Hai? (Describe the mistake)</label>
-                <textarea id="repWrongDesc" rows="2" placeholder="Jaise: Option B galat hai ya sawal me data adhoora hai..." style="width:100%; padding:10px; border:1px solid #CBD5E1; border-radius:8px; font-size:13px;"></textarea>
-            </div>
-
-            <div style="margin-bottom:12px;">
-                <label style="display:block; font-size:12.5px; font-weight:600; color:#334155; margin-bottom:5px;">3. Sahi Kya Hona Chahiye? (Suggested Correction)</label>
-                <textarea id="repCorrectSuggestion" rows="2" placeholder="Sahi answer ya sahi wording likhein..." style="width:100%; padding:10px; border:1px solid #CBD5E1; border-radius:8px; font-size:13px;"></textarea>
-            </div>
-
-            <div style="margin-bottom:16px; background:#F8FAFC; padding:12px; border-radius:10px; border:1px dashed #CBD5E1;">
-                <label style="display:block; font-size:12.5px; font-weight:600; color:#334155; margin-bottom:6px;">4. Screenshot Upload / Image Link (Optional)</label>
-                <input type="file" id="repScreenshotFile" accept="image/*" onchange="handleReportScreenshotSelect(this)" style="font-size:12px; margin-bottom:8px;">
-                <input type="url" id="repScreenshotUrl" placeholder="Ya screenshot image link paste karein (https://...)" style="width:100%; padding:8px 10px; border:1px solid #CBD5E1; border-radius:6px; font-size:12.5px;">
-                <div id="repScreenshotPreviewBox" class="hide" style="margin-top:8px; text-align:center;">
-                    <img id="repScreenshotPreviewImg" src="" alt="Preview" style="max-height:110px; border-radius:6px; border:1px solid #CBD5E1;">
+            <div class="plan-grid-clean">
+                <div class="plan-item-clean active" id="planCard-3m" onclick="selectSubscriptionPlan('3m', '3 Months Pass', 149, 119, 90)">
+                    <span class="plan-tag-clean">SAVE &#8377;30</span>
+                    <div class="plan-title-clean">3 Months Pass</div>
+                    <div class="plan-mrp-clean">&#8377;149</div>
+                    <div class="plan-price-clean">&#8377;119</div>
+                </div>
+                <div class="plan-item-clean" id="planCard-6m" onclick="selectSubscriptionPlan('6m', '6 Months Pass', 249, 219, 180)">
+                    <span class="plan-tag-clean">SAVE &#8377;30</span>
+                    <div class="plan-title-clean">6 Months Pass</div>
+                    <div class="plan-mrp-clean">&#8377;249</div>
+                    <div class="plan-price-clean">&#8377;219</div>
+                </div>
+                <div class="plan-item-clean" id="planCard-12m" onclick="selectSubscriptionPlan('12m', '12 Months Pass', 399, 319, 365)">
+                    <span class="plan-tag-clean">BEST VALUE</span>
+                    <div class="plan-title-clean">12 Months Pass</div>
+                    <div class="plan-mrp-clean">&#8377;399</div>
+                    <div class="plan-price-clean">&#8377;319</div>
                 </div>
             </div>
 
-            <div style="display:flex; gap:10px;">
-                <button class="btn btn-outline" style="flex:1;" onclick="closeReportQuestionModal()">Cancel</button>
-                <button id="btnSubmitReportQ" class="btn btn-primary" style="flex:2; font-weight:700;" onclick="submitStructuredQuestionReport()">🚀 Send Report to Admin</button>
+            <div class="coupon-box-clean">
+                <label style="display:block; font-size:12px; font-weight:600; color:#334155; margin-bottom:5px;">Have a Referral Coupon Code? (Optional)</label>
+                <div style="display:flex; gap:8px;">
+                    <input type="text" id="checkoutCouponInput" placeholder="Enter coupon code" style="flex:1; padding:8px 10px; border:1px solid #cbd5e1; border-radius:6px; font-size:13px; text-transform:uppercase;" />
+                    <button type="button" id="btnApplyCoupon" class="btn btn-primary" onclick="applyReferralCoupon()">Apply</button>
+                </div>
+                <div id="couponStatusMsg" style="font-size:12px; margin-top:5px;"></div>
             </div>
+
+            <table class="summary-table-clean">
+                <tr><td>Selected Plan</td><td id="sumPlanName">3 Months Pass</td></tr>
+                <tr><td>Validity</td><td id="sumValidity">90 Days</td></tr>
+                <tr><td>Plan MRP</td><td id="sumMrp">&#8377;149</td></tr>
+                <tr><td>Offer Discount</td><td id="sumOfferDisc" style="color:#15803d;">- &#8377;30</td></tr>
+                <tr id="sumCouponRow" class="hidden"><td>Referral Coupon Bonus</td><td id="sumCouponDisc" style="color:#15803d;">- &#8377;0</td></tr>
+                <tr class="total-row"><td>Total Payable</td><td id="sumTotalPayable">&#8377;119</td></tr>
+            </table>
+
+            <button type="button" id="btnPayRazorpay" class="btn btn-primary" style="width:100%; padding:11px;" onclick="startRazorpayCheckout()">Pay &#8377;119 Securely via Razorpay</button>
         </div>
     </div>
 
-    <!-- REGISTRATION SUCCESS MODAL -->
-    <div id="registerSuccessModal" class="hide" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); align-items:center; justify-content:center; z-index:10000;">
-        <div style="background:white; padding:30px; border-radius:14px; max-width:420px; width:90%; text-align:center;">
-            <h2 style="color:#10B981; margin-bottom:10px;">🎉 Registration Successful!</h2>
-            <p style="font-size:13px; color:#4B5563; margin-bottom:15px;">Save your login credentials below (also sent to your email):</p>
-            <div style="background:#F8FAFC; padding:14px; border-radius:8px; text-align:left; font-size:14px; margin-bottom:18px;">
-                <p><b>Student ID:</b> <span id="newLoginId" style="color:#4F46E5; font-weight:700;"></span></p>
-                <p><b>Email:</b> <span id="newLoginEmail"></span></p>
-                <p><b>Password:</b> <span id="newLoginPass"></span></p>
-            </div>
-            <button class="btn btn-primary" style="width:100%;" onclick="closeRegModal()">Proceed to Login</button>
-        </div>
-    </div>
-
-    <!-- POPUPS -->
-    <div id="popupSuccess" class="streak-popup">🔥 3 in a row! Awesome accuracy!</div>
-    <div id="popupWarning" class="streak-popup warning">⚠️ 3 wrong in a row! Read carefully!</div>
-
-    <!-- PROFESSIONAL FOOTER -->
-    <footer id="mainFooter" style="background:#1E1B4B; color:#CBD5E1; padding:45px 5% 25px; margin-top:60px;">
-        <div style="max-width:1200px; margin:0 auto; display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:30px; margin-bottom:30px;">
+    <!-- Footer -->
+    <footer class="footer" id="mainFooter" style="margin-top:36px;">
+        <div style="max-width:1180px; margin:0 auto; display:flex; justify-content:space-between; flex-wrap:wrap; gap:16px; text-align:left;">
             <div>
-                <h3 style="color:#ffffff; margin-bottom:10px;">TaiyariGhar</h3>
-                <p style="font-size:13px; line-height:1.6; margin-bottom:14px;">India's modern exam preparation and mock test platform for SSC, Railway, Banking, UP Police, and State Government Exams.</p>
-                <div class="tg-social-row" style="display:flex; gap:10px; align-items:center; margin-top:6px;">
-                    <a href="https://t.me/taiyarighar" target="_blank" rel="noopener" title="Telegram" aria-label="Telegram" style="width:36px; height:36px; border-radius:50%; background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.16); display:inline-flex; align-items:center; justify-content:center; color:#ffffff; transition:all 0.25s;" onmouseover="this.style.background='#0088cc';this.style.borderColor='#0088cc';this.style.transform='translateY(-2px)'" onmouseout="this.style.background='rgba(255,255,255,0.08)';this.style.borderColor='rgba(255,255,255,0.16)';this.style.transform='none'">
-                        <svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor"><path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/></svg>
-                    </a>
-                    <a href="https://whatsapp.com/channel/0029Vb9IvdC1yT2EG3s1BV3q" target="_blank" rel="noopener" title="WhatsApp Channel" aria-label="WhatsApp" style="width:36px; height:36px; border-radius:50%; background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.16); display:inline-flex; align-items:center; justify-content:center; color:#ffffff; transition:all 0.25s;" onmouseover="this.style.background='#25D366';this.style.borderColor='#25D366';this.style.transform='translateY(-2px)'" onmouseout="this.style.background='rgba(255,255,255,0.08)';this.style.borderColor='rgba(255,255,255,0.16)';this.style.transform='none'">
-                        <svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor"><path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.582 2.128 2.182-.573c.978.58 1.911.928 3.145.929 3.178 0 5.767-2.587 5.768-5.766.001-3.187-2.575-5.77-5.764-5.771zm3.392 8.244c-.144.405-.837.774-1.17.824-.299.045-.677.063-1.092-.069-.252-.08-.575-.187-.988-.365-1.739-.751-2.874-2.502-2.961-2.617-.087-.116-.708-.94-.708-1.793s.448-1.273.607-1.446c.159-.173.346-.217.462-.217l.332.006c.106.005.249-.04.39.298.144.347.491 1.2.534 1.287.043.087.072.188.014.304-.058.116-.087.188-.173.289l-.26.304c-.087.086-.177.18-.076.354.101.174.449.741.964 1.201.662.591 1.221.774 1.394.86s.274.072.376-.043c.101-.116.433-.506.549-.68.116-.173.231-.145.39-.087s1.011.477 1.184.564.289.13.332.202c.045.072.045.419-.1.824zm-3.423-14.416c-6.627 0-12 5.373-12 12s5.373 12 12 12 12-5.373 12-12-5.373-12-12-12zm.029 18.88c-1.161 0-2.305-.292-3.318-.844l-3.677.964.984-3.595c-.607-1.052-.927-2.246-.926-3.468.001-3.825 3.113-6.937 6.937-6.937 1.856.001 3.598.723 4.907 2.034 1.31 1.311 2.031 3.054 2.03 4.908-.001 3.825-3.113 6.938-6.937 6.938z"/></svg>
-                    </a>
-                    <a href="https://youtube.com/@taiyarigharofficial" target="_blank" rel="noopener" title="YouTube" aria-label="YouTube" style="width:36px; height:36px; border-radius:50%; background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.16); display:inline-flex; align-items:center; justify-content:center; color:#ffffff; transition:all 0.25s;" onmouseover="this.style.background='#FF0000';this.style.borderColor='#FF0000';this.style.transform='translateY(-2px)'" onmouseout="this.style.background='rgba(255,255,255,0.08)';this.style.borderColor='rgba(255,255,255,0.16)';this.style.transform='none'">
-                        <svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
-                    </a>
-                    <a href="https://www.instagram.com/taiyarighar_official" target="_blank" rel="noopener" title="Instagram" aria-label="Instagram" style="width:36px; height:36px; border-radius:50%; background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.16); display:inline-flex; align-items:center; justify-content:center; color:#ffffff; transition:all 0.25s;" onmouseover="this.style.background='#E1306C';this.style.borderColor='#E1306C';this.style.transform='translateY(-2px)'" onmouseout="this.style.background='rgba(255,255,255,0.08)';this.style.borderColor='rgba(255,255,255,0.16)';this.style.transform='none'">
-                        <svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
-                    </a>
-                    <a href="https://www.facebook.com/profile.php?id=61596620462613" target="_blank" rel="noopener" title="Facebook" aria-label="Facebook" style="width:36px; height:36px; border-radius:50%; background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.16); display:inline-flex; align-items:center; justify-content:center; color:#ffffff; transition:all 0.25s;" onmouseover="this.style.background='#1877F2';this.style.borderColor='#1877F2';this.style.transform='translateY(-2px)'" onmouseout="this.style.background='rgba(255,255,255,0.08)';this.style.borderColor='rgba(255,255,255,0.16)';this.style.transform='none'">
-                        <svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor"><path d="M22.675 0h-21.35c-.732 0-1.325.593-1.325 1.325v21.351c0 .731.593 1.324 1.325 1.324h11.495v-9.294h-3.128v-3.622h3.128v-2.671c0-3.1 1.893-4.788 4.659-4.788 1.325 0 2.463.099 2.795.143v3.24l-1.918.001c-1.504 0-1.795.715-1.795 1.763v2.313h3.587l-.467 3.622h-3.12v9.293h6.116c.73 0 1.323-.593 1.323-1.325v-21.35c0-.732-.593-1.325-1.325-1.325z"/></svg>
-                    </a>
-                </div>
+                <strong>TaiyariGhar</strong><br />
+                <span style="font-size:12px; opacity:0.85;">Bilingual Mock Tests, All-India Live Exams &amp; Unlimited Smart Practice Bank.</span>
             </div>
-            <div>
-                <h4 style="color:#ffffff; margin-bottom:10px;">Quick Links</h4>
-                <ul style="list-style:none; font-size:13px; line-height:2;">
-                    <li><a href="javascript:void(0)" onclick="goHome()" style="color:#CBD5E1; text-decoration:none;">Home</a></li>
-                    <li><a href="javascript:void(0)" onclick="openInfoSection('aboutScreen')" style="color:#CBD5E1; text-decoration:none;">About Us</a></li>
-                    <li><a href="javascript:void(0)" onclick="openInfoSection('contactScreen')" style="color:#CBD5E1; text-decoration:none;">Contact Us</a></li>
-                    <li style="margin-top:4px; padding-top:4px; border-top:1px solid rgba(255,255,255,0.08); font-size:12px;">
-                        <span style="color:#94A3B8;">Careers:</span>
-                        <a href="partner.html" style="color:#93C5fd; text-decoration:underline; font-weight:600; margin-left:4px;">Official Referral Partner</a>
-                    </li>
-                </ul>
-            </div>
-            <div>
-                <h4 style="color:#ffffff; margin-bottom:10px;">Legal & Policies</h4>
-                <ul style="list-style:none; font-size:13px; line-height:2;">
-                    <li><a href="javascript:void(0)" onclick="openInfoSection('privacyScreen')" style="color:#CBD5E1; text-decoration:none;">Privacy Policy</a></li>
-                    <li><a href="javascript:void(0)" onclick="openInfoSection('termsScreen')" style="color:#CBD5E1; text-decoration:none;">Terms & Conditions</a></li>
-                    <li><a href="javascript:void(0)" onclick="openInfoSection('refundScreen')" style="color:#CBD5E1; text-decoration:none;">Refund Policy</a></li>
-                </ul>
-            </div>
-            <div>
-                <h4 style="color:#ffffff; margin-bottom:10px;">Official Support</h4>
-                <p style="font-size:13px; line-height:1.8;">📧 support@taiyarighar.in<br>📧 taiyarighar@gmail.com<br>📲 WhatsApp Help: +91 9140281870<br>🌐 www.taiyarighar.in</p>
+            <div style="font-size:12.5px; display:flex; gap:16px; flex-wrap:wrap;">
+                <a href="about.html" style="color:inherit;">About Us</a>
+                <a href="partner.html" style="color:inherit; font-weight:600;">Careers: Official Referral Partner</a>
+                <a href="mailto:support@taiyarighar.in" style="color:inherit;">Support</a>
             </div>
         </div>
-        <div style="text-align:center; border-top:1px solid rgba(255,255,255,0.1); padding-top:20px; font-size:12px;">
-            © 2026 TaiyariGhar. All Rights Reserved.
-        </div>
+        <div style="margin-top:12px; font-size:12px; opacity:0.8;">&copy; 2026 TaiyariGhar (taiyarighar.in). All Rights Reserved.</div>
     </footer>
 
-    <script>
-        window.submitContactForm = function() {
-            const name = document.getElementById('contactName').value.trim();
-            const email = document.getElementById('contactEmail').value.trim();
-            const msg = document.getElementById('contactMessage').value.trim();
-            if (!name || !msg) { alert("Please enter your name and message."); return; }
-            const sub = encodeURIComponent("Support Query from " + name);
-            const body = encodeURIComponent("Name/ID: " + name + "\nEmail: " + email + "\n\nMessage:\n" + msg);
-            window.location.href = "mailto:support@taiyarighar.in?subject=" + sub + "&body=" + body;
-        };
-    </script>
-
-    <script type="module" src="student-app.js?v=21.0"></script>
+    <script src="student-app.js"></script>
 </body>
 </html>
