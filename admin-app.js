@@ -2,15 +2,15 @@
 // TaiyariGhar Admin Control Panel Script (admin-app.js)
 // ============================================================================
 
-const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbx_REPLACE_WITH_YOUR_DEPLOYED_WEB_APP_URL/exec";
+const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxvoU_mH8BjfE7QdC_UOQyzDfmJsUoVcIvq9Kp3VtXutzYTFRFY0vXpzw6Uv2XAjnng5Q/exec";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyDummyKeyReplaceWithYourConfig",
+  apiKey: "AIzaSyA7x6gQziPYlxrXnyVJJ80mvJkh3VCm24",
   authDomain: "taiyarighar.firebaseapp.com",
   projectId: "taiyarighar",
-  storageBucket: "taiyarighar.appspot.com",
-  messagingSenderId: "123456789",
-  appId: "1:123456789:web:abcdef"
+  storageBucket: "taiyarighar.firebasestorage.app",
+  messagingSenderId: "329150812714",
+  appId: "1:329150812714:web:1f292d05aaba0cb918e953"
 };
 
 if (!firebase.apps.length) {
