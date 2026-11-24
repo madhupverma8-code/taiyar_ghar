@@ -2,16 +2,16 @@
 // TaiyariGhar Candidate Portal Engine (student-app.js)
 // ============================================================================
 
-const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbx_REPLACE_WITH_YOUR_DEPLOYED_WEB_APP_URL/exec";
-const RAZORPAY_KEY_ID = "rzp_live_REPLACE_WITH_YOUR_KEY";
+const RAZORPAY_KEY_ID = "rzp_live_Ttffsg1nwh5gBU";
+const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxvoU_mH8BjfE7QdC_UOQyzDfmJsUoVcIvq9Kp3VtXutzYTFRFY0vXpzw6Uv2XAjnng5Q/exec";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyDummyKeyReplaceWithYourConfig",
+  apiKey: "AIzaSyA7x6gQziPYlxrXnyVJJ80mvJkh3VCm24",
   authDomain: "taiyarighar.firebaseapp.com",
   projectId: "taiyarighar",
-  storageBucket: "taiyarighar.appspot.com",
-  messagingSenderId: "123456789",
-  appId: "1:123456789:web:abcdef"
+  storageBucket: "taiyarighar.firebasestorage.app",
+  messagingSenderId: "329150812714",
+  appId: "1:329150812714:web:1f292d05aaba0cb918e953"
 };
 
 if (!firebase.apps.length) {
@@ -29,21 +29,21 @@ let selectedPlan = { id: "3m", name: "3 Months Pass", mrp: 149, price: 119, days
 let appliedPartner = null;
 
 // Smart Practice Bank state
-let pbMetaIndex = [];       // List of bundle docs metadata
-let pbLoadedBundles = {};   // Cache bundleId -> questions array
+let pbMetaIndex = [];          // List of bundle docs metadata
+let pbLoadedBundles = {};      // Cache bundleId -> questions array
 let pbCurrentSubject = "";
-let pbCurrentMode = "";     // "topic" or "mix"
+let pbCurrentMode = "";        // "topic" or "mix"
 let pbCurrentTopic = "";
 let pbPoolMode = "unattempted"; // "unattempted" or "attempted"
 let pbActiveQuestions = [];
 let pbCurrentIndex = 0;
 let pbUserProgress = {
-  attemptedMap: {}, // qId -> { isCorrect, chosen, timeSec }
+  attemptedMap: {},          // qId -> { isCorrect, chosen, timeSec }
   totalAttempted: 0,
   totalCorrect: 0,
   totalTimeSec: 0
 };
-let pbStreakCount = 0;      // Positive for consecutive right, negative for consecutive wrong
+let pbStreakCount = 0;         // Positive for consecutive right, negative for consecutive wrong
 let pbSessionCorrect = 0;
 let pbSessionWrong = 0;
 let pbTimerInterval = null;
@@ -330,7 +330,6 @@ async function handleCandidateLogin() {
     }
 
     const userData = snap.docs[0].data();
-    // Strict exact match check
     if (String(userData.password) !== String(password)) {
       hideProcessing();
       btn.disabled = false;
@@ -340,7 +339,6 @@ async function handleCandidateLogin() {
       return;
     }
 
-    // Verified login
     currentStudent = userData;
     localStorage.setItem("tg_student_session", JSON.stringify(currentStudent));
     await loadStudentPracticeProgress();
@@ -519,7 +517,6 @@ async function renderStudentResultsTab() {
           liveLocked = true;
           releaseTimeText = new Date(endMs).toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" });
         } else {
-          // Live window ended -> compute simultaneous All-India Rank on dashboard
           const allAttempts = await db.collection("results").where("testId", "==", r.testId).get();
           const scores = allAttempts.docs.map(d => Number(d.data().finalScore || 0)).sort((a, b) => b - a);
           const myRank = scores.indexOf(Number(r.finalScore || 0)) + 1;
@@ -555,7 +552,6 @@ async function renderStudentResultsTab() {
   }
 }
 
-// Launch Mock Test with Processing Indicator while downloading questions
 async function launchMockTest(testId) {
   showProcessing("Downloading Test & Questions...", "Preparing your bilingual CBT exam screen");
   try {
@@ -566,7 +562,6 @@ async function launchMockTest(testId) {
       alert("Questions for this test are being updated. Please try again shortly.");
       return;
     }
-    // Render exam player in dynamic view
     const t = testDoc.data();
     const questions = qSnap.docs.map(d => ({ id: d.id, ...d.data() }));
     renderExamPlayer(testId, t, questions);
@@ -629,7 +624,6 @@ function renderExamPlayer(testId, testMeta, questions) {
       else wrong++;
     });
     const finalScore = Number((correct * pos - wrong * neg).toFixed(2));
-    // Save result directly to Firestore (NO live result email sent)
     await db.collection("results").add({
       studentId: currentStudent.studentId,
       studentName: currentStudent.name,
@@ -701,12 +695,10 @@ async function openSmartPracticeBank() {
 
   showProcessing("Loading Smart Practice Bank...", "Fetching subjects and topics");
   try {
-    // Reads bundle index doc (only 1 Firestore read for entire catalog!)
     const indexSnap = await db.collection("settings").doc("practice_catalog").get();
     if (indexSnap.exists && Array.isArray(indexSnap.data().bundles)) {
       pbMetaIndex = indexSnap.data().bundles;
     } else {
-      // Fallback: list practice_bank docs if catalog doc not built yet
       const bSnap = await db.collection("practice_bank").get();
       pbMetaIndex = bSnap.docs.map(d => ({
         bundleId: d.id,
@@ -766,7 +758,7 @@ function renderPbSubjects() {
   }
 
   grid.innerHTML = subjects.map(sub => `
-    <div class="pb-subject-card" onclick="selectPbSubject('${sub.replace(/'/g, "\\'")}')">
+    <div class="pb-subject-card" onclick="selectPbSubject('${sub.replace(/'/g, "\'")}')">
       <div style="font-size:15.5px; font-weight:700; color:#0f172a; margin-bottom:4px;">${sub}</div>
       <div style="font-size:12px; color:#64748b;">${subjectMap[sub].topics.size} Topics &bull; ${subjectMap[sub].totalQs} Questions</div>
     </div>
@@ -791,7 +783,7 @@ function selectPbSubject(subject) {
 
   const list = document.getElementById("pbTopicsList");
   list.innerHTML = Object.keys(topicCounts).map(topic => `
-    <div class="pb-topic-row" onclick="startTopicPractice('${topic.replace(/'/g, "\\'")}')">
+    <div class="pb-topic-row" onclick="startTopicPractice('${topic.replace(/'/g, "\'")}')">
       <div>
         <strong style="font-size:13.5px; color:#0f172a;">${topic}</strong>
         <div style="font-size:11.5px; color:#64748b;">First 15 Questions Free &bull; Total ${topicCounts[topic]} Questions</div>
@@ -809,7 +801,6 @@ async function fetchBundleQuestions(bundleId) {
   return qs;
 }
 
-// Start Topic-Wise Practice (First 15 questions free per topic; rest require Pro Pass)
 async function startTopicPractice(topic) {
   pbCurrentMode = "topic";
   pbCurrentTopic = topic;
@@ -824,11 +815,9 @@ async function startTopicPractice(topic) {
     for (const b of matchingBundles) {
       const qs = await fetchBundleQuestions(b.bundleId);
       allTopicQs = allTopicQs.concat(qs);
-      // Free users only need Pack 1 (since first 15 Qs are in Pack 1) -> saves extra reads!
       if (!isStudentProActive() && allTopicQs.length >= 15) break;
     }
 
-    // Apply 15-question free limit per topic for non-Pro registered students
     if (!isStudentProActive()) {
       allTopicQs = allTopicQs.slice(0, 15);
     }
@@ -841,7 +830,6 @@ async function startTopicPractice(topic) {
   }
 }
 
-// Start Mix Practice (Combines random questions across ALL topics of the subject)
 async function startSubjectMixPractice() {
   pbCurrentMode = "mix";
   pbCurrentTopic = "All Topics Mix";
@@ -849,7 +837,6 @@ async function startSubjectMixPractice() {
 
   try {
     const subjectBundles = pbMetaIndex.filter(b => b.subject === pbCurrentSubject);
-    // Group by topic and take Pack 1 of each topic to keep Firestore reads minimal
     const firstPackByTopic = {};
     subjectBundles.forEach(b => {
       if (!firstPackByTopic[b.topic] || (b.packIndex || 1) < (firstPackByTopic[b.topic].packIndex || 1)) {
@@ -864,7 +851,6 @@ async function startSubjectMixPractice() {
       mixedPool = mixedPool.concat(allowed);
     }
 
-    // Shuffle mixed questions so topics rotate continuously (1 Vilom, 1 Paryayvachi, 1 Muhavra...)
     for (let i = mixedPool.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
       [mixedPool[i], mixedPool[j]] = [mixedPool[j], mixedPool[i]];
@@ -972,7 +958,6 @@ function answerPracticeQuestion(chosenIdx) {
   const rightIdx = ["A", "B", "C", "D"].indexOf(String(q.correctOption || "A").trim().toUpperCase());
   const isCorrect = chosenIdx === rightIdx;
 
-  // Disable option buttons & highlight Green / Red
   for (let i = 0; i < 4; i++) {
     const btn = document.getElementById(`pbOptBtn-${i}`);
     if (!btn) continue;
@@ -981,7 +966,6 @@ function answerPracticeQuestion(chosenIdx) {
     else if (i === chosenIdx && !isCorrect) btn.classList.add("opt-wrong");
   }
 
-  // Update streak & fun feedback
   const streakEl = document.getElementById("pbStreakBanner");
   if (isCorrect) {
     pbSessionCorrect++;
@@ -1008,7 +992,6 @@ function answerPracticeQuestion(chosenIdx) {
   document.getElementById("pbSessCorrect").textContent = pbSessionCorrect;
   document.getElementById("pbSessWrong").textContent = pbSessionWrong;
 
-  // Show instant explanation (Right panel on Desktop, Bottom on Mobile)
   const statusLine = isCorrect
     ? `<div style="color:#15803d; font-weight:700; margin-bottom:6px;">Sahi Jawab! (${pbQuestionSeconds}s)</div>`
     : `<div style="color:#dc2626; font-weight:700; margin-bottom:6px;">Galat Jawab — Sahi Option: ${String.fromCharCode(65 + rightIdx)} (${pbQuestionSeconds}s)</div>`;
@@ -1017,7 +1000,6 @@ function answerPracticeQuestion(chosenIdx) {
     <div>${q.explanation || "Correct answer is Option " + String.fromCharCode(65 + rightIdx) + "."}</div>
   `;
 
-  // Save progress locally & batch-sync to Firestore every 10 answers
   const wasAlreadyAttempted = !!pbUserProgress.attemptedMap[q.id];
   pbUserProgress.attemptedMap[q.id] = { isCorrect, chosen: chosenIdx, timeSec: pbQuestionSeconds };
   if (!wasAlreadyAttempted) {
@@ -1038,7 +1020,6 @@ function nextPracticeQuestion() {
     pbCurrentIndex++;
     renderCurrentPracticeQuestion();
   } else {
-    // Refresh pool counts
     switchPbPool(pbPoolMode);
   }
 }
@@ -1180,7 +1161,6 @@ function startRazorpayCheckout() {
           createdAt: firebase.firestore.FieldValue.serverTimestamp()
         });
 
-        // Credit referral partner commission automatically
         if (appliedPartner && appliedPartner.docId) {
           const comm = Number(appliedPartner.commissionPerSale || 25);
           await db.collection("partners").doc(appliedPartner.docId).update({
@@ -1189,7 +1169,6 @@ function startRazorpayCheckout() {
           });
         }
 
-        // Send invoice email
         fetch(APPS_SCRIPT_URL, {
           method: "POST",
           body: JSON.stringify({
@@ -1241,10 +1220,12 @@ async function loadHomeCategories() {
     }
     grid.innerHTML = snap.docs.map(d => {
       const c = d.data();
+      const catTitle = c.title || c.categoryName || c.name || c.catName || d.id;
+      const catSub = c.subtitle || c.description || c.exams || "Bilingual Mock Tests & PYQs";
       return `
         <div class="pb-subject-card" onclick="navigateTo('dashboard')">
-          <div style="font-size:15px; font-weight:700; color:#0f172a;">${c.name || d.id}</div>
-          <div style="font-size:12px; color:#64748b; margin-top:4px;">${c.description || "Bilingual Mock Tests & PYQs"}</div>
+          <div style="font-size:15px; font-weight:700; color:#0f172a;">${catTitle}</div>
+          <div style="font-size:12px; color:#64748b; margin-top:4px;">${catSub}</div>
         </div>
       `;
     }).join("");
