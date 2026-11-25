@@ -1,2 +1,6 @@
 User-agent: *
+Allow: /
 Disallow: /tg-admin-secure-99x.html
+Disallow: /admin-app.js
+
+Sitemap: https://taiyarighar.in/sitemap.xml
