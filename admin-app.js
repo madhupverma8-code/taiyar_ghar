@@ -1,4 +1,4 @@
-// TaiyariGhar Admin Control Panel Script (admin-app.js v26.0)
+// TaiyariGhar Admin Control Panel Script (admin-app.js v29.0)
 const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxvoU_mH8BjfE7QdC_UOQyzDfmJsUoVcIvq9Kp3VtXutzYTFRFY0vXpzw6Uv2XAjnng5Q/exec";
 
 const firebaseConfig = {
@@ -61,7 +61,7 @@ window.loginAdmin = async function () {
     if (code.includes("api-key") || msg.toLowerCase().includes("api-key") || msg.toLowerCase().includes("api key")) {
       try {
         const snap = await db.collection("settings").doc("admin_auth").get();
-        if (snap.exists()) {
+        if (snap.exists) {
           const cfg = snap.data();
           const allowedEmail = String(cfg.email || "madhupverma8@gmail.com").trim().toLowerCase();
           const allowedPass = String(cfg.password || "");
