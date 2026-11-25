@@ -3456,7 +3456,7 @@ window.openStudyNoteReader = function(noteId) {
     const content = document.getElementById('studyNoteReaderContent');
     if (!box || !content) return;
 
-    const bodyHtml = (note.content || '').replace(/\n/g, '<br>');
+    const bodyHtml = formatRichContentBlock(note.content || '');
     content.innerHTML = `
         <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-bottom:10px;">
             <span style="background:#EEF2FF; color:#4F46E5; font-size:11.5px; font-weight:700; padding:4px 10px; border-radius:6px;">📘 ${note.category || 'Study Notes'}</span>
@@ -3468,7 +3468,6 @@ window.openStudyNoteReader = function(noteId) {
         </div>
         ${note.pdfLink ? `<div style="margin-top:16px;"><a href="${note.pdfLink}" target="_blank" rel="noopener" class="btn btn-primary" style="text-decoration:none;">📥 Download PDF Notes →</a></div>` : ''}
     `;
-    box.setAttribute('data-active-job-id', jobId);
     box.classList.remove('hide');
     document.getElementById('studyNotesContainer').classList.add('hide');
     box.scrollIntoView({ behavior: 'smooth' });
