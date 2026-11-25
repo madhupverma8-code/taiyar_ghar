@@ -9,8 +9,8 @@
     <link rel="icon" type="image/png" sizes="48x48" href="https://taiyarighar.in/logo.png">
     <link rel="apple-touch-icon" href="https://taiyarighar.in/logo.png">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css?v=8.0">
-    <link rel="stylesheet" href="student-style.css?v=8.0">
+    <link rel="stylesheet" href="style.css?v=9.0">
+    <link rel="stylesheet" href="student-style.css?v=9.0">
     <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 
     <!-- Google Site Name & Sitelinks Schema -->
@@ -283,13 +283,40 @@
         </div>
         <nav class="nav-links">
             <a href="javascript:void(0)" onclick="goHome()" data-translate="nav_home">Home</a>
-            <a href="javascript:void(0)" onclick="scrollToCategories()" data-translate="nav_exams">All Exams</a>
-            <a href="javascript:void(0)" onclick="openLiveTestsHub()" style="color:#DC2626; font-weight:700;"><span class="live-dot-nav"></span> Live Tests</a>
-            <a href="javascript:void(0)" onclick="openSmartPracticeBank()" style="color:#4F46E5; font-weight:700;">Smart Practice</a>
-            <a href="javascript:void(0)" onclick="showCurrentAffairs()" data-translate="nav_ca">Current Affairs</a>
-            <a href="javascript:void(0)" onclick="openUpdatesHub()">Jobs &amp; Syllabus</a>
-            <a href="about.html">About Us</a>
-            <a href="javascript:void(0)" onclick="openInfoSection('contactScreen')">Contact Us</a>
+
+            <div class="tg-nav-dropdown">
+                <button type="button" class="tg-drop-trigger" onclick="toggleNavDropdown(event, 'ddExams')">
+                    🎯 Tests &amp; Practice <span style="font-size:10px;">▼</span>
+                </button>
+                <div id="ddExams" class="tg-drop-menu">
+                    <a href="javascript:void(0)" onclick="closeAllNavDropdowns(); scrollToCategories()">📚 All Exam Categories</a>
+                    <a href="javascript:void(0)" onclick="closeAllNavDropdowns(); openLiveTestsHub()" style="color:#DC2626; font-weight:700;">🔴 All-India Live Tests</a>
+                    <a href="javascript:void(0)" onclick="closeAllNavDropdowns(); openSmartPracticeBank()" style="color:#4F46E5; font-weight:700;">⚡ Unlimited Smart Practice</a>
+                    <a href="javascript:void(0)" onclick="closeAllNavDropdowns(); openReferAndEarn()">🎁 Student Refer &amp; Earn</a>
+                </div>
+            </div>
+
+            <div class="tg-nav-dropdown">
+                <button type="button" class="tg-drop-trigger" onclick="toggleNavDropdown(event, 'ddStudy')">
+                    📖 Study &amp; Updates <span style="font-size:10px;">▼</span>
+                </button>
+                <div id="ddStudy" class="tg-drop-menu">
+                    <a href="javascript:void(0)" onclick="closeAllNavDropdowns(); openStudyNotesHub()">📝 Exam Tips &amp; Study Notes</a>
+                    <a href="javascript:void(0)" onclick="closeAllNavDropdowns(); showCurrentAffairs()">📰 Current Affairs Hub</a>
+                    <a href="javascript:void(0)" onclick="closeAllNavDropdowns(); openUpdatesHub()">📢 Jobs, Result &amp; Syllabus</a>
+                </div>
+            </div>
+
+            <div class="tg-nav-dropdown">
+                <button type="button" class="tg-drop-trigger" onclick="toggleNavDropdown(event, 'ddMore')">
+                    ℹ️ Info <span style="font-size:10px;">▼</span>
+                </button>
+                <div id="ddMore" class="tg-drop-menu">
+                    <a href="about.html">🏢 About TaiyariGhar</a>
+                    <a href="javascript:void(0)" onclick="closeAllNavDropdowns(); openInfoSection('contactScreen')">📞 Contact Support</a>
+                    <a href="partner.html">🤝 Partner Program</a>
+                </div>
+            </div>
         </nav>
         <div class="nav-actions">
             <button id="langBtn" class="btn-lang" onclick="toggleLanguage()">हिंदी</button>
@@ -369,7 +396,7 @@
             </div>
         </section>
 
-        <!-- Home Top Promo Banner (banner-live-test.png) -->
+        <!-- Home Top Promo Banner (banner-live-test.jpg) -->
         <section id="promoSlotHomeTop" class="container" style="margin: 24px auto 0; padding: 0 5%;">
             <div style="background:#ffffff; border:1px solid #E2E8F0; border-radius:14px; padding:8px; box-shadow:0 4px 14px rgba(15,23,42,0.04);">
                 <a id="promoLinkHomeTop" href="javascript:void(0)" onclick="openLiveTestsHub()" style="display:block; text-decoration:none;">
@@ -401,7 +428,7 @@
             <div id="homeCatContainer"></div>
         </section>
 
-        <!-- Home Bottom Promo Banner (banner-partner.png) -->
+        <!-- Home Bottom Promo Banner (banner-partner.jpg) -->
         <section id="promoSlotHomeBottom" class="container" style="margin: 0 auto 42px; padding: 0 5%;">
             <div style="background:#ffffff; border:1px solid #E2E8F0; border-radius:14px; padding:8px; box-shadow:0 4px 14px rgba(15,23,42,0.04);">
                 <a id="promoLinkHomeBottom" href="partner.html" style="display:block; text-decoration:none;">
@@ -649,6 +676,15 @@
                 <button type="button" class="btn btn-primary" style="padding:10px 18px; font-size:13.5px; white-space:nowrap;">Practice Now →</button>
             </div>
 
+            <!-- Student Refer & Earn Card on Dashboard -->
+            <div style="background:#ECFDF5; border:1.5px solid #A7F3D0; border-radius:14px; padding:16px 22px; margin-bottom:26px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
+                <div>
+                    <strong style="color:#065F46; font-size:15.5px;">🎁 Refer Friends &amp; Extend Your Pro Pass Free (+20 Days / Referral)</strong>
+                    <div style="font-size:12.5px; color:#047857; margin-top:2px;">Your friend gets ₹15 instant discount + 10 bonus days, and you get +20 Pro Pass days automatically!</div>
+                </div>
+                <button class="btn btn-accent" onclick="openReferAndEarn()">Invite &amp; Earn Days →</button>
+            </div>
+
             <!-- Centralized Live Tests Showcase on Dashboard -->
             <div id="dashLiveTestsSection" style="margin-bottom:32px;">
                 <div id="dashLiveTestsContainer"></div>
@@ -874,9 +910,7 @@
             <div id="caArticleReaderContent"></div>
             <div id="promoSlotCaBottom" style="margin-top:22px; background:#F8FAFC; border:1px solid #E2E8F0; border-radius:12px; padding:6px;">
                 <a id="promoLinkCaBottom" href="javascript:void(0)" onclick="openSmartPracticeBank()" style="display:block;">
-                    <img id="promoImgCaBottom" src="banner-practice-bank.png
-                        
-" alt="Unlimited Smart Practice Bank" style="width:100%; max-height:125px; object-fit:cover; border-radius:8px; display:block;" onerror="document.getElementById('promoSlotCaBottom').style.display='none'">
+                    <img id="promoImgCaBottom" src="banner-practice-bank.png" alt="Unlimited Smart Practice Bank" style="width:100%; max-height:125px; object-fit:cover; border-radius:8px; display:block;" onerror="document.getElementById('promoSlotCaBottom').style.display='none'">
                 </a>
             </div>
         </div>
@@ -922,6 +956,85 @@
         </div>
 
         <div id="updatesContentContainer"></div>
+    </div>
+
+    <!-- EXAM TIPS & STUDY NOTES SCREEN -->
+    <div id="studyNotesScreen" class="hide container" style="padding:30px 5%; max-width:1050px; margin:0 auto;">
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; margin-bottom:18px;">
+            <div>
+                <h2 style="color:#1E1B4B; margin:0; font-size:23px;">📝 Exam Tips, Strategy &amp; Study Notes</h2>
+                <p style="font-size:13px; color:#64748B; margin-top:4px;">Expert Preparation Plans, Short Tricks, Important Formulas &amp; Free PDF Notes</p>
+            </div>
+            <button class="btn btn-outline" onclick="goHome()">← Back to Home</button>
+        </div>
+
+        <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:20px;">
+            <button class="sn-tab active btn btn-primary" onclick="filterStudyNotes('All', this)">All Notes &amp; Tips</button>
+            <button class="sn-tab btn btn-outline" onclick="filterStudyNotes('Exam Strategy', this)">🎯 Exam Strategy</button>
+            <button class="sn-tab btn btn-outline" onclick="filterStudyNotes('Study Notes', this)">📘 Subject Notes &amp; PDFs</button>
+            <button class="sn-tab btn btn-outline" onclick="filterStudyNotes('Short Tricks', this)">⚡ Short Tricks &amp; Formulas</button>
+        </div>
+
+        <div id="studyNoteReaderBox" class="hide" style="background:#ffffff; border:1px solid #CBD5E1; border-radius:14px; padding:24px; margin-bottom:22px; box-shadow:0 8px 24px rgba(15,23,42,0.06);">
+            <button class="btn btn-outline" onclick="closeStudyNoteReader()" style="margin-bottom:14px;">← Back to All Notes</button>
+            <div id="studyNoteReaderContent"></div>
+            <div style="margin-top:20px; background:#EEF2FF; border:1px solid #C7D2FE; border-radius:12px; padding:16px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
+                <div>
+                    <strong style="color:#1E1B4B; font-size:14.5px;">Ready to test your preparation on this topic?</strong>
+                    <div style="font-size:12.5px; color:#475569;">Practice free topic-wise &amp; mix PYQs in Smart Practice Bank.</div>
+                </div>
+                <button class="btn btn-primary" onclick="openSmartPracticeBank()">Start Free Practice →</button>
+            </div>
+        </div>
+
+        <div id="studyNotesContainer"></div>
+    </div>
+
+    <!-- STUDENT REFER & EARN SCREEN (No Partner Registration Needed) -->
+    <div id="referEarnScreen" class="hide container" style="padding:30px 5%; max-width:860px; margin:0 auto;">
+        <div style="background:#ffffff; border:1px solid #E2E8F0; border-radius:16px; padding:28px; box-shadow:0 8px 25px rgba(15,23,42,0.05);">
+            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:16px;">
+                <div>
+                    <span style="background:#ECFDF5; color:#059669; font-size:11.5px; font-weight:700; padding:4px 10px; border-radius:20px;">STUDENT REWARD PROGRAM</span>
+                    <h2 style="color:#1E1B4B; font-size:23px; margin:6px 0 2px;">🎁 Refer a Friend &amp; Get Free Pro Days!</h2>
+                    <p style="font-size:13.5px; color:#64748B; margin:0;">No separate registration needed — every registered student gets an instant referral code.</p>
+                </div>
+                <button class="btn btn-outline" onclick="goDashboard()">← Dashboard</button>
+            </div>
+
+            <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(230px, 1fr)); gap:14px; margin:20px 0;">
+                <div style="background:#F8FAFC; border:1px solid #E2E8F0; border-radius:12px; padding:16px;">
+                    <div style="font-size:22px; margin-bottom:6px;">1️⃣</div>
+                    <strong style="color:#1E1B4B; font-size:14.5px;">Share Your Referral Link</strong>
+                    <p style="font-size:12.5px; color:#475569; margin-top:4px;">Send your unique Student ID link or code to friends preparing for Govt Exams.</p>
+                </div>
+                <div style="background:#F8FAFC; border:1px solid #E2E8F0; border-radius:12px; padding:16px;">
+                    <div style="font-size:22px; margin-bottom:6px;">2️⃣</div>
+                    <strong style="color:#1E1B4B; font-size:14.5px;">Friend Gets Instant Discount</strong>
+                    <p style="font-size:12.5px; color:#475569; margin-top:4px;">Your friend gets <strong>₹15 instant discount + 10 extra validity days</strong> on any All-Access Pass.</p>
+                </div>
+                <div style="background:#ECFDF5; border:1px solid #A7F3D0; border-radius:12px; padding:16px;">
+                    <div style="font-size:22px; margin-bottom:6px;">3️⃣</div>
+                    <strong style="color:#065F46; font-size:14.5px;">You Get +20 Pro Days Free!</strong>
+                    <p style="font-size:12.5px; color:#065F46; margin-top:4px;">As soon as your friend buys a Pass, <strong>+20 Days Pro Pass</strong> is automatically added to your account!</p>
+                </div>
+            </div>
+
+            <div id="referLoggedInBox" style="background:#EEF2FF; border:1.5px solid #C7D2FE; border-radius:14px; padding:20px; text-align:center;">
+                <div style="font-size:12px; font-weight:700; color:#4F46E5; text-transform:uppercase; letter-spacing:0.5px;">Your Personal Referral Code</div>
+                <div id="myStudentRefCode" style="font-size:26px; font-weight:800; color:#1E1B4B; letter-spacing:2px; margin:6px 0;">TG0001</div>
+                <div style="display:flex; gap:8px; max-width:540px; margin:12px auto;">
+                    <input type="text" id="myStudentRefLink" readonly style="flex:1; padding:10px 12px; border:1px solid #CBD5E1; border-radius:8px; font-size:12.5px; background:#ffffff; color:#334155;">
+                    <button class="btn btn-primary" onclick="copyStudentRefLink()">Copy Link</button>
+                </div>
+                <div style="display:flex; justify-content:center; gap:10px; flex-wrap:wrap; margin-top:12px;">
+                    <button class="btn btn-accent" style="padding:10px 18px; font-size:13.5px;" onclick="shareStudentRefWhatsApp()">📲 Share on WhatsApp</button>
+                </div>
+                <div style="margin-top:14px; font-size:13px; color:#334155;">
+                    Successful Referrals: <strong id="myRefSuccessCount">0</strong> &bull; Bonus Days Earned: <strong id="myRefBonusDays" style="color:#059669;">0 Days</strong>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- INSTRUCTIONS SCREEN -->
@@ -1326,13 +1439,22 @@
                 <h4 style="color:#ffffff; margin-bottom:10px;">Quick Links</h4>
                 <ul style="list-style:none; font-size:13px; line-height:2;">
                     <li><a href="javascript:void(0)" onclick="goHome()" style="color:#CBD5E1; text-decoration:none;">Home</a></li>
+                    <li><a href="javascript:void(0)" onclick="openStudyNotesHub()" style="color:#CBD5E1; text-decoration:none;">Exam Tips &amp; Study Notes</a></li>
+                    <li><a href="javascript:void(0)" onclick="openReferAndEarn()" style="color:#CBD5E1; text-decoration:none;">Student Refer &amp; Earn</a></li>
                     <li><a href="about.html" style="color:#CBD5E1; text-decoration:none;">About Us</a></li>
                     <li><a href="javascript:void(0)" onclick="openInfoSection('contactScreen')" style="color:#CBD5E1; text-decoration:none;">Contact Us</a></li>
-                    <li style="margin-top:4px; padding-top:4px; border-top:1px solid rgba(255,255,255,0.08); font-size:12px;">
-                        <span style="color:#94A3B8;">Careers:</span>
-                        <a href="partner.html" style="color:#93C5fd; text-decoration:underline; font-weight:600; margin-left:4px;">Official Referral Partner</a>
-                    </li>
                 </ul>
+            </div>
+            <div>
+                <h4 style="color:#ffffff; margin-bottom:10px;">Partner &amp; App</h4>
+                <ul style="list-style:none; font-size:13px; line-height:2; margin-bottom:12px;">
+                    <li><a href="partner.html" style="color:#93C5FD; text-decoration:none; font-weight:600;">🔑 Partner Login</a></li>
+                    <li><a href="partner.html" style="color:#CBD5E1; text-decoration:none;">🤝 Become a Referral Partner</a></li>
+                </ul>
+                <button type="button" onclick="installPWA()" style="background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.25); color:#ffffff; padding:8px 14px; border-radius:10px; font-size:12.5px; font-weight:600; cursor:pointer; display:inline-flex; align-items:center; gap:8px;">
+                    <span>📲</span>
+                    <span style="text-align:left; line-height:1.25;">Download TaiyariGhar App<br><small style="font-size:10.5px; color:#93C5FD; font-weight:400;">Install on Android / Mobile</small></span>
+                </button>
             </div>
             <div>
                 <h4 style="color:#ffffff; margin-bottom:10px;">Legal &amp; Policies</h4>
@@ -1368,6 +1490,6 @@ Message:
         };
     </script>
 
-    <script type="module" src="student-app.js?v=22.0"></script>
+    <script type="module" src="student-app.js?v=23.0"></script>
 </body>
 </html>
