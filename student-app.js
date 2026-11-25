@@ -325,6 +325,17 @@ window.toggleLanguage = function() {
     localStorage.setItem('tg_lang', currentLang);
     applyLanguage();
     if(isLoggedIn && currentScreen === 'dashboardScreen') { updateWelcomeMessage(isFirstLoginSession); }
+    if(currentScreen === 'updatesScreen') {
+        const openJobId = document.getElementById('jobDetailReaderBox')?.getAttribute('data-active-job-id');
+        if (openJobId && !document.getElementById('jobDetailReaderBox')?.classList.contains('hide')) {
+            openJobDetailReader(openJobId);
+        } else {
+            filterUpdates('All', document.querySelector('.upd-tab.active') || document.querySelector('.upd-tab'));
+        }
+    }
+    if(currentScreen === 'caScreen') {
+        filterCA('Articles', document.querySelector('.ca-tab.active') || document.querySelector('.ca-tab'));
+    }
 };
 
 function applyLanguage() {
@@ -925,6 +936,7 @@ window.closeRegModal = function() {
 function setForgotStatus(msg, isError = false) {
     const box = document.getElementById('forgotStatusMsg');
     if (!box) return;
+    box.setAttribute('data-active-job-id', jobId);
     box.classList.remove('hide');
     box.style.background = isError ? '#FEF2F2' : '#ECFDF5';
     box.style.color = isError ? '#991B1B' : '#065F46';
@@ -2225,6 +2237,33 @@ window.showCurrentAffairs = async function() {
     filterCA('Articles', document.querySelector('.ca-tab'));
 };
 
+function escapeHtmlSimple(str) {
+    return String(str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+function formatRichContentBlock(rawText) {
+    const txt = String(rawText || '').trim();
+    if (!txt) return '';
+    // If already contains rich HTML tags from editor, sanitize scripts and return
+    if (/<(strong|b|span|div|p|h3|ul|li|br)/i.test(txt)) {
+        return txt.replace(/<script[\s\S]*?<\/script>/gi, '');
+    }
+    const lines = txt.split(/\r?\n/);
+    const headingPatterns = /^(important dates|application fee|age limit|vacancy|eligibility|selection process|how to apply|महत्वपूर्ण तिथियाँ|आवेदन शुल्क|आयु सीमा|रिक्ति|योग्यता|चयन प्रक्रिया)/i;
+    return lines.map(line => {
+        const clean = escapeHtmlSimple(line);
+        if (!clean.trim()) return '<div style="height:8px;"></div>';
+        const trimmed = clean.trim();
+        if (headingPatterns.test(trimmed)) {
+            return `<div style="font-weight:700; color:#3730A3; background:#EEF2FF; padding:6px 10px; border-left:3px solid #4F46E5; border-radius:5px; margin:10px 0 6px;">${trimmed}</div>`;
+        }
+        if (trimmed.endsWith(':')) {
+            return `<div style="font-weight:700; color:#1E1B4B; margin:8px 0 4px;">${trimmed}</div>`;
+        }
+        return `<div style="margin-bottom:4px;">${clean}</div>`;
+    }).join('');
+}
+
 window.openCaArticleReader = function(articleId) {
     const art = allCaArticles.find(a => a.id === articleId);
     if (!art) return;
@@ -2232,21 +2271,65 @@ window.openCaArticleReader = function(articleId) {
     const content = document.getElementById('caArticleReaderContent');
     if (!reader || !content) return;
 
-    const formattedBody = (art.content || art.summary || '').replace(/\n/g, '<br>');
+    const pickedTitle = (currentLang === 'hi' && art.titleHi) ? art.titleHi : art.title;
+    const pickedBody = (currentLang === 'hi' && art.contentHi) ? art.contentHi : (art.content || art.summary || '');
+    const formattedBody = formatRichContentBlock(pickedBody);
+
+    let attachedQsHtml = '';
+    const qsList = Array.isArray(art.questions) ? art.questions : [];
+    if (qsList.length > 0) {
+        attachedQsHtml = `<div style="margin-top:22px; padding-top:18px; border-top:2px solid #E2E8F0;">
+            <h3 style="color:#1E1B4B; font-size:17px; margin-bottom:12px;">Practice Questions (${qsList.length})</h3>`;
+        qsList.forEach((qItem, idx) => {
+            const qText = (currentLang === 'hi' && qItem.qHi) ? qItem.qHi : (qItem.q || '');
+            const opts = (currentLang === 'hi' && Array.isArray(qItem.optionsHi) && qItem.optionsHi.some(Boolean)) ? qItem.optionsHi : (qItem.options || []);
+            const expText = (currentLang === 'hi' && qItem.expHi) ? qItem.expHi : (qItem.exp || '');
+            const ansIdx = Number(qItem.ans ?? 0);
+
+            attachedQsHtml += `
+                <div class="ca-question" id="caArtQ_${articleId}_${idx}" style="margin-bottom:16px;">
+                    <div style="font-weight:600; font-size:15px; margin-bottom:12px;">${formatRichContentBlock('Q' + (idx + 1) + '. ' + qText)}</div>
+                    <div class="ca-options">
+                        ${opts.map((opt, oIdx) => opt ? `<label class="ca-option" onclick="checkAttachedCaAnswer('${articleId}', ${idx}, ${oIdx}, ${ansIdx})">${String.fromCharCode(65 + oIdx)}) ${formatRichContentBlock(opt)}</label>` : '').join('')}
+                    </div>
+                    <div class="ca-explanation" id="caArtExp_${articleId}_${idx}"><b>Explanation:</b> ${formatRichContentBlock(expText || 'N/A')}</div>
+                </div>
+            `;
+        });
+        attachedQsHtml += `</div>`;
+    }
+
     content.innerHTML = `
         <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-bottom:10px;">
-            <span style="background:#EEF2FF; color:#4F46E5; font-size:11.5px; font-weight:700; padding:4px 10px; border-radius:6px;">📖 ${art.category || 'Current Affairs'}</span>
-            ${art.date ? `<span style="font-size:12.5px; color:#64748B; font-weight:600;">📅 ${art.date}</span>` : ''}
+            <span style="background:#EEF2FF; color:#4F46E5; font-size:11.5px; font-weight:700; padding:4px 10px; border-radius:6px;">${art.category || 'Current Affairs'}</span>
+            ${art.date ? `<span style="font-size:12.5px; color:#64748B; font-weight:600;">${art.date}</span>` : ''}
         </div>
-        <h2 style="color:#1E1B4B; font-size:21px; margin:0 0 14px; line-height:1.4;">${art.title}</h2>
+        <h2 style="color:#1E1B4B; font-size:21px; margin:0 0 14px; line-height:1.4;">${pickedTitle}</h2>
         <div style="font-size:14.5px; color:#1E293B; line-height:1.8; background:#F8FAFC; padding:18px; border-radius:10px; border:1px solid #E2E8F0;">
             ${formattedBody}
         </div>
-        ${art.pdfLink ? `<div style="margin-top:16px;"><a href="${art.pdfLink}" target="_blank" rel="noopener" class="btn btn-primary" style="text-decoration:none;">📥 Download Complete Notes / PDF →</a></div>` : ''}
+        ${art.pdfLink ? `<div style="margin-top:16px;"><a href="${art.pdfLink}" target="_blank" rel="noopener" class="btn btn-primary" style="text-decoration:none;">Download Complete Notes / PDF →</a></div>` : ''}
+        ${attachedQsHtml}
     `;
     reader.classList.remove('hide');
     document.getElementById('caContentContainer').classList.add('hide');
     reader.scrollIntoView({ behavior: 'smooth' });
+};
+
+window.checkAttachedCaAnswer = function(articleId, qIdx, selectedIdx, correctIdx) {
+    const qDiv = document.getElementById(`caArtQ_${articleId}_${qIdx}`);
+    if (!qDiv || qDiv.getAttribute('data-answered') === 'true') return;
+    qDiv.setAttribute('data-answered', 'true');
+    qDiv.querySelectorAll('.ca-option').forEach((opt, i) => {
+        opt.style.pointerEvents = 'none';
+        if (i === correctIdx) opt.classList.add('correct');
+        if (i === selectedIdx && i !== correctIdx) opt.classList.add('wrong');
+    });
+    const expEl = document.getElementById(`caArtExp_${articleId}_${qIdx}`);
+    if (expEl) expEl.style.display = 'block';
+    if (selectedIdx === correctIdx) { caCorrectCount++; } else { caWrongCount++; }
+    if (document.getElementById('caLiveScoreCorrect')) document.getElementById('caLiveScoreCorrect').innerText = caCorrectCount;
+    if (document.getElementById('caLiveScoreWrong')) document.getElementById('caLiveScoreWrong').innerText = caWrongCount;
 };
 
 window.closeCaArticleReader = function() {
@@ -3176,18 +3259,21 @@ window.openJobDetailReader = function(jobId) {
         `;
     }
 
-    const descHtml = (item.description || '').replace(/\n/g, '<br>');
+    const pickedTitle = (currentLang === 'hi' && item.titleHi) ? item.titleHi : item.title;
+    const pickedDesc = (currentLang === 'hi' && item.descriptionHi) ? item.descriptionHi : (item.description || '');
+    const descHtml = formatRichContentBlock(pickedDesc);
     content.innerHTML = `
         <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-bottom:10px;">
             <span style="background:#EEF2FF; color:#4F46E5; font-size:11.5px; font-weight:700; padding:4px 10px; border-radius:6px;">${item.category || 'Latest Job'}</span>
             ${item.exam ? `<span style="background:#F1F5F9; color:#334155; font-size:11.5px; font-weight:600; padding:4px 10px; border-radius:6px;">${item.exam}</span>` : ''}
             ${item.date ? `<span style="font-size:12.5px; color:#64748B; font-weight:600;">📅 Post Date: ${item.date}</span>` : ''}
         </div>
-        <h2 style="color:#1E1B4B; font-size:21px; margin:0 0 12px; line-height:1.4;">${item.title}</h2>
-        ${descHtml ? `<div style="font-size:14px; color:#334155; line-height:1.75; background:#F8FAFC; padding:16px; border-radius:10px; border:1px solid #E2E8F0;">${descHtml}</div>` : ''}
+        <h2 style="color:#1E1B4B; font-size:21px; margin:0 0 12px; line-height:1.4;">${pickedTitle}</h2>
+        ${descHtml ? `<div style="font-size:14px; color:#1E293B; line-height:1.78; background:#F8FAFC; padding:18px; border-radius:10px; border:1px solid #E2E8F0;">${descHtml}</div>` : ''}
         ${linksTableHtml}
     `;
 
+    box.setAttribute('data-active-job-id', jobId);
     box.classList.remove('hide');
     document.getElementById('updatesContentContainer').classList.add('hide');
     box.scrollIntoView({ behavior: 'smooth' });
@@ -3238,7 +3324,7 @@ window.filterUpdates = function(categoryFilter, btn) {
                                 ${items.slice(0, 16).map(item => `
                                     <li style="padding:9px 4px; border-bottom:1px solid #F1F5F9;">
                                         <a href="javascript:void(0)" onclick="openJobDetailReader('${item.id}')" style="color:#1D4ED8; font-weight:600; font-size:13px; text-decoration:none; line-height:1.45; display:block;">
-                                            ▸ ${item.title}
+                                            ▸ ${(currentLang === 'hi' && item.titleHi) ? item.titleHi : item.title}
                                         </a>
                                         ${item.date ? `<span style="font-size:11px; color:#64748B;">${item.date}</span>` : ''}
                                     </li>
@@ -3382,6 +3468,7 @@ window.openStudyNoteReader = function(noteId) {
         </div>
         ${note.pdfLink ? `<div style="margin-top:16px;"><a href="${note.pdfLink}" target="_blank" rel="noopener" class="btn btn-primary" style="text-decoration:none;">📥 Download PDF Notes →</a></div>` : ''}
     `;
+    box.setAttribute('data-active-job-id', jobId);
     box.classList.remove('hide');
     document.getElementById('studyNotesContainer').classList.add('hide');
     box.scrollIntoView({ behavior: 'smooth' });

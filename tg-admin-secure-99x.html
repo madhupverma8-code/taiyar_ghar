@@ -362,26 +362,50 @@
 
       <!-- TAB 10: CURRENT AFFAIRS, JOBS & STUDY NOTES -->
       <div id="tab-updates" class="hidden">
-        <!-- 1. Publish Full Current Affairs Article -->
+        <!-- 1. Publish / Edit Full Current Affairs Article + Attached Questions -->
         <div class="panel-card">
-          <h3>1. Publish Full Current Affairs Article</h3>
+          <h3>1. Publish / Edit Current Affairs Article (Hindi + English + Practice Questions)</h3>
           <div class="form-row">
-            <div><label>Article Headline *</label><input type="text" id="caArtTitle" placeholder="e.g., 25 November 2026 Current Affairs — Top National & International News" /></div>
+            <div><label>Headline (English) *</label><input type="text" id="caArtTitle" placeholder="e.g., 25 November 2026 Current Affairs" /></div>
+            <div><label>Headline (Hindi)</label><input type="text" id="caArtTitleHi" placeholder="e.g., 25 नवंबर 2026 करंट अफेयर्स" /></div>
             <div><label>Category / Tag</label><input type="text" id="caArtCat" value="Daily Current Affairs" /></div>
             <div><label>Date</label><input type="text" id="caArtDate" placeholder="e.g., 25 Nov 2026" /></div>
+          </div>
+          <div class="form-row">
             <div><label>Optional PDF / Notes Link</label><input type="url" id="caArtPdf" placeholder="https://..." /></div>
           </div>
-          <div style="margin-bottom:10px;">
-            <label>Full Article Content (Hindi / English) *</label>
-            <textarea id="caArtBody" rows="4" placeholder="Write complete current affairs article here..."></textarea>
+          <div style="display:flex; gap:6px; flex-wrap:wrap; margin-bottom:6px;">
+            <button type="button" class="btn btn-outline btn-sm" onclick="formatTargetField('caArtBody', 'bold')"><strong>B</strong></button>
+            <button type="button" class="btn btn-outline btn-sm" style="color:#dc2626;" onclick="formatTargetField('caArtBody', 'red')">Red</button>
+            <button type="button" class="btn btn-outline btn-sm" style="color:#1d4ed8;" onclick="formatTargetField('caArtBody', 'blue')">Blue</button>
+            <button type="button" class="btn btn-outline btn-sm" style="color:#059669;" onclick="formatTargetField('caArtBody', 'green')">Green</button>
           </div>
-          <button class="btn btn-primary" onclick="publishCaArticle()">Publish Current Affairs Article</button>
+          <div style="margin-bottom:10px;">
+            <label>Article Content (English) *</label>
+            <textarea id="caArtBody" rows="4" placeholder="Write complete current affairs article in English..."></textarea>
+          </div>
+          <div style="margin-bottom:12px;">
+            <label>Article Content (Hindi — Optional, shown when student selects Hindi)</label>
+            <textarea id="caArtBodyHi" rows="4" placeholder="हिंदी में पूरा करंट अफेयर्स लेख यहाँ लिखें..."></textarea>
+          </div>
+
+          <!-- Attached Practice Questions (1, 2, 3+ Questions) -->
+          <div style="background:#f8fafc; border:1px solid #cbd5e1; border-radius:6px; padding:12px; margin-bottom:12px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+              <strong>Article Practice Questions (Add 1, 2, 3 or more)</strong>
+              <button type="button" class="btn btn-outline btn-sm" onclick="addCaAttachedQuestion()">+ Add Question</button>
+            </div>
+            <div id="caAttachedQuestionsContainer"></div>
+          </div>
+
+          <button class="btn btn-primary" id="btnSaveCaArt" onclick="publishCaArticle()">Publish Current Affairs Article</button>
+          <button class="btn btn-outline hidden" id="btnCancelEditCa" onclick="cancelEditCaArticle()">Cancel Edit</button>
           <span id="caArtMsg" style="margin-left:10px; font-weight:600;"></span>
         </div>
 
-        <!-- 2. Publish Job / Result / Admit Card / Syllabus -->
+        <!-- 2. Publish / Edit Job / Result / Admit Card / Syllabus -->
         <div class="panel-card">
-          <h3>2. Publish Latest Job / Result / Admit Card / Exam Syllabus</h3>
+          <h3>2. Publish / Edit Latest Job / Result / Admit Card / Exam Syllabus</h3>
           <div class="form-row">
             <div>
               <label>Column / Category *</label>
@@ -392,17 +416,28 @@
                 <option value="Syllabus">Exam Syllabus</option>
               </select>
             </div>
-            <div><label>Post / Exam Headline *</label><input type="text" id="jobTitle" placeholder="e.g., UP Police Constable Recruitment 2026 Online Form" /></div>
+            <div><label>Headline (English) *</label><input type="text" id="jobTitle" placeholder="e.g., JK Bank Banking Associates Recruitment 2026" /></div>
+            <div><label>Headline (Hindi)</label><input type="text" id="jobTitleHi" placeholder="e.g., जेके बैंक बैंकिंग एसोसिएट भर्ती 2026" /></div>
             <div><label>Date</label><input type="text" id="jobDate" placeholder="e.g., 25 Nov 2026" /></div>
           </div>
+          <div style="display:flex; gap:6px; flex-wrap:wrap; margin-bottom:6px;">
+            <button type="button" class="btn btn-outline btn-sm" onclick="formatTargetField('jobDesc', 'bold')"><strong>B</strong></button>
+            <button type="button" class="btn btn-outline btn-sm" style="color:#dc2626;" onclick="formatTargetField('jobDesc', 'red')">Red</button>
+            <button type="button" class="btn btn-outline btn-sm" style="color:#1d4ed8;" onclick="formatTargetField('jobDesc', 'blue')">Blue</button>
+            <button type="button" class="btn btn-outline btn-sm" style="color:#059669;" onclick="formatTargetField('jobDesc', 'green')">Green</button>
+          </div>
           <div style="margin-bottom:10px;">
-            <label>Short Details / Eligibility / Important Dates</label>
-            <textarea id="jobDesc" rows="3" placeholder="Enter key details, age limit, fee, or result instructions..."></textarea>
+            <label>Details / Dates / Eligibility (English)</label>
+            <textarea id="jobDesc" rows="4" placeholder="Enter key details, dates, fee, age limit, eligibility..."></textarea>
+          </div>
+          <div style="margin-bottom:10px;">
+            <label>Details / Dates / Eligibility (Hindi — Optional)</label>
+            <textarea id="jobDescHi" rows="4" placeholder="हिंदी में महत्वपूर्ण तिथियाँ, शुल्क, आयु सीमा और योग्यता लिखें..."></textarea>
           </div>
 
           <div style="background:#f8fafc; border:1px solid #cbd5e1; border-radius:6px; padding:12px; margin-bottom:12px;">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-              <strong style="font-size:12.5px; color:#0f172a;">Important Links Table Rows (Add as many links as needed)</strong>
+              <strong style="font-size:12.5px; color:#0f172a;">Important Links Table Rows</strong>
               <button type="button" class="btn btn-outline btn-sm" onclick="addJobLinkRow()">+ Add More Link</button>
             </div>
             <div id="dynamicJobLinksContainer">
@@ -417,7 +452,8 @@
             </div>
           </div>
 
-          <button class="btn btn-primary" onclick="publishJobWithLinks()">Publish Update</button>
+          <button class="btn btn-primary" id="btnSaveJob" onclick="publishJobWithLinks()">Publish Update</button>
+          <button class="btn btn-outline hidden" id="btnCancelEditJob" onclick="cancelEditJob()">Cancel Edit</button>
           <span id="jobPubMsg" style="margin-left:10px; font-weight:600;"></span>
         </div>
 
@@ -445,16 +481,17 @@
           <span id="snPubMsg" style="margin-left:10px; font-weight:600;"></span>
         </div>
 
-        <!-- Published Content Manager with Search -->
+        <!-- Search-Only Published Content Manager with Edit & Delete -->
         <div class="panel-card">
           <h3>Manage Published Jobs, Current Affairs &amp; Study Notes</h3>
           <div class="search-bar">
-            <select id="pubContentTypeFilter" style="max-width:200px;" onchange="renderPublishedContentTable()">
+            <select id="pubContentTypeFilter" style="max-width:210px;" onchange="renderPublishedContentTable()">
               <option value="jobs">Jobs / Results / Admit Cards</option>
               <option value="ca">Current Affairs Articles</option>
               <option value="notes">Study Notes &amp; Tips</option>
             </select>
-            <input type="text" id="pubContentSearchBox" placeholder="Search headline..." style="max-width:280px;" oninput="renderPublishedContentTable()" />
+            <input type="text" id="pubContentSearchBox" placeholder="Type headline to search..." style="max-width:280px;" oninput="renderPublishedContentTable()" />
+            <button type="button" class="btn btn-outline btn-sm" onclick="renderPublishedContentTable(true)">Show All</button>
           </div>
           <table>
             <thead><tr><th>Category</th><th>Headline</th><th>Date</th><th>Action</th></tr></thead>
@@ -557,6 +594,6 @@
     </div>
   </div>
 
-  <script src="admin-app.js?v=32.0"></script>
+  <script src="admin-app.js?v=33.0"></script>
 </body>
 </html>

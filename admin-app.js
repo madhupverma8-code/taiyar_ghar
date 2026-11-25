@@ -1,4 +1,4 @@
-// TaiyariGhar Admin Control Panel Script (admin-app.js v32.0)
+// TaiyariGhar Admin Control Panel Script (admin-app.js v33.0)
 const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxvoU_mH8BjfE7QdC_UOQyzDfmJsUoVcIvq9Kp3VtXutzYTFRFY0vXpzw6Uv2XAjnng5Q/exec";
 
 const firebaseConfig = {
@@ -683,7 +683,72 @@ window.resolveQuestionReport = async function (docId) {
   loadReportsData();
 };
 
-// 10. CURRENT AFFAIRS, JOBS & STUDY NOTES
+// 10. CURRENT AFFAIRS, JOBS & STUDY NOTES (With Edit, Hindi/English, Formatting & Attached Questions)
+let editingCaDocId = null;
+let editingJobDocId = null;
+
+window.formatTargetField = function (fieldId, mode) {
+  const el = document.getElementById(fieldId);
+  if (!el) return;
+  const start = el.selectionStart || 0;
+  const end = el.selectionEnd || 0;
+  const selected = el.value.slice(start, end) || "Selected Text";
+  let wrapped = selected;
+  if (mode === "bold") wrapped = `<strong>${selected}</strong>`;
+  else if (mode === "red") wrapped = `<span style="color:#dc2626; font-weight:600;">${selected}</span>`;
+  else if (mode === "blue") wrapped = `<span style="color:#1d4ed8; font-weight:600;">${selected}</span>`;
+  else if (mode === "green") wrapped = `<span style="color:#059669; font-weight:600;">${selected}</span>`;
+  el.value = el.value.slice(0, start) + wrapped + el.value.slice(end);
+  el.focus();
+};
+
+window.addCaAttachedQuestion = function (existingQ = null) {
+  const wrap = document.getElementById("caAttachedQuestionsContainer");
+  if (!wrap) return;
+  const idx = wrap.children.length + 1;
+  const qData = existingQ || {};
+  const opts = qData.options || ["", "", "", ""];
+  const optsHi = qData.optionsHi || ["", "", "", ""];
+  const card = document.createElement("div");
+  card.className = "ca-q-editor-card";
+  card.style = "background:#ffffff; border:1px solid #cbd5e1; border-radius:6px; padding:10px; margin-bottom:10px;";
+  card.innerHTML = `
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+      <strong>Question ${idx}</strong>
+      <button type="button" class="btn btn-danger btn-sm" onclick="this.closest('.ca-q-editor-card').remove()">Remove Q</button>
+    </div>
+    <div class="form-row">
+      <div><label>Question (English)</label><input type="text" class="caq-en" value="${(qData.q || '').replace(/"/g, '&quot;')}" /></div>
+      <div><label>Question (Hindi)</label><input type="text" class="caq-hi" value="${(qData.qHi || '').replace(/"/g, '&quot;')}" /></div>
+      <div><label>Correct Option</label>
+        <select class="caq-ans">
+          <option value="0" ${Number(qData.ans) === 0 ? 'selected' : ''}>A</option>
+          <option value="1" ${Number(qData.ans) === 1 ? 'selected' : ''}>B</option>
+          <option value="2" ${Number(qData.ans) === 2 ? 'selected' : ''}>C</option>
+          <option value="3" ${Number(qData.ans) === 3 ? 'selected' : ''}>D</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div><label>Opt A (EN)</label><input type="text" class="caq-oa" value="${(opts[0] || '').replace(/"/g, '&quot;')}" /></div>
+      <div><label>Opt B (EN)</label><input type="text" class="caq-ob" value="${(opts[1] || '').replace(/"/g, '&quot;')}" /></div>
+      <div><label>Opt C (EN)</label><input type="text" class="caq-oc" value="${(opts[2] || '').replace(/"/g, '&quot;')}" /></div>
+      <div><label>Opt D (EN)</label><input type="text" class="caq-od" value="${(opts[3] || '').replace(/"/g, '&quot;')}" /></div>
+    </div>
+    <div class="form-row">
+      <div><label>Opt A (HI)</label><input type="text" class="caq-oahi" value="${(optsHi[0] || '').replace(/"/g, '&quot;')}" /></div>
+      <div><label>Opt B (HI)</label><input type="text" class="caq-obhi" value="${(optsHi[1] || '').replace(/"/g, '&quot;')}" /></div>
+      <div><label>Opt C (HI)</label><input type="text" class="caq-ochi" value="${(optsHi[2] || '').replace(/"/g, '&quot;')}" /></div>
+      <div><label>Opt D (HI)</label><input type="text" class="caq-odhi" value="${(optsHi[3] || '').replace(/"/g, '&quot;')}" /></div>
+    </div>
+    <div class="form-row">
+      <div><label>Explanation (EN)</label><input type="text" class="caq-exp" value="${(qData.exp || '').replace(/"/g, '&quot;')}" /></div>
+      <div><label>Explanation (HI)</label><input type="text" class="caq-exphi" value="${(qData.expHi || '').replace(/"/g, '&quot;')}" /></div>
+    </div>
+  `;
+  wrap.appendChild(card);
+};
+
 async function loadUpdatesData() {
   const [jSnap, caSnap, snSnap] = await Promise.all([
     safeGet("job_updates"),
@@ -693,14 +758,19 @@ async function loadUpdatesData() {
   cacheJobs = jSnap.docs.map(d => ({ docId: d.id, ...d.data() }));
   cacheCaArticles = caSnap.docs.map(d => ({ docId: d.id, ...d.data() }));
   cacheStudyNotes = snSnap.docs.map(d => ({ docId: d.id, ...d.data() }));
-  renderPublishedContentTable();
+  renderPublishedContentTable(false);
 }
 
-window.renderPublishedContentTable = function () {
+window.renderPublishedContentTable = function (showAll = false) {
   const type = document.getElementById("pubContentTypeFilter")?.value || "jobs";
-  const q = (document.getElementById("pubContentSearchBox")?.value || "").toLowerCase();
+  const q = (document.getElementById("pubContentSearchBox")?.value || "").trim().toLowerCase();
   const body = document.getElementById("publishedContentAdminBody");
   if (!body) return;
+
+  if (!q && !showAll) {
+    body.innerHTML = `<tr><td colspan="4" style="color:#64748b;">Type in the search box above or click "Show All" to view &amp; edit published posts.</td></tr>`;
+    return;
+  }
 
   let items = [];
   let colName = "job_updates";
@@ -708,13 +778,94 @@ window.renderPublishedContentTable = function () {
   else if (type === "ca") { items = cacheCaArticles; colName = "ca_articles"; }
   else { items = cacheStudyNotes; colName = "study_notes"; }
 
-  const filtered = items.filter(it => !q || (it.title || "").toLowerCase().includes(q) || (it.category || "").toLowerCase().includes(q));
-  body.innerHTML = filtered.slice(0, 50).map(it => `<tr>
-    <td><span class="tag">${it.category || "-"}</span></td>
-    <td>${it.title || "-"}</td>
-    <td>${it.date || "-"}</td>
-    <td><button class="btn btn-danger btn-sm" onclick="deleteDocAndReload('${colName}','${it.docId}','updates')">Delete</button></td>
-  </tr>`).join("") || `<tr><td colspan="4" style="color:#64748b;">No items found.</td></tr>`;
+  const filtered = showAll && !q
+    ? items
+    : items.filter(it => (it.title || "").toLowerCase().includes(q) || (it.titleHi || "").toLowerCase().includes(q) || (it.category || "").toLowerCase().includes(q));
+
+  body.innerHTML = filtered.slice(0, 50).map(it => {
+    const editFn = colName === "ca_articles"
+      ? `startEditCaArticle('${it.docId}')`
+      : (colName === "job_updates" ? `startEditJobUpdate('${it.docId}')` : "");
+    return `<tr>
+      <td><span class="tag">${it.category || "-"}</span></td>
+      <td>${it.title || "-"}</td>
+      <td>${it.date || "-"}</td>
+      <td style="display:flex; gap:6px;">
+        ${editFn ? `<button class="btn btn-outline btn-sm" onclick="${editFn}">Edit</button>` : ""}
+        <button class="btn btn-danger btn-sm" onclick="deleteDocAndReload('${colName}','${it.docId}','updates')">Delete</button>
+      </td>
+    </tr>`;
+  }).join("") || `<tr><td colspan="4" style="color:#64748b;">No matching items found.</td></tr>`;
+};
+
+window.startEditCaArticle = function (docId) {
+  const art = cacheCaArticles.find(a => a.docId === docId);
+  if (!art) return;
+  editingCaDocId = docId;
+  document.getElementById("caArtTitle").value = art.title || "";
+  document.getElementById("caArtTitleHi").value = art.titleHi || "";
+  document.getElementById("caArtCat").value = art.category || "Daily Current Affairs";
+  document.getElementById("caArtDate").value = art.date || "";
+  document.getElementById("caArtPdf").value = art.pdfLink || "";
+  document.getElementById("caArtBody").value = art.content || "";
+  document.getElementById("caArtBodyHi").value = art.contentHi || "";
+  const qWrap = document.getElementById("caAttachedQuestionsContainer");
+  qWrap.innerHTML = "";
+  (art.questions || []).forEach(q => addCaAttachedQuestion(q));
+  document.getElementById("btnSaveCaArt").innerText = "Update Current Affairs Article";
+  document.getElementById("btnCancelEditCa").classList.remove("hidden");
+  document.getElementById("caArtTitle").scrollIntoView({ behavior: "smooth" });
+};
+
+window.cancelEditCaArticle = function () {
+  editingCaDocId = null;
+  document.getElementById("caArtTitle").value = "";
+  document.getElementById("caArtTitleHi").value = "";
+  document.getElementById("caArtBody").value = "";
+  document.getElementById("caArtBodyHi").value = "";
+  document.getElementById("caAttachedQuestionsContainer").innerHTML = "";
+  document.getElementById("btnSaveCaArt").innerText = "Publish Current Affairs Article";
+  document.getElementById("btnCancelEditCa").classList.add("hidden");
+};
+
+window.startEditJobUpdate = function (docId) {
+  const job = cacheJobs.find(j => j.docId === docId);
+  if (!job) return;
+  editingJobDocId = docId;
+  document.getElementById("jobCat").value = job.category || "Latest Job";
+  document.getElementById("jobTitle").value = job.title || "";
+  document.getElementById("jobTitleHi").value = job.titleHi || "";
+  document.getElementById("jobDate").value = job.date || "";
+  document.getElementById("jobDesc").value = job.description || "";
+  document.getElementById("jobDescHi").value = job.descriptionHi || "";
+
+  const linksWrap = document.getElementById("dynamicJobLinksContainer");
+  linksWrap.innerHTML = "";
+  const links = Array.isArray(job.links) && job.links.length ? job.links : [{ label: "Apply Online", url: job.link || "" }];
+  links.forEach(l => {
+    const row = document.createElement("div");
+    row.className = "form-row job-link-row";
+    row.style.marginBottom = "6px";
+    row.innerHTML = `
+      <div><input type="text" class="jl-label" value="${(l.label || '').replace(/"/g, '&quot;')}" /></div>
+      <div><input type="url" class="jl-url" value="${(l.url || '').replace(/"/g, '&quot;')}" /></div>
+    `;
+    linksWrap.appendChild(row);
+  });
+
+  document.getElementById("btnSaveJob").innerText = "Update Post";
+  document.getElementById("btnCancelEditJob").classList.remove("hidden");
+  document.getElementById("jobTitle").scrollIntoView({ behavior: "smooth" });
+};
+
+window.cancelEditJob = function () {
+  editingJobDocId = null;
+  document.getElementById("jobTitle").value = "";
+  document.getElementById("jobTitleHi").value = "";
+  document.getElementById("jobDesc").value = "";
+  document.getElementById("jobDescHi").value = "";
+  document.getElementById("btnSaveJob").innerText = "Publish Update";
+  document.getElementById("btnCancelEditJob").classList.add("hidden");
 };
 
 window.addJobLinkRow = function () {
@@ -734,31 +885,67 @@ window.addJobLinkRow = function () {
 
 window.publishCaArticle = async function () {
   const title = document.getElementById("caArtTitle").value.trim();
+  const titleHi = document.getElementById("caArtTitleHi").value.trim();
   const category = document.getElementById("caArtCat").value.trim() || "Daily Current Affairs";
   const date = document.getElementById("caArtDate").value.trim();
   const pdfLink = document.getElementById("caArtPdf").value.trim();
   const content = document.getElementById("caArtBody").value.trim();
+  const contentHi = document.getElementById("caArtBodyHi").value.trim();
   const msg = document.getElementById("caArtMsg");
 
-  if (!title || !content) { alert("Please enter headline and full article content."); return; }
-  msg.innerText = "Publishing...";
-  await db.collection("ca_articles").add({
-    title, category, date, pdfLink, content,
-    summary: content.slice(0, 220),
-    createdAt: new Date().toISOString()
+  if (!title || (!content && !contentHi)) { alert("Please enter headline and article content."); return; }
+
+  const questions = [];
+  document.querySelectorAll(".ca-q-editor-card").forEach(card => {
+    const q = card.querySelector(".caq-en").value.trim();
+    const qHi = card.querySelector(".caq-hi").value.trim();
+    const ans = Number(card.querySelector(".caq-ans").value) || 0;
+    const options = [
+      card.querySelector(".caq-oa").value.trim(),
+      card.querySelector(".caq-ob").value.trim(),
+      card.querySelector(".caq-oc").value.trim(),
+      card.querySelector(".caq-od").value.trim()
+    ];
+    const optionsHi = [
+      card.querySelector(".caq-oahi").value.trim(),
+      card.querySelector(".caq-obhi").value.trim(),
+      card.querySelector(".caq-ochi").value.trim(),
+      card.querySelector(".caq-odhi").value.trim()
+    ];
+    const exp = card.querySelector(".caq-exp").value.trim();
+    const expHi = card.querySelector(".caq-exphi").value.trim();
+    if (q || qHi) questions.push({ q, qHi, ans, options, optionsHi, exp, expHi });
   });
-  msg.style.color = "#166534";
-  msg.innerText = "Article Published!";
-  document.getElementById("caArtTitle").value = "";
-  document.getElementById("caArtBody").value = "";
+
+  msg.innerText = editingCaDocId ? "Updating..." : "Publishing...";
+  const payload = {
+    title, titleHi, category, date, pdfLink, content, contentHi, questions,
+    summary: (content || contentHi).replace(/<[^>]+>/g, "").slice(0, 220),
+    updatedAt: new Date().toISOString()
+  };
+
+  if (editingCaDocId) {
+    await db.collection("ca_articles").doc(editingCaDocId).set(payload, { merge: true });
+    msg.style.color = "#166534";
+    msg.innerText = "Article Updated!";
+    cancelEditCaArticle();
+  } else {
+    payload.createdAt = new Date().toISOString();
+    await db.collection("ca_articles").add(payload);
+    msg.style.color = "#166534";
+    msg.innerText = "Article Published!";
+    cancelEditCaArticle();
+  }
   loadUpdatesData();
 };
 
 window.publishJobWithLinks = async function () {
   const category = document.getElementById("jobCat").value;
   const title = document.getElementById("jobTitle").value.trim();
+  const titleHi = document.getElementById("jobTitleHi").value.trim();
   const date = document.getElementById("jobDate").value.trim();
   const description = document.getElementById("jobDesc").value.trim();
+  const descriptionHi = document.getElementById("jobDescHi").value.trim();
   const msg = document.getElementById("jobPubMsg");
 
   if (!title) { alert("Please enter Post / Exam Headline."); return; }
@@ -769,16 +956,25 @@ window.publishJobWithLinks = async function () {
     if (label && url) links.push({ label, url });
   });
 
-  msg.innerText = "Publishing...";
-  await db.collection("job_updates").add({
-    category, title, date, description, links,
+  msg.innerText = editingJobDocId ? "Updating..." : "Publishing...";
+  const payload = {
+    category, title, titleHi, date, description, descriptionHi, links,
     link: links.length > 0 ? links[0].url : "",
-    createdAt: new Date().toISOString()
-  });
-  msg.style.color = "#166534";
-  msg.innerText = "Published Successfully!";
-  document.getElementById("jobTitle").value = "";
-  document.getElementById("jobDesc").value = "";
+    updatedAt: new Date().toISOString()
+  };
+
+  if (editingJobDocId) {
+    await db.collection("job_updates").doc(editingJobDocId).set(payload, { merge: true });
+    msg.style.color = "#166534";
+    msg.innerText = "Post Updated Successfully!";
+    cancelEditJob();
+  } else {
+    payload.createdAt = new Date().toISOString();
+    await db.collection("job_updates").add(payload);
+    msg.style.color = "#166534";
+    msg.innerText = "Published Successfully!";
+    cancelEditJob();
+  }
   loadUpdatesData();
 };
 

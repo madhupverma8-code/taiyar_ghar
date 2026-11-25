@@ -928,16 +928,23 @@
             <button class="btn btn-outline" onclick="goHome()">← Back to Home</button>
         </div>
 
-        <!-- Community Alerts Banner -->
-        <div id="promoSlotUpdatesTop" style="margin-bottom:20px; background:#ffffff; border:1px solid #E2E8F0; border-radius:12px; padding:6px;">
-            <a id="promoLinkUpdatesTop" href="https://whatsapp.com/channel/0029Vb9IvdC1yT2EG3s1BV3q" target="_blank" rel="noopener" style="display:block;">
-                <img id="promoImgUpdatesTop" src="banner-community.png" alt="Join TaiyariGhar Alerts" style="width:100%; height:auto; border-radius:8px; display:block;" onerror="document.getElementById('promoSlotUpdatesTop').style.display='none'">
-            </a>
+        <!-- Compact Side-by-Side Banners Above Jobs/Result Board -->
+        <div id="promoSlotUpdatesTop" style="margin-bottom:16px; display:grid; grid-template-columns:repeat(auto-fit, minmax(260px, 1fr)); gap:12px;">
+            <div style="background:#ffffff; border:1px solid #E2E8F0; border-radius:10px; padding:5px; box-shadow:0 2px 8px rgba(15,23,42,0.03);">
+                <a id="promoLinkUpdatesTop" href="https://whatsapp.com/channel/0029Vb9IvdC1yT2EG3s1BV3q" target="_blank" rel="noopener" style="display:block;">
+                    <img id="promoImgUpdatesTop" src="banner-community.png" alt="Join TaiyariGhar Alerts" style="width:100%; max-height:92px; object-fit:cover; border-radius:7px; display:block;" onerror="document.getElementById('promoSlotUpdatesTop').style.display='none'">
+                </a>
+            </div>
+            <div style="background:#ffffff; border:1px solid #E2E8F0; border-radius:10px; padding:5px; box-shadow:0 2px 8px rgba(15,23,42,0.03);">
+                <a id="promoLinkUpdatesSide" href="javascript:void(0)" onclick="openSmartPracticeBank()" style="display:block;">
+                    <img id="promoImgUpdatesSide" src="banner-practice-bank.png" alt="Unlimited Smart Practice Bank" style="width:100%; max-height:92px; object-fit:cover; border-radius:7px; display:block;" onerror="this.parentElement.parentElement.style.display='none'">
+                </a>
+            </div>
         </div>
 
         <!-- Filter Tabs -->
         <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:20px;">
-            <button class="upd-tab active btn btn-primary" onclick="filterUpdates('All', this)">🗂️ 4-Column Board</button>
+            <button class="upd-tab active btn btn-primary" onclick="filterUpdates('All', this)">All Updates</button>
             <button class="upd-tab btn btn-outline" onclick="filterUpdates('Latest Job', this)">💼 Latest Jobs</button>
             <button class="upd-tab btn btn-outline" onclick="filterUpdates('Admit Card', this)">🎫 Admit Card</button>
             <button class="upd-tab btn btn-outline" onclick="filterUpdates('Result', this)">🏆 Result</button>
@@ -1486,6 +1493,6 @@
         };
     </script>
 
-    <script type="module" src="student-app.js?v=24.0"></script>
+    <script type="module" src="student-app.js?v=25.0"></script>
 </body>
 </html>
