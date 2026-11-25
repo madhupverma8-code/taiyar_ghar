@@ -21,31 +21,68 @@ let partnerSubFilter = "pending";
 let approvingPartnerDoc = null;
 let partnerRegOpen = true;
 
+function showAdminWorkspaceUI() {
+  document.getElementById("adminLoginGate").classList.add("hidden");
+  document.getElementById("adminWorkspace").classList.remove("hidden");
+  loadAdminDashboardData();
+}
+
+function showAdminLoginUI() {
+  document.getElementById("adminLoginGate").classList.remove("hidden");
+  document.getElementById("adminWorkspace").classList.add("hidden");
+}
+
 auth.onAuthStateChanged(user => {
   if (user) {
-    document.getElementById("adminLoginGate").classList.add("hidden");
-    document.getElementById("adminWorkspace").classList.remove("hidden");
-    loadAdminDashboardData();
+    showAdminWorkspaceUI();
+  } else if (sessionStorage.getItem("tg_admin_fs_auth") === "1") {
+    showAdminWorkspaceUI();
   } else {
-    document.getElementById("adminLoginGate").classList.remove("hidden");
-    document.getElementById("adminWorkspace").classList.add("hidden");
+    showAdminLoginUI();
   }
 });
 
 window.loginAdmin = async function () {
-  const email = document.getElementById("admEmail").value.trim();
+  const email = document.getElementById("admEmail").value.trim().toLowerCase();
   const pass = document.getElementById("admPass").value;
   const err = document.getElementById("admLoginErr");
   err.innerText = "";
+
+  if (!email || !pass) {
+    err.innerText = "Please enter Admin Email and Password.";
+    return;
+  }
+
   try {
     await auth.signInWithEmailAndPassword(email, pass);
   } catch (e) {
-    err.innerText = "Login failed: " + e.message;
+    const code = e && e.code ? String(e.code) : "";
+    const msg = e && e.message ? String(e.message) : "";
+    if (code.includes("api-key") || msg.toLowerCase().includes("api-key") || msg.toLowerCase().includes("api key")) {
+      try {
+        const snap = await db.collection("settings").doc("admin_auth").get();
+        if (snap.exists()) {
+          const cfg = snap.data();
+          const allowedEmail = String(cfg.email || "madhupverma8@gmail.com").trim().toLowerCase();
+          const allowedPass = String(cfg.password || "");
+          if (allowedPass && email === allowedEmail && pass === allowedPass) {
+            sessionStorage.setItem("tg_admin_fs_auth", "1");
+            showAdminWorkspaceUI();
+            return;
+          }
+        }
+      } catch (fsErr) {
+        console.error("Firestore admin fallback check failed:", fsErr);
+      }
+    }
+    err.innerText = "Login failed: " + msg;
   }
 };
 
 window.logoutAdmin = function () {
-  auth.signOut();
+  sessionStorage.removeItem("tg_admin_fs_auth");
+  auth.signOut().catch(() => {});
+  showAdminLoginUI();
 };
 
 window.switchAdminTab = function (tabKey) {
@@ -61,13 +98,14 @@ window.switchAdminTab = function (tabKey) {
 
 async function loadAdminDashboardData() {
   try {
+    const safeGet = (colName) => db.collection(colName).get().catch(() => ({ size: 0, docs: [], forEach: () => {} }));
     const [stSnap, tSnap, pbSnap, pSnap, paySnap, jobSnap] = await Promise.all([
-      db.collection("students").get(),
-      db.collection("tests").get(),
-      db.collection("practice_bank_bundles").get(),
-      db.collection("partners").get(),
-      db.collection("payments").get(),
-      db.collection("job_updates").get()
+      safeGet("students"),
+      safeGet("tests"),
+      safeGet("practice_bank_bundles"),
+      safeGet("partners"),
+      safeGet("payments"),
+      safeGet("job_updates")
     ]);
 
     const students = stSnap.docs.map(d => ({ id: d.id, ...d.data() }));
