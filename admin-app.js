@@ -405,3 +405,23 @@ window.exportPartnersCsv = function (mode) {
   XLSX.utils.book_append_sheet(wb, ws, "Partners");
   XLSX.writeFile(wb, `TaiyariGhar_Partners_${mode}.csv`);
 };
+
+window.publishStudyNote = async function () {
+  const category = document.getElementById("snCat").value;
+  const title = document.getElementById("snTitle").value.trim();
+  const date = document.getElementById("snDate").value.trim();
+  const pdfLink = document.getElementById("snPdf").value.trim();
+  const content = document.getElementById("snBody").value.trim();
+  const msg = document.getElementById("snPubMsg");
+
+  if (!title || !content) { alert("Please enter title and study notes content."); return; }
+  msg.innerText = "Publishing...";
+  await db.collection("study_notes").add({
+    category, title, date, pdfLink, content,
+    createdAt: new Date().toISOString()
+  });
+  msg.style.color = "#166534";
+  msg.innerText = "Study Note Published!";
+  document.getElementById("snTitle").value = "";
+  document.getElementById("snBody").value = "";
+};
