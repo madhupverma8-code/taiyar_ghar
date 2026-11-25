@@ -1488,6 +1488,8 @@ async function flushPracticeProgressToFirestore() {
     } catch (e) { console.error("Practice progress save error:", e); }
 }
 
+let pbCatalogLoaded = false;
+
 window.openSmartPracticeBank = async function() {
     if (!isLoggedIn) {
         showLogin();
@@ -1502,31 +1504,33 @@ window.openSmartPracticeBank = async function() {
     showScreen('practiceBankScreen', true);
     updatePbAnalyticsUI();
 
-    showProcessing("Loading Smart Practice Bank...", "Fetching subjects and topics");
+    if (pbCatalogLoaded && pbMetaIndex.length > 0) {
+        renderPbSubjects();
+        return;
+    }
+
+    const grid = document.getElementById('pbLevelSubjects');
+    if (grid) grid.innerHTML = `<div style="grid-column:1/-1; padding:18px; color:#4F46E5; font-weight:600;">⚡ Loading subjects &amp; topics...</div>`;
+    renderPbSubjects();
+
     try {
-        let bundlesList = [];
-        const bSnap = await getDocs(collection(db, "practice_bank_bundles"));
-        if (!bSnap.empty) {
-            bundlesList = bSnap.docs.map(d => {
-                const data = d.data();
-                pbLoadedBundles[d.id] = Array.isArray(data.questions) ? data.questions : [];
-                return {
-                    bundleId: d.id,
-                    colName: "practice_bank_bundles",
-                    subject: data.subject || "General",
-                    topic: data.topic || "Mixed",
-                    packIndex: data.packNumber || data.packIndex || 1,
-                    count: pbLoadedBundles[d.id].length
-                };
-            });
+        // Fast single-doc read first (`settings/practice_catalog`) so it loads in <1 second
+        const catSnap = await getDoc(doc(db, "settings", "practice_catalog"));
+        if (catSnap.exists() && Array.isArray(catSnap.data().bundles) && catSnap.data().bundles.length > 0) {
+            pbMetaIndex = catSnap.data().bundles.map(b => ({
+                bundleId: b.bundleId,
+                subject: b.subject || "General",
+                topic: b.topic || "Mixed",
+                packIndex: b.packIndex || b.packNumber || 1,
+                count: Number(b.count || 0)
+            }));
         } else {
-            const legSnap = await getDocs(collection(db, "practice_bank"));
-            bundlesList = legSnap.docs.map(d => {
+            const bSnap = await getDocs(collection(db, "practice_bank_bundles"));
+            pbMetaIndex = bSnap.docs.map(d => {
                 const data = d.data();
                 pbLoadedBundles[d.id] = Array.isArray(data.questions) ? data.questions : [];
                 return {
                     bundleId: d.id,
-                    colName: "practice_bank",
                     subject: data.subject || "General",
                     topic: data.topic || "Mixed",
                     packIndex: data.packNumber || data.packIndex || 1,
@@ -1534,12 +1538,10 @@ window.openSmartPracticeBank = async function() {
                 };
             });
         }
-        pbMetaIndex = bundlesList;
-        hideProcessing();
+        pbCatalogLoaded = true;
         renderPbSubjects();
     } catch (e) {
-        hideProcessing();
-        alert("Could not load Practice Bank: " + e.message);
+        if (grid) grid.innerHTML = `<div style="grid-column:1/-1; padding:18px; color:#DC2626;">Could not load Practice Bank: ${e.message}</div>`;
     }
 };
 
@@ -1564,11 +1566,16 @@ function updatePbAnalyticsUI() {
 
 function renderPbSubjects() {
     document.getElementById('pbHeaderTitle').innerText = "Unlimited Smart Practice Bank";
-    document.getElementById('pbHeaderSub').innerText = "Select a subject to start Topic-Wise or Mix Practice";
+    document.getElementById('pbHeaderSub').innerText = currentStudent.isPaid
+        ? "All-Access Pass Active — Unlimited Questions Unlocked"
+        : "Free Tier: First 15 Questions per Subject Free • Upgrade Pass for Full Question Bank";
     document.getElementById('pbBackBtn').classList.add('hide');
     document.getElementById('pbLevelSubjects').classList.remove('hide');
     document.getElementById('pbLevelModes').classList.add('hide');
     document.getElementById('pbLevelArena').classList.add('hide');
+
+    const grid = document.getElementById('pbLevelSubjects');
+    if (!pbCatalogLoaded && pbMetaIndex.length === 0) return;
 
     const subjectMap = {};
     pbMetaIndex.forEach(b => {
@@ -1578,7 +1585,6 @@ function renderPbSubjects() {
         subjectMap[s].totalQs += Number(b.count || 0);
     });
 
-    const grid = document.getElementById('pbLevelSubjects');
     const subjects = Object.keys(subjectMap);
     if (subjects.length === 0) {
         grid.innerHTML = `<div style="grid-column:1/-1; padding:18px; color:#64748B;">No practice questions uploaded yet. Check back soon!</div>`;
@@ -1586,9 +1592,10 @@ function renderPbSubjects() {
     }
 
     grid.innerHTML = subjects.map(sub => `
-        <div onclick="selectPbSubject('${sub.replace(/'/g, "\\'")}')" style="border:1.5px solid #CBD5E1; border-radius:12px; padding:16px; background:#ffffff; cursor:pointer; transition:0.15s;" onmouseover="this.style.borderColor='#4F46E5'" onmouseout="this.style.borderColor='#CBD5E1'">
+        <div onclick="selectPbSubject('${sub.replace(/'/g, "\'")}')" style="border:1.5px solid #CBD5E1; border-radius:12px; padding:16px; background:#ffffff; cursor:pointer; transition:0.15s;" onmouseover="this.style.borderColor='#4F46E5'" onmouseout="this.style.borderColor='#CBD5E1'">
             <div style="font-size:16px; font-weight:700; color:#1E1B4B; margin-bottom:4px;">${sub}</div>
             <div style="font-size:12px; color:#64748B;">${subjectMap[sub].topics.size} Topics &bull; ${subjectMap[sub].totalQs} Questions</div>
+            <div style="font-size:11px; color:#059669; font-weight:600; margin-top:4px;">${currentStudent.isPaid ? 'All Unlocked' : '15 Free Qs in Subject'}</div>
         </div>
     `).join("");
 }
@@ -1596,7 +1603,9 @@ function renderPbSubjects() {
 window.selectPbSubject = function(subject) {
     pbCurrentSubject = subject;
     document.getElementById('pbHeaderTitle').innerText = subject + " — Smart Practice";
-    document.getElementById('pbHeaderSub').innerText = "Choose Mix Practice or select a specific Topic below";
+    document.getElementById('pbHeaderSub').innerText = currentStudent.isPaid
+        ? "All-Access Pass Active — Unlimited Questions Unlocked"
+        : "Free Tier: First 15 Questions per Subject Free • Upgrade Pass for All Topics & Questions";
     const backBtn = document.getElementById('pbBackBtn');
     backBtn.classList.remove('hide');
     backBtn.onclick = renderPbSubjects;
@@ -1611,15 +1620,18 @@ window.selectPbSubject = function(subject) {
     });
 
     const list = document.getElementById('pbTopicsList');
-    list.innerHTML = Object.keys(topicCounts).map(topic => `
-        <div onclick="startTopicPractice('${topic.replace(/'/g, "\\'")}')" style="display:flex; justify-content:space-between; align-items:center; padding:12px 16px; border:1px solid #E2E8F0; border-radius:10px; margin-bottom:8px; cursor:pointer; background:#ffffff;" onmouseover="this.style.borderColor='#4F46E5'" onmouseout="this.style.borderColor='#E2E8F0'">
+    const topicNames = Object.keys(topicCounts);
+    list.innerHTML = topicNames.map((topic, idx) => {
+        const isLockedTopic = !currentStudent.isPaid && idx > 0;
+        return `
+        <div onclick="${isLockedTopic ? 'openPaymentModal()' : `startTopicPractice('${topic.replace(/'/g, "\'")}')`}" style="display:flex; justify-content:space-between; align-items:center; padding:12px 16px; border:1px solid #E2E8F0; border-radius:10px; margin-bottom:8px; cursor:pointer; background:${isLockedTopic ? '#F8FAFC' : '#ffffff'};" onmouseover="this.style.borderColor='#4F46E5'" onmouseout="this.style.borderColor='#E2E8F0'">
             <div>
                 <strong style="font-size:14px; color:#1E1B4B;">${topic}</strong>
-                <div style="font-size:12px; color:#64748B;">First 15 Questions Free &bull; Total ${topicCounts[topic]} Questions</div>
+                <div style="font-size:12px; color:#64748B;">${isLockedTopic ? `Pro Pass Required • ${topicCounts[topic]} Questions` : `${currentStudent.isPaid ? 'Full Topic Unlocked' : 'First 15 Subject Free Qs'} &bull; Total ${topicCounts[topic]} Questions`}</div>
             </div>
-            <span style="font-size:13px; font-weight:700; color:#4F46E5;">Practice →</span>
-        </div>
-    `).join("");
+            <span style="font-size:13px; font-weight:700; color:${isLockedTopic ? '#D97706' : '#4F46E5'};">${isLockedTopic ? '🔒 Unlock' : 'Practice →'}</span>
+        </div>`;
+    }).join("");
 };
 
 async function fetchBundleQuestions(bundleId) {
@@ -1675,19 +1687,19 @@ function normalizePracticeQuestion(rawQ, idx, fallbackTopic) {
 window.startTopicPractice = async function(topic) {
     pbCurrentMode = "topic";
     pbCurrentTopic = topic;
-    showProcessing(`Loading ${topic}...`, "Fetching smart question bundle");
+
+    const matchingBundles = pbMetaIndex
+        .filter(b => b.subject === pbCurrentSubject && b.topic === topic)
+        .sort((a, b) => (a.packIndex || 1) - (b.packIndex || 1));
+
+    const needsFetch = matchingBundles.some(b => !pbLoadedBundles[b.bundleId]);
+    if (needsFetch) showProcessing(`Loading ${topic}...`, "Fetching questions");
 
     try {
-        const matchingBundles = pbMetaIndex
-            .filter(b => b.subject === pbCurrentSubject && b.topic === topic)
-            .sort((a, b) => (a.packIndex || 1) - (b.packIndex || 1));
-
         let allTopicQs = [];
-        for (const b of matchingBundles) {
-            const qs = await fetchBundleQuestions(b.bundleId);
-            allTopicQs = allTopicQs.concat(qs);
-            if (!currentStudent.isPaid && allTopicQs.length >= 15) break;
-        }
+        const bundlesToLoad = currentStudent.isPaid ? matchingBundles : matchingBundles.slice(0, 1);
+        const fetchedArrays = await Promise.all(bundlesToLoad.map(b => fetchBundleQuestions(b.bundleId)));
+        fetchedArrays.forEach(qs => { allTopicQs = allTopicQs.concat(qs); });
 
         if (!currentStudent.isPaid) {
             allTopicQs = allTopicQs.slice(0, 15);
@@ -1704,27 +1716,28 @@ window.startTopicPractice = async function(topic) {
 window.startSubjectMixPractice = async function() {
     pbCurrentMode = "mix";
     pbCurrentTopic = "All Topics Mix";
-    showProcessing(`Preparing ${pbCurrentSubject} Mix Practice...`, "Combining questions from all topics");
+
+    const subjectBundles = pbMetaIndex.filter(b => b.subject === pbCurrentSubject);
+    if (subjectBundles.length === 0) return;
+
+    // Free users: fetch only first 2 bundles in parallel to get 15 free subject questions instantly (<1s)
+    // Paid users: fetch bundles in parallel via Promise.all instead of slow sequential loop
+    const targetBundles = currentStudent.isPaid ? subjectBundles : subjectBundles.slice(0, 2);
+    const needsFetch = targetBundles.some(b => !pbLoadedBundles[b.bundleId]);
+    if (needsFetch) showProcessing(`Preparing ${pbCurrentSubject} Mix Practice...`, "Loading questions");
 
     try {
-        const subjectBundles = pbMetaIndex.filter(b => b.subject === pbCurrentSubject);
-        const firstPackByTopic = {};
-        subjectBundles.forEach(b => {
-            if (!firstPackByTopic[b.topic] || (b.packIndex || 1) < (firstPackByTopic[b.topic].packIndex || 1)) {
-                firstPackByTopic[b.topic] = b;
-            }
-        });
-
+        const fetchedArrays = await Promise.all(targetBundles.map(b => fetchBundleQuestions(b.bundleId)));
         let mixedPool = [];
-        for (const topicName of Object.keys(firstPackByTopic)) {
-            const qs = await fetchBundleQuestions(firstPackByTopic[topicName].bundleId);
-            const allowed = currentStudent.isPaid ? qs : qs.slice(0, 15);
-            mixedPool = mixedPool.concat(allowed);
-        }
+        fetchedArrays.forEach(qs => { mixedPool = mixedPool.concat(qs); });
 
         for (let i = mixedPool.length - 1; i > 0; i--) {
             const j = Math.floor(Math.random() * (i + 1));
             [mixedPool[i], mixedPool[j]] = [mixedPool[j], mixedPool[i]];
+        }
+
+        if (!currentStudent.isPaid) {
+            mixedPool = mixedPool.slice(0, 15);
         }
 
         hideProcessing();
@@ -1744,7 +1757,7 @@ function launchPracticeArena(allQuestions, titleLabel) {
     document.getElementById('pbHeaderTitle').innerText = titleLabel;
     document.getElementById('pbHeaderSub').innerText = currentStudent.isPaid
         ? "All-Access Pass Active — Unlimited Questions Unlocked"
-        : "Free Tier: First 15 questions per topic unlocked. Upgrade Pass for full question bank.";
+        : "Free Tier: First 15 questions per subject unlocked. Upgrade Pass for full question bank.";
 
     const backBtn = document.getElementById('pbBackBtn');
     backBtn.onclick = () => {
@@ -1801,7 +1814,7 @@ function renderCurrentPracticeQuestion() {
         document.getElementById('pbQText').innerHTML = pbPoolMode === 'unattempted'
             ? (currentStudent.isPaid
                 ? "You have completed all available questions in this section! Switch to the <strong>Attempted</strong> tab to revise."
-                : "You have completed all 15 free questions in this topic! <strong>Upgrade to All-Access Pass</strong> to unlock hundreds more questions.")
+                : "You have completed all 15 free questions in this subject! <strong>Upgrade to All-Access Pass</strong> to unlock all topics &amp; hundreds more questions.")
             : "No attempted questions here yet. Switch to <strong>Not Attempted</strong> to start practicing!";
         document.getElementById('pbOptionsWrap').innerHTML = !currentStudent.isPaid && pbPoolMode === 'unattempted'
             ? `<button class="btn btn-primary" onclick="openPaymentModal()">Unlock Full Practice Bank</button>`

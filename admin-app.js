@@ -331,25 +331,77 @@ async function loadPracticeBundlesData() {
   renderPracticeBundlesTable();
 }
 
+let lastRenderedPbList = [];
+
+window.updatePbSelectedCount = function () {
+  const cnt = document.querySelectorAll(".pb-row-chk:checked").length;
+  const el = document.getElementById("pbSelCount");
+  if (el) el.innerText = cnt;
+};
+
+window.toggleAllPbBundles = function (checked) {
+  document.querySelectorAll(".pb-row-chk").forEach(cb => { cb.checked = checked; });
+  updatePbSelectedCount();
+};
+
+window.bulkDeleteSelectedBundles = async function () {
+  const ids = Array.from(document.querySelectorAll(".pb-row-chk:checked")).map(cb => cb.value);
+  if (!ids.length) { alert("Pehle checkboxes select karein jin bundles ko delete karna hai."); return; }
+  if (!confirm(`Kya aap selected ${ids.length} bundle(s) ko permanently delete karna chahte hain?`)) return;
+  const statusEl = document.getElementById("pbUploadStatus");
+  if (statusEl) statusEl.innerText = `Deleting ${ids.length} bundles...`;
+  const batch = db.batch();
+  ids.forEach(id => batch.delete(db.collection("practice_bank_bundles").doc(id)));
+  await batch.commit();
+  if (statusEl) { statusEl.style.color = "#166534"; statusEl.innerText = `Deleted ${ids.length} bundle(s) successfully!`; }
+  loadedTabs["practice"] = false;
+  loadTabOnDemand("practice");
+};
+
+window.bulkDeleteFilteredBundles = async function () {
+  const q = (document.getElementById("pbSearchBox")?.value || "").trim().toLowerCase();
+  const targetList = q
+    ? cacheBundles.filter(b => (b.subject || "").toLowerCase().includes(q) || (b.topic || "").toLowerCase().includes(q) || (b.docId || "").toLowerCase().includes(q))
+    : lastRenderedPbList;
+  if (!targetList.length) { alert("Delete karne ke liye koi bundle list mein nahi hai."); return; }
+  if (!confirm(`Kya aap in sabhi ${targetList.length} matching bundle(s) ko ek saath delete karna chahte hain?`)) return;
+  const statusEl = document.getElementById("pbUploadStatus");
+  if (statusEl) statusEl.innerText = `Bulk deleting ${targetList.length} bundles...`;
+  for (let i = 0; i < targetList.length; i += 400) {
+    const batch = db.batch();
+    targetList.slice(i, i + 400).forEach(b => batch.delete(db.collection("practice_bank_bundles").doc(b.docId)));
+    await batch.commit();
+  }
+  if (statusEl) { statusEl.style.color = "#166534"; statusEl.innerText = `Deleted ${targetList.length} bundle(s) successfully!`; }
+  loadedTabs["practice"] = false;
+  loadTabOnDemand("practice");
+};
+
 window.renderPracticeBundlesTable = function (showAll = false) {
   const q = (document.getElementById("pbSearchBox")?.value || "").trim().toLowerCase();
   const body = document.getElementById("pbBundlesBody");
   if (!body) return;
+  if (document.getElementById("pbSelectAllChk")) document.getElementById("pbSelectAllChk").checked = false;
   if (!q && !showAll) {
-    body.innerHTML = `<tr><td colspan="6" style="color:#64748b;">Total ${cacheBundles.length} question bundle(s) uploaded. Type Subject/Topic above or click "Show All Bundles".</td></tr>`;
+    lastRenderedPbList = [];
+    updatePbSelectedCount();
+    body.innerHTML = `<tr><td colspan="7" style="color:#64748b;">Total ${cacheBundles.length} question bundle(s) uploaded. Type Subject/Topic above or click "Show All Bundles".</td></tr>`;
     return;
   }
   const list = showAll && !q
     ? cacheBundles
     : cacheBundles.filter(b => (b.subject || "").toLowerCase().includes(q) || (b.topic || "").toLowerCase().includes(q) || (b.docId || "").toLowerCase().includes(q));
-  body.innerHTML = list.slice(0, 80).map(b => `<tr>
+  lastRenderedPbList = list;
+  updatePbSelectedCount();
+  body.innerHTML = list.slice(0, 200).map(b => `<tr>
+    <td><input type="checkbox" class="pb-row-chk" value="${b.docId}" onchange="updatePbSelectedCount()" /></td>
     <td>${b.docId}</td>
     <td><strong>${b.subject || "-"}</strong></td>
     <td>${b.topic || "-"}</td>
     <td>Pack ${b.packNumber || 1}</td>
     <td>${Array.isArray(b.questions) ? b.questions.length : 0} Qs</td>
     <td><button class="btn btn-danger btn-sm" onclick="deleteDocAndReload('practice_bank_bundles','${b.docId}','practice')">Delete</button></td>
-  </tr>`).join("") || `<tr><td colspan="6" style="color:#64748b;">No practice bundles found.</td></tr>`;
+  </tr>`).join("") || `<tr><td colspan="7" style="color:#64748b;">No practice bundles found.</td></tr>`;
 };
 
 window.uploadPracticeBankExcel = async function () {

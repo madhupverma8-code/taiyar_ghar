@@ -256,13 +256,15 @@
         </div>
 
         <div class="panel-card">
-          <h3>Search &amp; Manage Uploaded Question Bundles</h3>
+          <h3>Search &amp; Manage Uploaded Question Bundles (Bulk Delete Available)</h3>
           <div class="search-bar">
-            <input type="text" id="pbSearchBox" placeholder="Type Subject or Topic to search bundles..." style="max-width:320px;" oninput="renderPracticeBundlesTable()" />
+            <input type="text" id="pbSearchBox" placeholder="Type Subject or Topic to search bundles..." style="max-width:300px;" oninput="renderPracticeBundlesTable()" />
             <button class="btn btn-outline btn-sm" onclick="renderPracticeBundlesTable(true)">Show All Bundles</button>
+            <button class="btn btn-danger btn-sm" onclick="bulkDeleteSelectedBundles()">🗑️ Delete Selected (<span id="pbSelCount">0</span>)</button>
+            <button class="btn btn-danger btn-sm" onclick="bulkDeleteFilteredBundles()">🗑️ Delete All Matching / Listed</button>
           </div>
           <table>
-            <thead><tr><th>Bundle ID</th><th>Subject</th><th>Topic</th><th>Pack #</th><th>Questions</th><th>Action</th></tr></thead>
+            <thead><tr><th style="width:32px;"><input type="checkbox" id="pbSelectAllChk" onchange="toggleAllPbBundles(this.checked)" /></th><th>Bundle ID</th><th>Subject</th><th>Topic</th><th>Pack #</th><th>Questions</th><th>Action</th></tr></thead>
             <tbody id="pbBundlesBody"></tbody>
           </table>
         </div>
