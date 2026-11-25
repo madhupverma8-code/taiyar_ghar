@@ -1481,15 +1481,11 @@
             const msg = document.getElementById('contactMessage').value.trim();
             if (!name || !msg) { alert("Please enter your name and message."); return; }
             const sub = encodeURIComponent("Support Query from " + name);
-            const body = encodeURIComponent("Name/ID: " + name + "
-Email: " + email + "
-
-Message:
-" + msg);
+            const body = encodeURIComponent("Name/ID: " + name + "\nEmail: " + email + "\n\nMessage:\n" + msg);
             window.location.href = "mailto:support@taiyarighar.in?subject=" + sub + "&body=" + body;
         };
     </script>
 
-    <script type="module" src="student-app.js?v=23.0"></script>
+    <script type="module" src="student-app.js?v=24.0"></script>
 </body>
 </html>
