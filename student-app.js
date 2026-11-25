@@ -2153,24 +2153,101 @@ window.goBackToSubCat = function() { history.back(); };
 // CURRENT AFFAIRS & JOBS HUB
 // =========================================================================
 let caStreak = 0, caCorrectCount = 0, caWrongCount = 0;
+let allCaArticles = [];
 
-window.showCurrentAffairs = function() {
+window.showCurrentAffairs = async function() {
     document.getElementById('caLiveScoreCorrect').innerText = "0";
     document.getElementById('caLiveScoreWrong').innerText = "0";
     caCorrectCount = 0; caWrongCount = 0; caStreak = 0;
-    filterCA('Daily', document.querySelector('.ca-tab'));
+    const reader = document.getElementById('caArticleReaderBox');
+    if (reader) reader.classList.add('hide');
     showScreen('caScreen');
+    try {
+        const artSnap = await getDocs(collection(db, "ca_articles"));
+        allCaArticles = artSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+        allCaArticles.sort((a, b) => new Date(b.createdAt || b.date || 0) - new Date(a.createdAt || a.date || 0));
+    } catch (e) {
+        console.error("CA Articles load error:", e);
+    }
+    filterCA('Articles', document.querySelector('.ca-tab'));
+};
+
+window.openCaArticleReader = function(articleId) {
+    const art = allCaArticles.find(a => a.id === articleId);
+    if (!art) return;
+    const reader = document.getElementById('caArticleReaderBox');
+    const content = document.getElementById('caArticleReaderContent');
+    if (!reader || !content) return;
+
+    const formattedBody = (art.content || art.summary || '').replace(/\n/g, '<br>');
+    content.innerHTML = `
+        <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-bottom:10px;">
+            <span style="background:#EEF2FF; color:#4F46E5; font-size:11.5px; font-weight:700; padding:4px 10px; border-radius:6px;">📖 ${art.category || 'Current Affairs'}</span>
+            ${art.date ? `<span style="font-size:12.5px; color:#64748B; font-weight:600;">📅 ${art.date}</span>` : ''}
+        </div>
+        <h2 style="color:#1E1B4B; font-size:21px; margin:0 0 14px; line-height:1.4;">${art.title}</h2>
+        <div style="font-size:14.5px; color:#1E293B; line-height:1.8; background:#F8FAFC; padding:18px; border-radius:10px; border:1px solid #E2E8F0;">
+            ${formattedBody}
+        </div>
+        ${art.pdfLink ? `<div style="margin-top:16px;"><a href="${art.pdfLink}" target="_blank" rel="noopener" class="btn btn-primary" style="text-decoration:none;">📥 Download Complete Notes / PDF →</a></div>` : ''}
+    `;
+    reader.classList.remove('hide');
+    document.getElementById('caContentContainer').classList.add('hide');
+    reader.scrollIntoView({ behavior: 'smooth' });
+};
+
+window.closeCaArticleReader = function() {
+    const reader = document.getElementById('caArticleReaderBox');
+    if (reader) reader.classList.add('hide');
+    document.getElementById('caContentContainer').classList.remove('hide');
 };
 
 window.filterCA = function(type, btn) {
-    document.querySelectorAll('.ca-tab').forEach(b => b.classList.remove('active'));
-    if(btn) btn.classList.add('active');
+    document.querySelectorAll('.ca-tab').forEach(b => {
+        b.classList.remove('active', 'btn-primary');
+        b.classList.add('btn-outline');
+    });
+    if (btn) {
+        btn.classList.add('active', 'btn-primary');
+        btn.classList.remove('btn-outline');
+    }
+    closeCaArticleReader();
 
     const container = document.getElementById('caContentContainer');
     container.innerHTML = '';
 
-    const filtered = allCA.filter(c => c.type.toLowerCase() === type.toLowerCase());
-    if(filtered.length === 0) { container.innerHTML = '<p style="text-align:center;">No current affairs available.</p>'; return; }
+    if (type === 'Articles') {
+        if (allCaArticles.length === 0) {
+            container.innerHTML = '<div style="text-align:center; padding:35px; background:#fff; border-radius:12px; border:1px solid #E2E8F0; color:#64748B;">No Current Affairs articles published yet. Check back soon!</div>';
+            return;
+        }
+        let html = `<div style="display:grid; gap:14px;">`;
+        allCaArticles.forEach(art => {
+            const preview = (art.summary || art.content || '').slice(0, 190);
+            html += `
+                <div style="background:#ffffff; border:1px solid #E2E8F0; border-left:4px solid #4F46E5; border-radius:12px; padding:18px 20px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:14px; box-shadow:0 2px 8px rgba(0,0,0,0.03);">
+                    <div style="flex:1; min-width:250px;">
+                        <div style="display:flex; gap:8px; align-items:center; margin-bottom:6px;">
+                            <span style="background:#EEF2FF; color:#4F46E5; font-size:11px; font-weight:700; padding:3px 9px; border-radius:6px;">${art.category || 'Daily News'}</span>
+                            ${art.date ? `<span style="font-size:12px; color:#64748B;">📅 ${art.date}</span>` : ''}
+                        </div>
+                        <h3 style="color:#1E1B4B; font-size:16.5px; margin:0 0 6px;">${art.title}</h3>
+                        <p style="font-size:13px; color:#475569; margin:0; line-height:1.55;">${preview}${preview.length >= 190 ? '...' : ''}</p>
+                    </div>
+                    <button class="btn btn-primary" onclick="openCaArticleReader('${art.id}')">Read Full Article →</button>
+                </div>
+            `;
+        });
+        html += `</div>`;
+        container.innerHTML = html;
+        return;
+    }
+
+    const filtered = allCA.filter(c => (c.type || '').toLowerCase() === type.toLowerCase());
+    if(filtered.length === 0) {
+        container.innerHTML = '<div style="text-align:center; padding:35px; background:#fff; border-radius:12px; border:1px solid #E2E8F0; color:#64748B;">No practice questions available in this tab yet.</div>';
+        return;
+    }
 
     const grouped = {};
     filtered.forEach(c => {
@@ -2187,7 +2264,7 @@ window.filterCA = function(type, btn) {
         let qHtml = '';
         article.questions.forEach((q, idx) => {
             qHtml += `<div class="ca-question" id="caQ_${q.id}"><p style="font-weight:600; margin-bottom:15px;">Q${idx+1}. ${q.question}</p><div class="ca-options">`;
-            q.options.forEach((opt, i) => { if(opt && opt.trim() !== "") qHtml += `<label class="ca-option" onclick="checkCAAnswer('${q.id}', ${i}, ${q.correctAnswer}, '${type}', '${(q.explanation || '').replace(/'/g, "\\'")}')">${String.fromCharCode(65+i)}) ${opt}</label>`; });
+            q.options.forEach((opt, i) => { if(opt && opt.trim() !== "") qHtml += `<label class="ca-option" onclick="checkCAAnswer('${q.id}', ${i}, ${q.correctAnswer}, '${type}', '${(q.explanation || '').replace(/'/g, "\'")}')">${String.fromCharCode(65+i)}) ${opt}</label>`; });
             qHtml += `</div><div class="ca-explanation" id="caExp_${q.id}"><b>Explanation:</b> ${q.explanation || 'N/A'}</div></div>`;
         });
         container.innerHTML += articleHtml + qHtml;
@@ -2220,6 +2297,7 @@ window.checkCAAnswer = function(qId, selectedIndex, correctIndex, type, explanat
 
 function showPopup(id) {
     const popup = document.getElementById(id);
+    if (!popup) return;
     popup.classList.add('show');
     setTimeout(() => { popup.classList.remove('show'); }, 3000);
 }
@@ -2985,8 +3063,9 @@ window.onload = async () => {
 // =========================================================================
 window.openUpdatesHub = async function() {
     showScreen('updatesScreen');
+    closeJobDetailReader();
     const container = document.getElementById('updatesContentContainer');
-    if (container) container.innerHTML = `<div style="text-align:center; padding:30px; color:#6B7280;">Loading Jobs &amp; Exam Syllabus...</div>`;
+    if (container) container.innerHTML = `<div style="text-align:center; padding:30px; color:#6B7280;">Loading Jobs, Admit Cards, Results &amp; Syllabus...</div>`;
     try {
         const snap = await getDocs(collection(db, "job_updates"));
         allJobUpdates = snap.docs.map(d => ({ id: d.id, ...d.data() }));
@@ -2998,6 +3077,64 @@ window.openUpdatesHub = async function() {
     filterUpdates('All', defaultTab);
 };
 
+window.openJobDetailReader = function(jobId) {
+    const item = allJobUpdates.find(u => u.id === jobId);
+    if (!item) return;
+    const box = document.getElementById('jobDetailReaderBox');
+    const content = document.getElementById('jobDetailReaderContent');
+    if (!box || !content) return;
+
+    const linksArray = Array.isArray(item.links) && item.links.length > 0
+        ? item.links
+        : (item.link ? [{ label: "Apply Online / Official Notification", url: item.link }] : []);
+
+    let linksTableHtml = '';
+    if (linksArray.length > 0) {
+        linksTableHtml = `
+            <div style="margin-top:20px; border:1px solid #CBD5E1; border-radius:10px; overflow:hidden;">
+                <div style="background:#1E1B4B; color:#ffffff; padding:11px 16px; font-weight:700; font-size:14px; text-align:center;">
+                    Important Links (Direct Official Portals)
+                </div>
+                <table style="width:100%; border-collapse:collapse; font-size:13.5px;">
+                    <tbody>
+                        ${linksArray.map(l => `
+                            <tr style="border-bottom:1px solid #E2E8F0;">
+                                <td style="padding:12px 16px; font-weight:700; color:#1E293B; width:55%; background:#F8FAFC;">${l.label || 'Important Link'}</td>
+                                <td style="padding:12px 16px; text-align:center;">
+                                    <a href="${l.url}" target="_blank" rel="noopener" class="btn btn-primary" style="text-decoration:none; padding:7px 16px; font-size:12.5px;">Click Here →</a>
+                                </td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            </div>
+        `;
+    }
+
+    const descHtml = (item.description || '').replace(/\n/g, '<br>');
+    content.innerHTML = `
+        <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-bottom:10px;">
+            <span style="background:#EEF2FF; color:#4F46E5; font-size:11.5px; font-weight:700; padding:4px 10px; border-radius:6px;">${item.category || 'Latest Job'}</span>
+            ${item.exam ? `<span style="background:#F1F5F9; color:#334155; font-size:11.5px; font-weight:600; padding:4px 10px; border-radius:6px;">${item.exam}</span>` : ''}
+            ${item.date ? `<span style="font-size:12.5px; color:#64748B; font-weight:600;">📅 Post Date: ${item.date}</span>` : ''}
+        </div>
+        <h2 style="color:#1E1B4B; font-size:21px; margin:0 0 12px; line-height:1.4;">${item.title}</h2>
+        ${descHtml ? `<div style="font-size:14px; color:#334155; line-height:1.75; background:#F8FAFC; padding:16px; border-radius:10px; border:1px solid #E2E8F0;">${descHtml}</div>` : ''}
+        ${linksTableHtml}
+    `;
+
+    box.classList.remove('hide');
+    document.getElementById('updatesContentContainer').classList.add('hide');
+    box.scrollIntoView({ behavior: 'smooth' });
+};
+
+window.closeJobDetailReader = function() {
+    const box = document.getElementById('jobDetailReaderBox');
+    if (box) box.classList.add('hide');
+    const cont = document.getElementById('updatesContentContainer');
+    if (cont) cont.classList.remove('hide');
+};
+
 window.filterUpdates = function(categoryFilter, btn) {
     document.querySelectorAll('.upd-tab').forEach(b => {
         b.classList.remove('active', 'btn-primary');
@@ -3007,46 +3144,117 @@ window.filterUpdates = function(categoryFilter, btn) {
         btn.classList.add('active', 'btn-primary');
         btn.classList.remove('btn-outline');
     }
+    closeJobDetailReader();
 
     const container = document.getElementById('updatesContentContainer');
     if (!container) return;
 
-    const filtered = categoryFilter === 'All'
-        ? allJobUpdates
-        : allJobUpdates.filter(u => (u.category || '').toLowerCase() === categoryFilter.toLowerCase());
+    // 4-Column Sarkari-Result Style Board when "All" is selected
+    if (categoryFilter === 'All') {
+        const columns = [
+            { key: 'Latest Job', title: '💼 Latest Jobs', headerBg: '#1E1B4B' },
+            { key: 'Admit Card', title: '🎫 Admit Card', headerBg: '#0F766E' },
+            { key: 'Result',     title: '🏆 Result',     headerBg: '#B45309' },
+            { key: 'Syllabus',   title: '📚 Exam Syllabus', headerBg: '#4338CA' }
+        ];
 
+        let boardHtml = `<div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(245px, 1fr)); gap:16px; align-items:start;">`;
+        columns.forEach(col => {
+            const items = allJobUpdates.filter(u => (u.category || '').toLowerCase().includes(col.key.toLowerCase()));
+            boardHtml += `
+                <div style="background:#ffffff; border:1px solid #CBD5E1; border-radius:12px; overflow:hidden; box-shadow:0 3px 10px rgba(15,23,42,0.04);">
+                    <div style="background:${col.headerBg}; color:#ffffff; padding:12px 14px; font-weight:700; font-size:14.5px; text-align:center;">
+                        ${col.title}
+                    </div>
+                    <div style="padding:10px 12px;">
+                        ${items.length === 0
+                            ? `<p style="font-size:12.5px; color:#64748B; text-align:center; padding:18px 6px;">No updates yet</p>`
+                            : `<ul style="list-style:none; padding:0; margin:0;">
+                                ${items.slice(0, 16).map(item => `
+                                    <li style="padding:9px 4px; border-bottom:1px solid #F1F5F9;">
+                                        <a href="javascript:void(0)" onclick="openJobDetailReader('${item.id}')" style="color:#1D4ED8; font-weight:600; font-size:13px; text-decoration:none; line-height:1.45; display:block;">
+                                            ▸ ${item.title}
+                                        </a>
+                                        ${item.date ? `<span style="font-size:11px; color:#64748B;">${item.date}</span>` : ''}
+                                    </li>
+                                `).join('')}
+                               </ul>`
+                        }
+                    </div>
+                </div>
+            `;
+        });
+        boardHtml += `</div>`;
+        container.innerHTML = boardHtml;
+        return;
+    }
+
+    const filtered = allJobUpdates.filter(u => (u.category || '').toLowerCase().includes(categoryFilter.toLowerCase()));
     if (filtered.length === 0) {
-        container.innerHTML = `<div style="text-align:center; padding:35px; background:#ffffff; border-radius:14px; border:1px solid #E2E8F0; color:#6B7280;">No updates published in this category yet. Check back soon!</div>`;
+        container.innerHTML = `<div style="text-align:center; padding:35px; background:#ffffff; border-radius:14px; border:1px solid #E2E8F0; color:#6B7280;">No updates published in ${categoryFilter} yet. Check back soon!</div>`;
         return;
     }
 
     let html = `<div style="display:grid; gap:14px;">`;
     filtered.forEach(u => {
         const cat = u.category || 'Latest Job';
-        let badgeBg = '#EEF2FF', badgeColor = '#4F46E5', icon = '💼';
-        if (cat.toLowerCase().includes('syllabus')) {
-            badgeBg = '#ECFDF5'; badgeColor = '#059669'; icon = '📚';
-        } else if (cat.toLowerCase().includes('admit') || cat.toLowerCase().includes('result')) {
-            badgeBg = '#FEF3C7'; badgeColor = '#D97706'; icon = '🔔';
-        }
-
         html += `
-            <div style="background:#ffffff; border:1px solid #E2E8F0; border-left:4px solid ${badgeColor}; border-radius:12px; padding:18px 20px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:14px; box-shadow:0 2px 8px rgba(0,0,0,0.03);">
+            <div style="background:#ffffff; border:1px solid #E2E8F0; border-left:4px solid #4F46E5; border-radius:12px; padding:18px 20px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:14px; box-shadow:0 2px 8px rgba(0,0,0,0.03);">
                 <div style="flex:1; min-width:250px;">
                     <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-bottom:6px;">
-                        <span style="background:${badgeBg}; color:${badgeColor}; font-size:11px; font-weight:700; padding:3px 10px; border-radius:20px;">${icon} ${cat}</span>
-                        ${u.exam ? `<span style="background:#F1F5F9; color:#334155; font-size:11px; font-weight:600; padding:3px 9px; border-radius:6px;">${u.exam}</span>` : ''}
+                        <span style="background:#EEF2FF; color:#4F46E5; font-size:11px; font-weight:700; padding:3px 10px; border-radius:20px;">${cat}</span>
                         ${u.date ? `<span style="font-size:12px; color:#64748B; font-weight:500;">📅 ${u.date}</span>` : ''}
                     </div>
                     <h3 style="color:#1E1B4B; font-size:16px; margin:0 0 6px;">${u.title}</h3>
-                    ${u.description ? `<p style="font-size:13px; color:#475569; margin:0; line-height:1.55;">${u.description}</p>` : ''}
+                    ${u.description ? `<p style="font-size:13px; color:#475569; margin:0; line-height:1.55;">${u.description.slice(0, 160)}${u.description.length > 160 ? '...' : ''}</p>` : ''}
                 </div>
-                <div>
-                    ${u.link ? `<a href="${u.link}" target="_blank" rel="noopener" class="btn btn-primary" style="text-decoration:none; font-size:13px; padding:9px 16px;">View / Download →</a>` : ''}
-                </div>
+                <button class="btn btn-primary" onclick="openJobDetailReader('${u.id}')">View Details &amp; Links →</button>
             </div>
         `;
     });
     html += `</div>`;
     container.innerHTML = html;
 };
+
+// Load Dynamic Promo Banners from Firestore (if configured in Admin Panel)
+async function loadDynamicPromoBanners() {
+    try {
+        const bSnap = await getDoc(doc(db, "settings", "banners"));
+        if (!bSnap.exists()) return;
+        const b = bSnap.data();
+        const slots = [
+            { key: 'homeTop',     slotId: 'promoSlotHomeTop',     imgId: 'promoImgHomeTop',     linkId: 'promoLinkHomeTop' },
+            { key: 'homeBottom',  slotId: 'promoSlotHomeBottom',  imgId: 'promoImgHomeBottom',  linkId: 'promoLinkHomeBottom' },
+            { key: 'caTop',       slotId: 'promoSlotCaTop',       imgId: 'promoImgCaTop',       linkId: 'promoLinkCaTop' },
+            { key: 'caBottom',    slotId: 'promoSlotCaBottom',    imgId: 'promoImgCaBottom',    linkId: 'promoLinkCaBottom' },
+            { key: 'updatesTop',  slotId: 'promoSlotUpdatesTop',  imgId: 'promoImgUpdatesTop',  linkId: 'promoLinkUpdatesTop' },
+            { key: 'jobBottom',   slotId: 'promoSlotJobBottom',   imgId: 'promoImgJobBottom',   linkId: 'promoLinkJobBottom' }
+        ];
+        slots.forEach(s => {
+            const cfg = b[s.key];
+            if (!cfg) return;
+            const slotEl = document.getElementById(s.slotId);
+            const imgEl = document.getElementById(s.imgId);
+            const linkEl = document.getElementById(s.linkId);
+            if (cfg.active === false && slotEl) {
+                slotEl.style.display = 'none';
+                return;
+            }
+            if (cfg.imgUrl && imgEl) {
+                imgEl.src = cfg.imgUrl;
+                if (slotEl) slotEl.style.display = 'block';
+            }
+            if (cfg.linkUrl && linkEl) {
+                linkEl.removeAttribute('onclick');
+                linkEl.href = cfg.linkUrl;
+                if (cfg.linkUrl.startsWith('http')) {
+                    linkEl.target = '_blank';
+                    linkEl.rel = 'noopener';
+                }
+            }
+        });
+    } catch (e) {
+        console.warn("Dynamic banners fallback active:", e);
+    }
+}
+loadDynamicPromoBanners();
