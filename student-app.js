@@ -167,7 +167,7 @@ async function callEmailService(payload) {
 // =========================================================================
 const ALL_SCREENS = [
     'homeScreen', 'loginScreen', 'registerScreen', 'forgotPasswordScreen',
-    'dashboardScreen', 'practiceBankScreen', 'subCatScreen', 'caScreen', 'updatesScreen', 'instructionsScreen',
+    'dashboardScreen', 'practiceBankScreen', 'subCatScreen', 'caScreen', 'updatesScreen', 'studyNotesScreen', 'referEarnScreen', 'instructionsScreen',
     'testScreen', 'liveSubmittedScreen', 'resultScreen', 'solutionsScreen',
     'contactScreen', 'privacyScreen', 'termsScreen', 'refundScreen'
 ];
@@ -210,7 +210,9 @@ function showScreen(screenId, pushHistory = true) {
             'dashboardScreen': '?page=dashboard',
             'practiceBankScreen': '?page=practice-bank',
             'caScreen': '?page=current-affairs',
-            'updatesScreen': '?page=updates'
+            'updatesScreen': '?page=updates',
+            'studyNotesScreen': '?page=study-notes',
+            'referEarnScreen': '?page=refer-earn'
         };
         const nextUrl = pageMap[screenId] || window.location.search;
         history.pushState({ screen: screenId }, '', nextUrl);
@@ -258,6 +260,8 @@ async function checkUrlRouting() {
             'reset-password': 'forgotPasswordScreen',
             'current-affairs': 'caScreen',
             'updates': 'updatesScreen',
+            'study-notes': 'studyNotesScreen',
+            'refer-earn': 'referEarnScreen',
             'practice-bank': 'practiceBankScreen',
             'dashboard': isLoggedIn ? 'dashboardScreen' : 'loginScreen'
         };
@@ -270,6 +274,10 @@ async function checkUrlRouting() {
                 showCurrentAffairs();
             } else if (routeMap[pageParam] === 'updatesScreen') {
                 openUpdatesHub();
+            } else if (routeMap[pageParam] === 'studyNotesScreen') {
+                openStudyNotesHub();
+            } else if (routeMap[pageParam] === 'referEarnScreen') {
+                openReferAndEarn();
             } else {
                 showScreen(routeMap[pageParam], false);
             }
@@ -1089,47 +1097,75 @@ window.applyStudentReferralCoupon = async function() {
         appliedPartnerCoupon = null;
         selectSubscriptionPlan(selectedPlanMonths);
         msgEl.style.color = "#DC2626";
-        msgEl.innerText = "Please enter a coupon code.";
+        msgEl.innerText = "Please enter a coupon or friend's Student ID.";
+        return;
+    }
+
+    if (isLoggedIn && currentStudent.loginId && code === currentStudent.loginId.toUpperCase()) {
+        appliedPartnerCoupon = null;
+        selectSubscriptionPlan(selectedPlanMonths);
+        msgEl.style.color = "#DC2626";
+        msgEl.innerText = "You cannot apply your own Student ID as a referral code.";
         return;
     }
 
     if (btnEl) { btnEl.disabled = true; btnEl.innerText = "Checking..."; }
     msgEl.style.color = "#4F46E5";
-    msgEl.innerText = "Verifying coupon code...";
+    msgEl.innerText = "Verifying referral code...";
 
     try {
+        // 1. Check Official Partner Coupons first
         const snap = await getDocs(query(collection(db, "partners"), where("couponCode", "==", code)));
-        if (snap.empty) {
-            appliedPartnerCoupon = null;
+        if (!snap.empty) {
+            const pDoc = snap.docs[0];
+            const pData = pDoc.data();
+            if (pData.status !== "approved") {
+                appliedPartnerCoupon = null;
+                selectSubscriptionPlan(selectedPlanMonths);
+                msgEl.style.color = "#DC2626";
+                msgEl.innerText = "This partner coupon code is currently inactive.";
+                return;
+            }
+            appliedPartnerCoupon = { type: "partner", docId: pDoc.id, ...pData };
             selectSubscriptionPlan(selectedPlanMonths);
-            msgEl.style.color = "#DC2626";
-            msgEl.innerText = "Invalid coupon code.";
+            const disc = Number(pData.discountAmount || pData.discount || 0);
+            const ext = Number(pData.extraDays || 0);
+            msgEl.style.color = "#059669";
+            msgEl.innerText = `Partner Coupon Applied! ₹${disc} instant discount + ${ext} extra validity days.`;
             return;
         }
 
-        const pDoc = snap.docs[0];
-        const pData = pDoc.data();
-
-        if (pData.status !== "approved") {
-            appliedPartnerCoupon = null;
+        // 2. Check Normal Student Referral Code (TGxxxx)
+        const stSnap = await getDocs(query(collection(db, "students"), where("loginId", "==", code)));
+        if (!stSnap.empty) {
+            const refStudentDoc = stSnap.docs[0];
+            const refData = refStudentDoc.data();
+            appliedPartnerCoupon = {
+                type: "student",
+                docId: refStudentDoc.id,
+                couponCode: code,
+                referrerLoginId: code,
+                referrerName: refData.name || "Friend",
+                referrerIsPaid: Boolean(refData.isPaid),
+                referrerExpiry: refData.expiryDate || "",
+                discountAmount: 15,
+                extraDays: 10
+            };
             selectSubscriptionPlan(selectedPlanMonths);
-            msgEl.style.color = "#DC2626";
-            msgEl.innerText = "This coupon code is currently inactive.";
+            msgEl.style.color = "#059669";
+            msgEl.innerText = `Friend Referral (${code}) Applied! You get ₹15 instant discount + 10 extra validity days.`;
             return;
         }
 
-        appliedPartnerCoupon = { docId: pDoc.id, ...pData };
+        appliedPartnerCoupon = null;
         selectSubscriptionPlan(selectedPlanMonths);
-
-        const disc = Number(pData.discountAmount || 0);
-        const ext = Number(pData.extraDays || 0);
-        msgEl.style.color = "#059669";
-        msgEl.innerText = `Applied! You get ₹${disc} instant discount + ${ext} extra validity days.`;
+        msgEl.style.color = "#DC2626";
+        msgEl.innerText = "Invalid coupon or referral code.";
     } catch (e) {
         appliedPartnerCoupon = null;
         selectSubscriptionPlan(selectedPlanMonths);
         msgEl.style.color = "#DC2626";
-        msgEl.innerText = "Error checking coupon. Please try again.";
+        msgEl.innerText = "Error checking code. Please try again.";
     } finally {
         if (btnEl) { btnEl.disabled = false; btnEl.innerText = "Apply"; }
     }
@@ -1141,11 +1177,14 @@ window.openPaymentModal = function() {
         return showLogin();
     }
     appliedPartnerCoupon = null;
-    if (document.getElementById('studentCouponInput')) document.getElementById('studentCouponInput').value = "";
+    const savedRef = localStorage.getItem('tg_pending_student_ref') || "";
+    const validPreRef = (savedRef && savedRef !== (currentStudent.loginId || "").toUpperCase()) ? savedRef : "";
+    if (document.getElementById('studentCouponInput')) document.getElementById('studentCouponInput').value = validPreRef;
     if (document.getElementById('couponStatusMsg')) document.getElementById('couponStatusMsg').innerText = "";
     syncSubscriptionPlansFromSettings();
     selectSubscriptionPlan(12);
     document.getElementById('paymentModal').classList.remove('hide');
+    if (validPreRef) applyStudentReferralCoupon();
 };
 
 window.closeModal = function() { document.getElementById('paymentModal').classList.add('hide'); };
@@ -1229,7 +1268,21 @@ async function handleSuccessfulRazorpayPayment(paymentId, plan, finalPayable, to
             timestamp: today.toISOString()
         });
 
-        if (usedCoupon && usedCoupon.docId) {
+        if (usedCoupon && usedCoupon.type === "student" && usedCoupon.docId) {
+            const bonusDaysForReferrer = 20;
+            const refBaseStart = (usedCoupon.referrerIsPaid && usedCoupon.referrerExpiry && new Date(usedCoupon.referrerExpiry) > today)
+                ? new Date(usedCoupon.referrerExpiry)
+                : today;
+            const newRefExpiry = new Date(refBaseStart.getTime() + bonusDaysForReferrer * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+
+            await updateDoc(doc(db, "students", usedCoupon.docId), {
+                isPaid: true,
+                expiryDate: newRefExpiry,
+                referralCount: increment(1),
+                referralBonusDays: increment(bonusDaysForReferrer)
+            });
+            localStorage.removeItem('tg_pending_student_ref');
+        } else if (usedCoupon && usedCoupon.docId) {
             const commPct = Number(usedCoupon.commissionPercent || 10);
             const commissionEarned = Number(((finalPayable * commPct) / 100).toFixed(2));
             const maskedStudent = (currentStudent.name || "Student").slice(0, 3) + "***";
@@ -3032,6 +3085,18 @@ if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => { navigator.serviceWorker.register('sw.js').catch(err => console.log('SW err', err)); });
 }
 
+
+// Capture Student Referral Code (?ref=TGxxxx) if present in URL
+(function captureUrlReferral() {
+    try {
+        const p = new URLSearchParams(window.location.search);
+        const ref = (p.get('ref') || '').trim().toUpperCase();
+        if (ref && ref.startsWith('TG')) {
+            localStorage.setItem('tg_pending_student_ref', ref);
+        }
+    } catch (e) {}
+})();
+
 history.replaceState({ screen: 'homeScreen' }, '', '');
 
 window.onload = async () => {
@@ -3258,3 +3323,168 @@ async function loadDynamicPromoBanners() {
     }
 }
 loadDynamicPromoBanners();
+
+// =========================================================================
+// COMPACT HEADER DROPDOWN CONTROLS
+// =========================================================================
+window.toggleNavDropdown = function(e, id) {
+    if (e) e.stopPropagation();
+    const target = document.getElementById(id)?.parentElement;
+    const wasOpen = target && target.classList.contains('open');
+    closeAllNavDropdowns();
+    if (target && !wasOpen) target.classList.add('open');
+};
+
+window.closeAllNavDropdowns = function() {
+    document.querySelectorAll('.tg-nav-dropdown').forEach(d => d.classList.remove('open'));
+};
+
+document.addEventListener('click', function() {
+    closeAllNavDropdowns();
+});
+
+// =========================================================================
+// EXAM TIPS & STUDY NOTES HUB
+// =========================================================================
+let allStudyNotes = [];
+
+window.openStudyNotesHub = async function() {
+    showScreen('studyNotesScreen');
+    closeStudyNoteReader();
+    const container = document.getElementById('studyNotesContainer');
+    if (container) container.innerHTML = `<div style="text-align:center; padding:30px; color:#64748B;">Loading Exam Tips &amp; Study Notes...</div>`;
+    try {
+        const snap = await getDocs(collection(db, "study_notes"));
+        allStudyNotes = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        allStudyNotes.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+    } catch (e) {
+        console.error("Study notes load error:", e);
+    }
+    filterStudyNotes('All', document.querySelector('.sn-tab'));
+};
+
+window.openStudyNoteReader = function(noteId) {
+    const note = allStudyNotes.find(n => n.id === noteId);
+    if (!note) return;
+    const box = document.getElementById('studyNoteReaderBox');
+    const content = document.getElementById('studyNoteReaderContent');
+    if (!box || !content) return;
+
+    const bodyHtml = (note.content || '').replace(/\n/g, '<br>');
+    content.innerHTML = `
+        <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-bottom:10px;">
+            <span style="background:#EEF2FF; color:#4F46E5; font-size:11.5px; font-weight:700; padding:4px 10px; border-radius:6px;">📘 ${note.category || 'Study Notes'}</span>
+            ${note.date ? `<span style="font-size:12.5px; color:#64748B; font-weight:600;">📅 ${note.date}</span>` : ''}
+        </div>
+        <h2 style="color:#1E1B4B; font-size:21px; margin:0 0 14px; line-height:1.4;">${note.title}</h2>
+        <div style="font-size:14.5px; color:#1E293B; line-height:1.8; background:#F8FAFC; padding:18px; border-radius:10px; border:1px solid #E2E8F0;">
+            ${bodyHtml}
+        </div>
+        ${note.pdfLink ? `<div style="margin-top:16px;"><a href="${note.pdfLink}" target="_blank" rel="noopener" class="btn btn-primary" style="text-decoration:none;">📥 Download PDF Notes →</a></div>` : ''}
+    `;
+    box.classList.remove('hide');
+    document.getElementById('studyNotesContainer').classList.add('hide');
+    box.scrollIntoView({ behavior: 'smooth' });
+};
+
+window.closeStudyNoteReader = function() {
+    const box = document.getElementById('studyNoteReaderBox');
+    if (box) box.classList.add('hide');
+    const cont = document.getElementById('studyNotesContainer');
+    if (cont) cont.classList.remove('hide');
+};
+
+window.filterStudyNotes = function(catFilter, btn) {
+    document.querySelectorAll('.sn-tab').forEach(b => {
+        b.classList.remove('active', 'btn-primary');
+        b.classList.add('btn-outline');
+    });
+    if (btn) {
+        btn.classList.add('active', 'btn-primary');
+        btn.classList.remove('btn-outline');
+    }
+    closeStudyNoteReader();
+
+    const container = document.getElementById('studyNotesContainer');
+    if (!container) return;
+
+    const filtered = catFilter === 'All'
+        ? allStudyNotes
+        : allStudyNotes.filter(n => (n.category || '').toLowerCase().includes(catFilter.toLowerCase()));
+
+    if (filtered.length === 0) {
+        container.innerHTML = `<div style="text-align:center; padding:35px; background:#ffffff; border-radius:14px; border:1px solid #E2E8F0; color:#64748B;">No study notes published in this category yet. Check back soon!</div>`;
+        return;
+    }
+
+    let html = `<div style="display:grid; gap:14px;">`;
+    filtered.forEach(n => {
+        const preview = (n.content || '').slice(0, 190);
+        html += `
+            <div style="background:#ffffff; border:1px solid #E2E8F0; border-left:4px solid #4F46E5; border-radius:12px; padding:18px 20px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:14px; box-shadow:0 2px 8px rgba(0,0,0,0.03);">
+                <div style="flex:1; min-width:250px;">
+                    <div style="display:flex; gap:8px; align-items:center; margin-bottom:6px;">
+                        <span style="background:#EEF2FF; color:#4F46E5; font-size:11px; font-weight:700; padding:3px 9px; border-radius:6px;">${n.category || 'Study Notes'}</span>
+                        ${n.date ? `<span style="font-size:12px; color:#64748B;">📅 ${n.date}</span>` : ''}
+                    </div>
+                    <h3 style="color:#1E1B4B; font-size:16.5px; margin:0 0 6px;">${n.title}</h3>
+                    <p style="font-size:13px; color:#475569; margin:0; line-height:1.55;">${preview}${preview.length >= 190 ? '...' : ''}</p>
+                </div>
+                <button class="btn btn-primary" onclick="openStudyNoteReader('${n.id}')">Read Notes →</button>
+            </div>
+        `;
+    });
+    html += `</div>`;
+    container.innerHTML = html;
+};
+
+// =========================================================================
+// STUDENT REFER & EARN (+20 EXTRA PRO DAYS)
+// =========================================================================
+window.openReferAndEarn = async function() {
+    if (!isLoggedIn) {
+        showLogin();
+        const err = document.getElementById('loginInlineError');
+        if (err) {
+            err.innerText = "Login or register free to get your personal Student Referral Link & earn free Pro Pass days!";
+            err.classList.remove('hide');
+        }
+        return;
+    }
+
+    showScreen('referEarnScreen');
+    const code = currentStudent.loginId || "TG0001";
+    const shareUrl = `https://taiyarighar.in/?ref=${encodeURIComponent(code)}`;
+    if (document.getElementById('myStudentRefCode')) document.getElementById('myStudentRefCode').innerText = code;
+    if (document.getElementById('myStudentRefLink')) document.getElementById('myStudentRefLink').value = shareUrl;
+
+    try {
+        if (currentStudent.docId) {
+            const snap = await getDoc(doc(db, "students", currentStudent.docId));
+            if (snap.exists()) {
+                const d = snap.data();
+                if (document.getElementById('myRefSuccessCount')) document.getElementById('myRefSuccessCount').innerText = d.referralCount || 0;
+                if (document.getElementById('myRefBonusDays')) document.getElementById('myRefBonusDays').innerText = `${d.referralBonusDays || 0} Days`;
+            }
+        }
+    } catch (e) {}
+};
+
+window.copyStudentRefLink = function() {
+    const inp = document.getElementById('myStudentRefLink');
+    if (!inp) return;
+    inp.select();
+    navigator.clipboard?.writeText(inp.value);
+    alert("Referral Link Copied: " + inp.value);
+};
+
+window.shareStudentRefWhatsApp = function() {
+    const code = currentStudent.loginId || "TG0001";
+    const link = `https://taiyarighar.in/?ref=${encodeURIComponent(code)}`;
+    const text = `🎯 SSC, Railway & UP Police Mock Tests ke liye TaiyariGhar join karo!
+
+Mera Referral Code *${code}* use karne par tumhe All-Access Pass par *₹15 Instant Discount + 10 Extra Days* milenge.
+
+Abhi join karein: ${link}`;
+    window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
+};
