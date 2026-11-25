@@ -320,6 +320,30 @@
           <span id="jobPubMsg" style="margin-left:10px; font-weight:600;"></span>
         </div>
 
+        <!-- Publish Exam Tips & Study Notes -->
+        <div class="panel-card">
+          <h3>3. Publish Exam Tips &amp; Study Notes</h3>
+          <div class="form-row">
+            <div>
+              <label>Category *</label>
+              <select id="snCat">
+                <option value="Exam Strategy">Exam Strategy</option>
+                <option value="Study Notes">Study Notes</option>
+                <option value="Short Tricks">Short Tricks</option>
+              </select>
+            </div>
+            <div><label>Title / Topic *</label><input type="text" id="snTitle" placeholder="e.g., UP Police Constable 60-Day Strategy & Important Topics" /></div>
+            <div><label>Date</label><input type="text" id="snDate" placeholder="e.g., 25 Nov 2026" /></div>
+            <div><label>Optional PDF Link</label><input type="url" id="snPdf" placeholder="https://..." /></div>
+          </div>
+          <div style="margin-bottom:10px;">
+            <label>Complete Study Notes / Tips Content *</label>
+            <textarea id="snBody" rows="4" placeholder="Write detailed study notes, formulas, or exam preparation strategy..."></textarea>
+          </div>
+          <button class="btn btn-primary" onclick="publishStudyNote()">Publish Study Note</button>
+          <span id="snPubMsg" style="margin-left:10px; font-weight:600;"></span>
+        </div>
+
         <div class="panel-card">
           <h3>Published Jobs, Results, Admit Cards &amp; Syllabus</h3>
           <table>
@@ -333,7 +357,7 @@
       <div id="tab-banners" class="hidden">
         <div class="panel-card">
           <h3>Self-Promotion &amp; Sponsor Banners Manager</h3>
-          <p style="color:#64748b; margin-bottom:12px;">Control banners on Home Page, Current Affairs, and Jobs/Result pages. Leave Image URL blank to use your default GitHub banner images (<code>banner-live-test.jpg</code>, <code>banner-partner.jpg</code>, <code>banner-practice-bank.jpg</code>, <code>banner-community.jpg</code>).</p>
+          <p style="color:#64748b; margin-bottom:12px;">Control banners on Home Page, Current Affairs, and Jobs/Result pages. Leave Image URL blank to use your default GitHub banner images (<code>banner-live-test.png</code>, <code>banner-partner.png</code>, <code>banner-practice-bank.png</code>, <code>banner-community.png</code>).</p>
           <div class="form-row">
             <div>
               <label>Banner Slot *</label>
@@ -355,7 +379,7 @@
             </div>
           </div>
           <div class="form-row">
-            <div><label>Banner Image Filename or URL</label><input type="text" id="bnImgUrl" placeholder="e.g., banner-live-test.jpg or https://..." /></div>
+            <div><label>Banner Image Filename or URL</label><input type="text" id="bnImgUrl" placeholder="e.g., banner-live-test.png or https://..." /></div>
             <div><label>Click Destination Link</label><input type="text" id="bnLinkUrl" placeholder="e.g., partner.html or https://t.me/taiyarighar" /></div>
           </div>
           <button class="btn btn-primary" onclick="saveBannerSetting()">Save Banner Setting</button>
@@ -383,6 +407,6 @@
     </div>
   </div>
 
-  <script src="admin-app.js?v=26.0"></script>
+  <script src="admin-app.js?v=27.0"></script>
 </body>
 </html>
