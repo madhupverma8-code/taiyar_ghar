@@ -292,3 +292,62 @@ body {
     .nav-links { gap: 12px; font-size: 13px; }
     .category-grid { grid-template-columns: 1fr; }
 }
+
+/* Compact Header Dropdown Menus */
+.tg-nav-dropdown {
+    position: relative;
+    display: inline-block;
+}
+.tg-drop-trigger {
+    background: transparent;
+    border: none;
+    color: var(--dark);
+    font-weight: 600;
+    font-size: 13.5px;
+    cursor: pointer;
+    padding: 7px 10px;
+    border-radius: 8px;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    transition: background 0.15s, color 0.15s;
+    font-family: inherit;
+    white-space: nowrap;
+}
+.tg-drop-trigger:hover {
+    background: #EEF2FF;
+    color: var(--primary);
+}
+.tg-drop-menu {
+    display: none;
+    position: absolute;
+    top: calc(100% + 6px);
+    left: 0;
+    min-width: 235px;
+    background: #ffffff;
+    border: 1px solid #E2E8F0;
+    border-radius: 12px;
+    box-shadow: 0 12px 30px rgba(15, 23, 42, 0.14);
+    padding: 6px;
+    z-index: 2500;
+}
+.tg-nav-dropdown.open .tg-drop-menu,
+.tg-nav-dropdown:hover .tg-drop-menu {
+    display: block;
+}
+.tg-drop-menu a {
+    display: flex !important;
+    align-items: center;
+    gap: 8px;
+    padding: 9px 12px;
+    border-radius: 8px;
+    font-size: 13px !important;
+    font-weight: 600;
+    color: #1E293B;
+    text-decoration: none;
+    white-space: nowrap;
+}
+.tg-drop-menu a:hover {
+    background: #F1F5F9;
+    color: var(--primary);
+}
