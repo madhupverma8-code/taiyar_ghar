@@ -5,7 +5,7 @@ import { getFirestore, collection, getDocs, getDoc, setDoc, addDoc, query, where
 // CONFIGURATION
 // =========================================================================
 const RAZORPAY_KEY_ID = "rzp_live_Ttffsg1nwh5gBU";
-const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxvoU_mH8BjfE7QdC_UOQyzDfmJsUoVcIvq9Kp3VtXutzYTFRFY0vXpzw6Uv2XAjnng5Q/exec":
+const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxvoU_mH8BjfE7QdC_UOQyzDfmJsUoVcIvq9Kp3VtXutzYTFRFY0vXpzw6Uv2XAjnng5Q/exec";
 
 const firebaseConfig = {
     apiKey: "AIzaSyA7x6gQziPYlxrXnyVJJ80mvJkh3VCm24",
