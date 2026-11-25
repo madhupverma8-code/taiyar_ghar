@@ -427,16 +427,20 @@ window.uploadPracticeBankExcel = async function () {
     const ansChar = String(r.CorrectOption || r.Answer || "A").trim().toUpperCase();
     const ansIdx = { A: 0, B: 1, C: 2, D: 3 }[ansChar] ?? 0;
     const qIdx = grouped[key].items.length + 1;
+    const qEnVal = r.Question || r["Question En"] || r["Question_En"] || "";
+    const qHiVal = r.QuestionHi || r["Question Hi"] || r["Question_Hi"] || "";
+    const expEnVal = r.Explanation || r["Explanation En"] || r["Explanation_En"] || "";
+    const expHiVal = r.ExplanationHi || r["Explanation Hi"] || r["Explanation_Hi"] || "";
     grouped[key].items.push({
       id: `${subj}_${top}_q${qIdx}_${Math.random().toString(36).slice(2, 6)}`.replace(/[^a-zA-Z0-9_]/g, "_"),
       topic: top,
-      q: r.Question || r.QuestionHi || "",
-      qHi: r.QuestionHi || r.Question || "",
+      q: qEnVal || qHiVal || "",
+      qHi: qHiVal || qEnVal || "",
       options: [r.OptionA || r.OptionAHi || "", r.OptionB || r.OptionBHi || "", r.OptionC || r.OptionCHi || "", r.OptionD || r.OptionDHi || ""],
       optionsHi: [r.OptionAHi || r.OptionA || "", r.OptionBHi || r.OptionB || "", r.OptionCHi || r.OptionC || "", r.OptionDHi || r.OptionD || ""],
       ans: ansIdx,
-      exp: r.Explanation || r.ExplanationHi || "",
-      expHi: r.ExplanationHi || r.Explanation || ""
+      exp: expEnVal || expHiVal || "",
+      expHi: expHiVal || expEnVal || ""
     });
   });
 

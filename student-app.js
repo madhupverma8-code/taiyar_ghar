@@ -336,6 +336,9 @@ window.toggleLanguage = function() {
     if(currentScreen === 'caScreen') {
         filterCA('Articles', document.querySelector('.ca-tab.active') || document.querySelector('.ca-tab'));
     }
+    if(currentScreen === 'practiceBankScreen' && !document.getElementById('pbLevelArena')?.classList.contains('hide')) {
+        renderCurrentPracticeQuestion();
+    }
 };
 
 function applyLanguage() {
@@ -1669,9 +1672,16 @@ function normalizePracticeQuestion(rawQ, idx, fallbackTopic) {
         rightIdx = Math.max(0, ["A", "B", "C", "D"].indexOf(ch));
     }
 
-    const expEn = rawQ.exp || rawQ.explanation || "";
-    const expHi = rawQ.expHi || rawQ.explanationHi || "";
-    const displayExp = (currentLang === 'hi' && expHi) ? expHi : (expEn || expHi);
+    const expEn = String(rawQ.exp || rawQ.explanation || "").trim();
+    const expHi = String(rawQ.expHi || rawQ.explanationHi || rawQ["Explanation Hi"] || rawQ["Explanation_Hi"] || "").trim();
+    let displayExp = "";
+    if (expEn && expHi && expEn !== expHi) {
+        displayExp = currentLang === 'hi'
+            ? `<div>${expHi}</div><div style="margin-top:8px; padding-top:8px; border-top:1px dashed #CBD5E1; color:#334155;">${expEn}</div>`
+            : `<div>${expEn}</div><div style="margin-top:8px; padding-top:8px; border-top:1px dashed #CBD5E1; color:#1E293B;">${expHi}</div>`;
+    } else {
+        displayExp = expHi || expEn;
+    }
 
     return {
         id: rawQ.id || `${pbCurrentSubject}_${rawQ.topic || fallbackTopic}_${idx}`,
