@@ -936,7 +936,6 @@ window.closeRegModal = function() {
 function setForgotStatus(msg, isError = false) {
     const box = document.getElementById('forgotStatusMsg');
     if (!box) return;
-    box.setAttribute('data-active-job-id', jobId);
     box.classList.remove('hide');
     box.style.background = isError ? '#FEF2F2' : '#ECFDF5';
     box.style.color = isError ? '#991B1B' : '#065F46';
