@@ -1504,19 +1504,37 @@ window.openSmartPracticeBank = async function() {
 
     showProcessing("Loading Smart Practice Bank...", "Fetching subjects and topics");
     try {
-        const catSnap = await getDoc(doc(db, "settings", "practice_catalog"));
-        if (catSnap.exists() && Array.isArray(catSnap.data().bundles)) {
-            pbMetaIndex = catSnap.data().bundles;
+        let bundlesList = [];
+        const bSnap = await getDocs(collection(db, "practice_bank_bundles"));
+        if (!bSnap.empty) {
+            bundlesList = bSnap.docs.map(d => {
+                const data = d.data();
+                pbLoadedBundles[d.id] = Array.isArray(data.questions) ? data.questions : [];
+                return {
+                    bundleId: d.id,
+                    colName: "practice_bank_bundles",
+                    subject: data.subject || "General",
+                    topic: data.topic || "Mixed",
+                    packIndex: data.packNumber || data.packIndex || 1,
+                    count: pbLoadedBundles[d.id].length
+                };
+            });
         } else {
-            const bSnap = await getDocs(collection(db, "practice_bank"));
-            pbMetaIndex = bSnap.docs.map(d => ({
-                bundleId: d.id,
-                subject: d.data().subject || "General",
-                topic: d.data().topic || "Mixed",
-                packIndex: d.data().packIndex || 1,
-                count: (d.data().questions || []).length
-            }));
+            const legSnap = await getDocs(collection(db, "practice_bank"));
+            bundlesList = legSnap.docs.map(d => {
+                const data = d.data();
+                pbLoadedBundles[d.id] = Array.isArray(data.questions) ? data.questions : [];
+                return {
+                    bundleId: d.id,
+                    colName: "practice_bank",
+                    subject: data.subject || "General",
+                    topic: data.topic || "Mixed",
+                    packIndex: data.packNumber || data.packIndex || 1,
+                    count: pbLoadedBundles[d.id].length
+                };
+            });
         }
+        pbMetaIndex = bundlesList;
         hideProcessing();
         renderPbSubjects();
     } catch (e) {
@@ -1606,10 +1624,52 @@ window.selectPbSubject = function(subject) {
 
 async function fetchBundleQuestions(bundleId) {
     if (pbLoadedBundles[bundleId]) return pbLoadedBundles[bundleId];
-    const snap = await getDoc(doc(db, "practice_bank", bundleId));
+    let snap = await getDoc(doc(db, "practice_bank_bundles", bundleId));
+    if (!snap.exists()) {
+        snap = await getDoc(doc(db, "practice_bank", bundleId));
+    }
     const qs = snap.exists() ? (snap.data().questions || []) : [];
     pbLoadedBundles[bundleId] = qs;
     return qs;
+}
+
+function normalizePracticeQuestion(rawQ, idx, fallbackTopic) {
+    const qEn = rawQ.q || rawQ.question || "";
+    const qHi = rawQ.qHi || rawQ.questionHi || "";
+    const displayQ = (currentLang === 'hi' && qHi) ? qHi : (qEn || qHi);
+    const subQ = (currentLang === 'hi' && qEn && qEn !== qHi) ? qEn : (qHi && qHi !== qEn ? qHi : "");
+
+    const optsEn = Array.isArray(rawQ.options) ? rawQ.options : [rawQ.optionA || "", rawQ.optionB || "", rawQ.optionC || "", rawQ.optionD || ""];
+    const optsHi = Array.isArray(rawQ.optionsHi) ? rawQ.optionsHi : [rawQ.optionAHi || "", rawQ.optionBHi || "", rawQ.optionCHi || "", rawQ.optionDHi || ""];
+    const displayOpts = [0, 1, 2, 3].map(i => {
+        const oE = optsEn[i] || "";
+        const oH = optsHi[i] || "";
+        if (currentLang === 'hi' && oH) return oH;
+        if (oE && oH && oE !== oH) return `${oE} (${oH})`;
+        return oE || oH || "";
+    });
+
+    let rightIdx = 0;
+    if (typeof rawQ.ans === "number" && rawQ.ans >= 0 && rawQ.ans <= 3) {
+        rightIdx = rawQ.ans;
+    } else {
+        const ch = String(rawQ.correctOption || rawQ.ans || "A").trim().toUpperCase();
+        rightIdx = Math.max(0, ["A", "B", "C", "D"].indexOf(ch));
+    }
+
+    const expEn = rawQ.exp || rawQ.explanation || "";
+    const expHi = rawQ.expHi || rawQ.explanationHi || "";
+    const displayExp = (currentLang === 'hi' && expHi) ? expHi : (expEn || expHi);
+
+    return {
+        id: rawQ.id || `${pbCurrentSubject}_${rawQ.topic || fallbackTopic}_${idx}`,
+        topic: rawQ.topic || fallbackTopic,
+        displayQ,
+        subQ,
+        displayOpts,
+        rightIdx,
+        displayExp
+    };
 }
 
 window.startTopicPractice = async function(topic) {
@@ -1700,7 +1760,10 @@ function launchPracticeArena(allQuestions, titleLabel) {
 
 window.switchPbPool = function(poolType) {
     pbPoolMode = poolType;
-    const fullPool = window._pbFullQuestionPool || [];
+    const fullPool = (window._pbFullQuestionPool || []).map((q, idx) => {
+        if (!q.id) q.id = `${pbCurrentSubject}_${q.topic || pbCurrentTopic}_${idx}`.replace(/[^a-zA-Z0-9_]/g, "_");
+        return q;
+    });
     const unattempted = fullPool.filter(q => !pbUserProgress.attemptedMap[q.id]);
     const attempted = fullPool.filter(q => !!pbUserProgress.attemptedMap[q.id]);
 
@@ -1747,15 +1810,16 @@ function renderCurrentPracticeQuestion() {
         return;
     }
 
-    const q = pbActiveQuestions[pbCurrentIndex];
+    const rawQ = pbActiveQuestions[pbCurrentIndex];
+    const q = normalizePracticeQuestion(rawQ, pbCurrentIndex, pbCurrentTopic);
+    rawQ._norm = q;
     document.getElementById('pbQMeta').innerText = `Topic: ${q.topic || pbCurrentTopic}`;
     document.getElementById('pbQCounter').innerText = `Q ${pbCurrentIndex + 1} of ${pbActiveQuestions.length}`;
-    document.getElementById('pbQText').innerText = q.question;
+    document.getElementById('pbQText').innerHTML = `<div>${q.displayQ}</div>` + (q.subQ ? `<div style="font-size:13.5px; color:#475569; margin-top:6px;">${q.subQ}</div>` : "");
 
-    const opts = [q.optionA, q.optionB, q.optionC, q.optionD];
-    document.getElementById('pbOptionsWrap').innerHTML = opts.map((optText, i) => `
+    document.getElementById('pbOptionsWrap').innerHTML = q.displayOpts.map((optText, i) => `
         <button type="button" class="pb-opt-btn" id="pbOptBtn-${i}" onclick="answerPracticeQuestion(${i})">
-            <strong>${String.fromCharCode(65 + i)}.</strong> ${optText || ""}
+            <strong>${String.fromCharCode(65 + i)}.</strong> ${optText}
         </button>
     `).join("");
 
@@ -1765,10 +1829,11 @@ function renderCurrentPracticeQuestion() {
 
 window.answerPracticeQuestion = function(chosenIdx) {
     clearInterval(pbTimerInterval);
-    const q = pbActiveQuestions[pbCurrentIndex];
-    if (!q) return;
+    const rawQ = pbActiveQuestions[pbCurrentIndex];
+    if (!rawQ) return;
+    const q = rawQ._norm || normalizePracticeQuestion(rawQ, pbCurrentIndex, pbCurrentTopic);
 
-    const rightIdx = ["A", "B", "C", "D"].indexOf(String(q.correctOption || "A").trim().toUpperCase());
+    const rightIdx = q.rightIdx;
     const isCorrect = chosenIdx === rightIdx;
 
     for (let i = 0; i < 4; i++) {
@@ -1814,7 +1879,7 @@ window.answerPracticeQuestion = function(chosenIdx) {
         : `<div style="color:#DC2626; font-weight:700; margin-bottom:6px;">❌ Galat Jawab — Sahi Option: ${String.fromCharCode(65 + rightIdx)} (${pbQuestionSeconds}s)</div>`;
     document.getElementById('pbExplanationBox').innerHTML = `
         ${statusLine}
-        <div>${q.explanation || "Correct answer is Option " + String.fromCharCode(65 + rightIdx) + "."}</div>
+        <div>${q.displayExp || "Correct answer is Option " + String.fromCharCode(65 + rightIdx) + "."}</div>
     `;
 
     const wasAlreadyAttempted = !!pbUserProgress.attemptedMap[q.id];

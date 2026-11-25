@@ -315,6 +315,19 @@ window.createTestFromExcel = async function () {
 async function loadPracticeBundlesData() {
   const snap = await safeGet("practice_bank_bundles");
   cacheBundles = snap.docs.map(d => ({ docId: d.id, ...d.data() }));
+  try {
+    const catalogArr = cacheBundles.map(b => ({
+      bundleId: b.docId,
+      subject: b.subject || "General",
+      topic: b.topic || "Mixed",
+      packIndex: b.packNumber || 1,
+      count: Array.isArray(b.questions) ? b.questions.length : 0
+    }));
+    await db.collection("settings").doc("practice_catalog").set({
+      bundles: catalogArr,
+      updatedAt: new Date().toISOString()
+    }, { merge: true });
+  } catch (e) {}
   renderPracticeBundlesTable();
 }
 
@@ -361,7 +374,10 @@ window.uploadPracticeBankExcel = async function () {
     if (!grouped[key]) grouped[key] = { subject: subj, topic: top, items: [] };
     const ansChar = String(r.CorrectOption || r.Answer || "A").trim().toUpperCase();
     const ansIdx = { A: 0, B: 1, C: 2, D: 3 }[ansChar] ?? 0;
+    const qIdx = grouped[key].items.length + 1;
     grouped[key].items.push({
+      id: `${subj}_${top}_q${qIdx}_${Math.random().toString(36).slice(2, 6)}`.replace(/[^a-zA-Z0-9_]/g, "_"),
+      topic: top,
       q: r.Question || r.QuestionHi || "",
       qHi: r.QuestionHi || r.Question || "",
       options: [r.OptionA || r.OptionAHi || "", r.OptionB || r.OptionBHi || "", r.OptionC || r.OptionCHi || "", r.OptionD || r.OptionDHi || ""],
