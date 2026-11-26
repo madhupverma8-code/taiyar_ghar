@@ -171,7 +171,7 @@ async function loadOverviewStats() {
   let totalPbQs = 0;
   pbSnap.forEach(doc => {
     const b = doc.data();
-    totalPbQs += Array.isArray(b.questions) ? b.questions.length : 0;
+    totalPbQs += Number(b.questionCount || (Array.isArray(b.questions) ? b.questions.length : 0));
   });
   document.getElementById("kpiPracticeQs").innerText = totalPbQs;
 
@@ -311,7 +311,7 @@ window.createTestFromExcel = async function () {
   loadTestsData();
 };
 
-// 4. SMART PRACTICE BANK & NCERT BASE (SHARDED METADATA CATALOG FOR 10 LAKH+ Qs & 10,000+ SETS)
+// 4. SMART PRACTICE BANK & NCERT BASE (LIGHTWEIGHT METADATA + SEPARATE QUESTION PAYLOADS FOR 10 LAKH+ Qs)
 async function rebuildFastCatalogIndex(existingBundles = null) {
   const bundles = existingBundles || cacheBundles;
   const slimRecords = bundles.map(b => ({
@@ -348,13 +348,50 @@ window.rebuildFastCatalogIndex = async function () {
   const statusEl = document.getElementById("pbUploadStatus");
   try {
     if (statusEl) { statusEl.style.color = "#1d4ed8"; statusEl.innerText = "Fetching bundles from database..."; }
-    if (!cacheBundles || cacheBundles.length === 0) {
-      const snap = await db.collection("practice_bank_bundles").get();
-      cacheBundles = snap.docs.map(d => ({ docId: d.id, ...d.data() }));
+    const snap = await Promise.race([
+      db.collection("practice_bank_bundles").get(),
+      new Promise((_, rej) => setTimeout(() => rej(new Error("Request timed out. Check network or Firestore rules.")), 15000))
+    ]);
+    let migratedCount = 0;
+    const slimList = [];
+
+    for (const docSnap of snap.docs) {
+      const d = docSnap.data();
+      const qCount = Number(d.questionCount || (Array.isArray(d.questions) ? d.questions.length : 0));
+      // If an older bundle still stores heavy `questions` array directly on metadata doc, move it to `practice_bundle_data`!
+      if (Array.isArray(d.questions) && d.questions.length > 0) {
+        if (statusEl) statusEl.innerText = `Optimizing heavy bundle ${migratedCount + 1}...`;
+        await db.collection("practice_bundle_data").doc(docSnap.id).set({
+          questions: d.questions,
+          updatedAt: new Date().toISOString()
+        });
+        await db.collection("practice_bank_bundles").doc(docSnap.id).set({
+          section: d.section || "practice",
+          subject: d.subject || "General",
+          topic: d.topic || "Mixed",
+          packNumber: d.packNumber || 1,
+          questionCount: d.questions.length,
+          updatedAt: new Date().toISOString()
+        });
+        migratedCount++;
+      }
+      slimList.push({
+        docId: docSnap.id,
+        section: d.section || "practice",
+        subject: d.subject || "General",
+        topic: d.topic || "Mixed",
+        packNumber: d.packNumber || 1,
+        questionCount: qCount
+      });
     }
-    if (statusEl) { statusEl.innerText = `Writing fast index for ${cacheBundles.length} bundle(s)...`; }
+
+    cacheBundles = slimList;
+    if (statusEl) statusEl.innerText = `Writing fast index for ${cacheBundles.length} bundle(s)...`;
     await rebuildFastCatalogIndex(cacheBundles);
-    if (statusEl) { statusEl.style.color = "#166534"; statusEl.innerText = `Fast Index Synced (${cacheBundles.length} bundles)!`; }
+    if (statusEl) {
+      statusEl.style.color = "#166534";
+      statusEl.innerText = `Fast Index Synced (${cacheBundles.length} bundles${migratedCount ? `, ${migratedCount} optimized` : ""})!`;
+    }
     renderPracticeBundlesTable();
   } catch (err) {
     console.error("Sync Fast Index Error:", err);
@@ -366,8 +403,55 @@ window.rebuildFastCatalogIndex = async function () {
 };
 
 async function loadPracticeBundlesData() {
+  const body = document.getElementById("pbBundlesBody");
+  if (body) body.innerHTML = `<tr><td colspan="7" style="color:#1d4ed8;">Loading bundle index...</td></tr>`;
+  try {
+    // Try fast sharded catalog first so Admin loads instantly even with 10,000+ bundles
+    const metaSnap = await db.collection("settings").doc("practice_catalog_meta").get();
+    if (metaSnap.exists && Number(metaSnap.data().shardCount || 0) > 0) {
+      const count = Number(metaSnap.data().shardCount);
+      const shardPromises = [];
+      for (let i = 0; i < count; i++) {
+        shardPromises.push(db.collection("settings").doc(`practice_catalog_shard_${i}`).get());
+      }
+      const shardSnaps = await Promise.all(shardPromises);
+      const combined = [];
+      shardSnaps.forEach(s => {
+        if (s.exists && Array.isArray(s.data().bundles)) {
+          s.data().bundles.forEach(b => {
+            combined.push({
+              docId: b.id,
+              section: b.sec || "practice",
+              subject: b.s || "General",
+              topic: b.t || "Mixed",
+              packNumber: b.p || 1,
+              questionCount: Number(b.c || 0)
+            });
+          });
+        }
+      });
+      if (combined.length > 0) {
+        cacheBundles = combined;
+        renderPracticeBundlesTable();
+        return;
+      }
+    }
+  } catch (e) {
+    console.warn("Sharded admin index fallback:", e);
+  }
+
   const snap = await safeGet("practice_bank_bundles");
-  cacheBundles = snap.docs.map(d => ({ docId: d.id, ...d.data() }));
+  cacheBundles = snap.docs.map(d => {
+    const data = d.data();
+    return {
+      docId: d.id,
+      section: data.section || "practice",
+      subject: data.subject || "General",
+      topic: data.topic || "Mixed",
+      packNumber: data.packNumber || 1,
+      questionCount: Number(data.questionCount || (Array.isArray(data.questions) ? data.questions.length : 0))
+    };
+  });
   renderPracticeBundlesTable();
 }
 
@@ -390,9 +474,12 @@ window.bulkDeleteSelectedBundles = async function () {
   if (!confirm(`Kya aap selected ${ids.length} bundle(s) ko permanently delete karna chahte hain?`)) return;
   const statusEl = document.getElementById("pbUploadStatus");
   if (statusEl) statusEl.innerText = `Deleting ${ids.length} bundles...`;
-  for (let i = 0; i < ids.length; i += 400) {
+  for (let i = 0; i < ids.length; i += 200) {
     const batch = db.batch();
-    ids.slice(i, i + 400).forEach(id => batch.delete(db.collection("practice_bank_bundles").doc(id)));
+    ids.slice(i, i + 200).forEach(id => {
+      batch.delete(db.collection("practice_bank_bundles").doc(id));
+      batch.delete(db.collection("practice_bundle_data").doc(id));
+    });
     await batch.commit();
   }
   cacheBundles = cacheBundles.filter(b => !ids.includes(b.docId));
@@ -416,9 +503,12 @@ window.bulkDeleteFilteredBundles = async function () {
   const statusEl = document.getElementById("pbUploadStatus");
   if (statusEl) statusEl.innerText = `Bulk deleting ${targetList.length} bundles...`;
   const delIds = new Set(targetList.map(b => b.docId));
-  for (let i = 0; i < targetList.length; i += 400) {
+  for (let i = 0; i < targetList.length; i += 200) {
     const batch = db.batch();
-    targetList.slice(i, i + 400).forEach(b => batch.delete(db.collection("practice_bank_bundles").doc(b.docId)));
+    targetList.slice(i, i + 200).forEach(b => {
+      batch.delete(db.collection("practice_bank_bundles").doc(b.docId));
+      batch.delete(db.collection("practice_bundle_data").doc(b.docId));
+    });
     await batch.commit();
   }
   cacheBundles = cacheBundles.filter(b => !delIds.has(b.docId));
@@ -436,7 +526,7 @@ window.renderPracticeBundlesTable = function (showAll = false) {
   if (!q && secFilter === "all" && !showAll) {
     lastRenderedPbList = [];
     updatePbSelectedCount();
-    const totalQs = cacheBundles.reduce((s, b) => s + (Array.isArray(b.questions) ? b.questions.length : Number(b.questionCount || 0)), 0);
+    const totalQs = cacheBundles.reduce((s, b) => s + Number(b.questionCount || (Array.isArray(b.questions) ? b.questions.length : 0)), 0);
     body.innerHTML = `<tr><td colspan="7" style="color:#64748b;">Total <strong>${cacheBundles.length}</strong> bundle(s) (${totalQs.toLocaleString()} Questions) in database. Filter by Section/Subject or click "Show Bundles".</td></tr>`;
     return;
   }
@@ -449,7 +539,7 @@ window.renderPracticeBundlesTable = function (showAll = false) {
   updatePbSelectedCount();
   body.innerHTML = list.slice(0, 250).map(b => {
     const isNcert = (b.section || "practice") === "ncert";
-    const qCnt = Array.isArray(b.questions) ? b.questions.length : Number(b.questionCount || 0);
+    const qCnt = Number(b.questionCount || (Array.isArray(b.questions) ? b.questions.length : 0));
     return `<tr>
       <td><input type="checkbox" class="pb-row-chk" value="${b.docId}" onchange="updatePbSelectedCount()" /></td>
       <td><span class="tag ${isNcert ? 'tag-ok' : ''}">${isNcert ? 'NCERT' : 'Practice'}</span></td>
@@ -520,12 +610,15 @@ window.uploadPracticeBankExcel = async function () {
         const docId = `${grp.section}_${grp.subject}_${grp.topic}_p${packNum}_${ts}_${docsToWrite.length}`.replace(/[^a-zA-Z0-9_]/g, "_").slice(0, 120);
         docsToWrite.push({
           docId,
-          payload: {
+          metaPayload: {
             section: grp.section,
             subject: grp.subject,
             topic: grp.topic,
             packNumber: packNum,
             questionCount: chunk.length,
+            updatedAt: new Date().toISOString()
+          },
+          dataPayload: {
             questions: chunk,
             updatedAt: new Date().toISOString()
           }
@@ -533,12 +626,14 @@ window.uploadPracticeBankExcel = async function () {
       }
     }
 
-    for (let i = 0; i < docsToWrite.length; i += 100) {
-      statusEl.innerText = `Uploading bundles ${i + 1} to ${Math.min(i + 100, docsToWrite.length)} of ${docsToWrite.length}...`;
+    // Write slim metadata to `practice_bank_bundles` and heavy questions to `practice_bundle_data`
+    for (let i = 0; i < docsToWrite.length; i += 50) {
+      statusEl.innerText = `Uploading bundles ${i + 1} to ${Math.min(i + 50, docsToWrite.length)} of ${docsToWrite.length}...`;
       const batch = db.batch();
-      docsToWrite.slice(i, i + 100).forEach(d => {
-        batch.set(db.collection("practice_bank_bundles").doc(d.docId), d.payload);
-        cacheBundles.push({ docId: d.docId, ...d.payload });
+      docsToWrite.slice(i, i + 50).forEach(d => {
+        batch.set(db.collection("practice_bank_bundles").doc(d.docId), d.metaPayload);
+        batch.set(db.collection("practice_bundle_data").doc(d.docId), d.dataPayload);
+        cacheBundles.push({ docId: d.docId, ...d.metaPayload });
       });
       await batch.commit();
     }
@@ -1222,6 +1317,7 @@ window.deleteDocAndReload = async function (col, id, tabToReload) {
   if (!confirm("Delete this item permanently?")) return;
   await db.collection(col).doc(id).delete();
   if (col === "practice_bank_bundles") {
+    await db.collection("practice_bundle_data").doc(id).delete().catch(() => {});
     cacheBundles = cacheBundles.filter(b => b.docId !== id);
     await rebuildFastCatalogIndex(cacheBundles);
     renderPracticeBundlesTable();

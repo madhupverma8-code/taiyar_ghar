@@ -1530,16 +1530,18 @@ window.openSmartPracticeBank = async function(sectionMode = "practice") {
         return;
     }
 
-    // Check 5-minute sessionStorage metadata cache for instant 0ms load
+    // Render immediately from localStorage cache if available (0ms instant UI, no flicker)
+    let hasCachedRender = false;
     try {
-        const cachedRaw = sessionStorage.getItem("tg_pb_sharded_index_v1");
+        const cachedRaw = localStorage.getItem("tg_pb_sharded_index_v2");
         if (cachedRaw) {
             const parsed = JSON.parse(cachedRaw);
-            if (parsed && Array.isArray(parsed.items) && parsed.items.length > 0 && (Date.now() - parsed.ts < 300000)) {
+            if (parsed && Array.isArray(parsed.items) && parsed.items.length > 0) {
                 pbMetaIndex = parsed.items;
                 pbCatalogLoaded = true;
+                hasCachedRender = true;
                 renderPbSubjects();
-                return;
+                if (Date.now() - parsed.ts < 300000) return;
             }
         }
     } catch (e) {}
@@ -1585,23 +1587,28 @@ window.openSmartPracticeBank = async function(sectionMode = "practice") {
             const bSnap = await getDocs(collection(db, "practice_bank_bundles"));
             pbMetaIndex = bSnap.docs.map(d => {
                 const data = d.data();
-                const qs = Array.isArray(data.questions) ? data.questions : [];
-                pbLoadedBundles[d.id] = qs;
+                const qs = Array.isArray(data.questions) ? data.questions : null;
+                if (qs) pbLoadedBundles[d.id] = qs;
                 return {
                     bundleId: d.id,
                     section: data.section || "practice",
                     subject: (data.subject || "General").trim(),
                     topic: (data.topic || "Mixed").trim(),
                     packIndex: data.packNumber || data.packIndex || 1,
-                    count: qs.length
+                    count: Number(data.questionCount || (qs ? qs.length : 0))
                 };
             });
         }
-        pbCatalogLoaded = true;
-        try {
-            sessionStorage.setItem("tg_pb_sharded_index_v1", JSON.stringify({ ts: Date.now(), items: pbMetaIndex }));
-        } catch (e) {}
-        renderPbSubjects();
+        if (pbMetaIndex.length > 0) {
+            pbCatalogLoaded = true;
+            try {
+                localStorage.setItem("tg_pb_sharded_index_v2", JSON.stringify({ ts: Date.now(), items: pbMetaIndex }));
+            } catch (e) {}
+            renderPbSubjects();
+        } else if (!hasCachedRender) {
+            pbCatalogLoaded = true;
+            renderPbSubjects();
+        }
     } catch (e) {
         if (grid && pbMetaIndex.length === 0) {
             grid.innerHTML = `<div style="grid-column:1/-1; padding:18px; color:#DC2626;">Could not load Practice Bank: ${e.message}</div>`;
@@ -1706,8 +1713,11 @@ window.selectPbSubject = function(subject) {
 
 async function fetchBundleQuestions(bundleId) {
     if (pbLoadedBundles[bundleId]) return pbLoadedBundles[bundleId];
-    let snap = await getDoc(doc(db, "practice_bank_bundles", bundleId));
-    if (!snap.exists()) {
+    let snap = await getDoc(doc(db, "practice_bundle_data", bundleId));
+    if (!snap.exists() || !Array.isArray(snap.data().questions)) {
+        snap = await getDoc(doc(db, "practice_bank_bundles", bundleId));
+    }
+    if (!snap.exists() || !Array.isArray(snap.data().questions)) {
         snap = await getDoc(doc(db, "practice_bank", bundleId));
     }
     const qs = snap.exists() ? (snap.data().questions || []) : [];
