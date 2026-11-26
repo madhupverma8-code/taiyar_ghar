@@ -238,33 +238,47 @@
         </div>
       </div>
 
-      <!-- TAB 4: UNLIMITED SMART PRACTICE BANK (100-Q BUNDLES) -->
+      <!-- TAB 4: UNLIMITED SMART PRACTICE BANK & NCERT BASE (250-Q SHARDED BUNDLES FOR 10 LAKH+ SCALE) -->
       <div id="tab-practice" class="hidden">
         <div class="panel-card">
-          <h3>Bulk Question Upload (Subject &amp; Topic Wise — Auto 100-Q Bundles)</h3>
-          <p style="color:#64748b; margin-bottom:10px;">Upload thousands of questions in bulk via Excel (.xlsx) or CSV. Bilingual columns (Hindi + English): <strong>Subject, Topic, Question, QuestionHi, OptionA..D, OptionAHi..DHi, CorrectOption (A/B/C/D), Explanation, ExplanationHi</strong>.</p>
+          <h3>Bulk Question Upload — Practice Bank &amp; NCERT Base (Auto 250-Q Bundles)</h3>
+          <p style="color:#64748b; margin-bottom:10px;">10 Lakh+ Questions &amp; 10,000+ Sets ready architecture. Choose <strong>Section Type</strong> (Practice Bank or NCERT Base Class 6–12) and upload Excel/CSV with columns: <strong>Subject, Topic, ClassLevel (optional for NCERT), Question, QuestionHi, OptionA..D, OptionAHi..DHi, CorrectOption, Explanation, ExplanationHi</strong>.</p>
           <div class="form-row">
-            <div><label>Default Subject (if Excel column empty)</label><input type="text" id="pbDefSubject" placeholder="e.g., Hindi, Maths, Reasoning, GS" /></div>
-            <div><label>Default Topic (if Excel column empty)</label><input type="text" id="pbDefTopic" placeholder="e.g., Vilom Shabd, Percentage" /></div>
+            <div>
+              <label>Upload Target Section *</label>
+              <select id="pbSectionType">
+                <option value="practice">⚡ Unlimited Smart Practice Bank</option>
+                <option value="ncert">📘 NCERT Base Questions (Class 6–12)</option>
+              </select>
+            </div>
+            <div><label>Default Subject / NCERT Class (if column empty)</label><input type="text" id="pbDefSubject" placeholder="e.g., History, Polity, Class 10 Science" /></div>
+            <div><label>Default Topic / Chapter (if column empty)</label><input type="text" id="pbDefTopic" placeholder="e.g., Chapter 1 - Chemical Reactions" /></div>
             <div><label>Select Bulk Questions Excel / CSV File *</label><input type="file" id="pbExcelFile" accept=".xlsx,.xls,.csv" /></div>
           </div>
           <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
             <button class="btn btn-primary" id="btnUploadPb" onclick="uploadPracticeBankExcel()">Bulk Upload Questions</button>
-            <button class="btn btn-outline" onclick="downloadSamplePracticeTemplate()">Download Bulk Upload Excel Template (.xlsx)</button>
+            <button class="btn btn-outline" onclick="downloadSamplePracticeTemplate()">Download Practice Template (.xlsx)</button>
+            <button class="btn btn-outline" onclick="downloadSampleNcertTemplate()">Download NCERT Template (.xlsx)</button>
+            <button class="btn btn-outline" onclick="rebuildFastCatalogIndex()">⚡ Sync Fast Index</button>
             <span id="pbUploadStatus" style="font-weight:600;"></span>
           </div>
         </div>
 
         <div class="panel-card">
-          <h3>Search &amp; Manage Uploaded Question Bundles (Bulk Delete Available)</h3>
+          <h3>Search &amp; Manage Uploaded Bundles (Practice Bank &amp; NCERT Base)</h3>
           <div class="search-bar">
-            <input type="text" id="pbSearchBox" placeholder="Type Subject or Topic to search bundles..." style="max-width:300px;" oninput="renderPracticeBundlesTable()" />
-            <button class="btn btn-outline btn-sm" onclick="renderPracticeBundlesTable(true)">Show All Bundles</button>
+            <select id="pbFilterSection" style="max-width:190px;" onchange="renderPracticeBundlesTable()">
+              <option value="all">All Sections</option>
+              <option value="practice">Smart Practice Bank</option>
+              <option value="ncert">NCERT Base Questions</option>
+            </select>
+            <input type="text" id="pbSearchBox" placeholder="Type Subject, Class or Topic to search..." style="max-width:280px;" oninput="renderPracticeBundlesTable()" />
+            <button class="btn btn-outline btn-sm" onclick="renderPracticeBundlesTable(true)">Show Bundles</button>
             <button class="btn btn-danger btn-sm" onclick="bulkDeleteSelectedBundles()">🗑️ Delete Selected (<span id="pbSelCount">0</span>)</button>
-            <button class="btn btn-danger btn-sm" onclick="bulkDeleteFilteredBundles()">🗑️ Delete All Matching / Listed</button>
+            <button class="btn btn-danger btn-sm" onclick="bulkDeleteFilteredBundles()">🗑️ Delete All Matching</button>
           </div>
           <table>
-            <thead><tr><th style="width:32px;"><input type="checkbox" id="pbSelectAllChk" onchange="toggleAllPbBundles(this.checked)" /></th><th>Bundle ID</th><th>Subject</th><th>Topic</th><th>Pack #</th><th>Questions</th><th>Action</th></tr></thead>
+            <thead><tr><th style="width:32px;"><input type="checkbox" id="pbSelectAllChk" onchange="toggleAllPbBundles(this.checked)" /></th><th>Section</th><th>Subject / Class</th><th>Topic / Chapter</th><th>Pack #</th><th>Questions</th><th>Action</th></tr></thead>
             <tbody id="pbBundlesBody"></tbody>
           </table>
         </div>

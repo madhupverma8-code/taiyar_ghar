@@ -263,13 +263,14 @@ async function checkUrlRouting() {
             'study-notes': 'studyNotesScreen',
             'refer-earn': 'referEarnScreen',
             'practice-bank': 'practiceBankScreen',
+            'ncert-bank': 'practiceBankScreen',
             'dashboard': isLoggedIn ? 'dashboardScreen' : 'loginScreen'
         };
         if (routeMap[pageParam]) {
             if (routeMap[pageParam] === 'dashboardScreen') {
                 goDashboard();
             } else if (routeMap[pageParam] === 'practiceBankScreen') {
-                openSmartPracticeBank();
+                openSmartPracticeBank(pageParam === 'ncert-bank' ? 'ncert' : 'practice');
             } else if (routeMap[pageParam] === 'caScreen') {
                 showCurrentAffairs();
             } else if (routeMap[pageParam] === 'updatesScreen') {
@@ -1492,59 +1493,112 @@ async function flushPracticeProgressToFirestore() {
 }
 
 let pbCatalogLoaded = false;
+let pbCurrentSection = "practice";
 
-window.openSmartPracticeBank = async function() {
+window.switchPbSectionMode = function(sec) {
+    pbCurrentSection = sec === "ncert" ? "ncert" : "practice";
+    const btnP = document.getElementById('pbModeTabPractice');
+    const btnN = document.getElementById('pbModeTabNcert');
+    if (btnP) btnP.className = pbCurrentSection === "practice" ? "btn btn-primary" : "btn btn-outline";
+    if (btnN) btnN.className = pbCurrentSection === "ncert" ? "btn btn-primary" : "btn btn-outline";
+    renderPbSubjects();
+};
+
+window.openSmartPracticeBank = async function(sectionMode = "practice") {
     if (!isLoggedIn) {
         showLogin();
         const err = document.getElementById('loginInlineError');
         if (err) {
-            err.innerText = "Please log in or register free to access Unlimited Smart Practice Bank.";
+            err.innerText = "Please log in or register free to access Smart Practice Bank & NCERT Questions.";
             err.classList.remove('hide');
         }
         return;
     }
 
+    pbCurrentSection = sectionMode === "ncert" ? "ncert" : "practice";
     showScreen('practiceBankScreen', true);
     updatePbAnalyticsUI();
 
+    const btnP = document.getElementById('pbModeTabPractice');
+    const btnN = document.getElementById('pbModeTabNcert');
+    if (btnP) btnP.className = pbCurrentSection === "practice" ? "btn btn-primary" : "btn btn-outline";
+    if (btnN) btnN.className = pbCurrentSection === "ncert" ? "btn btn-primary" : "btn btn-outline";
+
+    const grid = document.getElementById('pbLevelSubjects');
     if (pbCatalogLoaded && pbMetaIndex.length > 0) {
         renderPbSubjects();
         return;
     }
 
-    const grid = document.getElementById('pbLevelSubjects');
-    if (grid) grid.innerHTML = `<div style="grid-column:1/-1; padding:18px; color:#4F46E5; font-weight:600;">⚡ Loading subjects &amp; topics...</div>`;
+    // Check 5-minute sessionStorage metadata cache for instant 0ms load
+    try {
+        const cachedRaw = sessionStorage.getItem("tg_pb_sharded_index_v1");
+        if (cachedRaw) {
+            const parsed = JSON.parse(cachedRaw);
+            if (parsed && Array.isArray(parsed.items) && parsed.items.length > 0 && (Date.now() - parsed.ts < 300000)) {
+                pbMetaIndex = parsed.items;
+                pbCatalogLoaded = true;
+                renderPbSubjects();
+                return;
+            }
+        }
+    } catch (e) {}
+
+    if (grid) grid.innerHTML = `<div style="grid-column:1/-1; padding:18px; color:#4F46E5; font-weight:600;">⚡ Loading subjects &amp; chapters...</div>`;
     renderPbSubjects();
 
     try {
-        // Fast single-doc read first (`settings/practice_catalog`) so it loads in <1 second
-        const catSnap = await getDoc(doc(db, "settings", "practice_catalog"));
-        if (catSnap.exists() && Array.isArray(catSnap.data().bundles) && catSnap.data().bundles.length > 0) {
-            pbMetaIndex = catSnap.data().bundles.map(b => ({
-                bundleId: b.bundleId,
-                subject: b.subject || "General",
-                topic: b.topic || "Mixed",
-                packIndex: b.packIndex || b.packNumber || 1,
-                count: Number(b.count || 0)
-            }));
+        // 1. Read lightweight sharded metadata index (supports 10,000+ sets & 10 Lakh+ Qs in <0.5s)
+        const metaSnap = await getDoc(doc(db, "settings", "practice_catalog_meta"));
+        if (metaSnap.exists() && Number(metaSnap.data().shardCount || 0) > 0) {
+            const count = Number(metaSnap.data().shardCount);
+            const shardPromises = [];
+            for (let i = 0; i < count; i++) {
+                shardPromises.push(getDoc(doc(db, "settings", `practice_catalog_shard_${i}`)));
+            }
+            const shardSnaps = await Promise.all(shardPromises);
+            const combined = [];
+            shardSnaps.forEach(s => {
+                if (s.exists() && Array.isArray(s.data().bundles)) {
+                    s.data().bundles.forEach(b => {
+                        combined.push({
+                            bundleId: b.id,
+                            section: b.sec || "practice",
+                            subject: (b.s || "General").trim(),
+                            topic: (b.t || "Mixed").trim(),
+                            packIndex: b.p || 1,
+                            count: Number(b.c || 0)
+                        });
+                    });
+                }
+            });
+            pbMetaIndex = combined;
         } else {
+            // Fallback for older bundles before sharded index was synced
             const bSnap = await getDocs(collection(db, "practice_bank_bundles"));
             pbMetaIndex = bSnap.docs.map(d => {
                 const data = d.data();
-                pbLoadedBundles[d.id] = Array.isArray(data.questions) ? data.questions : [];
+                const qs = Array.isArray(data.questions) ? data.questions : [];
+                pbLoadedBundles[d.id] = qs;
                 return {
                     bundleId: d.id,
-                    subject: data.subject || "General",
-                    topic: data.topic || "Mixed",
+                    section: data.section || "practice",
+                    subject: (data.subject || "General").trim(),
+                    topic: (data.topic || "Mixed").trim(),
                     packIndex: data.packNumber || data.packIndex || 1,
-                    count: pbLoadedBundles[d.id].length
+                    count: qs.length
                 };
             });
         }
         pbCatalogLoaded = true;
+        try {
+            sessionStorage.setItem("tg_pb_sharded_index_v1", JSON.stringify({ ts: Date.now(), items: pbMetaIndex }));
+        } catch (e) {}
         renderPbSubjects();
     } catch (e) {
-        if (grid) grid.innerHTML = `<div style="grid-column:1/-1; padding:18px; color:#DC2626;">Could not load Practice Bank: ${e.message}</div>`;
+        if (grid && pbMetaIndex.length === 0) {
+            grid.innerHTML = `<div style="grid-column:1/-1; padding:18px; color:#DC2626;">Could not load Practice Bank: ${e.message}</div>`;
+        }
     }
 };
 
@@ -1568,10 +1622,15 @@ function updatePbAnalyticsUI() {
 }
 
 function renderPbSubjects() {
-    document.getElementById('pbHeaderTitle').innerText = "Unlimited Smart Practice Bank";
+    const isNcert = pbCurrentSection === "ncert";
+    document.getElementById('pbHeaderTitle').innerText = isNcert
+        ? "📘 NCERT Base Question Bank (Class 6–12)"
+        : "Unlimited Smart Practice Bank";
     document.getElementById('pbHeaderSub').innerText = currentStudent.isPaid
         ? "All-Access Pass Active — Unlimited Questions Unlocked"
-        : "Free Tier: First 15 Questions per Subject Free • Upgrade Pass for Full Question Bank";
+        : (isNcert
+            ? "Free Tier: First 15 NCERT Questions per Subject Free • Upgrade Pass for All Chapters"
+            : "Free Tier: First 15 Questions per Subject Free • Upgrade Pass for Full Question Bank");
     document.getElementById('pbBackBtn').classList.add('hide');
     document.getElementById('pbLevelSubjects').classList.remove('hide');
     document.getElementById('pbLevelModes').classList.add('hide');
@@ -1580,8 +1639,9 @@ function renderPbSubjects() {
     const grid = document.getElementById('pbLevelSubjects');
     if (!pbCatalogLoaded && pbMetaIndex.length === 0) return;
 
+    const sectionBundles = pbMetaIndex.filter(b => (b.section || "practice") === pbCurrentSection);
     const subjectMap = {};
-    pbMetaIndex.forEach(b => {
+    sectionBundles.forEach(b => {
         const s = b.subject || "General";
         if (!subjectMap[s]) subjectMap[s] = { topics: new Set(), totalQs: 0 };
         subjectMap[s].topics.add(b.topic);
@@ -1590,14 +1650,14 @@ function renderPbSubjects() {
 
     const subjects = Object.keys(subjectMap);
     if (subjects.length === 0) {
-        grid.innerHTML = `<div style="grid-column:1/-1; padding:18px; color:#64748B;">No practice questions uploaded yet. Check back soon!</div>`;
+        grid.innerHTML = `<div style="grid-column:1/-1; padding:18px; color:#64748B;">${isNcert ? "No NCERT Base questions uploaded yet. Check back soon!" : "No practice questions uploaded yet. Check back soon!"}</div>`;
         return;
     }
 
     grid.innerHTML = subjects.map(sub => `
-        <div onclick="selectPbSubject('${sub.replace(/'/g, "\'")}')" style="border:1.5px solid #CBD5E1; border-radius:12px; padding:16px; background:#ffffff; cursor:pointer; transition:0.15s;" onmouseover="this.style.borderColor='#4F46E5'" onmouseout="this.style.borderColor='#CBD5E1'">
+        <div onclick="selectPbSubject('${sub.replace(/'/g, "\'")}')" style="border:1.5px solid ${isNcert ? '#A7F3D0' : '#CBD5E1'}; border-radius:12px; padding:16px; background:#ffffff; cursor:pointer; transition:0.15s;" onmouseover="this.style.borderColor='#4F46E5'" onmouseout="this.style.borderColor='${isNcert ? '#A7F3D0' : '#CBD5E1'}'">
             <div style="font-size:16px; font-weight:700; color:#1E1B4B; margin-bottom:4px;">${sub}</div>
-            <div style="font-size:12px; color:#64748B;">${subjectMap[sub].topics.size} Topics &bull; ${subjectMap[sub].totalQs} Questions</div>
+            <div style="font-size:12px; color:#64748B;">${subjectMap[sub].topics.size} ${isNcert ? 'Chapters' : 'Topics'} &bull; ${subjectMap[sub].totalQs.toLocaleString()} Questions</div>
             <div style="font-size:11px; color:#059669; font-weight:600; margin-top:4px;">${currentStudent.isPaid ? 'All Unlocked' : '15 Free Qs in Subject'}</div>
         </div>
     `).join("");
@@ -1618,7 +1678,7 @@ window.selectPbSubject = function(subject) {
     document.getElementById('pbLevelArena').classList.add('hide');
 
     const topicCounts = {};
-    pbMetaIndex.filter(b => b.subject === subject).forEach(b => {
+    pbMetaIndex.filter(b => (b.section || 'practice') === pbCurrentSection && b.subject === subject).forEach(b => {
         topicCounts[b.topic] = (topicCounts[b.topic] || 0) + Number(b.count || 0);
     });
 
@@ -1699,7 +1759,7 @@ window.startTopicPractice = async function(topic) {
     pbCurrentTopic = topic;
 
     const matchingBundles = pbMetaIndex
-        .filter(b => b.subject === pbCurrentSubject && b.topic === topic)
+        .filter(b => (b.section || 'practice') === pbCurrentSection && b.subject === pbCurrentSubject && b.topic === topic)
         .sort((a, b) => (a.packIndex || 1) - (b.packIndex || 1));
 
     const needsFetch = matchingBundles.some(b => !pbLoadedBundles[b.bundleId]);
@@ -1727,7 +1787,7 @@ window.startSubjectMixPractice = async function() {
     pbCurrentMode = "mix";
     pbCurrentTopic = "All Topics Mix";
 
-    const subjectBundles = pbMetaIndex.filter(b => b.subject === pbCurrentSubject);
+    const subjectBundles = pbMetaIndex.filter(b => (b.section || 'practice') === pbCurrentSection && b.subject === pbCurrentSubject);
     if (subjectBundles.length === 0) return;
 
     // Free users: fetch only first 2 bundles in parallel to get 15 free subject questions instantly (<1s)
@@ -2012,8 +2072,7 @@ async function fetchSettingsAndTests() {
             await fetchDashboardData();
         }
 
-        const caSnap = await getDocs(collection(db, "current_affairs"));
-        allCA = caSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+        // Lazy-load current_affairs only when user opens Current Affairs Hub for faster initial load
 
         checkUrlRouting();
     } catch (e) { console.log("Data load error", e); }
@@ -2315,9 +2374,13 @@ window.showCurrentAffairs = async function() {
     if (reader) reader.classList.add('hide');
     showScreen('caScreen');
     try {
-        const artSnap = await getDocs(collection(db, "ca_articles"));
+        const [artSnap, caSnap] = await Promise.all([
+            getDocs(collection(db, "ca_articles")),
+            allCA.length ? Promise.resolve(null) : getDocs(collection(db, "current_affairs"))
+        ]);
         allCaArticles = artSnap.docs.map(d => ({ id: d.id, ...d.data() }));
         allCaArticles.sort((a, b) => new Date(b.createdAt || b.date || 0) - new Date(a.createdAt || a.date || 0));
+        if (caSnap) allCA = caSnap.docs.map(d => ({ id: d.id, ...d.data() }));
     } catch (e) {
         console.error("CA Articles load error:", e);
     }

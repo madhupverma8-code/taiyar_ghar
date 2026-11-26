@@ -257,9 +257,16 @@
         }
 
         @media (max-width: 768px) {
-            .hero-banner-section { min-height: 380px; padding: 38px 5%; }
-            .hero-overlay-content h1 { font-size: 28px; }
-            .info-page-card { padding: 22px; margin: 20px 15px; }
+            .navbar { position: relative !important; padding: 8px 3% !important; gap: 6px !important; }
+            .nav-brand img { height: 30px !important; }
+            .nav-brand span { font-size: 16px !important; }
+            .nav-links { width: 100%; justify-content: space-between; gap: 4px !important; font-size: 12px !important; }
+            .tg-drop-trigger { padding: 5px 8px !important; font-size: 12px !important; }
+            .nav-actions { width: 100%; justify-content: flex-end; gap: 6px !important; }
+            .btn-install { display: none !important; }
+            .hero-banner-section { min-height: 340px; padding: 30px 4%; }
+            .hero-overlay-content h1 { font-size: 25px; }
+            .info-page-card { padding: 18px; margin: 16px 12px; }
             .pb-arena-grid { grid-template-columns: 1fr; }
         }
     </style>
@@ -291,7 +298,8 @@
                 <div id="ddExams" class="tg-drop-menu">
                     <a href="javascript:void(0)" onclick="closeAllNavDropdowns(); scrollToCategories()">📚 All Exam Categories</a>
                     <a href="javascript:void(0)" onclick="closeAllNavDropdowns(); openLiveTestsHub()" style="color:#DC2626; font-weight:700;">🔴 All-India Live Tests</a>
-                    <a href="javascript:void(0)" onclick="closeAllNavDropdowns(); openSmartPracticeBank()" style="color:#4F46E5; font-weight:700;">⚡ Unlimited Smart Practice</a>
+                    <a href="javascript:void(0)" onclick="closeAllNavDropdowns(); openSmartPracticeBank('practice')" style="color:#4F46E5; font-weight:700;">⚡ Unlimited Smart Practice</a>
+                    <a href="javascript:void(0)" onclick="closeAllNavDropdowns(); openSmartPracticeBank('ncert')" style="color:#059669; font-weight:700;">📘 NCERT Base Questions (6–12)</a>
                     <a href="javascript:void(0)" onclick="closeAllNavDropdowns(); openReferAndEarn()">🎁 Student Refer &amp; Earn</a>
                 </div>
             </div>
@@ -410,15 +418,23 @@
             <div id="homeLiveTestsContainer"></div>
         </section>
 
-        <!-- Unlimited Smart Practice Bank Card (Home Page) -->
-        <section class="container" style="padding: 25px 5% 0;">
-            <div class="smart-pb-banner" onclick="openSmartPracticeBank()">
-                <div style="flex:1; min-width:250px;">
-                    <span style="display:inline-block; font-size:11px; font-weight:700; color:#4F46E5; background:#EEF2FF; border:1px solid #C7D2FE; padding:3px 9px; border-radius:6px; margin-bottom:6px;">PYQs + EXPECTED QUESTIONS</span>
-                    <h2 style="font-size:19px; font-weight:800; color:#1E1B4B; margin:0 0 4px;">Unlimited Smart Practice Bank</h2>
-                    <p style="font-size:13.5px; color:#475569; margin:0;">Subject-wise &amp; Mix Practice (Hindi, English, Maths, Reasoning, GS, GK) with instant explanations, per-question timer &amp; Attempted / Not Attempted tracking. First 15 questions per subject free!</p>
+        <!-- Unlimited Smart Practice Bank + NCERT Base Cards (Home Page) -->
+        <section class="container" style="padding: 25px 5% 0; display:grid; grid-template-columns:repeat(auto-fit, minmax(310px, 1fr)); gap:16px;">
+            <div class="smart-pb-banner" onclick="openSmartPracticeBank('practice')">
+                <div style="flex:1; min-width:220px;">
+                    <span style="display:inline-block; font-size:11px; font-weight:700; color:#4F46E5; background:#EEF2FF; border:1px solid #C7D2FE; padding:3px 9px; border-radius:6px; margin-bottom:6px;">10 LAKH+ PYQs &amp; EXPECTED Qs</span>
+                    <h2 style="font-size:18px; font-weight:800; color:#1E1B4B; margin:0 0 4px;">Unlimited Smart Practice Bank</h2>
+                    <p style="font-size:13px; color:#475569; margin:0;">Subject-wise &amp; Mix Practice with bilingual explanations &amp; timer. First 15 questions per subject free!</p>
                 </div>
-                <button type="button" class="btn btn-primary" style="padding:11px 20px; font-size:14px; white-space:nowrap;">Start Smart Practice →</button>
+                <button type="button" class="btn btn-primary" style="padding:10px 16px; font-size:13.5px; white-space:nowrap;">Practice Now →</button>
+            </div>
+            <div class="smart-pb-banner" style="border-color:#A7F3D0; background:#F0FDF4;" onclick="openSmartPracticeBank('ncert')">
+                <div style="flex:1; min-width:220px;">
+                    <span style="display:inline-block; font-size:11px; font-weight:700; color:#059669; background:#DCFCE7; border:1px solid #86EFAC; padding:3px 9px; border-radius:6px; margin-bottom:6px;">CLASS 6 TO 12 • CHAPTER-WISE</span>
+                    <h2 style="font-size:18px; font-weight:800; color:#064E3B; margin:0 0 4px;">📘 NCERT Base Question Bank</h2>
+                    <p style="font-size:13px; color:#065F46; margin:0;">Line-by-line NCERT Science, History, Polity, Geography &amp; Economy MCQs for SSC, Railway &amp; PCS.</p>
+                </div>
+                <button type="button" class="btn btn-accent" style="padding:10px 16px; font-size:13.5px; white-space:nowrap;">Start NCERT →</button>
             </div>
         </section>
 
@@ -666,14 +682,24 @@
                 </div>
             </div>
 
-            <!-- Unlimited Smart Practice Bank Card on Candidate Dashboard -->
-            <div class="smart-pb-banner" style="margin-bottom:28px;" onclick="openSmartPracticeBank()">
-                <div style="flex:1; min-width:250px;">
-                    <span style="display:inline-block; font-size:11px; font-weight:700; color:#4F46E5; background:#EEF2FF; border:1px solid #C7D2FE; padding:3px 9px; border-radius:6px; margin-bottom:6px;">UNLIMITED PRACTICE • TOPIC-WISE + MIX</span>
-                    <h3 style="font-size:17px; font-weight:800; color:#1E1B4B; margin:0 0 3px;">Unlimited Smart Practice Bank</h3>
-                    <p style="font-size:13px; color:#475569; margin:0;">Practice PYQs &amp; Expected Questions by Subject &amp; Topic or Mix Mode. Track speed, accuracy &amp; unattempted questions.</p>
+            <!-- Unlimited Smart Practice Bank & NCERT Base Cards on Candidate Dashboard -->
+            <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(300px, 1fr)); gap:16px; margin-bottom:26px;">
+                <div class="smart-pb-banner" onclick="openSmartPracticeBank('practice')">
+                    <div style="flex:1; min-width:210px;">
+                        <span style="display:inline-block; font-size:11px; font-weight:700; color:#4F46E5; background:#EEF2FF; border:1px solid #C7D2FE; padding:3px 9px; border-radius:6px; margin-bottom:6px;">TOPIC-WISE + MIX MODE</span>
+                        <h3 style="font-size:17px; font-weight:800; color:#1E1B4B; margin:0 0 3px;">Unlimited Smart Practice Bank</h3>
+                        <p style="font-size:13px; color:#475569; margin:0;">Practice PYQs &amp; Expected Questions across all subjects with instant explanations.</p>
+                    </div>
+                    <button type="button" class="btn btn-primary" style="padding:10px 16px; font-size:13px; white-space:nowrap;">Practice →</button>
                 </div>
-                <button type="button" class="btn btn-primary" style="padding:10px 18px; font-size:13.5px; white-space:nowrap;">Practice Now →</button>
+                <div class="smart-pb-banner" style="border-color:#A7F3D0; background:#F0FDF4;" onclick="openSmartPracticeBank('ncert')">
+                    <div style="flex:1; min-width:210px;">
+                        <span style="display:inline-block; font-size:11px; font-weight:700; color:#059669; background:#DCFCE7; border:1px solid #86EFAC; padding:3px 9px; border-radius:6px; margin-bottom:6px;">NCERT CLASS 6–12</span>
+                        <h3 style="font-size:17px; font-weight:800; color:#064E3B; margin:0 0 3px;">📘 NCERT Base Question Bank</h3>
+                        <p style="font-size:13px; color:#065F46; margin:0;">Chapter-wise NCERT Science, History, Polity &amp; Geography MCQs in Hindi &amp; English.</p>
+                    </div>
+                    <button type="button" class="btn btn-accent" style="padding:10px 16px; font-size:13px; white-space:nowrap;">NCERT →</button>
+                </div>
             </div>
 
             <!-- Student Refer & Earn Card on Dashboard -->
@@ -746,9 +772,11 @@
                     <h2 id="pbHeaderTitle" style="font-size:20px; font-weight:800; color:#1E1B4B; margin:0;">Unlimited Smart Practice Bank</h2>
                     <div id="pbHeaderSub" style="font-size:13px; color:#64748B; margin-top:2px;">Select a subject to start Topic-Wise or Mix Practice</div>
                 </div>
-                <div style="display:flex; gap:8px;">
+                <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                    <button id="pbModeTabPractice" class="btn btn-primary" style="padding:7px 13px; font-size:12.5px;" onclick="switchPbSectionMode('practice')">⚡ Practice Bank</button>
+                    <button id="pbModeTabNcert" class="btn btn-outline" style="padding:7px 13px; font-size:12.5px;" onclick="switchPbSectionMode('ncert')">📘 NCERT Base (6–12)</button>
                     <button id="pbBackBtn" class="btn btn-outline hide">← Back</button>
-                    <button class="btn btn-outline" onclick="exitSmartPracticeBank()">Exit Practice</button>
+                    <button class="btn btn-outline" onclick="exitSmartPracticeBank()">Exit</button>
                 </div>
             </div>
 

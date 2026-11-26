@@ -311,23 +311,52 @@ window.createTestFromExcel = async function () {
   loadTestsData();
 };
 
-// 4. SMART PRACTICE BANK (100-Q BUNDLES)
+// 4. SMART PRACTICE BANK & NCERT BASE (SHARDED METADATA CATALOG FOR 10 LAKH+ Qs & 10,000+ SETS)
+async function rebuildFastCatalogIndex(existingBundles = null) {
+  const bundles = existingBundles || cacheBundles;
+  const slimRecords = bundles.map(b => ({
+    id: b.docId,
+    sec: b.section || "practice",
+    s: b.subject || "General",
+    t: b.topic || "Mixed",
+    p: b.packNumber || 1,
+    c: Number(b.questionCount || (Array.isArray(b.questions) ? b.questions.length : 0))
+  }));
+
+  const SHARD_SIZE = 2500;
+  const shardCount = Math.max(1, Math.ceil(slimRecords.length / SHARD_SIZE));
+  const batch = db.batch();
+
+  batch.set(db.collection("settings").doc("practice_catalog_meta"), {
+    shardCount,
+    totalBundles: slimRecords.length,
+    totalQuestions: slimRecords.reduce((acc, x) => acc + x.c, 0),
+    updatedAt: new Date().toISOString()
+  });
+
+  for (let i = 0; i < shardCount; i++) {
+    const slice = slimRecords.slice(i * SHARD_SIZE, (i + 1) * SHARD_SIZE);
+    batch.set(db.collection("settings").doc(`practice_catalog_shard_${i}`), {
+      shardIndex: i,
+      bundles: slice
+    });
+  }
+  await batch.commit();
+}
+
+window.rebuildFastCatalogIndex = async function () {
+  const statusEl = document.getElementById("pbUploadStatus");
+  if (statusEl) { statusEl.style.color = "#1d4ed8"; statusEl.innerText = "Syncing fast index..."; }
+  const snap = await safeGet("practice_bank_bundles");
+  cacheBundles = snap.docs.map(d => ({ docId: d.id, ...d.data() }));
+  await rebuildFastCatalogIndex(cacheBundles);
+  if (statusEl) { statusEl.style.color = "#166534"; statusEl.innerText = `Fast Index Synced (${cacheBundles.length} bundles)!`; }
+  renderPracticeBundlesTable();
+};
+
 async function loadPracticeBundlesData() {
   const snap = await safeGet("practice_bank_bundles");
   cacheBundles = snap.docs.map(d => ({ docId: d.id, ...d.data() }));
-  try {
-    const catalogArr = cacheBundles.map(b => ({
-      bundleId: b.docId,
-      subject: b.subject || "General",
-      topic: b.topic || "Mixed",
-      packIndex: b.packNumber || 1,
-      count: Array.isArray(b.questions) ? b.questions.length : 0
-    }));
-    await db.collection("settings").doc("practice_catalog").set({
-      bundles: catalogArr,
-      updatedAt: new Date().toISOString()
-    }, { merge: true });
-  } catch (e) {}
   renderPracticeBundlesTable();
 }
 
@@ -350,120 +379,191 @@ window.bulkDeleteSelectedBundles = async function () {
   if (!confirm(`Kya aap selected ${ids.length} bundle(s) ko permanently delete karna chahte hain?`)) return;
   const statusEl = document.getElementById("pbUploadStatus");
   if (statusEl) statusEl.innerText = `Deleting ${ids.length} bundles...`;
-  const batch = db.batch();
-  ids.forEach(id => batch.delete(db.collection("practice_bank_bundles").doc(id)));
-  await batch.commit();
+  for (let i = 0; i < ids.length; i += 400) {
+    const batch = db.batch();
+    ids.slice(i, i + 400).forEach(id => batch.delete(db.collection("practice_bank_bundles").doc(id)));
+    await batch.commit();
+  }
+  cacheBundles = cacheBundles.filter(b => !ids.includes(b.docId));
+  await rebuildFastCatalogIndex(cacheBundles);
   if (statusEl) { statusEl.style.color = "#166534"; statusEl.innerText = `Deleted ${ids.length} bundle(s) successfully!`; }
-  loadedTabs["practice"] = false;
-  loadTabOnDemand("practice");
+  renderPracticeBundlesTable();
 };
 
 window.bulkDeleteFilteredBundles = async function () {
+  const secFilter = document.getElementById("pbFilterSection")?.value || "all";
   const q = (document.getElementById("pbSearchBox")?.value || "").trim().toLowerCase();
-  const targetList = q
-    ? cacheBundles.filter(b => (b.subject || "").toLowerCase().includes(q) || (b.topic || "").toLowerCase().includes(q) || (b.docId || "").toLowerCase().includes(q))
+  const targetList = (q || secFilter !== "all")
+    ? cacheBundles.filter(b => {
+        const matchSec = secFilter === "all" || (b.section || "practice") === secFilter;
+        const matchQ = !q || (b.subject || "").toLowerCase().includes(q) || (b.topic || "").toLowerCase().includes(q) || (b.docId || "").toLowerCase().includes(q);
+        return matchSec && matchQ;
+      })
     : lastRenderedPbList;
   if (!targetList.length) { alert("Delete karne ke liye koi bundle list mein nahi hai."); return; }
   if (!confirm(`Kya aap in sabhi ${targetList.length} matching bundle(s) ko ek saath delete karna chahte hain?`)) return;
   const statusEl = document.getElementById("pbUploadStatus");
   if (statusEl) statusEl.innerText = `Bulk deleting ${targetList.length} bundles...`;
+  const delIds = new Set(targetList.map(b => b.docId));
   for (let i = 0; i < targetList.length; i += 400) {
     const batch = db.batch();
     targetList.slice(i, i + 400).forEach(b => batch.delete(db.collection("practice_bank_bundles").doc(b.docId)));
     await batch.commit();
   }
+  cacheBundles = cacheBundles.filter(b => !delIds.has(b.docId));
+  await rebuildFastCatalogIndex(cacheBundles);
   if (statusEl) { statusEl.style.color = "#166534"; statusEl.innerText = `Deleted ${targetList.length} bundle(s) successfully!`; }
-  loadedTabs["practice"] = false;
-  loadTabOnDemand("practice");
+  renderPracticeBundlesTable();
 };
 
 window.renderPracticeBundlesTable = function (showAll = false) {
+  const secFilter = document.getElementById("pbFilterSection")?.value || "all";
   const q = (document.getElementById("pbSearchBox")?.value || "").trim().toLowerCase();
   const body = document.getElementById("pbBundlesBody");
   if (!body) return;
   if (document.getElementById("pbSelectAllChk")) document.getElementById("pbSelectAllChk").checked = false;
-  if (!q && !showAll) {
+  if (!q && secFilter === "all" && !showAll) {
     lastRenderedPbList = [];
     updatePbSelectedCount();
-    body.innerHTML = `<tr><td colspan="7" style="color:#64748b;">Total ${cacheBundles.length} question bundle(s) uploaded. Type Subject/Topic above or click "Show All Bundles".</td></tr>`;
+    const totalQs = cacheBundles.reduce((s, b) => s + (Array.isArray(b.questions) ? b.questions.length : Number(b.questionCount || 0)), 0);
+    body.innerHTML = `<tr><td colspan="7" style="color:#64748b;">Total <strong>${cacheBundles.length}</strong> bundle(s) (${totalQs.toLocaleString()} Questions) in database. Filter by Section/Subject or click "Show Bundles".</td></tr>`;
     return;
   }
-  const list = showAll && !q
-    ? cacheBundles
-    : cacheBundles.filter(b => (b.subject || "").toLowerCase().includes(q) || (b.topic || "").toLowerCase().includes(q) || (b.docId || "").toLowerCase().includes(q));
+  const list = cacheBundles.filter(b => {
+    const matchSec = secFilter === "all" || (b.section || "practice") === secFilter;
+    const matchQ = !q || (b.subject || "").toLowerCase().includes(q) || (b.topic || "").toLowerCase().includes(q) || (b.docId || "").toLowerCase().includes(q);
+    return matchSec && matchQ;
+  });
   lastRenderedPbList = list;
   updatePbSelectedCount();
-  body.innerHTML = list.slice(0, 200).map(b => `<tr>
-    <td><input type="checkbox" class="pb-row-chk" value="${b.docId}" onchange="updatePbSelectedCount()" /></td>
-    <td>${b.docId}</td>
-    <td><strong>${b.subject || "-"}</strong></td>
-    <td>${b.topic || "-"}</td>
-    <td>Pack ${b.packNumber || 1}</td>
-    <td>${Array.isArray(b.questions) ? b.questions.length : 0} Qs</td>
-    <td><button class="btn btn-danger btn-sm" onclick="deleteDocAndReload('practice_bank_bundles','${b.docId}','practice')">Delete</button></td>
-  </tr>`).join("") || `<tr><td colspan="7" style="color:#64748b;">No practice bundles found.</td></tr>`;
+  body.innerHTML = list.slice(0, 250).map(b => {
+    const isNcert = (b.section || "practice") === "ncert";
+    const qCnt = Array.isArray(b.questions) ? b.questions.length : Number(b.questionCount || 0);
+    return `<tr>
+      <td><input type="checkbox" class="pb-row-chk" value="${b.docId}" onchange="updatePbSelectedCount()" /></td>
+      <td><span class="tag ${isNcert ? 'tag-ok' : ''}">${isNcert ? 'NCERT' : 'Practice'}</span></td>
+      <td><strong>${b.subject || "-"}</strong></td>
+      <td>${b.topic || "-"}</td>
+      <td>Pack ${b.packNumber || 1}</td>
+      <td>${qCnt} Qs</td>
+      <td><button class="btn btn-danger btn-sm" onclick="deleteDocAndReload('practice_bank_bundles','${b.docId}','practice')">Delete</button></td>
+    </tr>`;
+  }).join("") || `<tr><td colspan="7" style="color:#64748b;">No bundles found.</td></tr>`;
 };
 
 window.uploadPracticeBankExcel = async function () {
   const fileInput = document.getElementById("pbExcelFile");
+  const sectionType = document.getElementById("pbSectionType")?.value || "practice";
   const defSub = document.getElementById("pbDefSubject").value.trim();
   const defTop = document.getElementById("pbDefTopic").value.trim();
   const statusEl = document.getElementById("pbUploadStatus");
+  const btn = document.getElementById("btnUploadPb");
 
   if (!fileInput.files.length) { alert("Please select an Excel or CSV file."); return; }
-  statusEl.innerText = "Reading file...";
+  if (btn) btn.disabled = true;
+  statusEl.style.color = "#1d4ed8";
+  statusEl.innerText = "Reading Excel file...";
 
-  const data = await fileInput.files[0].arrayBuffer();
-  const wb = XLSX.read(data);
-  const rows = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]);
-  if (!rows.length) { statusEl.innerText = "File is empty."; return; }
+  try {
+    const data = await fileInput.files[0].arrayBuffer();
+    const wb = XLSX.read(data);
+    const rows = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]);
+    if (!rows.length) { statusEl.innerText = "File is empty."; return; }
 
-  const grouped = {};
-  rows.forEach(r => {
-    const subj = (r.Subject || defSub || "General").trim();
-    const top = (r.Topic || defTop || "Mixed").trim();
-    const key = subj + "___" + top;
-    if (!grouped[key]) grouped[key] = { subject: subj, topic: top, items: [] };
-    const ansChar = String(r.CorrectOption || r.Answer || "A").trim().toUpperCase();
-    const ansIdx = { A: 0, B: 1, C: 2, D: 3 }[ansChar] ?? 0;
-    const qIdx = grouped[key].items.length + 1;
-    const qEnVal = r.Question || r["Question En"] || r["Question_En"] || "";
-    const qHiVal = r.QuestionHi || r["Question Hi"] || r["Question_Hi"] || "";
-    const expEnVal = r.Explanation || r["Explanation En"] || r["Explanation_En"] || "";
-    const expHiVal = r.ExplanationHi || r["Explanation Hi"] || r["Explanation_Hi"] || "";
-    grouped[key].items.push({
-      id: `${subj}_${top}_q${qIdx}_${Math.random().toString(36).slice(2, 6)}`.replace(/[^a-zA-Z0-9_]/g, "_"),
-      topic: top,
-      q: qEnVal || qHiVal || "",
-      qHi: qHiVal || qEnVal || "",
-      options: [r.OptionA || r.OptionAHi || "", r.OptionB || r.OptionBHi || "", r.OptionC || r.OptionCHi || "", r.OptionD || r.OptionDHi || ""],
-      optionsHi: [r.OptionAHi || r.OptionA || "", r.OptionBHi || r.OptionB || "", r.OptionCHi || r.OptionC || "", r.OptionDHi || r.OptionD || ""],
-      ans: ansIdx,
-      exp: expEnVal || expHiVal || "",
-      expHi: expHiVal || expEnVal || ""
-    });
-  });
-
-  let bundlesCreated = 0;
-  for (const key in grouped) {
-    const grp = grouped[key];
-    for (let i = 0; i < grp.items.length; i += 100) {
-      const chunk = grp.items.slice(i, i + 100);
-      const packNum = Math.floor(i / 100) + 1;
-      const docId = `${grp.subject}_${grp.topic}_pack_${packNum}_${Date.now()}`.replace(/[^a-zA-Z0-9_]/g, "_");
-      await db.collection("practice_bank_bundles").doc(docId).set({
-        subject: grp.subject,
-        topic: grp.topic,
-        packNumber: packNum,
-        questions: chunk,
-        updatedAt: new Date().toISOString()
+    const grouped = {};
+    rows.forEach(r => {
+      const clsPrefix = r.ClassLevel ? `${String(r.ClassLevel).trim()} - ` : "";
+      const rawSub = (r.Subject || defSub || (sectionType === "ncert" ? "NCERT General" : "General")).trim();
+      const subj = clsPrefix && !rawSub.startsWith(clsPrefix) ? `${clsPrefix}${rawSub}` : rawSub;
+      const top = (r.Topic || r.Chapter || defTop || "Mixed").trim();
+      const key = `${sectionType}___${subj}___${top}`;
+      if (!grouped[key]) grouped[key] = { section: sectionType, subject: subj, topic: top, items: [] };
+      const ansChar = String(r.CorrectOption || r.Answer || "A").trim().toUpperCase();
+      const ansIdx = { A: 0, B: 1, C: 2, D: 3 }[ansChar] ?? 0;
+      const qIdx = grouped[key].items.length + 1;
+      const qEnVal = r.Question || r["Question En"] || r["Question_En"] || "";
+      const qHiVal = r.QuestionHi || r["Question Hi"] || r["Question_Hi"] || "";
+      const expEnVal = r.Explanation || r["Explanation En"] || r["Explanation_En"] || "";
+      const expHiVal = r.ExplanationHi || r["Explanation Hi"] || r["Explanation_Hi"] || "";
+      grouped[key].items.push({
+        id: `${sectionType}_${subj}_${top}_q${qIdx}_${Math.random().toString(36).slice(2, 6)}`.replace(/[^a-zA-Z0-9_]/g, "_"),
+        topic: top,
+        q: qEnVal || qHiVal || "",
+        qHi: qHiVal || qEnVal || "",
+        options: [r.OptionA || r.OptionAHi || "", r.OptionB || r.OptionBHi || "", r.OptionC || r.OptionCHi || "", r.OptionD || r.OptionDHi || ""],
+        optionsHi: [r.OptionAHi || r.OptionA || "", r.OptionBHi || r.OptionB || "", r.OptionCHi || r.OptionC || "", r.OptionDHi || r.OptionD || ""],
+        ans: ansIdx,
+        exp: expEnVal || expHiVal || "",
+        expHi: expHiVal || expEnVal || ""
       });
-      bundlesCreated++;
+    });
+
+    const BUNDLE_SIZE = 250;
+    const docsToWrite = [];
+    const ts = Date.now();
+    for (const key in grouped) {
+      const grp = grouped[key];
+      for (let i = 0; i < grp.items.length; i += BUNDLE_SIZE) {
+        const chunk = grp.items.slice(i, i + BUNDLE_SIZE);
+        const packNum = Math.floor(i / BUNDLE_SIZE) + 1;
+        const docId = `${grp.section}_${grp.subject}_${grp.topic}_p${packNum}_${ts}_${docsToWrite.length}`.replace(/[^a-zA-Z0-9_]/g, "_").slice(0, 120);
+        docsToWrite.push({
+          docId,
+          payload: {
+            section: grp.section,
+            subject: grp.subject,
+            topic: grp.topic,
+            packNumber: packNum,
+            questionCount: chunk.length,
+            questions: chunk,
+            updatedAt: new Date().toISOString()
+          }
+        });
+      }
     }
+
+    for (let i = 0; i < docsToWrite.length; i += 100) {
+      statusEl.innerText = `Uploading bundles ${i + 1} to ${Math.min(i + 100, docsToWrite.length)} of ${docsToWrite.length}...`;
+      const batch = db.batch();
+      docsToWrite.slice(i, i + 100).forEach(d => {
+        batch.set(db.collection("practice_bank_bundles").doc(d.docId), d.payload);
+        cacheBundles.push({ docId: d.docId, ...d.payload });
+      });
+      await batch.commit();
+    }
+
+    statusEl.innerText = "Updating fast search catalog...";
+    await rebuildFastCatalogIndex(cacheBundles);
+
+    statusEl.style.color = "#166534";
+    statusEl.innerText = `Uploaded ${rows.length} ${sectionType === "ncert" ? "NCERT" : "Practice"} questions into ${docsToWrite.length} bundle(s)!`;
+    renderPracticeBundlesTable();
+  } catch (err) {
+    statusEl.style.color = "#dc2626";
+    statusEl.innerText = "Upload error: " + err.message;
+  } finally {
+    if (btn) btn.disabled = false;
   }
-  statusEl.style.color = "#166534";
-  statusEl.innerText = `Uploaded ${rows.length} questions into ${bundlesCreated} bundle(s)!`;
-  loadPracticeBundlesData();
+};
+
+window.downloadSampleNcertTemplate = function () {
+  const ws = XLSX.utils.json_to_sheet([
+    {
+      ClassLevel: "Class 10",
+      Subject: "Science",
+      Topic: "Ch 1: Chemical Reactions and Equations",
+      Question: "Which gas is produced when dilute hydrochloric acid reacts with zinc granules?",
+      QuestionHi: "तनु हाइड्रोक्लोरिक अम्ल की जस्ता (ज़िंक) के दानों से अभिक्रिया होने पर कौन सी गैस निकलती है?",
+      OptionA: "Oxygen", OptionB: "Hydrogen", OptionC: "Nitrogen", OptionD: "Carbon Dioxide",
+      OptionAHi: "ऑक्सीजन", OptionBHi: "हाइड्रोजन", OptionCHi: "नाइट्रोजन", OptionDHi: "कार्बन डाइऑक्साइड",
+      CorrectOption: "B",
+      Explanation: "NCERT Class 10 Science Ch-1: Zn + 2HCl → ZnCl2 + H2 (Hydrogen gas is evolved).",
+      ExplanationHi: "NCERT कक्षा 10 विज्ञान अध्याय-1: जस्ता तनु HCl से क्रिया करके हाइड्रोजन (H2) गैस मुक्त करता है।"
+    }
+  ]);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "NCERT_Questions");
+  XLSX.writeFile(wb, "TaiyariGhar_NCERT_Base_Template.xlsx");
 };
 
 window.downloadSamplePracticeTemplate = function () {
@@ -477,16 +577,6 @@ window.downloadSamplePracticeTemplate = function () {
       CorrectOption: "B",
       Explanation: "Ampere (A) is the SI unit of electric current.",
       ExplanationHi: "एम्पियर (A) विद्युत धारा का SI मात्रक है।"
-    },
-    {
-      Subject: "Maths", Topic: "Percentage",
-      Question: "What is 25% of 200?",
-      QuestionHi: "200 का 25% कितना होगा?",
-      OptionA: "25", OptionB: "50", OptionC: "75", OptionD: "100",
-      OptionAHi: "25", OptionBHi: "50", OptionCHi: "75", OptionDHi: "100",
-      CorrectOption: "B",
-      Explanation: "200 × 25 / 100 = 50.",
-      ExplanationHi: "200 × 25 / 100 = 50 होता है।"
     }
   ]);
   const wb = XLSX.utils.book_new();
@@ -1120,6 +1210,12 @@ window.savePricingSettings = async function () {
 window.deleteDocAndReload = async function (col, id, tabToReload) {
   if (!confirm("Delete this item permanently?")) return;
   await db.collection(col).doc(id).delete();
+  if (col === "practice_bank_bundles") {
+    cacheBundles = cacheBundles.filter(b => b.docId !== id);
+    await rebuildFastCatalogIndex(cacheBundles);
+    renderPracticeBundlesTable();
+    return;
+  }
   loadedTabs[tabToReload] = false;
   loadTabOnDemand(tabToReload);
 };
