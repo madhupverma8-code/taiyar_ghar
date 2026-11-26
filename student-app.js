@@ -1549,32 +1549,39 @@ window.openSmartPracticeBank = async function(sectionMode = "practice") {
 
     try {
         // 1. Read lightweight sharded metadata index (supports 10,000+ sets & 10 Lakh+ Qs in <0.5s)
-        const metaSnap = await getDoc(doc(db, "settings", "practice_catalog_meta"));
-        if (metaSnap.exists() && Number(metaSnap.data().shardCount || 0) > 0) {
-            const count = Number(metaSnap.data().shardCount);
-            const shardPromises = [];
-            for (let i = 0; i < count; i++) {
-                shardPromises.push(getDoc(doc(db, "settings", `practice_catalog_shard_${i}`)));
-            }
-            const shardSnaps = await Promise.all(shardPromises);
-            const combined = [];
-            shardSnaps.forEach(s => {
-                if (s.exists() && Array.isArray(s.data().bundles)) {
-                    s.data().bundles.forEach(b => {
-                        combined.push({
-                            bundleId: b.id,
-                            section: b.sec || "practice",
-                            subject: (b.s || "General").trim(),
-                            topic: (b.t || "Mixed").trim(),
-                            packIndex: b.p || 1,
-                            count: Number(b.c || 0)
-                        });
-                    });
+        let combined = [];
+        try {
+            const metaSnap = await getDoc(doc(db, "settings", "practice_catalog_meta"));
+            if (metaSnap.exists() && Number(metaSnap.data().shardCount || 0) > 0) {
+                const count = Number(metaSnap.data().shardCount);
+                const shardPromises = [];
+                for (let i = 0; i < count; i++) {
+                    shardPromises.push(getDoc(doc(db, "settings", `practice_catalog_shard_${i}`)));
                 }
-            });
+                const shardSnaps = await Promise.all(shardPromises);
+                shardSnaps.forEach(s => {
+                    if (s.exists() && Array.isArray(s.data().bundles)) {
+                        s.data().bundles.forEach(b => {
+                            combined.push({
+                                bundleId: b.id,
+                                section: b.sec || "practice",
+                                subject: (b.s || "General").trim(),
+                                topic: (b.t || "Mixed").trim(),
+                                packIndex: b.p || 1,
+                                count: Number(b.c || 0)
+                            });
+                        });
+                    }
+                });
+            }
+        } catch (metaErr) {
+            console.warn("Sharded catalog read skipped:", metaErr);
+        }
+
+        if (combined.length > 0) {
             pbMetaIndex = combined;
         } else {
-            // Fallback for older bundles before sharded index was synced
+            // Automatic fallback: read directly from `practice_bank_bundles` if fast index not synced yet
             const bSnap = await getDocs(collection(db, "practice_bank_bundles"));
             pbMetaIndex = bSnap.docs.map(d => {
                 const data = d.data();

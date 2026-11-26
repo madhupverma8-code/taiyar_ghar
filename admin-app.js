@@ -346,12 +346,23 @@ async function rebuildFastCatalogIndex(existingBundles = null) {
 
 window.rebuildFastCatalogIndex = async function () {
   const statusEl = document.getElementById("pbUploadStatus");
-  if (statusEl) { statusEl.style.color = "#1d4ed8"; statusEl.innerText = "Syncing fast index..."; }
-  const snap = await safeGet("practice_bank_bundles");
-  cacheBundles = snap.docs.map(d => ({ docId: d.id, ...d.data() }));
-  await rebuildFastCatalogIndex(cacheBundles);
-  if (statusEl) { statusEl.style.color = "#166534"; statusEl.innerText = `Fast Index Synced (${cacheBundles.length} bundles)!`; }
-  renderPracticeBundlesTable();
+  try {
+    if (statusEl) { statusEl.style.color = "#1d4ed8"; statusEl.innerText = "Fetching bundles from database..."; }
+    if (!cacheBundles || cacheBundles.length === 0) {
+      const snap = await db.collection("practice_bank_bundles").get();
+      cacheBundles = snap.docs.map(d => ({ docId: d.id, ...d.data() }));
+    }
+    if (statusEl) { statusEl.innerText = `Writing fast index for ${cacheBundles.length} bundle(s)...`; }
+    await rebuildFastCatalogIndex(cacheBundles);
+    if (statusEl) { statusEl.style.color = "#166534"; statusEl.innerText = `Fast Index Synced (${cacheBundles.length} bundles)!`; }
+    renderPracticeBundlesTable();
+  } catch (err) {
+    console.error("Sync Fast Index Error:", err);
+    if (statusEl) {
+      statusEl.style.color = "#dc2626";
+      statusEl.innerText = "Sync Error: " + (err && err.message ? err.message : err);
+    }
+  }
 };
 
 async function loadPracticeBundlesData() {
