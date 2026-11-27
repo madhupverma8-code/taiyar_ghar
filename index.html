@@ -436,6 +436,14 @@
                 </div>
                 <button type="button" class="btn btn-accent" style="padding:10px 16px; font-size:13.5px; white-space:nowrap;">Start NCERT →</button>
             </div>
+            <div class="smart-pb-banner" style="border-color:#FDE68A; background:#FFFBEB;" onclick="openSubjectPyqHub()">
+                <div style="flex:1; min-width:220px;">
+                    <span style="display:inline-block; font-size:11px; font-weight:700; color:#B45309; background:#FEF3C7; border:1px solid #FCD34D; padding:3px 9px; border-radius:6px; margin-bottom:6px;">FREE WITHOUT LOGIN • MULTI-EXAM PYQs</span>
+                    <h2 style="font-size:18px; font-weight:800; color:#78350F; margin:0 0 4px;">📋 Subject-Wise Previous Year Questions</h2>
+                    <p style="font-size:13px; color:#92400E; margin:0;">Green highlighted answers, explanations &amp; exam/year tags across Central &amp; State exams.</p>
+                </div>
+                <button type="button" class="btn" style="background:#D97706; color:#ffffff; padding:10px 16px; font-size:13.5px; white-space:nowrap;">Read Free PYQs →</button>
+            </div>
         </section>
 
         <!-- Exam Categories -->
@@ -457,6 +465,51 @@
     <!-- ===================================================================== -->
     <!-- SINGLE-PAGE INTEGRATED SECTIONS: CONTACT, PRIVACY, TERMS, REFUND      -->
     <!-- ===================================================================== -->
+
+
+    <!-- ===================================================================== -->
+    <!-- SUBJECT-WISE PYQ PUBLIC & FREE VIEWER SCREEN (NO LOGIN REQUIRED)      -->
+    <!-- ===================================================================== -->
+    <div id="pyqHubScreen" class="hide container" style="padding:26px 5%; max-width:1040px; margin:0 auto;">
+        <div style="background:#ffffff; border:1px solid #E2E8F0; border-radius:16px; padding:24px; box-shadow:0 6px 22px rgba(15,23,42,0.05);">
+            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; padding-bottom:14px; border-bottom:1px solid #E2E8F0;">
+                <div>
+                    <span style="background:#FEF3C7; color:#B45309; font-size:11px; font-weight:700; padding:3px 9px; border-radius:6px;">100% FREE • NO LOGIN REQUIRED</span>
+                    <h2 id="pyqHubTitle" style="font-size:21px; font-weight:800; color:#1E1B4B; margin:6px 0 2px;">📋 Subject-Wise Previous Year Questions (PYQs)</h2>
+                    <p style="font-size:13px; color:#64748B; margin:0;">Central &amp; State Exams PYQs with green correct option, detailed explanation &amp; exam/year history.</p>
+                </div>
+                <button class="btn btn-outline" onclick="goHome()">← Back to Home</button>
+            </div>
+
+            <!-- Subject Filter Pills + Search -->
+            <div style="display:flex; gap:8px; flex-wrap:wrap; margin:16px 0 12px;" id="pyqSubjectPills"></div>
+            <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:18px;">
+                <input type="text" id="pyqSearchInput" placeholder="Search question, topic, exam name, or year (e.g., SSC CGL 2024, UP Police)..." style="flex:1; min-width:240px; padding:10px 12px; border:1px solid #CBD5E1; border-radius:8px; font-size:13.5px;" oninput="renderSubjectPyqList()">
+                <button class="btn btn-primary" onclick="renderSubjectPyqList()">Search</button>
+            </div>
+
+            <!-- Centered PYQ Cards Container -->
+            <div id="pyqQuestionsList" style="max-width:780px; margin:0 auto;"></div>
+
+            <!-- First-Time Visitor Conversion & Promo Block Below PYQs -->
+            <div style="max-width:780px; margin:24px auto 0; background:#EEF2FF; border:1.5px solid #C7D2FE; border-radius:14px; padding:20px;">
+                <h3 style="color:#1E1B4B; font-size:16.5px; margin:0 0 6px;">Want Unlimited Practice, Mock Tests &amp; All-India Live Ranks?</h3>
+                <p style="font-size:13px; color:#334155; margin:0 0 14px; line-height:1.6;">
+                    Login or create a free account on TaiyariGhar to practice thousands of topic-wise &amp; mix questions with timer, attempt full-length mock tests, and track your accuracy.
+                </p>
+                <div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:14px;">
+                    <button class="btn btn-primary" onclick="showLogin()">Login / Free Register</button>
+                    <button class="btn btn-accent" onclick="openSmartPracticeBank('practice')">⚡ Unlimited Smart Practice</button>
+                    <button class="btn btn-outline" style="background:#ffffff;" onclick="openLiveTestsHub()">🔴 Live &amp; Mock Tests</button>
+                </div>
+                <div style="background:#ffffff; border:1px solid #E2E8F0; border-radius:10px; padding:6px;">
+                    <a href="javascript:void(0)" onclick="openSmartPracticeBank('practice')" style="display:block;">
+                        <img src="banner-practice-bank.png" alt="Unlimited Smart Practice Bank" style="width:100%; height:auto; border-radius:8px; display:block;" onerror="this.parentElement.parentElement.style.display='none'">
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!-- CONTACT US SECTION -->
     <div id="contactScreen" class="hide">

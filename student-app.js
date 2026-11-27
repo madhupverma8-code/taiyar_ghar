@@ -166,7 +166,7 @@ async function callEmailService(payload) {
 // SCREEN NAVIGATION & DYNAMIC URL ROUTING
 // =========================================================================
 const ALL_SCREENS = [
-    'homeScreen', 'loginScreen', 'registerScreen', 'forgotPasswordScreen',
+    'homeScreen', 'pyqHubScreen', 'loginScreen', 'registerScreen', 'forgotPasswordScreen',
     'dashboardScreen', 'practiceBankScreen', 'subCatScreen', 'caScreen', 'updatesScreen', 'studyNotesScreen', 'referEarnScreen', 'instructionsScreen',
     'testScreen', 'liveSubmittedScreen', 'resultScreen', 'solutionsScreen',
     'contactScreen', 'privacyScreen', 'termsScreen', 'refundScreen'
@@ -1980,6 +1980,9 @@ window.answerPracticeQuestion = function(chosenIdx) {
     document.getElementById('pbExplanationBox').innerHTML = `
         ${statusLine}
         <div>${q.displayExp || "Correct answer is Option " + String.fromCharCode(65 + rightIdx) + "."}</div>
+        <div style="margin-top:12px; padding-top:10px; border-top:1px dashed #CBD5E1; text-align:right;">
+            <button type="button" class="btn btn-outline" style="padding:5px 10px; font-size:12px; color:#B45309; border-color:#FDE68A; background:#FFFBEB;" onclick="reportPracticeQuestionError(${chosenIdx})">⚠️ Report Question</button>
+        </div>
     `;
 
     const wasAlreadyAttempted = !!pbUserProgress.attemptedMap[q.id];
@@ -4144,3 +4147,161 @@ Abhi join karein: ${link}`;
     }
   };
 })();
+
+
+// =========================================================================
+// PRACTICE BANK REPORT QUESTION & SUBJECT-WISE PYQ VIEWER (NO LOGIN REQUIRED)
+// =========================================================================
+window.reportPracticeQuestionError = function (chosenIdx = 0) {
+    const rawQ = pbActiveQuestions && pbActiveQuestions[pbCurrentIndex];
+    if (!rawQ) return;
+    const q = rawQ._norm || normalizePracticeQuestion(rawQ, pbCurrentIndex, pbCurrentTopic);
+    testQuestions = [{
+        qH: q.displayQ || "",
+        qE: q.subQ || q.displayQ || "",
+        uniqueId: q.id || `PB-${pbCurrentIndex + 1}`,
+        opts: (q.displayOpts || []).map((o) => ({ h: o, e: o })),
+        ans: q.rightIdx || 0,
+        exp: q.displayExp || "",
+        marks: 1,
+        neg: 0
+    }];
+    currentQIndex = 0;
+    userAnswers = { 0: chosenIdx };
+    currentTestId = `PB_${pbCurrentSubject || "Practice"}`;
+    currentTestName = `${pbCurrentSubject || "Practice"} — ${q.topic || pbCurrentTopic}`;
+    window.reportCurrentQuestion();
+};
+
+let allPyqItems = [];
+let selectedPyqSubject = "All";
+
+window.openSubjectPyqHub = async function (subjectFilter = "All") {
+    selectedPyqSubject = subjectFilter || "All";
+    showScreen("pyqHubScreen", true);
+    const listEl = document.getElementById("pyqQuestionsList");
+    if (listEl && allPyqItems.length === 0) {
+        listEl.innerHTML = `<div style="text-align:center; padding:24px; color:#4F46E5; font-weight:600;">Loading Subject-Wise Previous Year Questions...</div>`;
+    }
+    try {
+        const base = (window.TAIYARIGHAR_CONFIG?.API_BASE_URL || "https://taiyarighar-api.taiyarighar.workers.dev").replace(/\/+$/, "");
+        const res = await fetch(`${base}/api/pyqs`);
+        const data = await res.json();
+        if (data && data.ok && Array.isArray(data.pyqs)) {
+            allPyqItems = data.pyqs;
+        }
+    } catch (e) {
+        console.warn("PYQ fetch warning:", e);
+    }
+    renderPyqSubjectPills();
+    renderSubjectPyqList();
+};
+
+function renderPyqSubjectPills() {
+    const pillsWrap = document.getElementById("pyqSubjectPills");
+    if (!pillsWrap) return;
+    const subjects = ["All", ...Array.from(new Set(allPyqItems.map((x) => (x.subject || "General").trim()).filter(Boolean)))];
+    pillsWrap.innerHTML = subjects.map((sub) => {
+        const active = selectedPyqSubject === sub;
+        return `<button type="button" class="btn ${active ? "btn-primary" : "btn-outline"}" style="padding:6px 13px; font-size:12.5px;" onclick="selectPyqSubjectPill('${sub.replace(/'/g, "\'")}')">${sub}</button>`;
+    }).join("");
+}
+
+window.selectPyqSubjectPill = function (sub) {
+    selectedPyqSubject = sub;
+    renderPyqSubjectPills();
+    renderSubjectPyqList();
+};
+
+window.renderSubjectPyqList = function () {
+    const listEl = document.getElementById("pyqQuestionsList");
+    if (!listEl) return;
+    const qInput = (document.getElementById("pyqSearchInput")?.value || "").trim().toLowerCase();
+
+    const filtered = allPyqItems.filter((item) => {
+        const matchSub = selectedPyqSubject === "All" || (item.subject || "General") === selectedPyqSubject;
+        const matchText = !qInput ||
+            String(item.question_en || "").toLowerCase().includes(qInput) ||
+            String(item.question_hi || "").toLowerCase().includes(qInput) ||
+            String(item.topic || "").toLowerCase().includes(qInput) ||
+            String(item.exam_year || "").toLowerCase().includes(qInput);
+        return matchSub && matchText;
+    });
+
+    if (!filtered.length) {
+        listEl.innerHTML = `<div style="text-align:center; padding:32px; background:#F8FAFC; border:1px solid #E2E8F0; border-radius:12px; color:#64748B;">
+            No Previous Year Questions found for this filter yet. Check back soon or explore <strong>Unlimited Smart Practice Bank</strong>!
+        </div>`;
+        return;
+    }
+
+    const letters = ["A", "B", "C", "D"];
+    listEl.innerHTML = filtered.map((item, idx) => {
+        const mainQ = (currentLang === "hi" && item.question_hi) ? item.question_hi : (item.question_en || item.question_hi || "");
+        const secQ = (currentLang === "hi" && item.question_en && item.question_en !== item.question_hi)
+            ? item.question_en
+            : ((currentLang !== "hi" && item.question_hi && item.question_hi !== item.question_en) ? item.question_hi : "");
+        const opts = Array.isArray(item.options) ? item.options : [];
+        const rightChar = String(item.correct_option || "A").trim().toUpperCase();
+        const rightIdx = Math.max(0, letters.indexOf(rightChar));
+        const expText = (currentLang === "hi" && item.explanation_hi) ? item.explanation_hi : (item.explanation_en || item.explanation_hi || "Correct answer explanation will be updated soon.");
+        const examList = String(item.exam_year || "").split(/[;,|]+/).map((s) => s.trim()).filter(Boolean);
+
+        return `
+        <article style="background:#ffffff; border:1.5px solid #CBD5E1; border-radius:14px; padding:20px; margin-bottom:18px; box-shadow:0 3px 12px rgba(15,23,42,0.04);">
+            <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:8px; margin-bottom:10px;">
+                <div style="display:flex; gap:6px; flex-wrap:wrap; align-items:center;">
+                    <span style="background:#EEF2FF; color:#4F46E5; font-size:11.5px; font-weight:700; padding:3px 9px; border-radius:6px;">${item.subject || "General"}</span>
+                    ${item.topic ? `<span style="background:#F1F5F9; color:#334155; font-size:11.5px; font-weight:600; padding:3px 9px; border-radius:6px;">${item.topic}</span>` : ""}
+                </div>
+                <button type="button" class="btn btn-outline" style="padding:4px 9px; font-size:11.5px; color:#B45309; border-color:#FDE68A; background:#FFFBEB;" onclick="openPyqErrorReport('${String(item.pyq_id || idx).replace(/'/g, "\'")}')">⚠️ Report Error</button>
+            </div>
+
+            ${examList.length ? `
+            <div style="margin-bottom:12px; padding:8px 12px; background:#F8FAFC; border-left:3px solid #0F766E; border-radius:6px; font-size:12.5px; color:#0F172A;">
+                <strong>Asked in Exam(s):</strong> ${examList.map((ex) => `<span style="display:inline-block; background:#CCFBF1; color:#115E59; font-weight:700; padding:2px 8px; border-radius:5px; margin:2px 4px 2px 0;">${ex}</span>`).join("")}
+            </div>` : ""}
+
+            <div style="font-size:16px; font-weight:700; color:#0F172A; line-height:1.6;">Q${idx + 1}. ${mainQ}</div>
+            ${secQ ? `<div style="font-size:14px; color:#475569; margin-top:4px; line-height:1.55;">${secQ}</div>` : ""}
+
+            <div style="margin-top:14px; display:grid; gap:8px;">
+                ${[0, 1, 2, 3].map((oIdx) => {
+                    const rawOpt = opts[oIdx];
+                    const optLabel = typeof rawOpt === "object"
+                        ? ((currentLang === "hi" && rawOpt.hi) ? rawOpt.hi : (rawOpt.en || rawOpt.hi || ""))
+                        : String(rawOpt || "");
+                    if (!optLabel) return "";
+                    const isRight = oIdx === rightIdx;
+                    return `<div style="padding:10px 14px; border-radius:9px; border:1.5px solid ${isRight ? "#10B981" : "#E2E8F0"}; background:${isRight ? "#ECFDF5" : "#F8FAFC"}; color:${isRight ? "#065F46" : "#1E293B"}; font-weight:${isRight ? "700" : "500"}; font-size:14px;">
+                        <strong>${letters[oIdx]}.</strong> ${optLabel} ${isRight ? '<span style="float:right; color:#059669;">✅ Correct Answer</span>' : ""}
+                    </div>`;
+                }).join("")}
+            </div>
+
+            <div style="margin-top:14px; padding:14px 16px; background:#F0FDF4; border:1px solid #A7F3D0; border-radius:10px; font-size:13.5px; color:#064E3B; line-height:1.65;">
+                <strong>💡 Explanation:</strong><br>${expText}
+            </div>
+        </article>`;
+    }).join("");
+};
+
+window.openPyqErrorReport = function (pyqId) {
+    const item = allPyqItems.find((x) => String(x.pyq_id) === String(pyqId));
+    if (!item) return;
+    testQuestions = [{
+        qH: item.question_hi || item.question_en || "",
+        qE: item.question_en || item.question_hi || "",
+        uniqueId: item.pyq_id || "PYQ",
+        opts: (item.options || []).map((o) => ({ h: typeof o === "object" ? (o.hi || o.en || "") : String(o), e: typeof o === "object" ? (o.en || o.hi || "") : String(o) })),
+        ans: Math.max(0, ["A", "B", "C", "D"].indexOf(String(item.correct_option || "A").trim().toUpperCase())),
+        exp: item.explanation_en || item.explanation_hi || "",
+        marks: 1,
+        neg: 0
+    }];
+    currentQIndex = 0;
+    userAnswers = {};
+    currentTestId = `PYQ_${item.subject || "General"}`;
+    currentTestName = `${item.subject || "PYQ"} (${item.exam_year || ""})`;
+    window.reportCurrentQuestion();
+};

@@ -1736,3 +1736,127 @@ window.exportAllDataExcel = async function (type) {
     }
   };
 })();
+
+
+// =========================================================================
+// SUBJECT-WISE PYQ BULK UPLOADER IN ADMIN TAB 4 (CLOUDFLARE D1)
+// =========================================================================
+(function initAdminPyqUploader() {
+  const hostTab = document.getElementById("tab-practice");
+  if (!hostTab || document.getElementById("pyqBulkUploaderCard")) return;
+
+  const card = document.createElement("div");
+  card.id = "pyqBulkUploaderCard";
+  card.className = "panel-card";
+  card.innerHTML = `
+    <h3>Subject-Wise Previous Year Questions (PYQs) Bulk Uploader (Cloudflare D1)</h3>
+    <p style="color:#64748b; margin-bottom:10px;">Upload Excel/CSV with columns: <strong>Subject, Topic, ExamYear</strong> (e.g., <em>SSC CGL 2024; UP Police 2024</em>), <strong>Question, QuestionHi, OptionA..D, OptionAHi..DHi, CorrectOption, Explanation, ExplanationHi</strong>. Students can read these free with green answers &amp; explanations even without login.</p>
+    <div class="form-row">
+      <div><label>Default Subject (if column empty)</label><input type="text" id="pyqDefSubject" placeholder="e.g., History, Polity, General Hindi" /></div>
+      <div><label>Default Topic (if column empty)</label><input type="text" id="pyqDefTopic" placeholder="e.g., Modern History, Fundamental Rights" /></div>
+      <div><label>Default Exam &amp; Year (if column empty)</label><input type="text" id="pyqDefExamYear" placeholder="e.g., SSC CGL 2024" /></div>
+      <div><label>Select PYQ Excel / CSV File *</label><input type="file" id="pyqExcelFile" accept=".xlsx,.xls,.csv" /></div>
+    </div>
+    <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
+      <button type="button" class="btn btn-primary" id="btnUploadPyqs" onclick="uploadSubjectPyqExcel()">Upload PYQs to D1</button>
+      <button type="button" class="btn btn-outline" onclick="downloadSamplePyqTemplate()">Download PYQ Template (.xlsx)</button>
+      <span id="pyqUploadStatus" style="font-weight:600;"></span>
+    </div>
+  `;
+  hostTab.appendChild(card);
+
+  window.downloadSamplePyqTemplate = function () {
+    const ws = XLSX.utils.json_to_sheet([{
+      Subject: "Indian Polity",
+      Topic: "Fundamental Rights",
+      ExamYear: "SSC CGL 2024; UP Police Constable 2024",
+      Question: "Which article of the Indian Constitution abolishes untouchability?",
+      QuestionHi: "भारतीय संविधान का कौन सा अनुच्छेद अस्पृश्यता का अंत करता है?",
+      OptionA: "Article 15", OptionB: "Article 17", OptionC: "Article 19", OptionD: "Article 21",
+      OptionAHi: "अनुच्छेद 15", OptionBHi: "अनुच्छेद 17", OptionCHi: "अनुच्छेद 19", OptionDHi: "अनुच्छेद 21",
+      CorrectOption: "B",
+      Explanation: "Article 17 abolishes untouchability and forbids its practice in any form.",
+      ExplanationHi: "अनुच्छेद 17 अस्पृश्यता को समाप्त करता है और इसके किसी भी रूप में आचरण को निषिद्ध करता है।"
+    }]);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "PYQ_Questions");
+    XLSX.writeFile(wb, "TaiyariGhar_SubjectWise_PYQ_Template.xlsx");
+  };
+
+  window.uploadSubjectPyqExcel = async function () {
+    const fileInput = document.getElementById("pyqExcelFile");
+    const defSub = document.getElementById("pyqDefSubject")?.value.trim() || "General";
+    const defTop = document.getElementById("pyqDefTopic")?.value.trim() || "Mixed";
+    const defExam = document.getElementById("pyqDefExamYear")?.value.trim() || "";
+    const statusEl = document.getElementById("pyqUploadStatus");
+    const btn = document.getElementById("btnUploadPyqs");
+
+    if (!fileInput || !fileInput.files.length) {
+      alert("Please select a PYQ Excel or CSV file.");
+      return;
+    }
+    if (!window.TG_ADMIN_API?.bulkUploadPyqs) {
+      alert("TG_ADMIN_API PYQ method missing.");
+      return;
+    }
+
+    if (btn) btn.disabled = true;
+    statusEl.style.color = "#1d4ed8";
+    statusEl.innerText = "Reading PYQ file...";
+
+    try {
+      const data = await fileInput.files[0].arrayBuffer();
+      const wb = XLSX.read(data);
+      const rows = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]);
+      if (!rows.length) {
+        statusEl.innerText = "File is empty.";
+        return;
+      }
+
+      const ts = Date.now();
+      const formatted = rows.map((r, idx) => {
+        const qEn = String(r.Question || r["Question En"] || r.QuestionHi || "").trim();
+        const qHi = String(r.QuestionHi || r["Question Hi"] || r.Question || "").trim();
+        const expEn = String(r.Explanation || r["Explanation En"] || r.ExplanationHi || "").trim();
+        const expHi = String(r.ExplanationHi || r["Explanation Hi"] || r.Explanation || "").trim();
+        const ansChar = String(r.CorrectOption || r.Answer || "A").trim().toUpperCase();
+        return {
+          pyq_id: `pyq_${ts}_${idx + 1}`,
+          subject: String(r.Subject || defSub).trim(),
+          topic: String(r.Topic || r.Chapter || defTop).trim(),
+          exam_year: String(r.ExamYear || r["Exam / Year"] || defExam).trim(),
+          question_en: qEn,
+          question_hi: qHi,
+          options: [
+            { en: String(r.OptionA || "").trim(), hi: String(r.OptionAHi || r.OptionA || "").trim() },
+            { en: String(r.OptionB || "").trim(), hi: String(r.OptionBHi || r.OptionB || "").trim() },
+            { en: String(r.OptionC || "").trim(), hi: String(r.OptionCHi || r.OptionC || "").trim() },
+            { en: String(r.OptionD || "").trim(), hi: String(r.OptionDHi || r.OptionD || "").trim() }
+          ],
+          correct_option: ["A", "B", "C", "D"].includes(ansChar) ? ansChar : "A",
+          explanation_en: expEn,
+          explanation_hi: expHi
+        };
+      });
+
+      const CHUNK = 100;
+      let uploaded = 0;
+      for (let i = 0; i < formatted.length; i += CHUNK) {
+        const slice = formatted.slice(i, i + CHUNK);
+        statusEl.innerText = `Uploading PYQs ${i + 1} to ${Math.min(i + CHUNK, formatted.length)} of ${formatted.length} to D1...`;
+        const resp = await window.TG_ADMIN_API.bulkUploadPyqs(slice);
+        if (!resp || !resp.ok) throw new Error((resp && resp.error) || "PYQ upload failed");
+        uploaded += Number(resp.inserted || slice.length);
+      }
+
+      statusEl.style.color = "#166534";
+      statusEl.innerText = `✅ Cloudflare D1 में ${uploaded} Subject-Wise PYQs Upload हो गए!`;
+      fileInput.value = "";
+    } catch (err) {
+      statusEl.style.color = "#dc2626";
+      statusEl.innerText = "Error: " + (err.message || err);
+    } finally {
+      if (btn) btn.disabled = false;
+    }
+  };
+})();

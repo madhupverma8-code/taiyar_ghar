@@ -30,6 +30,8 @@
     bulkUploadBundle: (bundle, questions) => adminPost("/api/bundles/bulk", { bundle, questions }),
     deleteBundles: (bundleIds) => adminPost("/api/bundles/delete", { bundle_ids: bundleIds }),
     saveMockTest: (payload) => adminPost("/api/tests", payload),
+    bulkUploadPyqs: (pyqs) => adminPost("/api/pyqs/bulk", { pyqs }),
+    deletePyqs: (pyqIds) => adminPost("/api/pyqs/delete", { pyq_ids: pyqIds }),
     deleteMockTest: (testId) => adminPost("/api/tests/delete", { test_id: testId }),
     getTests: async (testId = "") => {
       const url = new URL(BASE + "/api/tests");
