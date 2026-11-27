@@ -47,7 +47,38 @@ let forgotOtpExpiry = 0;
 let forgotTargetDocId = "";
 let forgotTargetEmail = "";
 
-let testQuestions = [], currentQIndex = 0, userAnswers = {}, markedForReview = {}, visitedQuestions = {};
+let testQuestions = [], currentQIndex = 0, userAnswers = {}, markedForReview = {}, visitedQuestions = {}, questionTimeMap = {};
+let cbtQuestionTimerInterval = null, cbtCurrentQSeconds = 0;
+
+function flushCurrentCbtQuestionTime() {
+    if (testQuestions && testQuestions.length > 0 && currentQIndex >= 0) {
+        questionTimeMap[currentQIndex] = (questionTimeMap[currentQIndex] || 0) + cbtCurrentQSeconds;
+    }
+    cbtCurrentQSeconds = 0;
+}
+
+function startCbtQuestionStopwatch() {
+    clearInterval(cbtQuestionTimerInterval);
+    cbtCurrentQSeconds = 0;
+    const prevSec = questionTimeMap[currentQIndex] || 0;
+    const el = document.getElementById('cbtQuestionTimer');
+    if (el) {
+        const m = String(Math.floor(prevSec / 60)).padStart(2, '0');
+        const s = String(prevSec % 60).padStart(2, '0');
+        el.innerText = `${m}:${s}`;
+    }
+    cbtQuestionTimerInterval = setInterval(() => {
+        cbtCurrentQSeconds++;
+        const totalQSec = (questionTimeMap[currentQIndex] || 0) + cbtCurrentQSeconds;
+        const badge = document.getElementById('cbtQuestionTimer');
+        if (badge) {
+            const m = String(Math.floor(totalQSec / 60)).padStart(2, '0');
+            const s = String(totalQSec % 60).padStart(2, '0');
+            badge.innerText = `${m}:${s}`;
+            badge.style.color = totalQSec > 120 ? '#DC2626' : '#3730A3';
+        }
+    }, 1000);
+}
 let timerInterval, liveCountdownInterval, timeLeft = 0, totalTime = 0;
 let currentTestId = "", currentTestName = "", currentTestMarks = 0, currentTestNegMark = 0, currentTestPosMark = 1, currentTestLanguage = "Both";
 let isCurrentTestLive = false, currentLiveEndTime = "";
@@ -2942,12 +2973,14 @@ async function initTest(testId, testName, duration, marks, negMark, hasNeg, lang
                         opts: optsArray,
                         ans: newAnsIndex,
                         exp: qData.explanation || "No explanation provided.",
+                        section: qData.section || qData.subject || "",
+                        subject: qData.subject || qData.section || "",
                         marks: qPos,
                         neg: qNeg
                     };
                 });
 
-                totalTime = duration * 60; timeLeft = totalTime; currentQIndex = 0; userAnswers = {}; markedForReview = {}; visitedQuestions = {};
+                totalTime = duration * 60; timeLeft = totalTime; currentQIndex = 0; userAnswers = {}; markedForReview = {}; visitedQuestions = {}; questionTimeMap = {};
             }
 
             const container = document.getElementById('paletteContainer'); container.innerHTML = '';
@@ -2958,6 +2991,7 @@ async function initTest(testId, testName, duration, marks, negMark, hasNeg, lang
 
             hideProcessing();
             showScreen('testScreen');
+            initCbtSectionalTimer(testQuestions, totalTime);
             loadQuestion();
             startTimer();
         } else {
@@ -2997,6 +3031,7 @@ function startTimer() {
     clearInterval(timerInterval); const timerEl = document.getElementById('timerDisplay'); timerEl.classList.remove('timer-danger');
     timerInterval = setInterval(() => {
         timeLeft--; if(timeLeft % 5 === 0) saveProgress();
+        tickSectionalTimerOneSec();
         let h = Math.floor(timeLeft / 3600), m = Math.floor((timeLeft % 3600) / 60), s = timeLeft % 60;
         timerEl.innerText = `${h>0?h+':':''}${m < 10 ? '0'+m : m}:${s < 10 ? '0'+s : s}`;
         if(timeLeft <= (totalTime * 0.2) && timeLeft > 0) timerEl.classList.add('timer-danger');
@@ -3061,6 +3096,7 @@ function loadQuestion() {
     document.getElementById('btnPrev').style.opacity = (currentQIndex === 0) ? '0.5' : '1';
     document.getElementById('btnNext').innerText = currentQIndex === testQuestions.length - 1 ? "Save & Review" : "Save & Next →";
     updatePalette();
+    startCbtQuestionStopwatch();
 }
 
 function updatePalette() {
@@ -3210,8 +3246,8 @@ window.submitStructuredQuestionReport = async function() {
     }
 };
 
-window.nextQuestion = function() { saveProgress(); if (currentQIndex < testQuestions.length - 1) { currentQIndex++; loadQuestion(); } else showSubmitModal(); };
-window.prevQuestion = function() { saveProgress(); if (currentQIndex > 0) { currentQIndex--; loadQuestion(); } };
+window.nextQuestion = function() { flushCurrentCbtQuestionTime(); saveProgress(); if (currentQIndex < testQuestions.length - 1) { currentQIndex++; loadQuestion(); } else showSubmitModal(); };
+window.prevQuestion = function() { flushCurrentCbtQuestionTime(); saveProgress(); if (currentQIndex > 0) { currentQIndex--; loadQuestion(); } };
 window.toggleMark = function() { markedForReview[currentQIndex] = !markedForReview[currentQIndex]; saveProgress(); loadQuestion(); };
 window.clearResponse = function() { delete userAnswers[currentQIndex]; saveProgress(); loadQuestion(); };
 window.toggleFullScreen = function() {
@@ -3243,6 +3279,8 @@ window.closeSubmitModal = function() { document.getElementById('submitModal').cl
 
 window.finalSubmitTest = async function() {
     if (isTestSubmitting && currentScreen !== 'testScreen') return;
+    flushCurrentCbtQuestionTime();
+    clearInterval(cbtQuestionTimerInterval);
     isTestSubmitting = true;
     closeSubmitModal();
     clearInterval(timerInterval);
@@ -3300,6 +3338,7 @@ window.finalSubmitTest = async function() {
         isLivePending: Boolean(isCurrentTestLive),
         liveEndTime: currentLiveEndTime || "",
         userAnswers: { ...userAnswers },
+        questionTimeMap: { ...questionTimeMap },
         testQuestionsState: cleanQuestionsState
     };
 
@@ -3311,6 +3350,8 @@ window.finalSubmitTest = async function() {
         document.getElementById('liveReleaseTimeDisplay').innerText = formatDateTimeReadable(currentLiveEndTime);
     } else {
         showScreen('resultScreen');
+        renderCbtTimeHeatmap(testQuestions, userAnswers, questionTimeMap);
+        saveMistakesToNotebook(currentTestName, testQuestions, userAnswers, questionTimeMap);
         document.getElementById('resTestName').innerText = currentTestName;
         document.getElementById('finalScore').innerText = score.toFixed(2);
         document.getElementById('totalScore').innerText = currentTestMarks;
@@ -3377,8 +3418,9 @@ window.viewPastAnalysis = async function(testId) {
         return alert(`⏳ Live Test results are locked until ${formatDateTimeReadable(res.liveEndTime)}.`);
     }
 
-    testQuestions = res.testQuestionsState || []; userAnswers = res.userAnswers || {}; currentTestLanguage = "Both"; currentTestName = res.testName;
+    testQuestions = res.testQuestionsState || []; userAnswers = res.userAnswers || {}; questionTimeMap = res.questionTimeMap || {}; currentTestLanguage = "Both"; currentTestName = res.testName;
     showScreen('resultScreen');
+    renderCbtTimeHeatmap(testQuestions, userAnswers, questionTimeMap);
 
     document.getElementById('resTestName').innerText = res.testName;
     document.getElementById('finalScore').innerText = res.finalScore;
@@ -4550,3 +4592,218 @@ window.toggleDarkMode = function () {
         }
     } catch (e) {}
 })();
+
+
+// =========================================================================
+// PER-QUESTION TIME HEATMAP, MISTAKE NOTEBOOK & QUIZ CHALLENGE LINK
+// =========================================================================
+function renderCbtTimeHeatmap(qList, ansMap, timeMap) {
+    const grid = document.getElementById('cbtTimeHeatmapGrid');
+    const badge = document.getElementById('heatmapSummaryBadge');
+    if (!grid) return;
+
+    const totalQ = Array.isArray(qList) ? qList.length : 0;
+    let totalSec = 0;
+    let slowCount = 0;
+    let html = "";
+
+    for (let i = 0; i < totalQ; i++) {
+        const sec = Number((timeMap && timeMap[i]) || 0);
+        totalSec += sec;
+        if (sec > 120) slowCount++;
+        const qObj = qList[i] || {};
+        const uAns = ansMap ? ansMap[i] : undefined;
+        const isRight = uAns !== undefined && uAns === qObj.ans;
+
+        let bg = "#F1F5F9";
+        let border = "#CBD5E1";
+        let color = "#475569";
+        if (uAns !== undefined) {
+            if (sec > 120) {
+                bg = "#FEE2E2"; border = "#EF4444"; color = "#991B1B";
+            } else if (sec > 45) {
+                bg = "#FEF3C7"; border = "#F59E0B"; color = "#92400E";
+            } else if (isRight) {
+                bg = "#D1FAE5"; border = "#10B981"; color = "#065F46";
+            } else {
+                bg = "#FEF2F2"; border = "#F87171"; color = "#991B1B";
+            }
+        }
+        html += `<div title="Q${i + 1}: ${sec}s${sec > 120 ? ' (>2m Slow)' : ''}" style="background:${bg}; border:1.5px solid ${border}; color:${color}; border-radius:8px; padding:6px 4px; text-align:center; font-size:11.5px; font-weight:700;">
+            <div>Q${i + 1}</div>
+            <div style="font-size:10.5px;">${sec}s</div>
+        </div>`;
+    }
+
+    grid.innerHTML = html || `<div style="color:#64748B; font-size:12px;">No per-question timing recorded for this test.</div>`;
+    const avgSec = totalQ > 0 ? Math.round(totalSec / totalQ) : 0;
+    if (badge) {
+        badge.innerText = `Avg: ${avgSec}s/Q • Slow (>2m): ${slowCount} Qs`;
+    }
+}
+
+function saveMistakesToNotebook(tName, qList, ansMap, timeMap) {
+    if (!Array.isArray(qList)) return;
+    try {
+        const key = "tg_mistake_notebook_" + (currentStudent.loginId || "guest");
+        const existing = JSON.parse(localStorage.getItem(key) || "[]");
+        const newItems = [];
+        qList.forEach((q, idx) => {
+            const uAns = ansMap ? ansMap[idx] : undefined;
+            const sec = Number((timeMap && timeMap[idx]) || 0);
+            const isWrong = uAns !== undefined && uAns !== q.ans;
+            if (isWrong || sec > 120) {
+                newItems.push({
+                    testName: tName,
+                    qText: q.qH || q.qE || "",
+                    exp: q.exp || "",
+                    timeSec: sec,
+                    reason: isWrong ? "Wrong Answer" : "Slow (>2 mins)",
+                    savedAt: new Date().toISOString()
+                });
+            }
+        });
+        const merged = [...newItems, ...existing].slice(0, 80);
+        localStorage.setItem(key, JSON.stringify(merged));
+    } catch (e) {}
+}
+
+window.openMistakeNotebook = function () {
+    const modal = document.getElementById("mistakeNotebookModal");
+    const body = document.getElementById("mistakeNotebookBody");
+    if (!modal || !body) return;
+
+    const key = "tg_mistake_notebook_" + (currentStudent.loginId || "guest");
+    let items = [];
+    try { items = JSON.parse(localStorage.getItem(key) || "[]"); } catch (e) {}
+
+    if (!items.length) {
+        body.innerHTML = `<div style="padding:24px; text-align:center; background:#F8FAFC; border-radius:12px; color:#64748B;">
+            Abhi tak koi galat ya &gt;2 min slow question notebook mein save nahi hua hai. Mock test ya practice attempt karte hi yahan auto-save ho jayega.
+        </div>`;
+    } else {
+        body.innerHTML = items.slice(0, 25).map((it, idx) => `
+            <div style="border:1px solid #E2E8F0; border-left:4px solid ${it.reason.includes('Wrong') ? '#EF4444' : '#F59E0B'}; border-radius:10px; padding:14px; margin-bottom:10px; background:#F8FAFC;">
+                <div style="display:flex; justify-content:space-between; gap:8px; font-size:11.5px; color:#64748B; margin-bottom:5px;">
+                    <strong>#${idx + 1} • ${it.testName || "Mock Test"}</strong>
+                    <span style="font-weight:700; color:#1E1B4B;">${it.reason} (${it.timeSec || 0}s)</span>
+                </div>
+                <div style="font-weight:600; color:#0F172A; margin-bottom:6px;">${it.qText}</div>
+                ${it.exp ? `<div style="font-size:12.5px; color:#065F46; background:#ECFDF5; padding:8px 10px; border-radius:7px;"><b>Solution:</b> ${it.exp}</div>` : ""}
+            </div>
+        `).join("");
+    }
+    modal.classList.remove("hide");
+};
+
+window.shareQuizChallengeLink = function () {
+    const code = currentStudent.loginId || "TG0001";
+    const link = `https://taiyarighar.in/?ref=${encodeURIComponent(code)}`;
+    const msg = `⚔️ TaiyariGhar Quiz Challenge!
+
+Maine abhi mock test/practice diya hai. Kya tum mera score aur speed beat kar sakte ho?
+
+Join here: ${link}`;
+    window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, "_blank");
+};
+
+
+// =========================================================================
+// SSC / BANKING STYLE SECTIONAL TIMER ENGINE (Alongside Per-Question Timer)
+// =========================================================================
+let cbtSections = [];
+let cbtActiveSectionIdx = 0;
+let cbtSectionRemainingSec = {};
+let cbtSectionalTimerActive = false;
+
+function initCbtSectionalTimer(qList, totalDurationSec) {
+    clearInterval(cbtSectionalTimerActive);
+    cbtSections = [];
+    cbtActiveSectionIdx = 0;
+    cbtSectionRemainingSec = {};
+
+    const rawSecs = (Array.isArray(qList) ? qList : [])
+        .map(q => String(q.section || q.subject || "").trim())
+        .filter(Boolean);
+
+    const uniqueSecs = Array.from(new Set(rawSecs));
+    const secBadge = document.getElementById("cbtSectionalTimerBadge");
+    const secBar = document.getElementById("cbtSectionTabsBar");
+
+    // Activate sectional timer automatically when 2+ sections exist in the test
+    if (uniqueSecs.length >= 2) {
+        cbtSections = uniqueSecs;
+        const perSec = Math.max(60, Math.floor(totalDurationSec / uniqueSecs.length));
+        uniqueSecs.forEach((sName, i) => {
+            cbtSectionRemainingSec[i] = (i === uniqueSecs.length - 1)
+                ? Math.max(60, totalDurationSec - perSec * (uniqueSecs.length - 1))
+                : perSec;
+        });
+        cbtSectionalTimerActive = true;
+        if (secBadge) secBadge.classList.remove("hide");
+        if (secBar) secBar.classList.remove("hide");
+        renderCbtSectionTabsBar();
+        updateSectionalTimerDisplay();
+    } else {
+        cbtSectionalTimerActive = false;
+        if (secBadge) secBadge.classList.add("hide");
+        if (secBar) {
+            secBar.classList.add("hide");
+            secBar.innerHTML = "";
+        }
+    }
+}
+
+function renderCbtSectionTabsBar() {
+    const secBar = document.getElementById("cbtSectionTabsBar");
+    if (!secBar || !cbtSectionalTimerActive) return;
+    secBar.innerHTML = cbtSections.map((name, idx) => {
+        const active = idx === cbtActiveSectionIdx;
+        const rem = Math.max(0, cbtSectionRemainingSec[idx] || 0);
+        const mm = String(Math.floor(rem / 60)).padStart(2, "0");
+        const ss = String(rem % 60).padStart(2, "0");
+        return `<span style="padding:4px 10px; border-radius:6px; font-weight:700; background:${active ? '#4F46E5' : '#ffffff'}; color:${active ? '#ffffff' : '#334155'}; border:1px solid ${active ? '#4F46E5' : '#CBD5E1'};">
+            ${name} (${mm}:${ss})
+        </span>`;
+    }).join("");
+}
+
+function updateSectionalTimerDisplay() {
+    if (!cbtSectionalTimerActive || !cbtSections.length) return;
+    const secName = cbtSections[cbtActiveSectionIdx] || "Section";
+    const rem = Math.max(0, cbtSectionRemainingSec[cbtActiveSectionIdx] || 0);
+    const mm = String(Math.floor(rem / 60)).padStart(2, "0");
+    const ss = String(rem % 60).padStart(2, "0");
+
+    const nameEl = document.getElementById("cbtSectionNameLabel");
+    const dispEl = document.getElementById("cbtSectionTimerDisplay");
+    if (nameEl) nameEl.innerText = secName;
+    if (dispEl) dispEl.innerText = `${mm}:${ss}`;
+    renderCbtSectionTabsBar();
+}
+
+function tickSectionalTimerOneSec() {
+    if (!cbtSectionalTimerActive || !cbtSections.length) return;
+    const curRem = cbtSectionRemainingSec[cbtActiveSectionIdx] ?? 0;
+    if (curRem > 1) {
+        cbtSectionRemainingSec[cbtActiveSectionIdx] = curRem - 1;
+        updateSectionalTimerDisplay();
+    } else {
+        cbtSectionRemainingSec[cbtActiveSectionIdx] = 0;
+        if (cbtActiveSectionIdx < cbtSections.length - 1) {
+            flushCurrentCbtQuestionTime();
+            cbtActiveSectionIdx++;
+            const targetSecName = cbtSections[cbtActiveSectionIdx];
+            const firstIdxInSec = testQuestions.findIndex(q => String(q.section || q.subject || "").trim() === targetSecName);
+            if (firstIdxInSec >= 0) {
+                currentQIndex = firstIdxInSec;
+                loadQuestion();
+            }
+            updateSectionalTimerDisplay();
+            alert(`⏱️ ${cbtSections[cbtActiveSectionIdx - 1]} ka sectional time poora ho gaya hai! Ab ${targetSecName} section shuru ho raha hai.`);
+        } else {
+            updateSectionalTimerDisplay();
+            finalSubmitTest();
+        }
+    }
+}

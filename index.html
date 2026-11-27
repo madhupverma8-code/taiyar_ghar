@@ -537,6 +537,21 @@
             </div>
         </section>
 
+        <!-- Sunday Maha-Muqabla & Free PYQs Strip on Home -->
+        <section class="container" style="padding: 18px 5% 0;">
+            <div style="background:linear-gradient(135deg, #EEF2FF 0%, #F0FDF4 100%); border:1.5px solid #C7D2FE; border-radius:14px; padding:16px 22px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
+                <div>
+                    <span style="background:#4F46E5; color:#ffffff; font-size:11px; font-weight:700; padding:2px 9px; border-radius:6px;">WEEKLY FREE LIVE + PER-Q TIMER</span>
+                    <strong style="color:#1E1B4B; font-size:15.5px; margin-left:6px;">🏆 Sunday Maha-Muqabla &amp; Per-Question Time Heatmap</strong>
+                    <div style="font-size:12.5px; color:#334155; margin-top:3px;">Every question tracks exact seconds spent, flags >2 min slow questions, and saves mistakes for quick revision.</div>
+                </div>
+                <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                    <button class="btn btn-primary" style="padding:8px 15px; font-size:12.5px;" onclick="openSubjectPyqHub()">📋 Free Subject PYQs</button>
+                    <button class="btn btn-accent" style="padding:8px 15px; font-size:12.5px;" onclick="openLiveTestsHub()">🔴 Live Tests</button>
+                </div>
+            </div>
+        </section>
+
         <!-- Exam Categories -->
         <section id="homeCategories" class="container" style="padding: 35px 5% 28px;">
             <h2 class="section-title" data-translate="sec_cats">🎯 Exam Categories</h2>
@@ -857,6 +872,24 @@
             </div>
             </div>
 
+            <!-- Mistake Notebook, Weak-Topic Generator & Quiz Challenge Row -->
+            <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(280px, 1fr)); gap:14px; margin-bottom:22px;">
+                <div style="background:#EEF2FF; border:1.5px solid #C7D2FE; border-radius:14px; padding:16px 20px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+                    <div>
+                        <strong style="color:#1E1B4B; font-size:15px;">📓 Mistake Notebook &amp; Weak Topics</strong>
+                        <div style="font-size:12px; color:#334155; margin-top:2px;">Revise wrong &amp; >2-min slow questions + spot weak topics.</div>
+                    </div>
+                    <button class="btn btn-primary" style="padding:8px 14px; font-size:12.5px;" onclick="openMistakeNotebook()">Open Notebook →</button>
+                </div>
+                <div style="background:#FEF3C7; border:1.5px solid #FCD34D; border-radius:14px; padding:16px 20px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+                    <div>
+                        <strong style="color:#78350F; font-size:15px;">⚔️ Share Quiz Challenge Link</strong>
+                        <div style="font-size:12px; color:#92400E; margin-top:2px;">Challenge friends on WhatsApp/Telegram to beat your score.</div>
+                    </div>
+                    <button class="btn" style="background:#D97706; color:#ffffff; padding:8px 14px; font-size:12.5px;" onclick="shareQuizChallengeLink()">Challenge Friend →</button>
+                </div>
+            </div>
+
             <!-- Student Refer & Earn Card on Dashboard -->
             <div style="background:#ECFDF5; border:1.5px solid #A7F3D0; border-radius:14px; padding:16px 22px; margin-bottom:26px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
                 <div>
@@ -1032,6 +1065,20 @@
             </div>
             <p style="font-size:13px; color:#6B7280; margin-bottom:18px;">All currently active live tests across SSC, Railway, Banking, UP Police, and State Exams are listed below with exact closing times. Choose any live exam to begin:</p>
             <div id="modalLiveTestsContainer"></div>
+        </div>
+    </div>
+
+    <!-- MISTAKE NOTEBOOK & WEAK-TOPIC GENERATOR MODAL -->
+    <div id="mistakeNotebookModal" class="hide" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(15,23,42,0.75); align-items:center; justify-content:center; z-index:10000; padding:15px;">
+        <div style="background:white; max-width:840px; width:100%; border-radius:18px; padding:26px; position:relative; max-height:88vh; overflow-y:auto;">
+            <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #E5E7EB; padding-bottom:14px; margin-bottom:16px;">
+                <div>
+                    <h2 style="color:#1E1B4B; font-size:19px; margin:0;">📓 Mistake Notebook &amp; Weak-Topic Generator</h2>
+                    <p style="font-size:12px; color:#6B7280; margin:2px 0 0;">Auto-saved wrong/slow questions &amp; custom weak-topic practice targets</p>
+                </div>
+                <button onclick="document.getElementById('mistakeNotebookModal').classList.add('hide')" style="background:#F3F4F6; border:none; width:34px; height:34px; border-radius:50%; font-weight:700; cursor:pointer;">✕</button>
+            </div>
+            <div id="mistakeNotebookBody" style="font-size:13.5px; color:#1E293B;"></div>
         </div>
     </div>
 
@@ -1357,10 +1404,12 @@
                     ◧ <span id="paletteBtnText">Hide Palette</span>
                 </button>
                 <span id="warningCounterBadge" class="hide" style="background:#F59E0B; color:#1E1B4B; padding:4px 9px; border-radius:6px; font-size:12px; font-weight:700;">Warnings: 0/3</span>
+                <span id="cbtSectionalTimerBadge" class="hide" style="background:#059669; color:#ffffff; border:1px solid #34D399; padding:5px 11px; border-radius:8px; font-weight:700; font-size:12.5px;">🧩 <span id="cbtSectionNameLabel">Sec</span>: <span id="cbtSectionTimerDisplay">00:00</span></span>
                 <span style="background:rgba(255,255,255,0.16); padding:6px 12px; border-radius:8px; font-weight:700; font-size:14px;">⏱️ <span id="timerDisplay">00:00</span></span>
             </div>
         </div>
 
+        <div id="cbtSectionTabsBar" class="hide" style="background:#EEF2FF; border-bottom:1px solid #C7D2FE; padding:6px 16px; display:flex; align-items:center; gap:8px; flex-wrap:wrap; font-size:12px;"></div>
         <div class="cbt-main-body">
             <div class="cbt-left-panel">
                 <div class="cbt-q-header">
@@ -1368,7 +1417,8 @@
                         <b style="color:#1E1B4B; font-size:15px;">Question No. <span id="currentQNum">1</span></b>
                         <span id="questionUniqueId" style="background:#EEF2FF; color:#4F46E5; padding:3px 9px; border-radius:6px; font-size:12px; font-weight:700;">Q-ID: -</span>
                     </div>
-                    <div style="display:flex; align-items:center; gap:8px; font-size:13px;">
+                    <div style="display:flex; align-items:center; gap:8px; font-size:13px; flex-wrap:wrap;">
+                        <span style="background:#EEF2FF; color:#3730A3; border:1px solid #C7D2FE; padding:3px 9px; border-radius:6px; font-weight:700;">⏱️ Q Time: <span id="cbtQuestionTimer">00:00</span></span>
                         <span style="background:#ECFDF5; color:#059669; padding:3px 8px; border-radius:6px; font-weight:700;">+<span id="markPositive">1</span></span>
                         <span id="negBadge" style="background:#FEF2F2; color:#DC2626; padding:3px 8px; border-radius:6px; font-weight:700;">-<span id="markNegative">0.33</span></span>
                         <button onclick="reportCurrentQuestion()" style="background:#FFFBEB; color:#B45309; border:1px solid #FDE68A; padding:4px 9px; border-radius:6px; font-size:12px; font-weight:600; cursor:pointer;">⚠️ Report Q</button>
@@ -1451,6 +1501,20 @@
             <div style="background:#F3F4F6; padding:12px; border-radius:10px;"><b id="statSkipped" style="color:#374151; font-size:18px;">0</b><div style="font-size:12px;">Skipped</div></div>
             <div style="background:#FEF3C7; padding:12px; border-radius:10px;"><b id="statNeg" style="color:#92400E; font-size:18px;">0</b><div style="font-size:12px;">Neg Marks</div></div>
         </div>
+        <div id="cbtTimeHeatmapBox" style="text-align:left; background:#F8FAFC; border:1.5px solid #CBD5E1; border-radius:12px; padding:16px; margin-bottom:20px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:10px;">
+                <strong style="color:#1E1B4B; font-size:15px;">🔥 Time-Management Heatmap (Per-Question &amp; Slow Questions > 120s)</strong>
+                <span id="heatmapSummaryBadge" style="font-size:12px; font-weight:700; color:#4F46E5; background:#EEF2FF; padding:3px 9px; border-radius:6px;">Avg: 0s / Q</span>
+            </div>
+            <div id="cbtTimeHeatmapGrid" style="display:grid; grid-template-columns:repeat(auto-fill, minmax(68px, 1fr)); gap:7px; max-height:190px; overflow-y:auto;"></div>
+            <div style="display:flex; gap:14px; flex-wrap:wrap; margin-top:10px; font-size:11.5px; color:#475569;">
+                <span>🟩 Fast &amp; Correct (≤45s)</span>
+                <span>🟨 Moderate (46–120s)</span>
+                <span>🟥 Slow / >2 Min (>120s)</span>
+                <span>⬜ Unattempted</span>
+            </div>
+        </div>
+
         <div style="display:flex; justify-content:center; gap:12px; flex-wrap:wrap;">
             <button class="btn btn-primary" onclick="viewSolutions()">📖 View Detailed Solutions</button>
             <button class="btn btn-outline" onclick="downloadScorecard()">📥 Print Scorecard</button>
