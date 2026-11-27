@@ -209,6 +209,7 @@ function showScreen(screenId, pushHistory = true) {
             'forgotPasswordScreen': '?page=reset-password',
             'dashboardScreen': '?page=dashboard',
             'practiceBankScreen': '?page=practice-bank',
+            'pyqHubScreen': '?page=pyq',
             'caScreen': '?page=current-affairs',
             'updatesScreen': '?page=updates',
             'studyNotesScreen': '?page=study-notes',
@@ -264,6 +265,8 @@ async function checkUrlRouting() {
             'refer-earn': 'referEarnScreen',
             'practice-bank': 'practiceBankScreen',
             'ncert-bank': 'practiceBankScreen',
+            'pyq': 'pyqHubScreen',
+            'pyqs': 'pyqHubScreen',
             'dashboard': isLoggedIn ? 'dashboardScreen' : 'loginScreen'
         };
         if (routeMap[pageParam]) {
@@ -271,6 +274,9 @@ async function checkUrlRouting() {
                 goDashboard();
             } else if (routeMap[pageParam] === 'practiceBankScreen') {
                 openSmartPracticeBank(pageParam === 'ncert-bank' ? 'ncert' : 'practice');
+            } else if (routeMap[pageParam] === 'pyqHubScreen') {
+                const subParam = urlParams.get('subject') || 'All';
+                openSubjectPyqHub(subParam);
             } else if (routeMap[pageParam] === 'caScreen') {
                 showCurrentAffairs();
             } else if (routeMap[pageParam] === 'updatesScreen') {
@@ -389,6 +395,7 @@ function getDeviceId() {
 }
 
 window.goHome = function() {
+    document.title = "TaiyariGhar | Crack Your Dream Govt Job with Confidence";
     window.history.pushState({ screen: 'homeScreen' }, '', window.location.pathname);
     showScreen('homeScreen', false);
     updateHeaderUI();
@@ -4176,9 +4183,27 @@ window.reportPracticeQuestionError = function (chosenIdx = 0) {
 let allPyqItems = [];
 let selectedPyqSubject = "All";
 
+
+function updateSeoMetaForPage(titleText, descText, urlSuffix) {
+    try {
+        if (titleText) document.title = titleText;
+        const metaDesc = document.querySelector('meta[name="description"]');
+        if (metaDesc && descText) metaDesc.setAttribute('content', descText);
+        if (urlSuffix) {
+            history.replaceState({ screen: currentScreen }, '', urlSuffix);
+        }
+    } catch (e) {}
+}
+
 window.openSubjectPyqHub = async function (subjectFilter = "All") {
     selectedPyqSubject = subjectFilter || "All";
     showScreen("pyqHubScreen", true);
+    const subLabel = selectedPyqSubject !== "All" ? `${selectedPyqSubject} ` : "";
+    updateSeoMetaForPage(
+        `${subLabel}Previous Year Questions (PYQs) with Answers & Explanation — TaiyariGhar`,
+        `Practice free ${subLabel}Previous Year Questions (PYQs) for SSC, Railway, UP Police, Banking & State Govt Exams with green highlighted answers and detailed bilingual explanations.`,
+        selectedPyqSubject !== "All" ? `?page=pyq&subject=${encodeURIComponent(selectedPyqSubject)}` : `?page=pyq`
+    );
     const listEl = document.getElementById("pyqQuestionsList");
     if (listEl && allPyqItems.length === 0) {
         listEl.innerHTML = `<div style="text-align:center; padding:24px; color:#4F46E5; font-weight:600;">Loading Subject-Wise Previous Year Questions...</div>`;
@@ -4209,6 +4234,12 @@ function renderPyqSubjectPills() {
 
 window.selectPyqSubjectPill = function (sub) {
     selectedPyqSubject = sub;
+    const subLabel = sub !== "All" ? `${sub} ` : "";
+    updateSeoMetaForPage(
+        `${subLabel}Previous Year Questions (PYQs) with Answers & Explanation — TaiyariGhar`,
+        `Read free ${subLabel}Previous Year Questions (PYQs) asked in SSC, Railway, UP Police & State Exams with green correct option and explanation.`,
+        sub !== "All" ? `?page=pyq&subject=${encodeURIComponent(sub)}` : `?page=pyq`
+    );
     renderPyqSubjectPills();
     renderSubjectPyqList();
 };

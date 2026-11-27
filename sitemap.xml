@@ -78,4 +78,52 @@
     <changefreq>yearly</changefreq>
     <priority>0.5</priority>
   </url>
+  <url>
+    <loc>https://taiyarighar.in/index.html?page=pyq</loc>
+    <lastmod>2026-11-27</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.95</priority>
+  </url>
+  <url>
+    <loc>https://taiyarighar.in/index.html?page=ncert-bank</loc>
+    <lastmod>2026-11-27</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://taiyarighar.in/index.html?page=pyq&amp;subject=General%20Hindi</loc>
+    <lastmod>2026-11-27</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.85</priority>
+  </url>
+  <url>
+    <loc>https://taiyarighar.in/index.html?page=pyq&amp;subject=Indian%20Polity</loc>
+    <lastmod>2026-11-27</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.85</priority>
+  </url>
+  <url>
+    <loc>https://taiyarighar.in/index.html?page=pyq&amp;subject=Indian%20History</loc>
+    <lastmod>2026-11-27</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.85</priority>
+  </url>
+  <url>
+    <loc>https://taiyarighar.in/index.html?page=pyq&amp;subject=Geography</loc>
+    <lastmod>2026-11-27</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.85</priority>
+  </url>
+  <url>
+    <loc>https://taiyarighar.in/index.html?page=pyq&amp;subject=General%20Science</loc>
+    <lastmod>2026-11-27</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.85</priority>
+  </url>
+  <url>
+    <loc>https://taiyarighar.in/index.html?page=pyq&amp;subject=UP%20Special%20GK</loc>
+    <lastmod>2026-11-27</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.85</priority>
+  </url>
 </urlset>
