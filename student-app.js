@@ -4182,7 +4182,7 @@ window.reportPracticeQuestionError = function (chosenIdx = 0) {
 
 let allPyqItems = [];
 let selectedPyqSubject = "All";
-
+let pyqVisibleLimit = 12;
 
 function updateSeoMetaForPage(titleText, descText, urlSuffix) {
     try {
@@ -4197,6 +4197,7 @@ function updateSeoMetaForPage(titleText, descText, urlSuffix) {
 
 window.openSubjectPyqHub = async function (subjectFilter = "All") {
     selectedPyqSubject = subjectFilter || "All";
+    pyqVisibleLimit = 12;
     showScreen("pyqHubScreen", true);
     const subLabel = selectedPyqSubject !== "All" ? `${selectedPyqSubject} ` : "";
     updateSeoMetaForPage(
@@ -4206,14 +4207,20 @@ window.openSubjectPyqHub = async function (subjectFilter = "All") {
     );
     const listEl = document.getElementById("pyqQuestionsList");
     if (listEl && allPyqItems.length === 0) {
-        listEl.innerHTML = `<div style="text-align:center; padding:24px; color:#4F46E5; font-weight:600;">Loading Subject-Wise Previous Year Questions...</div>`;
+        listEl.innerHTML = `<div style="text-align:center; padding:24px; color:#4F46E5; font-weight:600;">Loading PYQ subjects...</div>`;
     }
     try {
         const base = (window.TAIYARIGHAR_CONFIG?.API_BASE_URL || "https://taiyarighar-api.taiyarighar.workers.dev").replace(/\/+$/, "");
-        const res = await fetch(`${base}/api/pyqs`);
+        const subParam = (selectedPyqSubject && selectedPyqSubject !== "All") ? `?subject=${encodeURIComponent(selectedPyqSubject)}` : "";
+        const res = await fetch(`${base}/api/pyqs${subParam}`);
         const data = await res.json();
         if (data && data.ok && Array.isArray(data.pyqs)) {
-            allPyqItems = data.pyqs;
+            if (!subParam) {
+                allPyqItems = data.pyqs;
+            } else {
+                const others = allPyqItems.filter(x => (x.subject || "General") !== selectedPyqSubject);
+                allPyqItems = [...others, ...data.pyqs];
+            }
         }
     } catch (e) {
         console.warn("PYQ fetch warning:", e);
@@ -4222,10 +4229,26 @@ window.openSubjectPyqHub = async function (subjectFilter = "All") {
     renderSubjectPyqList();
 };
 
+function getAvailablePyqSubjects() {
+    const defaultSubjects = [
+        "Indian History",
+        "Indian Polity",
+        "Geography",
+        "Indian Economy",
+        "General Science",
+        "General Hindi",
+        "UP Special GK",
+        "Reasoning",
+        "Mathematics"
+    ];
+    const fromDb = Array.from(new Set(allPyqItems.map((x) => (x.subject || "General").trim()).filter(Boolean)));
+    return Array.from(new Set([...fromDb, ...defaultSubjects]));
+}
+
 function renderPyqSubjectPills() {
     const pillsWrap = document.getElementById("pyqSubjectPills");
     if (!pillsWrap) return;
-    const subjects = ["All", ...Array.from(new Set(allPyqItems.map((x) => (x.subject || "General").trim()).filter(Boolean)))];
+    const subjects = ["All", ...getAvailablePyqSubjects()];
     pillsWrap.innerHTML = subjects.map((sub) => {
         const active = selectedPyqSubject === sub;
         return `<button type="button" class="btn ${active ? "btn-primary" : "btn-outline"}" style="padding:6px 13px; font-size:12.5px;" onclick="selectPyqSubjectPill('${sub.replace(/'/g, "\'")}')">${sub}</button>`;
@@ -4234,6 +4257,7 @@ function renderPyqSubjectPills() {
 
 window.selectPyqSubjectPill = function (sub) {
     selectedPyqSubject = sub;
+    pyqVisibleLimit = 12;
     const subLabel = sub !== "All" ? `${sub} ` : "";
     updateSeoMetaForPage(
         `${subLabel}Previous Year Questions (PYQs) with Answers & Explanation — TaiyariGhar`,
@@ -4244,10 +4268,35 @@ window.selectPyqSubjectPill = function (sub) {
     renderSubjectPyqList();
 };
 
+window.loadMorePyqQuestions = function () {
+    pyqVisibleLimit += 12;
+    renderSubjectPyqList();
+};
+
 window.renderSubjectPyqList = function () {
     const listEl = document.getElementById("pyqQuestionsList");
     if (!listEl) return;
     const qInput = (document.getElementById("pyqSearchInput")?.value || "").trim().toLowerCase();
+
+    if (selectedPyqSubject === "All" && !qInput) {
+        const subjects = getAvailablePyqSubjects();
+        listEl.innerHTML = `
+            <div style="margin-bottom:12px; font-size:13.5px; font-weight:700; color:#1E1B4B;">
+                Select a Subject Tab to Open Previous Year Questions:
+            </div>
+            <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(210px, 1fr)); gap:12px;">
+                ${subjects.map((sub) => {
+                    const count = allPyqItems.filter(x => (x.subject || "General").trim() === sub).length;
+                    return `
+                    <div onclick="selectPyqSubjectPill('${sub.replace(/'/g, "\'")}')" style="background:#ffffff; border:1.5px solid #CBD5E1; border-radius:12px; padding:16px; cursor:pointer; transition:0.15s;" onmouseover="this.style.borderColor='#4F46E5'" onmouseout="this.style.borderColor='#CBD5E1'">
+                        <div style="font-size:15.5px; font-weight:800; color:#1E1B4B; margin-bottom:4px;">📘 ${sub}</div>
+                        <div style="font-size:12px; color:#64748B;">${count > 0 ? `${count} PYQs Available` : "Subject PYQ Tab"}</div>
+                        <div style="margin-top:8px; font-size:12.5px; font-weight:700; color:#4F46E5;">Open Subject →</div>
+                    </div>`;
+                }).join("")}
+            </div>`;
+        return;
+    }
 
     const filtered = allPyqItems.filter((item) => {
         const matchSub = selectedPyqSubject === "All" || (item.subject || "General") === selectedPyqSubject;
@@ -4266,8 +4315,11 @@ window.renderSubjectPyqList = function () {
         return;
     }
 
+    const visibleItems = filtered.slice(0, pyqVisibleLimit);
+    const remainingCount = filtered.length - visibleItems.length;
     const letters = ["A", "B", "C", "D"];
-    listEl.innerHTML = filtered.map((item, idx) => {
+
+    const cardsHtml = visibleItems.map((item, idx) => {
         const mainQ = (currentLang === "hi" && item.question_hi) ? item.question_hi : (item.question_en || item.question_hi || "");
         const secQ = (currentLang === "hi" && item.question_en && item.question_en !== item.question_hi)
             ? item.question_en
@@ -4315,6 +4367,14 @@ window.renderSubjectPyqList = function () {
             </div>
         </article>`;
     }).join("");
+
+    const loadMoreHtml = remainingCount > 0
+        ? `<div style="text-align:center; margin:16px 0;">
+            <button type="button" class="btn btn-primary" style="padding:10px 22px;" onclick="loadMorePyqQuestions()">Load More PYQs (${remainingCount} more available) →</button>
+           </div>`
+        : `<div style="text-align:center; margin:12px 0; font-size:12.5px; color:#64748B;">Showing all ${filtered.length} question(s) in this view.</div>`;
+
+    listEl.innerHTML = cardsHtml + loadMoreHtml;
 };
 
 window.openPyqErrorReport = function (pyqId) {
