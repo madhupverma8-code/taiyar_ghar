@@ -4984,29 +4984,114 @@ window.closeBiDashboardModal = function () {
 
 window.saveBiDashboardReport = function () {
     const d = getBiAnalyticsPayload();
-    const html = `<html><head><title>BI Dashboard - ${d.studentName}</title><style>body{font-family:sans-serif;padding:28px;color:#0f172a}h1{color:#1e1b4b;margin-bottom:4px}table{width:100%;border-collapse:collapse;margin:14px 0}th,td{border:1px solid #cbd5e1;padding:8px 10px;text-align:left;font-size:13px}.grid{display:flex;flex-wrap:wrap;gap:5px;margin-top:10px}.cell{width:48px;padding:4px;border:1px solid #cbd5e1;border-radius:4px;text-align:center;font-size:10px}</style></head><body>
-        <h1>TaiyariGhar — Test BI Dashboard</h1>
-        <p><strong>Candidate Name:</strong> ${d.studentName} &nbsp;|&nbsp; <strong>Login ID:</strong> ${d.loginId}</p>
-        <table>
-            <tr><th>Test Name</th><td>${d.testName}</td><th>Score &amp; %</th><td>${d.scoreVal} / ${d.totalMarksVal} (${d.percentVal}%)</td></tr>
-            <tr><th>Total / Attempted</th><td>${d.totalQ} / ${d.attempted}</td><th>Accuracy</th><td>${d.accuracyPct}%</td></tr>
-            <tr><th>Right / Wrong / Skip</th><td>${d.correct} / ${d.wrong} / ${d.skipped}</td><th>Avg Speed / Slow (&gt;120s)</th><td>${d.avgSec}s / ${d.slowQ} Qs</td></tr>
-            <tr><th>All-India Rank</th><td colspan="3">${d.rankVal}${d.totalStudVal !== '-' ? ' out of ' + d.totalStudVal : ''}</td></tr>
-        </table>
-        <h3>All ${d.totalQ} Questions Speed &amp; Status</h3>
-        <div class="grid">${Array.from({ length: d.totalQ }, (_, i) => {
-            const q = d.qList[i] || {};
-            const uAns = d.ansMap[i];
-            const sec = Number(d.timeMap[i] || 0);
-            const st = uAns === undefined ? "Skip" : (uAns === q.ans ? "Right" : "Wrong");
-            return `<div class="cell"><b>Q${i + 1}</b><br>${st}<br>${sec}s</div>`;
-        }).join("")}</div>
+    const safePct = (num) => d.totalQ > 0 ? Math.min(100, Math.round((num / d.totalQ) * 100)) : 0;
+    const cPct = safePct(d.correct);
+    const wPct = safePct(d.wrong);
+    const sPct = safePct(d.skipped);
+
+    const matrixCells = Array.from({ length: d.totalQ }, (_, i) => {
+        const q = d.qList[i] || {};
+        const uAns = d.ansMap[i];
+        const sec = Number(d.timeMap[i] || 0);
+        let bg = "#F8FAFC", fg = "#334155", bd = "#CBD5E1";
+        if (uAns === undefined) {
+            bg = "#F8FAFC"; fg = "#475569"; bd = "#CBD5E1";
+        } else if (uAns === q.ans) {
+            bg = sec > 120 ? "#FEF3C7" : "#ECFDF5";
+            fg = sec > 120 ? "#92400E" : "#065F46";
+            bd = sec > 120 ? "#F59E0B" : "#10B981";
+        } else {
+            bg = "#FEF2F2"; fg = "#991B1B"; bd = "#EF4444";
+        }
+        return `<div style="background:${bg};color:${fg};border:1.5px solid ${bd};border-radius:8px;padding:7px 4px;text-align:center;font-size:11px;font-weight:700;">
+            <div>Q${i + 1}</div>
+            <div style="font-size:10px;font-weight:600;margin-top:2px;">${sec}s</div>
+        </div>`;
+    }).join("");
+
+    const html = `<!DOCTYPE html><html><head><title>BI Dashboard - ${d.studentName}</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        body { font-family: 'Poppins', 'Inter', Arial, sans-serif; background: #F1F5F9; color: #0F172A; padding: 24px; }
+        .sheet { max-width: 940px; margin: 0 auto; background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 16px; padding: 24px; box-shadow: 0 8px 24px rgba(15,23,42,0.06); }
+        .pill { display: inline-block; background: #EEF2FF; color: #4338CA; font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 6px; margin-bottom: 8px; }
+        .title { font-size: 20px; font-weight: 800; color: #0F172A; margin-bottom: 4px; }
+        .sub { font-size: 12.5px; color: #475569; font-weight: 600; margin-bottom: 18px; }
+        .kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 18px; }
+        .kpi-box { border: 1px solid #E2E8F0; border-radius: 12px; padding: 14px; background: #FFFFFF; }
+        .kpi-lbl { font-size: 10.5px; font-weight: 700; color: #64748B; text-transform: uppercase; }
+        .kpi-val { font-size: 17px; font-weight: 800; color: #0F172A; margin-top: 4px; }
+        .kpi-sub { font-size: 11.5px; font-weight: 600; color: #475569; margin-top: 2px; }
+        .card { border: 1px solid #E2E8F0; border-radius: 12px; padding: 16px; background: #FFFFFF; margin-bottom: 16px; }
+        .card-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; font-size: 13.5px; font-weight: 700; color: #0F172A; }
+        .bar { height: 16px; width: 100%; border-radius: 999px; overflow: hidden; display: flex; background: #E2E8F0; margin-bottom: 10px; }
+        .legend { display: flex; flex-wrap: wrap; gap: 14px; font-size: 11.5px; font-weight: 600; color: #334155; }
+        .matrix { display: grid; grid-template-columns: repeat(auto-fill, minmax(60px, 1fr)); gap: 7px; }
+        @media print { body { background: #FFFFFF; padding: 0; } .sheet { box-shadow: none; border: none; padding: 12px; } }
+    </style></head><body>
+    <div class="sheet">
+        <div class="pill">POWER-BI STYLE PERFORMANCE REPORT</div>
+        <div class="title">${d.testName} — BI Analytics Dashboard</div>
+        <div class="sub">Candidate: ${d.studentName} (${d.loginId}) • Score: ${d.scoreVal}/${d.totalMarksVal} (${d.percentVal}%) • Rank: ${d.rankVal}${d.totalStudVal !== '-' ? ' / ' + d.totalStudVal : ''}</div>
+
+        <div class="kpi-grid">
+            <div class="kpi-box">
+                <div class="kpi-lbl">CANDIDATE</div>
+                <div class="kpi-val">${d.studentName}</div>
+                <div class="kpi-sub" style="color:#4F46E5;">ID: ${d.loginId}</div>
+            </div>
+            <div class="kpi-box">
+                <div class="kpi-lbl">SCORE &amp; RANK</div>
+                <div class="kpi-val">${d.scoreVal} / ${d.totalMarksVal}</div>
+                <div class="kpi-sub" style="color:#059669;">Rank ${d.rankVal}${d.totalStudVal !== '-' ? ' of ' + d.totalStudVal : ''}</div>
+            </div>
+            <div class="kpi-box">
+                <div class="kpi-lbl">ACCURACY</div>
+                <div class="kpi-val" style="color:#4338CA;">${d.accuracyPct}%</div>
+                <div class="kpi-sub">${d.correct} Right / ${d.wrong} Wrong</div>
+            </div>
+            <div class="kpi-box">
+                <div class="kpi-lbl">AVG SPEED &amp; SLOW Qs</div>
+                <div class="kpi-val" style="color:#D97706;">${d.avgSec}s / Q</div>
+                <div class="kpi-sub">Slow (&gt;120s): ${d.slowQ} Qs</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-head">
+                <span>Question Distribution Across All ${d.totalQ} Questions</span>
+                <span style="font-size:12px;color:#475569;">Attempted: <b>${d.attempted}/${d.totalQ}</b> • Skipped: <b>${d.skipped}</b></span>
+            </div>
+            <div class="bar">
+                <div style="width:${cPct}%;background:#10B981;"></div>
+                <div style="width:${wPct}%;background:#EF4444;"></div>
+                <div style="width:${sPct}%;background:#94A3B8;"></div>
+            </div>
+            <div class="legend">
+                <span>🟢 Correct: ${d.correct} (${cPct}%)</span>
+                <span>🔴 Wrong: ${d.wrong} (${wPct}%)</span>
+                <span>⚪ Unattempted: ${d.skipped} (${sPct}%)</span>
+                <span>⚡ Fast (≤45s): ${d.fastQ}</span>
+                <span>🟡 Moderate (46–120s): ${d.modQ}</span>
+                <span>🔴 Slow (&gt;120s): ${d.slowQ}</span>
+            </div>
+        </div>
+
+        <div class="card" style="margin-bottom:0;">
+            <div class="card-head">
+                <span>Question Matrix &amp; Per-Question Time (${d.totalQ} Questions)</span>
+                <span style="font-size:11.5px;color:#64748B;">Candidate: ${d.studentName}</span>
+            </div>
+            <div class="matrix">${matrixCells}</div>
+        </div>
+    </div>
     </body></html>`;
     const w = window.open("", "_blank");
     if (w) {
         w.document.write(html);
         w.document.close();
-        setTimeout(() => w.print(), 400);
+        w.onload = function () { setTimeout(() => w.print(), 250); };
+        setTimeout(() => { try { w.print(); } catch (e) {} }, 600);
     }
 };
 
