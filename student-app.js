@@ -1756,8 +1756,15 @@ function normalizePracticeQuestion(rawQ, idx, fallbackTopic) {
         rightIdx = Math.max(0, ["A", "B", "C", "D"].indexOf(ch));
     }
 
-    const expEn = String(rawQ.exp || rawQ.explanation || "").trim();
-    const expHi = String(rawQ.expHi || rawQ.explanationHi || rawQ["Explanation Hi"] || rawQ["Explanation_Hi"] || "").trim();
+    const sanitizeExpectedTag = (txt) => {
+        if (!txt || pbCurrentSection === "ncert") return txt || "";
+        return String(txt)
+            .replace(/\[\s*PYQ\b([^\]]*)\]/gi, "[Expected Exam$1]")
+            .replace(/\bPYQs?\b/gi, (m) => (m === "PYQs" ? "Expected Exams" : "Expected Exam"));
+    };
+
+    const expEn = sanitizeExpectedTag(String(rawQ.exp || rawQ.explanation || "").trim());
+    const expHi = sanitizeExpectedTag(String(rawQ.expHi || rawQ.explanationHi || rawQ["Explanation Hi"] || rawQ["Explanation_Hi"] || "").trim());
     let displayExp = "";
     if (expEn && expHi && expEn !== expHi) {
         displayExp = currentLang === 'hi'
