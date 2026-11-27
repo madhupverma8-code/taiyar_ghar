@@ -386,31 +386,25 @@
             <span style="font-weight:800; font-size:20px; color:#1E1B4B;">TaiyariGhar</span>
         </div>
         <nav class="nav-links">
-            <a href="javascript:void(0)" onclick="goHome()" data-translate="nav_home">Home</a>
+            <a href="index.html" onclick="event.preventDefault(); goHome();" data-translate="nav_home">Home</a>
 
             <div class="tg-nav-dropdown">
                 <button type="button" class="tg-drop-trigger" onclick="toggleNavDropdown(event, 'ddExams')">
-                    🎯 Tests &amp; Practice <span style="font-size:10px;">▼</span>
+                    🎯 Exam Types <span style="font-size:10px;">▼</span>
                 </button>
                 <div id="ddExams" class="tg-drop-menu">
                     <a href="javascript:void(0)" onclick="closeAllNavDropdowns(); scrollToCategories()">📚 All Exam Categories</a>
                     <a href="javascript:void(0)" onclick="closeAllNavDropdowns(); openLiveTestsHub()" style="color:#DC2626; font-weight:700;">🔴 All-India Live Tests</a>
-                    <a href="javascript:void(0)" onclick="closeAllNavDropdowns(); openSmartPracticeBank('practice')" style="color:#4F46E5; font-weight:700;">⚡ Unlimited Smart Practice</a>
-                    <a href="javascript:void(0)" onclick="closeAllNavDropdowns(); openSmartPracticeBank('ncert')" style="color:#059669; font-weight:700;">📘 NCERT Base Questions (6–12)</a>
-                    <a href="javascript:void(0)" onclick="closeAllNavDropdowns(); openReferAndEarn()">🎁 Student Refer &amp; Earn</a>
+                    <a href="index.html?page=practice-bank" onclick="if(!event.ctrlKey && !event.metaKey && !event.shiftKey && event.button===0){ event.preventDefault(); closeAllNavDropdowns(); openSmartPracticeBank('practice'); }" style="color:#4F46E5; font-weight:700;">⚡ Unlimited Smart Practice</a>
+                    <a href="index.html?page=ncert-bank" onclick="if(!event.ctrlKey && !event.metaKey && !event.shiftKey && event.button===0){ event.preventDefault(); closeAllNavDropdowns(); openSmartPracticeBank('ncert'); }" style="color:#059669; font-weight:700;">📘 NCERT Base Questions (6–12)</a>
+                    <a href="index.html?page=pyq" onclick="if(!event.ctrlKey && !event.metaKey && !event.shiftKey && event.button===0){ event.preventDefault(); closeAllNavDropdowns(); openSubjectPyqHub(); }" style="color:#B45309; font-weight:700;">📋 Subject-Wise PYQs</a>
+                    <a href="index.html?page=refer-earn" onclick="if(!event.ctrlKey && !event.metaKey && !event.shiftKey && event.button===0){ event.preventDefault(); closeAllNavDropdowns(); openReferAndEarn(); }">🎁 Student Refer &amp; Earn</a>
                 </div>
             </div>
 
-            <div class="tg-nav-dropdown">
-                <button type="button" class="tg-drop-trigger" onclick="toggleNavDropdown(event, 'ddStudy')">
-                    📖 Study &amp; Updates <span style="font-size:10px;">▼</span>
-                </button>
-                <div id="ddStudy" class="tg-drop-menu">
-                    <a href="javascript:void(0)" onclick="closeAllNavDropdowns(); openStudyNotesHub()">📝 Exam Tips &amp; Study Notes</a>
-                    <a href="javascript:void(0)" onclick="closeAllNavDropdowns(); showCurrentAffairs()">📰 Current Affairs Hub</a>
-                    <a href="javascript:void(0)" onclick="closeAllNavDropdowns(); openUpdatesHub()">📢 Jobs, Result &amp; Syllabus</a>
-                </div>
-            </div>
+            <a href="index.html?page=current-affairs" target="_blank" rel="noopener" onclick="if(!event.ctrlKey && !event.metaKey && !event.shiftKey && event.button===0){ event.preventDefault(); closeAllNavDropdowns(); showCurrentAffairs(); }" style="font-weight:600;">📰 Current Affairs</a>
+            <a href="index.html?page=updates" target="_blank" rel="noopener" onclick="if(!event.ctrlKey && !event.metaKey && !event.shiftKey && event.button===0){ event.preventDefault(); closeAllNavDropdowns(); openUpdatesHub(); }" style="font-weight:600;">📢 Jobs &amp; Updates</a>
+            <a href="index.html?page=study-notes" target="_blank" rel="noopener" onclick="if(!event.ctrlKey && !event.metaKey && !event.shiftKey && event.button===0){ event.preventDefault(); closeAllNavDropdowns(); openStudyNotesHub(); }" style="font-weight:600;">📝 Study Notes</a>
 
             <div class="tg-nav-dropdown">
                 <button type="button" class="tg-drop-trigger" onclick="toggleNavDropdown(event, 'ddMore')">
@@ -418,8 +412,7 @@
                 </button>
                 <div id="ddMore" class="tg-drop-menu">
                     <a href="about.html">🏢 About TaiyariGhar</a>
-                    <a href="javascript:void(0)" onclick="closeAllNavDropdowns(); openInfoSection('contactScreen')">📞 Contact Support</a>
-                    <a href="partner.html">🤝 Partner Program</a>
+                    <a href="index.html?page=contact" onclick="if(!event.ctrlKey && !event.metaKey && !event.shiftKey && event.button===0){ event.preventDefault(); closeAllNavDropdowns(); openInfoSection('contactScreen'); }">📞 Contact Support</a>
                 </div>
             </div>
         </nav>

@@ -197,7 +197,15 @@ function showScreen(screenId, pushHistory = true) {
     currentScreen = screenId;
     window.scrollTo(0, 0);
 
-    if (pushHistory && history.state?.screen !== screenId) {
+    if (!window._tgNavStack) window._tgNavStack = [];
+    if (!window._tgPoppingStep) {
+        const topEntry = window._tgNavStack[window._tgNavStack.length - 1];
+        if (!topEntry || topEntry.screen !== screenId || topEntry.subview) {
+            window._tgNavStack.push({ screen: screenId, subview: null });
+        }
+    }
+
+    if (pushHistory) {
         const pageMap = {
             'homeScreen': window.location.pathname,
             'contactScreen': '?page=contact',
@@ -216,7 +224,9 @@ function showScreen(screenId, pushHistory = true) {
             'referEarnScreen': '?page=refer-earn'
         };
         const nextUrl = pageMap[screenId] || window.location.search;
-        history.pushState({ screen: screenId }, '', nextUrl);
+        try {
+            history.pushState({ screen: screenId, stepIdx: window._tgNavStack.length - 1 }, '', nextUrl);
+        } catch (e) {}
     }
 }
 
@@ -237,14 +247,70 @@ window.onpopstate = function(event) {
         return;
     }
 
-    if (event.state && event.state.screen) {
-        showScreen(event.state.screen, false);
-    } else if (currentScreen === 'practiceBankScreen' || currentScreen === 'pyqHubScreen') {
-        showScreen(currentScreen, false);
-    } else {
-        checkUrlRouting();
+    // Step-to-step back inside open detail drawers / practice levels
+    if (currentScreen === 'updatesScreen') {
+        const box = document.getElementById('jobDetailReaderBox');
+        if (box && !box.classList.contains('hide')) {
+            closeJobDetailReader();
+            return;
+        }
+    }
+    if (currentScreen === 'caScreen') {
+        const reader = document.getElementById('caArticleReaderBox');
+        if (reader && !reader.classList.contains('hide')) {
+            closeCaArticleReader();
+            return;
+        }
+    }
+    if (currentScreen === 'studyNotesScreen') {
+        const snBox = document.getElementById('studyNoteReaderBox');
+        if (snBox && !snBox.classList.contains('hide')) {
+            closeStudyNoteReader();
+            return;
+        }
+    }
+    if (currentScreen === 'practiceBankScreen') {
+        const arena = document.getElementById('pbLevelArena');
+        const modes = document.getElementById('pbLevelModes');
+        if (arena && !arena.classList.contains('hide') && pbCurrentSubject) {
+            clearInterval(pbTimerInterval);
+            flushPracticeProgressToFirestore();
+            renderPbSubjectsFromStep();
+            return;
+        }
+        if (modes && !modes.classList.contains('hide')) {
+            renderPbSubjects();
+            return;
+        }
+    }
+
+    window._tgPoppingStep = true;
+    try {
+        if (window._tgNavStack && window._tgNavStack.length > 1) {
+            window._tgNavStack.pop();
+            const prevStep = window._tgNavStack[window._tgNavStack.length - 1];
+            if (prevStep && prevStep.screen) {
+                showScreen(prevStep.screen, false);
+                return;
+            }
+        }
+        if (event.state && event.state.screen) {
+            showScreen(event.state.screen, false);
+        } else if (isLoggedIn && currentScreen !== 'dashboardScreen') {
+            goDashboard();
+        } else if (currentScreen !== 'homeScreen') {
+            goHome();
+        }
+    } finally {
+        window._tgPoppingStep = false;
     }
 };
+
+function renderPbSubjectsFromStep() {
+    document.getElementById('pbLevelArena').classList.add('hide');
+    document.getElementById('pbLevelModes').classList.remove('hide');
+    document.getElementById('pbLevelSubjects').classList.add('hide');
+}
 
 async function checkUrlRouting() {
     const urlParams = new URLSearchParams(window.location.search);
@@ -1711,6 +1777,7 @@ window.selectPbSubject = function(subject) {
     document.getElementById('pbLevelSubjects').classList.add('hide');
     document.getElementById('pbLevelModes').classList.remove('hide');
     document.getElementById('pbLevelArena').classList.add('hide');
+    try { history.pushState({ screen: 'practiceBankScreen', pbLevel: 'modes', subject }, '', '?page=practice-bank'); } catch (e) {}
 
     const topicCounts = {};
     pbMetaIndex.filter(b => (b.section || 'practice') === pbCurrentSection && b.subject === subject).forEach(b => {
@@ -1884,6 +1951,7 @@ function launchPracticeArena(allQuestions, titleLabel) {
 
     document.getElementById('pbLevelModes').classList.add('hide');
     document.getElementById('pbLevelArena').classList.remove('hide');
+    try { history.pushState({ screen: 'practiceBankScreen', pbLevel: 'arena', subject: pbCurrentSubject, topic: pbCurrentTopic }, '', '?page=practice-bank'); } catch (e) {}
     switchPbPool('unattempted');
 }
 
@@ -2515,6 +2583,7 @@ window.openCaArticleReader = function(articleId) {
     `;
     reader.classList.remove('hide');
     document.getElementById('caContentContainer').classList.add('hide');
+    try { history.pushState({ screen: 'caScreen', subview: 'caArticle', articleId }, '', '?page=current-affairs'); } catch (e) {}
     reader.scrollIntoView({ behavior: 'smooth' });
 };
 
@@ -3411,19 +3480,42 @@ window.onload = async () => {
 // =========================================================================
 // JOBS, EXAM SYLLABUS & LATEST UPDATES HUB
 // =========================================================================
+function parseDateSafeMs(val) {
+    if (!val) return 0;
+    if (typeof val === 'object' && typeof val.seconds === 'number') return val.seconds * 1000;
+    const ms = new Date(val).getTime();
+    return Number.isNaN(ms) ? 0 : ms;
+}
+
 window.openUpdatesHub = async function() {
     showScreen('updatesScreen');
-    closeJobDetailReader();
+    closeJobDetailReader(false);
     const container = document.getElementById('updatesContentContainer');
-    if (container) container.innerHTML = `<div style="text-align:center; padding:30px; color:#6B7280;">Loading Jobs, Admit Cards, Results &amp; Syllabus...</div>`;
+    if ((!allJobUpdates || allJobUpdates.length === 0)) {
+        try {
+            const cached = localStorage.getItem('tg_cached_job_updates_v1');
+            if (cached) {
+                const parsed = JSON.parse(cached);
+                if (Array.isArray(parsed) && parsed.length > 0) allJobUpdates = parsed;
+            }
+        } catch (e) {}
+    }
+    if (container && (!allJobUpdates || allJobUpdates.length === 0)) {
+        container.innerHTML = `<div style="text-align:center; padding:30px; color:#6B7280;">Loading Jobs, Admit Cards, Results &amp; Syllabus...</div>`;
+    }
+    const defaultTab = document.querySelector('.upd-tab');
+    if (allJobUpdates && allJobUpdates.length > 0) {
+        filterUpdates('All', defaultTab);
+    }
     try {
         const snap = await getDocs(collection(db, "job_updates"));
-        allJobUpdates = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-        allJobUpdates.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+        const freshList = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        freshList.sort((a, b) => parseDateSafeMs(b.createdAt || b.updatedAt || b.date) - parseDateSafeMs(a.createdAt || a.updatedAt || a.date));
+        allJobUpdates = freshList;
+        try { localStorage.setItem('tg_cached_job_updates_v1', JSON.stringify(freshList.slice(0, 80))); } catch (e) {}
     } catch (e) {
         console.error("Error loading job updates:", e);
     }
-    const defaultTab = document.querySelector('.upd-tab');
     filterUpdates('All', defaultTab);
 };
 
@@ -3478,6 +3570,7 @@ window.openJobDetailReader = function(jobId) {
     box.setAttribute('data-active-job-id', jobId);
     box.classList.remove('hide');
     document.getElementById('updatesContentContainer').classList.add('hide');
+    try { history.pushState({ screen: 'updatesScreen', subview: 'jobDetail', jobId }, '', '?page=updates'); } catch (e) {}
     box.scrollIntoView({ behavior: 'smooth' });
 };
 
@@ -3502,6 +3595,19 @@ window.filterUpdates = function(categoryFilter, btn) {
     const container = document.getElementById('updatesContentContainer');
     if (!container) return;
 
+    const matchesUpdateCategory = (catRaw, filterKey) => {
+        const c = String(catRaw || '').trim().toLowerCase();
+        const k = String(filterKey || '').trim().toLowerCase();
+        if (!k || k === 'all') return true;
+        if (k.includes('latest job') || k === 'job' || k === 'jobs') {
+            return c.includes('job') || c.includes('vacancy') || c.includes('bharti') || c.includes('recruitment') || !c;
+        }
+        if (k.includes('admit')) return c.includes('admit');
+        if (k.includes('result')) return c.includes('result');
+        if (k.includes('syllabus')) return c.includes('syllabus');
+        return c.includes(k);
+    };
+
     // 4-Column Sarkari-Result Style Board when "All" is selected
     if (categoryFilter === 'All') {
         const columns = [
@@ -3513,7 +3619,7 @@ window.filterUpdates = function(categoryFilter, btn) {
 
         let boardHtml = `<div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(245px, 1fr)); gap:16px; align-items:start;">`;
         columns.forEach(col => {
-            const items = allJobUpdates.filter(u => (u.category || '').toLowerCase().includes(col.key.toLowerCase()));
+            const items = allJobUpdates.filter(u => matchesUpdateCategory(u.category, col.key));
             boardHtml += `
                 <div style="background:#ffffff; border:1px solid #CBD5E1; border-radius:12px; overflow:hidden; box-shadow:0 3px 10px rgba(15,23,42,0.04);">
                     <div style="background:${col.headerBg}; color:#ffffff; padding:12px 14px; font-weight:700; font-size:14.5px; text-align:center;">
@@ -3542,7 +3648,7 @@ window.filterUpdates = function(categoryFilter, btn) {
         return;
     }
 
-    const filtered = allJobUpdates.filter(u => (u.category || '').toLowerCase().includes(categoryFilter.toLowerCase()));
+    const filtered = allJobUpdates.filter(u => matchesUpdateCategory(u.category, categoryFilter));
     if (filtered.length === 0) {
         container.innerHTML = `<div style="text-align:center; padding:35px; background:#ffffff; border-radius:14px; border:1px solid #E2E8F0; color:#6B7280;">No updates published in ${categoryFilter} yet. Check back soon!</div>`;
         return;
@@ -3672,6 +3778,7 @@ window.openStudyNoteReader = function(noteId) {
     `;
     box.classList.remove('hide');
     document.getElementById('studyNotesContainer').classList.add('hide');
+    try { history.pushState({ screen: 'studyNotesScreen', subview: 'studyNote', noteId }, '', '?page=study-notes'); } catch (e) {}
     box.scrollIntoView({ behavior: 'smooth' });
 };
 
