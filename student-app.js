@@ -3966,3 +3966,181 @@ Abhi join karein: ${link}`;
     launchPracticeArena(mixedPool, `${pbCurrentSubject} • Mix Practice`);
   };
 })();
+
+
+// =========================================================================
+// MOCK & LIVE TESTS CLOUDFLARE D1 INTEGRATION (Student Portal)
+// =========================================================================
+(function initStudentMockTestsD1() {
+  const api = () => window.TG_STUDENT_API;
+
+  async function loadD1TestsIntoList() {
+    if (!api()) return;
+    try {
+      const res = await api().getTests("");
+      if (!res || !res.ok || !Array.isArray(res.tests)) return;
+      const existingIds = new Set(allTests.map((t) => String(t.testId || t.id)));
+      res.tests.forEach((row) => {
+        if (existingIds.has(String(row.test_id))) return;
+        let extra = {};
+        try { extra = JSON.parse(row.title_hi || "{}"); } catch {}
+        const posMark = Number(extra.posMark || 1);
+        const negMark = Number(row.negative_marking || 0);
+        allTests.unshift({
+          id: row.test_id,
+          testId: row.test_id,
+          source: "d1",
+          testName: row.title_en || row.test_id,
+          examName: row.title_en || row.test_id,
+          mainCat: row.category || "General",
+          subCat: extra.subCat || row.category || "General",
+          isLive: extra.isLive ? "Yes" : "No",
+          liveEnd: extra.liveEndTime || "",
+          liveReleaseTime: extra.liveEndTime || "",
+          isFree: Number(row.is_paid) === 0 ? "Yes" : "No",
+          duration: Number(row.duration_mins || 60),
+          marks: Number(row.total_marks || 100),
+          positiveMark: posMark,
+          negativeMark: negMark,
+          hasNegative: negMark > 0 ? "Yes" : "No",
+          language: "Both"
+        });
+      });
+      renderLiveTestsShowcase();
+      renderMainCategories();
+    } catch (e) {
+      console.warn("D1 mock tests fetch warning:", e);
+    }
+  }
+
+  // Hook fetchSettingsAndTests to also merge D1 Mock & Live Tests
+  const origFetchSettingsAndTests = window.fetchSettingsAndTests;
+  if (typeof origFetchSettingsAndTests === "function") {
+    window.fetchSettingsAndTests = async function (...args) {
+      await origFetchSettingsAndTests.apply(this, args);
+      await loadD1TestsIntoList();
+    };
+  }
+  setTimeout(loadD1TestsIntoList, 1200);
+
+  // Hook startActualTest so D1 tests load questions directly from Cloudflare D1
+  const origStartActualTest = window.startActualTest;
+  window.startActualTest = async function () {
+    const p = pendingTestDetails;
+    if (!p || !String(p.id || "").startsWith("test_") || !api()) {
+      return origStartActualTest.apply(this, arguments);
+    }
+
+    let selectedLang = p.lang;
+    if (selectedLang === "Both") selectedLang = document.getElementById("instLangSelect").value;
+    try {
+      if (!document.fullscreenElement) document.documentElement.requestFullscreen().then(updateFullScreenButtonLabel).catch(() => {});
+    } catch {}
+
+    isTestSubmitting = false;
+    tabSwitchWarnings = 0;
+    testStartTimestamp = Date.now();
+    lastWarningTimestamp = 0;
+    isCurrentTestLive = p.isLive;
+    currentLiveEndTime = p.liveEnd;
+
+    showProcessing("Downloading Test from Cloudflare D1...", "Preparing your bilingual CBT exam interface");
+
+    currentTestId = p.id;
+    currentTestName = p.name;
+    currentTestMarks = p.marks;
+    currentTestPosMark = Number(p.posMark) || 1;
+    currentTestNegMark = p.hasNeg === "Yes" ? Number(p.negMark) : 0;
+    currentTestLanguage = selectedLang || "Both";
+
+    const switcher = document.getElementById("liveTestLangSwitcher");
+    if (switcher) switcher.value = currentTestLanguage;
+
+    const wm = document.getElementById("antiCheatWatermark");
+    if (wm) wm.innerText = `${currentStudent.name} | ${currentStudent.loginId} | ${currentStudent.email || currentStudent.mobile}`;
+
+    const liveTag = document.getElementById("testLiveTag");
+    const warnBadge = document.getElementById("warningCounterBadge");
+    if (p.isLive) {
+      liveTag.classList.remove("hide");
+      warnBadge.classList.remove("hide");
+      warnBadge.innerText = "Warnings: 0/3";
+    } else {
+      liveTag.classList.add("hide");
+      warnBadge.classList.add("hide");
+    }
+
+    document.getElementById("examHeaderName").innerText = p.name;
+    document.getElementById("paletteName").innerText = currentStudent.name;
+    document.getElementById("paletteId").innerText = currentStudent.loginId;
+    document.getElementById("paletteAvatar").innerText = currentStudent.name.charAt(0).toUpperCase();
+
+    try {
+      const res = await api().getTests(p.id);
+      const rawBox = res && res.test && res.test.questions ? res.test.questions : null;
+      const rawQuestions = Array.isArray(rawBox) ? rawBox : (rawBox && Array.isArray(rawBox.questions) ? rawBox.questions : []);
+
+      if (!rawQuestions.length) {
+        hideProcessing();
+        isTestSubmitting = true;
+        disableAntiCheating();
+        alert("No questions found in Cloudflare D1 for this test.");
+        goDashboard();
+        return;
+      }
+
+      rawQuestions.sort(() => Math.random() - 0.5);
+      testQuestions = rawQuestions.map((qData, idx) => {
+        const hOpts = qData.optionsHi || qData.options || [];
+        const eOpts = qData.options || [];
+        const optsArray = [];
+        for (let i = 0; i < Math.max(hOpts.length, eOpts.length); i++) {
+          optsArray.push({ h: hOpts[i] || eOpts[i] || "", e: eOpts[i] || hOpts[i] || "" });
+        }
+        const rightIdx = Number(qData.correctAnswer ?? 0);
+        const correctObj = optsArray[rightIdx] || optsArray[0];
+        optsArray.sort(() => Math.random() - 0.5);
+        const newAnsIndex = optsArray.findIndex((o) => o === correctObj);
+
+        return {
+          qH: qData.questionHi || qData.question || "",
+          qE: qData.question || qData.questionHi || "",
+          uniqueId: qData.qId || `${p.id}-Q${idx + 1}`,
+          opts: optsArray,
+          ans: newAnsIndex >= 0 ? newAnsIndex : 0,
+          exp: qData.explanationHi || qData.explanation || "No explanation provided.",
+          marks: currentTestPosMark,
+          neg: currentTestNegMark
+        };
+      });
+
+      totalTime = p.duration * 60;
+      timeLeft = totalTime;
+      currentQIndex = 0;
+      userAnswers = {};
+      markedForReview = {};
+      visitedQuestions = {};
+
+      const container = document.getElementById("paletteContainer");
+      container.innerHTML = "";
+      testQuestions.forEach((_, i) => {
+        const btn = document.createElement("button");
+        btn.className = "pallet-btn";
+        btn.innerText = i + 1;
+        btn.onclick = () => { currentQIndex = i; loadQuestion(); };
+        container.appendChild(btn);
+      });
+
+      hideProcessing();
+      showScreen("testScreen");
+      loadQuestion();
+      startTimer();
+    } catch (err) {
+      hideProcessing();
+      isTestSubmitting = true;
+      disableAntiCheating();
+      alert("Error loading D1 test: " + err.message);
+      goDashboard();
+    }
+  };
+})();

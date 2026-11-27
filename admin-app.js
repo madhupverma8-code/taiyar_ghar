@@ -1578,3 +1578,161 @@ window.exportAllDataExcel = async function (type) {
     }
   };
 })();
+
+
+// =========================================================================
+// MOCK & LIVE TESTS CLOUDFLARE D1 INTEGRATION (Tab 10, Auth, Students, Partners, Banners remain on Firebase)
+// =========================================================================
+(function initAdminMockTestsD1() {
+  const adminApi = () => window.TG_ADMIN_API;
+
+  window.loadTestsData = async function () {
+    const d1Tests = [];
+    try {
+      if (adminApi()) {
+        const res = await adminApi().getTests("");
+        if (res && res.ok && Array.isArray(res.tests)) {
+          res.tests.forEach((t) => {
+            let extra = {};
+            try { extra = JSON.parse(t.title_hi || "{}"); } catch {}
+            d1Tests.push({
+              docId: t.test_id,
+              source: "d1",
+              title: t.title_en || t.test_id,
+              mainCat: t.category || "General",
+              subCat: extra.subCat || t.category || "General",
+              isLive: Boolean(extra.isLive),
+              isFree: !Boolean(t.is_paid),
+              duration: Number(t.duration_mins || 60),
+              marks: Number(t.total_marks || 100),
+              negMark: Number(t.negative_marking || 0),
+              qCount: Number(extra.qCount || 0)
+            });
+          });
+        }
+      }
+    } catch (e) {
+      console.warn("D1 tests load warning:", e);
+    }
+
+    const fbSnap = await safeGet("tests");
+    const fbTests = fbSnap.docs.map((d) => ({ docId: d.id, source: "firebase", ...d.data() }));
+    cacheTests = [...d1Tests, ...fbTests];
+    renderTestsTable(false);
+  };
+
+  window.renderTestsTable = function (showAll = false) {
+    const q = (document.getElementById("testSearchBox")?.value || "").trim().toLowerCase();
+    const body = document.getElementById("testsTableBody");
+    if (!body) return;
+    if (!q && !showAll) {
+      body.innerHTML = `<tr><td colspan="6" style="color:#64748b;">Total ${cacheTests.length} tests in database. Type in the search box above or click "Show All Tests" to view.</td></tr>`;
+      return;
+    }
+    const list = showAll && !q
+      ? cacheTests
+      : cacheTests.filter((t) => (t.title || "").toLowerCase().includes(q) || (t.mainCat || "").toLowerCase().includes(q) || (t.subCat || "").toLowerCase().includes(q));
+    body.innerHTML = list.slice(0, 60).map((t) => {
+      const cnt = t.source === "d1" ? (t.qCount || "D1") : (Array.isArray(t.questions) ? t.questions.length : 0);
+      const badge = t.source === "d1" ? `<span class="tag tag-ok">Cloudflare D1</span>` : `<span class="tag">Firebase</span>`;
+      return `<tr>
+        <td><strong>${t.title || t.docId}</strong> ${badge}</td>
+        <td>${t.mainCat || "-"} / ${t.subCat || "-"}</td>
+        <td>${t.isLive ? "All-India Live" : "Standard Mock"}</td>
+        <td>${cnt} Qs</td>
+        <td><span class="tag ${t.isFree ? 'tag-ok' : ''}">${t.isFree ? 'Free' : 'Pro Pass'}</span></td>
+        <td><button class="btn btn-danger btn-sm" onclick="deleteMockTestEntry('${t.docId}','${t.source || 'firebase'}')">Delete</button></td>
+      </tr>`;
+    }).join("") || `<tr><td colspan="6" style="color:#64748b;">No tests matching search.</td></tr>`;
+  };
+
+  window.deleteMockTestEntry = async function (docId, source) {
+    if (!confirm("Delete this Mock / Live test permanently?")) return;
+    if (source === "d1" && adminApi()) {
+      await adminApi().deleteMockTest(docId);
+    } else {
+      await db.collection("tests").doc(docId).delete();
+    }
+    await loadTestsData();
+  };
+
+  window.createTestFromExcel = async function () {
+    const title = document.getElementById("tTitle").value.trim();
+    const cat = document.getElementById("tCat").value.trim();
+    const subCat = document.getElementById("tSubCat").value.trim() || cat;
+    const isLive = document.getElementById("tType").value === "live";
+    const isFree = document.getElementById("tFree").value === "true";
+    const duration = Number(document.getElementById("tDuration").value) || 60;
+    const posMark = Number(document.getElementById("tPos").value) || 1;
+    const negMark = Number(document.getElementById("tNeg").value) || 0;
+    const liveEndTime = document.getElementById("tLiveEnd").value || "";
+    const fileInput = document.getElementById("tFile");
+    const msg = document.getElementById("tUploadMsg");
+
+    if (!title || !cat || !fileInput.files.length) {
+      alert("Title, Category, and Excel file are required.");
+      return;
+    }
+    if (!adminApi()) {
+      alert("TG_ADMIN_API not loaded.");
+      return;
+    }
+
+    msg.style.color = "#1d4ed8";
+    msg.innerText = "Uploading Mock/Live Test to Cloudflare D1...";
+
+    try {
+      const data = await fileInput.files[0].arrayBuffer();
+      const wb = XLSX.read(data);
+      const rows = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]);
+      const questions = rows.map((r, i) => ({
+        qId: "Q" + (i + 1),
+        question: r.Question || r.QuestionHi || "",
+        questionHi: r.QuestionHi || r.Question || "",
+        options: [r.OptionA || "", r.OptionB || "", r.OptionC || "", r.OptionD || ""],
+        optionsHi: [r.OptionAHi || r.OptionA || "", r.OptionBHi || r.OptionB || "", r.OptionCHi || r.OptionC || "", r.OptionDHi || r.OptionD || ""],
+        correctAnswer: ({ A: 0, B: 1, C: 2, D: 3 }[String(r.CorrectOption || "A").trim().toUpperCase()]) ?? 0,
+        explanation: r.Explanation || "",
+        explanationHi: r.ExplanationHi || r.Explanation || ""
+      }));
+
+      const testId = "test_" + Date.now();
+      const totalMarks = Number((questions.length * posMark).toFixed(2));
+      const metaHeader = JSON.stringify({
+        subCat,
+        isLive,
+        liveEndTime,
+        posMark,
+        qCount: questions.length
+      });
+
+      const resp = await adminApi().saveMockTest({
+        test_id: testId,
+        category: cat,
+        title_en: title,
+        title_hi: metaHeader,
+        duration_mins: duration,
+        total_marks: totalMarks,
+        negative_marking: negMark,
+        is_paid: isFree ? 0 : 1,
+        sub_cat: subCat,
+        is_live: isLive,
+        live_end_time: liveEndTime,
+        pos_mark: posMark,
+        questions
+      });
+
+      if (!resp || !resp.ok) {
+        throw new Error((resp && resp.error) || "Cloudflare D1 save failed");
+      }
+
+      msg.style.color = "#166534";
+      msg.innerText = `✅ Cloudflare D1 में Test Published (${questions.length} Qs)!`;
+      fileInput.value = "";
+      await loadTestsData();
+    } catch (err) {
+      msg.style.color = "#dc2626";
+      msg.innerText = "Error: " + (err.message || err);
+    }
+  };
+})();

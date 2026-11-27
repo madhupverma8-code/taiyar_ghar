@@ -30,7 +30,13 @@
     bulkUploadBundle: (bundle, questions) => adminPost("/api/bundles/bulk", { bundle, questions }),
     deleteBundles: (bundleIds) => adminPost("/api/bundles/delete", { bundle_ids: bundleIds }),
     saveMockTest: (payload) => adminPost("/api/tests", payload),
-    saveContentPost: (payload) => adminPost("/api/content", payload),
+    deleteMockTest: (testId) => adminPost("/api/tests/delete", { test_id: testId }),
+    getTests: async (testId = "") => {
+      const url = new URL(BASE + "/api/tests");
+      if (testId) url.searchParams.set("test_id", testId);
+      const res = await fetch(url.toString());
+      return res.json();
+    },
     getBundles: async (filters = {}) => {
       const url = new URL(BASE + "/api/bundles");
       Object.entries(filters).forEach(([k, v]) => {
