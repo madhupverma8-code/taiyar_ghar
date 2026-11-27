@@ -1383,3 +1383,198 @@ window.exportAllDataExcel = async function (type) {
   XLSX.writeFile(wb, fileName);
   if (status) status.innerText = `Downloaded ${rows.length} record(s) into ${fileName}!`;
 };
+
+
+// =========================================================================
+// CLOUDFLARE D1 & WORKER ADMIN INTEGRATION LAYER (Firebase Login Preserved)
+// =========================================================================
+(function initAdminD1Integration() {
+  const adminApi = () => window.TG_ADMIN_API;
+
+  // Bulk Upload Practice & NCERT Questions directly to Cloudflare D1
+  window.uploadPracticeBankExcel = async function () {
+    const fileInput = document.getElementById("pbExcelFile");
+    const sectionType = document.getElementById("pbSectionType")?.value || "practice";
+    const defSub = document.getElementById("pbDefSubject").value.trim();
+    const defTop = document.getElementById("pbDefTopic").value.trim();
+    const statusEl = document.getElementById("pbUploadStatus");
+    const btn = document.getElementById("btnUploadPb");
+
+    if (!fileInput.files.length) {
+      alert("Please select an Excel or CSV file.");
+      return;
+    }
+    if (!adminApi()) {
+      alert("TG_ADMIN_API bridge not loaded. Check tg-admin-bridge.js.");
+      return;
+    }
+
+    if (btn) btn.disabled = true;
+    statusEl.style.color = "#1d4ed8";
+    statusEl.innerText = "Reading Excel file for Cloudflare D1 upload...";
+
+    try {
+      const data = await fileInput.files[0].arrayBuffer();
+      const wb = XLSX.read(data);
+      const rows = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]);
+      if (!rows.length) {
+        statusEl.innerText = "File is empty.";
+        return;
+      }
+
+      const grouped = {};
+      rows.forEach((r) => {
+        const clsLevel = r.ClassLevel ? String(r.ClassLevel).trim() : "";
+        const rawSub = (r.Subject || defSub || (sectionType === "ncert" ? "NCERT General" : "General")).trim();
+        const top = (r.Topic || r.Chapter || defTop || "Mixed").trim();
+        const key = `${sectionType}___${clsLevel}___${rawSub}___${top}`;
+        if (!grouped[key]) {
+          grouped[key] = {
+            section: sectionType,
+            ncert_class: sectionType === "ncert" ? (clsLevel || "NCERT") : "",
+            subject: rawSub,
+            topic: top,
+            items: []
+          };
+        }
+
+        const ansChar = String(r.CorrectOption || r.Answer || "A").trim().toUpperCase();
+        const qEnVal = String(r.Question || r["Question En"] || r["Question_En"] || "").trim();
+        const qHiVal = String(r.QuestionHi || r["Question Hi"] || r["Question_Hi"] || "").trim();
+        const expEnVal = String(r.Explanation || r["Explanation En"] || r["Explanation_En"] || "").trim();
+        const expHiVal = String(r.ExplanationHi || r["Explanation Hi"] || r["Explanation_Hi"] || "").trim();
+
+        const opts = [
+          { en: String(r.OptionA || "").trim(), hi: String(r.OptionAHi || r.OptionA || "").trim() },
+          { en: String(r.OptionB || "").trim(), hi: String(r.OptionBHi || r.OptionB || "").trim() },
+          { en: String(r.OptionC || "").trim(), hi: String(r.OptionCHi || r.OptionC || "").trim() },
+          { en: String(r.OptionD || "").trim(), hi: String(r.OptionDHi || r.OptionD || "").trim() }
+        ];
+
+        grouped[key].items.push({
+          q_no: grouped[key].items.length + 1,
+          subject: rawSub,
+          topic: top,
+          ncert_class: sectionType === "ncert" ? (clsLevel || "NCERT") : "",
+          question_en: qEnVal || qHiVal,
+          question_hi: qHiVal || qEnVal,
+          options: opts,
+          correct_option: ["A", "B", "C", "D"].includes(ansChar) ? ansChar : "A",
+          explanation_en: expEnVal || expHiVal,
+          explanation_hi: expHiVal || expEnVal
+        });
+      });
+
+      const BUNDLE_SIZE = 250;
+      const batches = [];
+      const ts = Date.now();
+      for (const key in grouped) {
+        const grp = grouped[key];
+        for (let i = 0; i < grp.items.length; i += BUNDLE_SIZE) {
+          const chunk = grp.items.slice(i, i + BUNDLE_SIZE);
+          const packNum = Math.floor(i / BUNDLE_SIZE) + 1;
+          const bundleId = `${grp.section}_${grp.ncert_class}_${grp.subject}_${grp.topic}_p${packNum}_${ts}_${batches.length}`
+            .replace(/[^a-zA-Z0-9_]+/g, "_")
+            .slice(0, 110);
+          batches.push({
+            bundle: {
+              bundle_id: bundleId,
+              subject: grp.subject,
+              topic: grp.topic,
+              ncert_class: grp.ncert_class,
+              title_en: `${grp.subject} - ${grp.topic} (Pack ${packNum})`,
+              title_hi: `${grp.subject} - ${grp.topic} (सेट ${packNum})`,
+              is_free_sample: packNum === 1 ? 1 : 0
+            },
+            questions: chunk
+          });
+        }
+      }
+
+      let uploadedQs = 0;
+      for (let i = 0; i < batches.length; i++) {
+        statusEl.innerText = `Uploading pack ${i + 1} of ${batches.length} to Cloudflare D1...`;
+        const resp = await adminApi().bulkUploadBundle(batches[i].bundle, batches[i].questions);
+        if (!resp || !resp.ok) {
+          throw new Error((resp && resp.error) || "Cloudflare D1 upload failed");
+        }
+        uploadedQs += Number(resp.inserted_questions || batches[i].questions.length);
+      }
+
+      statusEl.style.color = "#166534";
+      statusEl.innerText = `✅ Cloudflare D1 में ${uploadedQs} Questions (${batches.length} Bundles) सफलतापूर्वक Upload हो गए!`;
+      fileInput.value = "";
+      await loadPracticeBundlesData();
+    } catch (err) {
+      console.error("D1 Upload Error:", err);
+      statusEl.style.color = "#dc2626";
+      statusEl.innerText = "Upload Error: " + (err.message || err);
+    } finally {
+      if (btn) btn.disabled = false;
+    }
+  };
+
+  // Load Practice & NCERT Bundles list from Cloudflare D1
+  window.loadPracticeBundlesData = async function () {
+    const body = document.getElementById("pbBundlesBody");
+    if (body) body.innerHTML = `<tr><td colspan="7" style="color:#1d4ed8;">Loading bundles from Cloudflare D1...</td></tr>`;
+    try {
+      if (adminApi()) {
+        const res = await adminApi().getBundles({});
+        if (res && res.ok && Array.isArray(res.bundles)) {
+          cacheBundles = res.bundles.map((b, idx) => ({
+            docId: b.bundle_id,
+            section: (b.ncert_class || String(b.bundle_id || "").startsWith("ncert_")) ? "ncert" : "practice",
+            subject: b.ncert_class ? `${b.ncert_class} - ${b.subject}` : (b.subject || "General"),
+            topic: b.topic || "Mixed",
+            packNumber: idx + 1,
+            questionCount: Number(b.question_count || 0)
+          }));
+          renderPracticeBundlesTable(true);
+          return;
+        }
+      }
+    } catch (e) {
+      console.error("D1 bundle load error:", e);
+    }
+  };
+
+  // Delete single or multiple bundles from Cloudflare D1
+  const origDeleteDocAndReload = window.deleteDocAndReload;
+  window.deleteDocAndReload = async function (col, id, tabToReload) {
+    if (col === "practice_bank_bundles" && adminApi()) {
+      if (!confirm("Kya aap is bundle ko Cloudflare D1 se permanently delete karna chahte hain?")) return;
+      await adminApi().deleteBundles([id]);
+      await loadPracticeBundlesData();
+      return;
+    }
+    if (typeof origDeleteDocAndReload === "function") {
+      return origDeleteDocAndReload(col, id, tabToReload);
+    }
+  };
+
+  window.bulkDeleteSelectedBundles = async function () {
+    const ids = Array.from(document.querySelectorAll(".pb-row-chk:checked")).map((cb) => cb.value);
+    if (!ids.length) {
+      alert("Pehle checkboxes select karein.");
+      return;
+    }
+    if (!confirm(`Selected ${ids.length} bundle(s) ko Cloudflare D1 se delete karein?`)) return;
+    if (adminApi()) {
+      await adminApi().deleteBundles(ids);
+      await loadPracticeBundlesData();
+    }
+  };
+
+  window.bulkDeleteFilteredBundles = async function () {
+    if (!lastRenderedPbList.length) {
+      alert("Delete karne ke liye koi bundle list mein nahi hai.");
+      return;
+    }
+    if (!confirm(`Sabhi ${lastRenderedPbList.length} matching bundle(s) ko Cloudflare D1 se delete karein?`)) return;
+    if (adminApi()) {
+      await adminApi().deleteBundles(lastRenderedPbList.map((b) => b.docId));
+      await loadPracticeBundlesData();
+    }
+  };
+})();

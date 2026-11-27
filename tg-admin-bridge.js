@@ -10,30 +10,31 @@
     );
   }
 
+  async function adminPost(path, body = {}) {
+    const res = await fetch(BASE + path, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-Admin-Key": getAdminKey()
+      },
+      body: JSON.stringify(body)
+    });
+    return res.json();
+  }
+
   window.TG_ADMIN_API = {
     setAdminKey: (key) => {
-      if (key && String(key).trim()) {
-        localStorage.setItem("tg_admin_key_override", String(key).trim());
-      }
+      if (key && String(key).trim()) localStorage.setItem("tg_admin_key_override", String(key).trim());
     },
     getAdminKey,
-    bulkUploadBundle: async (bundle, questions) => {
-      const res = await fetch(BASE + "/api/bundles/bulk", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "X-Admin-Key": getAdminKey()
-        },
-        body: JSON.stringify({ bundle, questions })
-      });
-      return res.json();
-    },
+    bulkUploadBundle: (bundle, questions) => adminPost("/api/bundles/bulk", { bundle, questions }),
+    deleteBundles: (bundleIds) => adminPost("/api/bundles/delete", { bundle_ids: bundleIds }),
+    saveMockTest: (payload) => adminPost("/api/tests", payload),
+    saveContentPost: (payload) => adminPost("/api/content", payload),
     getBundles: async (filters = {}) => {
       const url = new URL(BASE + "/api/bundles");
       Object.entries(filters).forEach(([k, v]) => {
-        if (v !== undefined && v !== null && String(v) !== "") {
-          url.searchParams.set(k, String(v));
-        }
+        if (v !== undefined && v !== null && String(v) !== "") url.searchParams.set(k, String(v));
       });
       const res = await fetch(url.toString());
       return res.json();

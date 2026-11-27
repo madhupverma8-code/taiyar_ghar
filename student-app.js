@@ -3741,3 +3741,228 @@ Mera Referral Code *${code}* use karne par tumhe All-Access Pass par *₹15 Inst
 Abhi join karein: ${link}`;
     window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
 };
+
+
+// =========================================================================
+// CLOUDFLARE D1 & WORKER DIRECT INTEGRATION LAYER (Non-Destructive)
+// =========================================================================
+(function initStudentD1Integration() {
+  const api = () => window.TG_STUDENT_API;
+
+  // Sync student registration to D1 automatically alongside existing flow
+  const origDoRegister = window.doRegister;
+  if (typeof origDoRegister === "function") {
+    window.doRegister = async function (...args) {
+      const name = document.getElementById("regName")?.value.trim() || "";
+      const mobile = document.getElementById("regMobile")?.value.trim() || "";
+      const pass = document.getElementById("regPass")?.value.trim() || "";
+      const email = (verifiedRegEmail || document.getElementById("regEmail")?.value || "").trim().toLowerCase();
+      await origDoRegister.apply(this, args);
+      const newId = document.getElementById("newLoginId")?.innerText.trim();
+      if (newId && api()) {
+        api().registerStudent({
+          login_id: newId,
+          name,
+          email,
+          mobile,
+          password_hash: pass,
+          is_paid: 0,
+          plan_name: "FREE",
+          expiry_date: "",
+          device_id: getDeviceId()
+        }).catch(() => {});
+      }
+    };
+  }
+
+  // Practice Bank catalog: read directly from Cloudflare D1 /api/bundles
+  window.openSmartPracticeBank = async function (sectionMode = "practice") {
+    if (!isLoggedIn) {
+      showLogin();
+      const err = document.getElementById("loginInlineError");
+      if (err) {
+        err.innerText = "Please log in or register free to access Smart Practice Bank & NCERT Questions.";
+        err.classList.remove("hide");
+      }
+      return;
+    }
+
+    pbCurrentSection = sectionMode === "ncert" ? "ncert" : "practice";
+    showScreen("practiceBankScreen", true);
+    updatePbAnalyticsUI();
+
+    const btnP = document.getElementById("pbModeTabPractice");
+    const btnN = document.getElementById("pbModeTabNcert");
+    if (btnP) btnP.className = pbCurrentSection === "practice" ? "btn btn-primary" : "btn btn-outline";
+    if (btnN) btnN.className = pbCurrentSection === "ncert" ? "btn btn-primary" : "btn btn-outline";
+
+    const grid = document.getElementById("pbLevelSubjects");
+    if (grid) grid.innerHTML = `<div style="grid-column:1/-1; padding:18px; color:#4F46E5; font-weight:600;">⚡ Loading subjects &amp; chapters from Cloudflare D1...</div>`;
+
+    try {
+      if (api()) {
+        const res = await api().getBundles({});
+        if (res && res.ok && Array.isArray(res.bundles) && res.bundles.length > 0) {
+          pbMetaIndex = res.bundles.map((b, idx) => {
+            const isNcert = Boolean(b.ncert_class) || String(b.bundle_id || "").startsWith("ncert_");
+            return {
+              bundleId: b.bundle_id,
+              section: isNcert ? "ncert" : "practice",
+              subject: (b.ncert_class ? `${b.ncert_class} - ${b.subject}` : (b.subject || "General")).trim(),
+              topic: (b.topic || b.title_en || "Mixed").trim(),
+              packIndex: idx + 1,
+              count: Number(b.question_count || 0)
+            };
+          });
+          pbCatalogLoaded = true;
+          renderPbSubjects();
+          return;
+        }
+      }
+    } catch (e) {
+      console.warn("D1 bundles fetch fallback:", e);
+    }
+
+    // Fallback to existing Firestore catalog if D1 has 0 bundles yet
+    try {
+      const bSnap = await getDocs(collection(db, "practice_bank_bundles"));
+      pbMetaIndex = bSnap.docs.map(d => {
+        const data = d.data();
+        const qs = Array.isArray(data.questions) ? data.questions : null;
+        if (qs) pbLoadedBundles[d.id] = qs;
+        return {
+          bundleId: d.id,
+          section: data.section || "practice",
+          subject: (data.subject || "General").trim(),
+          topic: (data.topic || "Mixed").trim(),
+          packIndex: data.packNumber || data.packIndex || 1,
+          count: Number(data.questionCount || (qs ? qs.length : 0))
+        };
+      });
+      pbCatalogLoaded = true;
+      renderPbSubjects();
+    } catch (e2) {
+      if (grid) grid.innerHTML = `<div style="grid-column:1/-1; padding:18px; color:#DC2626;">Error loading Practice Bank: ${e2.message}</div>`;
+    }
+  };
+
+  // Fetch topic questions directly from Cloudflare D1 (/api/questions with 15 free preview limit)
+  window.startTopicPractice = async function (topic) {
+    pbCurrentMode = "topic";
+    pbCurrentTopic = topic;
+
+    const matchingBundles = pbMetaIndex
+      .filter(b => (b.section || "practice") === pbCurrentSection && b.subject === pbCurrentSubject && b.topic === topic)
+      .sort((a, b) => (a.packIndex || 1) - (b.packIndex || 1));
+
+    showProcessing(`Loading ${topic}...`, "Fetching questions from Cloudflare D1");
+
+    try {
+      if (api() && matchingBundles.length > 0) {
+        const targetBundles = currentStudent.isPaid ? matchingBundles : matchingBundles.slice(0, 1);
+        let d1Questions = [];
+        for (const b of targetBundles) {
+          const qRes = await api().getQuestions({ bundle_id: b.bundleId }, Boolean(currentStudent.isPaid));
+          if (qRes && qRes.ok && Array.isArray(qRes.questions)) {
+            const mapped = qRes.questions.map((row, idx) => {
+              const opts = Array.isArray(row.options) ? row.options : [];
+              const ansChar = String(row.correct_option || "A").trim().toUpperCase();
+              const ansIdx = Math.max(0, ["A", "B", "C", "D"].indexOf(ansChar));
+              return {
+                id: `${row.bundle_id}_${row.q_no || idx + 1}`,
+                topic: row.topic || topic,
+                q: row.question_en || row.question_hi || "",
+                qHi: row.question_hi || row.question_en || "",
+                options: opts.map(o => (typeof o === "object" ? (o.en || o.hi || "") : String(o || ""))),
+                optionsHi: opts.map(o => (typeof o === "object" ? (o.hi || o.en || "") : String(o || ""))),
+                ans: ansIdx,
+                exp: row.explanation_en || row.explanation_hi || "",
+                expHi: row.explanation_hi || row.explanation_en || ""
+              };
+            });
+            d1Questions = d1Questions.concat(mapped);
+          }
+        }
+        if (d1Questions.length > 0) {
+          if (!currentStudent.isPaid) d1Questions = d1Questions.slice(0, 15);
+          hideProcessing();
+          launchPracticeArena(d1Questions, `${pbCurrentSubject} • ${topic}`);
+          return;
+        }
+      }
+    } catch (e) {
+      console.warn("D1 topic questions fallback:", e);
+    }
+
+    // Fallback to Firestore bundle if not in D1
+    try {
+      let allTopicQs = [];
+      const bundlesToLoad = currentStudent.isPaid ? matchingBundles : matchingBundles.slice(0, 1);
+      const fetchedArrays = await Promise.all(bundlesToLoad.map(b => fetchBundleQuestions(b.bundleId)));
+      fetchedArrays.forEach(qs => { allTopicQs = allTopicQs.concat(qs); });
+      if (!currentStudent.isPaid) allTopicQs = allTopicQs.slice(0, 15);
+      hideProcessing();
+      launchPracticeArena(allTopicQs, `${pbCurrentSubject} • ${topic}`);
+    } catch (err) {
+      hideProcessing();
+      alert("Error loading topic: " + err.message);
+    }
+  };
+
+  // Mix practice directly from Cloudflare D1
+  window.startSubjectMixPractice = async function () {
+    pbCurrentMode = "mix";
+    pbCurrentTopic = "All Topics Mix";
+    const subjectBundles = pbMetaIndex.filter(b => (b.section || "practice") === pbCurrentSection && b.subject === pbCurrentSubject);
+    if (!subjectBundles.length) return;
+
+    showProcessing(`Preparing ${pbCurrentSubject} Mix Practice...`, "Loading questions from Cloudflare D1");
+    try {
+      if (api()) {
+        const targetBundles = currentStudent.isPaid ? subjectBundles.slice(0, 5) : subjectBundles.slice(0, 1);
+        let mixed = [];
+        for (const b of targetBundles) {
+          const qRes = await api().getQuestions({ bundle_id: b.bundleId }, Boolean(currentStudent.isPaid));
+          if (qRes && qRes.ok && Array.isArray(qRes.questions)) {
+            qRes.questions.forEach((row, idx) => {
+              const opts = Array.isArray(row.options) ? row.options : [];
+              const ansChar = String(row.correct_option || "A").trim().toUpperCase();
+              mixed.push({
+                id: `${row.bundle_id}_${row.q_no || idx + 1}`,
+                topic: row.topic || "Mix",
+                q: row.question_en || row.question_hi || "",
+                qHi: row.question_hi || row.question_en || "",
+                options: opts.map(o => (typeof o === "object" ? (o.en || o.hi || "") : String(o || ""))),
+                optionsHi: opts.map(o => (typeof o === "object" ? (o.hi || o.en || "") : String(o || ""))),
+                ans: Math.max(0, ["A", "B", "C", "D"].indexOf(ansChar)),
+                exp: row.explanation_en || row.explanation_hi || "",
+                expHi: row.explanation_hi || row.explanation_en || ""
+              });
+            });
+          }
+        }
+        if (mixed.length > 0) {
+          for (let i = mixed.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [mixed[i], mixed[j]] = [mixed[j], mixed[i]];
+          }
+          if (!currentStudent.isPaid) mixed = mixed.slice(0, 15);
+          hideProcessing();
+          launchPracticeArena(mixed, `${pbCurrentSubject} • Mix Practice`);
+          return;
+        }
+      }
+    } catch (e) {
+      console.warn("D1 mix fallback:", e);
+    }
+
+    // Fallback
+    const targetBundles = currentStudent.isPaid ? subjectBundles : subjectBundles.slice(0, 2);
+    const fetchedArrays = await Promise.all(targetBundles.map(b => fetchBundleQuestions(b.bundleId)));
+    let mixedPool = [];
+    fetchedArrays.forEach(qs => { mixedPool = mixedPool.concat(qs); });
+    if (!currentStudent.isPaid) mixedPool = mixedPool.slice(0, 15);
+    hideProcessing();
+    launchPracticeArena(mixedPool, `${pbCurrentSubject} • Mix Practice`);
+  };
+})();
