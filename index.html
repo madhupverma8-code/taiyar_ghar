@@ -52,7 +52,7 @@
 
     <style>
         .hide { display: none !important; }
-        #paymentModal:not(.hide), #submitModal:not(.hide), #registerSuccessModal:not(.hide), #liveHubModal:not(.hide), #historyModal:not(.hide), #reportQuestionModal:not(.hide), #tgProcessingOverlay:not(.hide) {
+        #paymentModal:not(.hide), #biDashboardModal:not(.hide), #submitModal:not(.hide), #registerSuccessModal:not(.hide), #liveHubModal:not(.hide), #historyModal:not(.hide), #reportQuestionModal:not(.hide), #tgProcessingOverlay:not(.hide) {
             display: flex !important;
         }
 
@@ -872,24 +872,6 @@
             </div>
             </div>
 
-            <!-- Mistake Notebook, Weak-Topic Generator & Quiz Challenge Row -->
-            <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(280px, 1fr)); gap:14px; margin-bottom:22px;">
-                <div style="background:#EEF2FF; border:1.5px solid #C7D2FE; border-radius:14px; padding:16px 20px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
-                    <div>
-                        <strong style="color:#1E1B4B; font-size:15px;">📓 Mistake Notebook &amp; Weak Topics</strong>
-                        <div style="font-size:12px; color:#334155; margin-top:2px;">Revise wrong &amp; >2-min slow questions + spot weak topics.</div>
-                    </div>
-                    <button class="btn btn-primary" style="padding:8px 14px; font-size:12.5px;" onclick="openMistakeNotebook()">Open Notebook →</button>
-                </div>
-                <div style="background:#FEF3C7; border:1.5px solid #FCD34D; border-radius:14px; padding:16px 20px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
-                    <div>
-                        <strong style="color:#78350F; font-size:15px;">⚔️ Share Quiz Challenge Link</strong>
-                        <div style="font-size:12px; color:#92400E; margin-top:2px;">Challenge friends on WhatsApp/Telegram to beat your score.</div>
-                    </div>
-                    <button class="btn" style="background:#D97706; color:#ffffff; padding:8px 14px; font-size:12.5px;" onclick="shareQuizChallengeLink()">Challenge Friend →</button>
-                </div>
-            </div>
-
             <!-- Student Refer & Earn Card on Dashboard -->
             <div style="background:#ECFDF5; border:1.5px solid #A7F3D0; border-radius:14px; padding:16px 22px; margin-bottom:26px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
                 <div>
@@ -943,9 +925,27 @@
             </div>
 
             <!-- Exam Categories Grid (Original Categories Preserved) -->
-            <div id="dashCategories" style="margin-bottom:35px;">
+            <div id="dashCategories" style="margin-bottom:24px;">
                 <h2 class="section-title" data-translate="sec_cats">🎯 Exam Categories</h2>
                 <div id="dashCatContainer"></div>
+            </div>
+
+            <!-- Compact Mistake Notebook & Quiz Challenge Strip at Bottom (Just Above Footer) -->
+            <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(260px, 1fr)); gap:12px; margin-bottom:10px;">
+                <div style="background:#EEF2FF; border:1px solid #C7D2FE; border-radius:12px; padding:12px 16px; display:flex; justify-content:space-between; align-items:center; gap:10px;">
+                    <div>
+                        <strong style="color:#1E1B4B; font-size:13.5px;">📓 Mistake Notebook &amp; Weak Topics</strong>
+                        <div style="font-size:11.5px; color:#334155;">Revise wrong &amp; &gt;2-min slow questions.</div>
+                    </div>
+                    <button class="btn btn-primary" style="padding:6px 12px; font-size:12px;" onclick="openMistakeNotebook()">Open →</button>
+                </div>
+                <div style="background:#FEF3C7; border:1px solid #FCD34D; border-radius:12px; padding:12px 16px; display:flex; justify-content:space-between; align-items:center; gap:10px;">
+                    <div>
+                        <strong style="color:#78350F; font-size:13.5px;">⚔️ Share Quiz Challenge Link</strong>
+                        <div style="font-size:11.5px; color:#92400E;">Challenge friends on WhatsApp/Telegram.</div>
+                    </div>
+                    <button class="btn" style="background:#D97706; color:#ffffff; padding:6px 12px; font-size:12px;" onclick="shareQuizChallengeLink()">Challenge →</button>
+                </div>
             </div>
         </div>
     </div>
@@ -1515,11 +1515,13 @@
             </div>
         </div>
 
-        <div style="display:flex; justify-content:center; gap:12px; flex-wrap:wrap;">
+        <div style="display:flex; justify-content:center; gap:10px; flex-wrap:wrap;">
             <button class="btn btn-primary" onclick="viewSolutions()">📖 View Detailed Solutions</button>
+            <button class="btn" style="background:#0F172A; color:#ffffff; font-weight:700;" onclick="openBiDashboardModal()">📊 BI Dashboard</button>
             <button class="btn btn-outline" onclick="downloadScorecard()">📥 Print Scorecard</button>
             <button class="btn btn-outline" onclick="downloadQuestionPaper()">📄 Download Paper</button>
-            <button class="btn btn-accent" onclick="goDashboard()">Dashboard</button>
+            <button class="btn btn-accent" onclick="goDashboard()">Candidate Dashboard</button>
+            <button class="btn btn-outline" onclick="backToMockTestsView()">📝 Mock Tests</button>
         </div>
     </div>
 
@@ -1527,6 +1529,25 @@
     <div id="solutionsScreen" class="hide container" style="max-width:850px; margin:30px auto; padding:0 15px;">
         <button class="btn btn-outline" onclick="showScreen('resultScreen')" style="margin-bottom:15px;">← Back to Scorecard</button>
         <div id="solutionsContainer"></div>
+    </div>
+
+    <!-- OPTIONAL BI ANALYTICS DASHBOARD MODAL (FOR ANY TEST SIZE: 15, 100, 200+ Qs) -->
+    <div id="biDashboardModal" class="hide" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(15,23,42,0.78); align-items:center; justify-content:center; z-index:10002; padding:14px;">
+        <div style="background:#F8FAFC; max-width:960px; width:100%; border-radius:16px; padding:22px 24px; position:relative; max-height:92vh; overflow-y:auto; border:1px solid #CBD5E1; box-shadow:0 24px 60px rgba(0,0,0,0.32);">
+            <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:12px; border-bottom:1px solid #E2E8F0; padding-bottom:14px; margin-bottom:16px; background:#ffffff; padding:16px 18px; border-radius:12px;">
+                <div>
+                    <span style="background:#EEF2FF; color:#4338CA; font-size:11px; font-weight:700; padding:3px 9px; border-radius:6px;">OPTIONAL POWER-BI STYLE ANALYTICS</span>
+                    <h2 id="biDashTitle" style="color:#0F172A; font-size:19px; font-weight:800; margin:6px 0 3px;">Performance BI Dashboard</h2>
+                    <div id="biDashCandidateMeta" style="font-size:12.5px; color:#475569; font-weight:600;"></div>
+                </div>
+                <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
+                    <button type="button" class="btn btn-primary" style="padding:7px 13px; font-size:12.5px;" onclick="saveBiDashboardReport()">💾 Save / Print Report</button>
+                    <button type="button" class="btn btn-accent" style="padding:7px 13px; font-size:12.5px;" onclick="shareBiDashboardSummary()">📤 Share Summary</button>
+                    <button type="button" onclick="closeBiDashboardModal()" style="background:#F1F5F9; border:1px solid #CBD5E1; width:34px; height:34px; border-radius:8px; font-weight:700; cursor:pointer;">✕</button>
+                </div>
+            </div>
+            <div id="biDashboardContent"></div>
+        </div>
     </div>
 
     <!-- CLEAN 3-TIER SUBSCRIPTION PAYMENT MODAL (Professional Corporate Styling) -->

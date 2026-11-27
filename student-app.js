@@ -4807,3 +4807,228 @@ function tickSectionalTimerOneSec() {
         }
     }
 }
+
+
+// =========================================================================
+// OPTIONAL BI DASHBOARD FOR ALL TESTS (ANY QUESTION COUNT) + SAVE & SHARE
+// =========================================================================
+function getBiAnalyticsPayload() {
+    const qList = Array.isArray(testQuestions) ? testQuestions : [];
+    const ansMap = userAnswers || {};
+    const timeMap = questionTimeMap || {};
+    const totalQ = qList.length;
+
+    let correct = 0, wrong = 0, skipped = 0, totalSec = 0;
+    let fastQ = 0, modQ = 0, slowQ = 0, unattQ = 0;
+
+    for (let i = 0; i < totalQ; i++) {
+        const q = qList[i] || {};
+        const uAns = ansMap[i];
+        const sec = Number(timeMap[i] || 0);
+        totalSec += sec;
+
+        if (uAns === undefined) {
+            skipped++;
+            unattQ++;
+        } else if (uAns === q.ans) {
+            correct++;
+        } else {
+            wrong++;
+        }
+
+        if (uAns === undefined) {
+            // tracked in unattQ
+        } else if (sec > 120) {
+            slowQ++;
+        } else if (sec > 45) {
+            modQ++;
+        } else {
+            fastQ++;
+        }
+    }
+
+    const attempted = correct + wrong;
+    const accuracyPct = attempted > 0 ? ((correct / attempted) * 100).toFixed(1) : "0.0";
+    const avgSec = totalQ > 0 ? Math.round(totalSec / totalQ) : 0;
+    const scoreVal = currentResultData ? currentResultData.score : "0.00";
+    const totalMarksVal = currentResultData ? currentResultData.total : currentTestMarks;
+    const rankVal = currentResultData ? currentResultData.rank : "-";
+    const totalStudVal = currentResultData ? currentResultData.totalStudents : "-";
+    const percentVal = currentResultData ? currentResultData.percent : "0.0";
+
+    return {
+        studentName: currentStudent.name || "Student",
+        loginId: currentStudent.loginId || "N/A",
+        testName: currentTestName || "Mock Test",
+        totalQ,
+        attempted,
+        correct,
+        wrong,
+        skipped,
+        totalSec,
+        avgSec,
+        accuracyPct,
+        scoreVal,
+        totalMarksVal,
+        percentVal,
+        rankVal,
+        totalStudVal,
+        fastQ,
+        modQ,
+        slowQ,
+        unattQ,
+        qList,
+        ansMap,
+        timeMap
+    };
+}
+
+window.openBiDashboardModal = function () {
+    const modal = document.getElementById("biDashboardModal");
+    const content = document.getElementById("biDashboardContent");
+    if (!modal || !content) return;
+
+    const d = getBiAnalyticsPayload();
+    document.getElementById("biDashTitle").innerText = `${d.testName} — BI Analytics Dashboard`;
+    document.getElementById("biDashCandidateMeta").innerText =
+        `Candidate: ${d.studentName} (${d.loginId}) • Score: ${d.scoreVal}/${d.totalMarksVal} (${d.percentVal}%) • Rank: ${d.rankVal}${d.totalStudVal !== '-' ? ' / ' + d.totalStudVal : ''}`;
+
+    const safePct = (num) => d.totalQ > 0 ? Math.min(100, Math.round((num / d.totalQ) * 100)) : 0;
+    const cPct = safePct(d.correct);
+    const wPct = safePct(d.wrong);
+    const sPct = safePct(d.skipped);
+
+    const blocksHtml = Array.from({ length: d.totalQ }, (_, i) => {
+        const q = d.qList[i] || {};
+        const uAns = d.ansMap[i];
+        const sec = Number(d.timeMap[i] || 0);
+        let bg = "#E2E8F0", fg = "#334155", bd = "#CBD5E1", tag = "Skip";
+        if (uAns === undefined) {
+            bg = "#F1F5F9"; fg = "#64748B"; bd = "#CBD5E1"; tag = "Skip";
+        } else if (uAns === q.ans) {
+            bg = sec > 120 ? "#FEF3C7" : "#D1FAE5";
+            fg = sec > 120 ? "#92400E" : "#065F46";
+            bd = sec > 120 ? "#F59E0B" : "#10B981";
+            tag = "Right";
+        } else {
+            bg = "#FEE2E2"; fg = "#991B1B"; bd = "#EF4444"; tag = "Wrong";
+        }
+        return `<div title="Q${i + 1}: ${tag} (${sec}s)" style="background:${bg}; color:${fg}; border:1px solid ${bd}; border-radius:6px; padding:5px 2px; text-align:center; font-size:10.5px; font-weight:700;">
+            <div>Q${i + 1}</div>
+            <div style="font-size:9.5px;">${sec}s</div>
+        </div>`;
+    }).join("");
+
+    content.innerHTML = `
+        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(150px, 1fr)); gap:12px; margin-bottom:16px;">
+            <div style="background:#ffffff; border:1px solid #E2E8F0; border-radius:12px; padding:14px;">
+                <div style="font-size:11px; color:#64748B; font-weight:700;">CANDIDATE</div>
+                <div style="font-size:15px; font-weight:800; color:#0F172A; margin-top:3px;">${d.studentName}</div>
+                <div style="font-size:11.5px; color:#4F46E5; font-weight:600;">ID: ${d.loginId}</div>
+            </div>
+            <div style="background:#ffffff; border:1px solid #E2E8F0; border-radius:12px; padding:14px;">
+                <div style="font-size:11px; color:#64748B; font-weight:700;">SCORE &amp; RANK</div>
+                <div style="font-size:16px; font-weight:800; color:#0F172A; margin-top:3px;">${d.scoreVal} / ${d.totalMarksVal}</div>
+                <div style="font-size:11.5px; color:#059669; font-weight:700;">Rank ${d.rankVal}${d.totalStudVal !== '-' ? ' of ' + d.totalStudVal : ''}</div>
+            </div>
+            <div style="background:#ffffff; border:1px solid #E2E8F0; border-radius:12px; padding:14px;">
+                <div style="font-size:11px; color:#64748B; font-weight:700;">ACCURACY</div>
+                <div style="font-size:18px; font-weight:800; color:#4338CA; margin-top:3px;">${d.accuracyPct}%</div>
+                <div style="font-size:11.5px; color:#475569;">${d.correct} Right / ${d.wrong} Wrong</div>
+            </div>
+            <div style="background:#ffffff; border:1px solid #E2E8F0; border-radius:12px; padding:14px;">
+                <div style="font-size:11px; color:#64748B; font-weight:700;">AVG SPEED &amp; SLOW Qs</div>
+                <div style="font-size:18px; font-weight:800; color:#B45309; margin-top:3px;">${d.avgSec}s / Q</div>
+                <div style="font-size:11.5px; color:#475569;">Slow (&gt;120s): ${d.slowQ} Qs</div>
+            </div>
+        </div>
+
+        <div style="background:#ffffff; border:1px solid #E2E8F0; border-radius:12px; padding:16px; margin-bottom:16px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:10px;">
+                <strong style="color:#0F172A; font-size:14px;">Question Distribution Across All ${d.totalQ} Questions</strong>
+                <span style="font-size:12px; color:#475569;">Attempted: <b>${d.attempted}/${d.totalQ}</b> • Skipped: <b>${d.skipped}</b></span>
+            </div>
+            <div style="height:18px; width:100%; border-radius:999px; overflow:hidden; display:flex; background:#E2E8F0; margin-bottom:10px;">
+                <div style="width:${cPct}%; background:#10B981;" title="Correct ${cPct}%"></div>
+                <div style="width:${wPct}%; background:#EF4444;" title="Wrong ${wPct}%"></div>
+                <div style="width:${sPct}%; background:#94A3B8;" title="Skipped ${sPct}%"></div>
+            </div>
+            <div style="display:flex; gap:16px; flex-wrap:wrap; font-size:12px; font-weight:600; color:#334155;">
+                <span>🟢 Correct: ${d.correct} (${cPct}%)</span>
+                <span>🔴 Wrong: ${d.wrong} (${wPct}%)</span>
+                <span>⚪ Unattempted: ${d.skipped} (${sPct}%)</span>
+                <span>⚡ Fast (≤45s): ${d.fastQ}</span>
+                <span>🟡 Moderate (46–120s): ${d.modQ}</span>
+                <span>🔴 Slow (&gt;120s): ${d.slowQ}</span>
+            </div>
+        </div>
+
+        <div style="background:#ffffff; border:1px solid #E2E8F0; border-radius:12px; padding:16px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:10px;">
+                <strong style="color:#0F172A; font-size:14px;">Compact Matrix View (Best for 100 / 200+ Question Tests)</strong>
+                <span style="font-size:11.5px; color:#64748B;">Hover any block for status &amp; seconds</span>
+            </div>
+            <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(54px, 1fr)); gap:5px; max-height:260px; overflow-y:auto; padding-right:4px;">
+                ${blocksHtml}
+            </div>
+        </div>
+    `;
+
+    modal.classList.remove("hide");
+};
+
+window.closeBiDashboardModal = function () {
+    const modal = document.getElementById("biDashboardModal");
+    if (modal) modal.classList.add("hide");
+};
+
+window.saveBiDashboardReport = function () {
+    const d = getBiAnalyticsPayload();
+    const html = `<html><head><title>BI Dashboard - ${d.studentName}</title><style>body{font-family:sans-serif;padding:28px;color:#0f172a}h1{color:#1e1b4b;margin-bottom:4px}table{width:100%;border-collapse:collapse;margin:14px 0}th,td{border:1px solid #cbd5e1;padding:8px 10px;text-align:left;font-size:13px}.grid{display:flex;flex-wrap:wrap;gap:5px;margin-top:10px}.cell{width:48px;padding:4px;border:1px solid #cbd5e1;border-radius:4px;text-align:center;font-size:10px}</style></head><body>
+        <h1>TaiyariGhar — Test BI Dashboard</h1>
+        <p><strong>Candidate Name:</strong> ${d.studentName} &nbsp;|&nbsp; <strong>Login ID:</strong> ${d.loginId}</p>
+        <table>
+            <tr><th>Test Name</th><td>${d.testName}</td><th>Score &amp; %</th><td>${d.scoreVal} / ${d.totalMarksVal} (${d.percentVal}%)</td></tr>
+            <tr><th>Total / Attempted</th><td>${d.totalQ} / ${d.attempted}</td><th>Accuracy</th><td>${d.accuracyPct}%</td></tr>
+            <tr><th>Right / Wrong / Skip</th><td>${d.correct} / ${d.wrong} / ${d.skipped}</td><th>Avg Speed / Slow (&gt;120s)</th><td>${d.avgSec}s / ${d.slowQ} Qs</td></tr>
+            <tr><th>All-India Rank</th><td colspan="3">${d.rankVal}${d.totalStudVal !== '-' ? ' out of ' + d.totalStudVal : ''}</td></tr>
+        </table>
+        <h3>All ${d.totalQ} Questions Speed &amp; Status</h3>
+        <div class="grid">${Array.from({ length: d.totalQ }, (_, i) => {
+            const q = d.qList[i] || {};
+            const uAns = d.ansMap[i];
+            const sec = Number(d.timeMap[i] || 0);
+            const st = uAns === undefined ? "Skip" : (uAns === q.ans ? "Right" : "Wrong");
+            return `<div class="cell"><b>Q${i + 1}</b><br>${st}<br>${sec}s</div>`;
+        }).join("")}</div>
+    </body></html>`;
+    const w = window.open("", "_blank");
+    if (w) {
+        w.document.write(html);
+        w.document.close();
+        setTimeout(() => w.print(), 400);
+    }
+};
+
+window.shareBiDashboardSummary = function () {
+    const d = getBiAnalyticsPayload();
+    const text = `📊 TaiyariGhar BI Dashboard Report
+Candidate: ${d.studentName} (${d.loginId})
+Test: ${d.testName}
+Score: ${d.scoreVal}/${d.totalMarksVal} (${d.percentVal}%) | Rank: ${d.rankVal}${d.totalStudVal !== '-' ? '/' + d.totalStudVal : ''}
+Attempted: ${d.attempted}/${d.totalQ} | Right: ${d.correct}, Wrong: ${d.wrong}, Skip: ${d.skipped}
+Accuracy: ${d.accuracyPct}% | Avg Speed: ${d.avgSec}s/Q | Slow (>120s): ${d.slowQ}`;
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).catch(() => {});
+    }
+    window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, "_blank");
+};
+
+window.backToMockTestsView = function () {
+    if (!isLoggedIn) return showLogin();
+    if (nav && nav.mainCat) {
+        openCategory(nav.mainCat);
+    } else {
+        goDashboard();
+    }
+};
