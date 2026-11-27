@@ -4988,6 +4988,10 @@ window.saveBiDashboardReport = function () {
     const cPct = safePct(d.correct);
     const wPct = safePct(d.wrong);
     const sPct = safePct(d.skipped);
+    const originUrl = (window.location && window.location.origin && window.location.origin.startsWith("http"))
+        ? window.location.origin
+        : "https://taiyarighar.in";
+    const logoSrc = `${originUrl}/logo.png`;
 
     const matrixCells = Array.from({ length: d.totalQ }, (_, i) => {
         const q = d.qList[i] || {};
@@ -5009,15 +5013,19 @@ window.saveBiDashboardReport = function () {
         </div>`;
     }).join("");
 
-    const html = `<!DOCTYPE html><html><head><title>BI Dashboard - ${d.studentName}</title>
+    const html = `<!DOCTYPE html><html><head><title>TaiyariGhar BI Dashboard - ${d.studentName}</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
         body { font-family: 'Poppins', 'Inter', Arial, sans-serif; background: #F1F5F9; color: #0F172A; padding: 24px; }
         .sheet { max-width: 940px; margin: 0 auto; background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 16px; padding: 24px; box-shadow: 0 8px 24px rgba(15,23,42,0.06); }
-        .pill { display: inline-block; background: #EEF2FF; color: #4338CA; font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 6px; margin-bottom: 8px; }
-        .title { font-size: 20px; font-weight: 800; color: #0F172A; margin-bottom: 4px; }
-        .sub { font-size: 12.5px; color: #475569; font-weight: 600; margin-bottom: 18px; }
-        .kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 18px; }
+        .brand-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 10px; padding-bottom: 10px; border-bottom: 1px solid #E2E8F0; }
+        .brand-left { display: flex; align-items: center; gap: 10px; }
+        .brand-logo { height: 30px; width: auto; border-radius: 6px; }
+        .brand-name { font-size: 17px; font-weight: 800; color: #1E1B4B; }
+        .brand-tag { font-size: 11px; font-weight: 700; color: #4338CA; background: #EEF2FF; padding: 3px 9px; border-radius: 6px; }
+        .title { font-size: 19px; font-weight: 800; color: #0F172A; margin-bottom: 4px; }
+        .sub { font-size: 12.5px; color: #475569; font-weight: 600; margin-bottom: 16px; }
+        .kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 16px; }
         .kpi-box { border: 1px solid #E2E8F0; border-radius: 12px; padding: 14px; background: #FFFFFF; }
         .kpi-lbl { font-size: 10.5px; font-weight: 700; color: #64748B; text-transform: uppercase; }
         .kpi-val { font-size: 17px; font-weight: 800; color: #0F172A; margin-top: 4px; }
@@ -5027,10 +5035,17 @@ window.saveBiDashboardReport = function () {
         .bar { height: 16px; width: 100%; border-radius: 999px; overflow: hidden; display: flex; background: #E2E8F0; margin-bottom: 10px; }
         .legend { display: flex; flex-wrap: wrap; gap: 14px; font-size: 11.5px; font-weight: 600; color: #334155; }
         .matrix { display: grid; grid-template-columns: repeat(auto-fill, minmax(60px, 1fr)); gap: 7px; }
+        .foot-note { margin-top: 14px; padding-top: 10px; border-top: 1px solid #E2E8F0; display: flex; justify-content: space-between; font-size: 11px; color: #64748B; }
         @media print { body { background: #FFFFFF; padding: 0; } .sheet { box-shadow: none; border: none; padding: 12px; } }
     </style></head><body>
     <div class="sheet">
-        <div class="pill">POWER-BI STYLE PERFORMANCE REPORT</div>
+        <div class="brand-row">
+            <div class="brand-left">
+                <img src="${logoSrc}" alt="TaiyariGhar" class="brand-logo" onerror="this.style.display='none'">
+                <span class="brand-name">TaiyariGhar</span>
+            </div>
+            <span class="brand-tag">BI Analytics Report</span>
+        </div>
         <div class="title">${d.testName} — BI Analytics Dashboard</div>
         <div class="sub">Candidate: ${d.studentName} (${d.loginId}) • Score: ${d.scoreVal}/${d.totalMarksVal} (${d.percentVal}%) • Rank: ${d.rankVal}${d.totalStudVal !== '-' ? ' / ' + d.totalStudVal : ''}</div>
 
@@ -5083,6 +5098,11 @@ window.saveBiDashboardReport = function () {
                 <span style="font-size:11.5px;color:#64748B;">Candidate: ${d.studentName}</span>
             </div>
             <div class="matrix">${matrixCells}</div>
+        </div>
+
+        <div class="foot-note">
+            <span>TaiyariGhar (www.taiyarighar.in) — Mehnat Aapki, Saath Hamara</span>
+            <span>Candidate: ${d.studentName} (${d.loginId})</span>
         </div>
     </div>
     </body></html>`;
