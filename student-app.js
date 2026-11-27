@@ -1059,18 +1059,18 @@ function syncSubscriptionPlansFromSettings() {
 let appliedPartnerCoupon = null;
 
 function getEffectiveCheckoutDetails() {
-    const plan = subscriptionPlans[selectedPlanMonths];
-    const baseDiscount = Math.max(0, plan.mrp - plan.price);
+    const plan = subscriptionPlans[selectedPlanMonths] || subscriptionPlans[12] || { months: 12, days: 365, label: "12 Months Pass", mrp: 399, price: 249 };
+    const baseDiscount = Math.max(0, Number(plan.mrp || 0) - Number(plan.price || 0));
     let couponDiscount = 0;
     let extraDays = 0;
 
     if (appliedPartnerCoupon) {
-        couponDiscount = Number(appliedPartnerCoupon.discountAmount || 0);
+        couponDiscount = Number(appliedPartnerCoupon.discountAmount || appliedPartnerCoupon.discount || 0);
         extraDays = Number(appliedPartnerCoupon.extraDays || 0);
     }
 
-    const finalPayable = Math.max(1, plan.price - couponDiscount);
-    const totalDays = plan.days + extraDays;
+    const finalPayable = Math.max(1, Number(plan.price || 99) - couponDiscount);
+    const totalDays = Number(plan.days || 90) + extraDays;
     return { plan, baseDiscount, couponDiscount, extraDays, finalPayable, totalDays };
 }
 
@@ -1246,7 +1246,11 @@ window.initiateRazorpayPayment = function() {
         "theme": { "color": "#4F46E5" }
     };
 
-    const rzp = new Razorpay(options);
+    if (typeof window.Razorpay !== "function") {
+        alert("Payment gateway abhi load nahi ho paya hai. Kripya internet check karein ya page refresh karke dobara try karein.");
+        return;
+    }
+    const rzp = new window.Razorpay(options);
     rzp.on('payment.failed', function (response) {
         alert("Payment Failed: " + response.error.description);
     });
@@ -1264,8 +1268,16 @@ async function handleSuccessfulRazorpayPayment(paymentId, plan, finalPayable, to
         const expiryStr = expiryDateObj.toISOString().split('T')[0];
         const invoiceNumber = "INV-" + Date.now().toString().slice(-6);
 
-        if (currentStudent.docId) {
-            await updateDoc(doc(db, "students", currentStudent.docId), {
+        let targetStudentDocId = currentStudent.docId;
+        if (!targetStudentDocId && currentStudent.loginId) {
+            const stLookup = await getDocs(query(collection(db, "students"), where("loginId", "==", String(currentStudent.loginId).trim().toUpperCase())));
+            if (!stLookup.empty) {
+                targetStudentDocId = stLookup.docs[0].id;
+                currentStudent.docId = targetStudentDocId;
+            }
+        }
+        if (targetStudentDocId) {
+            await updateDoc(doc(db, "students", targetStudentDocId), {
                 isPaid: true,
                 expiryDate: expiryStr,
                 activePlan: plan.label,
