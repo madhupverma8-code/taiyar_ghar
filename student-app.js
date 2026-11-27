@@ -239,6 +239,8 @@ window.onpopstate = function(event) {
 
     if (event.state && event.state.screen) {
         showScreen(event.state.screen, false);
+    } else if (currentScreen === 'practiceBankScreen' || currentScreen === 'pyqHubScreen') {
+        showScreen(currentScreen, false);
     } else {
         checkUrlRouting();
     }
@@ -1851,6 +1853,7 @@ window.startSubjectMixPractice = async function() {
 
 function launchPracticeArena(allQuestions, titleLabel) {
     window._pbFullQuestionPool = allQuestions;
+    window._pbSessionAttemptedIds = {};
     pbSessionCorrect = 0;
     pbSessionWrong = 0;
     pbStreakCount = 0;
@@ -1878,8 +1881,9 @@ window.switchPbPool = function(poolType) {
         if (!q.id) q.id = `${pbCurrentSubject}_${q.topic || pbCurrentTopic}_${idx}`.replace(/[^a-zA-Z0-9_]/g, "_");
         return q;
     });
-    const unattempted = fullPool.filter(q => !pbUserProgress.attemptedMap[q.id]);
-    const attempted = fullPool.filter(q => !!pbUserProgress.attemptedMap[q.id]);
+    const sessionIds = window._pbSessionAttemptedIds || {};
+    const unattempted = fullPool.filter(q => !pbUserProgress.attemptedMap[q.id] || !!sessionIds[q.id]);
+    const attempted = fullPool.filter(q => !!pbUserProgress.attemptedMap[q.id] && !sessionIds[q.id]);
 
     document.getElementById('pbUnattemptedCount').innerText = unattempted.length;
     document.getElementById('pbAttemptedCount').innerText = attempted.length;
@@ -1999,6 +2003,8 @@ window.answerPracticeQuestion = function(chosenIdx) {
         </div>
     `;
 
+    window._pbSessionAttemptedIds = window._pbSessionAttemptedIds || {};
+    window._pbSessionAttemptedIds[q.id] = true;
     const wasAlreadyAttempted = !!pbUserProgress.attemptedMap[q.id];
     pbUserProgress.attemptedMap[q.id] = { isCorrect, chosen: chosenIdx, timeSec: pbQuestionSeconds };
     if (!wasAlreadyAttempted) {
