@@ -4305,3 +4305,25 @@ window.openPyqErrorReport = function (pyqId) {
     currentTestName = `${item.subject || "PYQ"} (${item.exam_year || ""})`;
     window.reportCurrentQuestion();
 };
+
+
+// =========================================================================
+// DARK MODE / LIGHT MODE TOGGLE (Saved in localStorage)
+// =========================================================================
+window.toggleDarkMode = function () {
+    const isDark = document.body.classList.toggle("tg-dark");
+    localStorage.setItem("tg_theme_mode", isDark ? "dark" : "light");
+    const btn = document.getElementById("themeToggleBtn");
+    if (btn) btn.innerText = isDark ? "☀️" : "🌙";
+};
+
+(function applySavedThemeMode() {
+    try {
+        const saved = localStorage.getItem("tg_theme_mode");
+        if (saved === "dark") {
+            document.body.classList.add("tg-dark");
+            const btn = document.getElementById("themeToggleBtn");
+            if (btn) btn.innerText = "☀️";
+        }
+    } catch (e) {}
+})();

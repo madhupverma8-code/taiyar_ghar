@@ -270,6 +270,102 @@
             .pb-arena-grid { grid-template-columns: 1fr; }
         }
     </style>
+
+    <style id="tgDarkModeStyles">
+        body.tg-dark {
+            background-color: #0F172A !important;
+            color: #F1F5F9 !important;
+        }
+        body.tg-dark .navbar {
+            background: #1E293B !important;
+            border-bottom: 1px solid #334155 !important;
+        }
+        body.tg-dark .nav-brand span,
+        body.tg-dark .nav-links a,
+        body.tg-dark .tg-drop-trigger {
+            color: #F8FAFC !important;
+        }
+        body.tg-dark .tg-drop-menu,
+        body.tg-dark .lms-profile-popover,
+        body.tg-dark .info-page-card,
+        body.tg-dark .smart-pb-banner,
+        body.tg-dark .lms-kpi-card,
+        body.tg-dark .lms-type-card,
+        body.tg-dark .test-item,
+        body.tg-dark .history-item,
+        body.tg-dark .clean-plan-card,
+        body.tg-dark .tg-proc-box,
+        body.tg-dark .cbt-left-panel,
+        body.tg-dark .cbt-option-card {
+            background: #1E293B !important;
+            color: #F1F5F9 !important;
+            border-color: #334155 !important;
+        }
+        body.tg-dark .tg-drop-menu a {
+            color: #E2E8F0 !important;
+        }
+        body.tg-dark .tg-drop-menu a:hover {
+            background: #334155 !important;
+        }
+        body.tg-dark #loginScreen,
+        body.tg-dark #registerScreen,
+        body.tg-dark #forgotPasswordScreen,
+        body.tg-dark #instructionsScreen,
+        body.tg-dark #liveSubmittedScreen,
+        body.tg-dark #resultScreen,
+        body.tg-dark #practiceBankScreen > div,
+        body.tg-dark #pyqHubScreen > div,
+        body.tg-dark #liveHubModal > div,
+        body.tg-dark #historyModal > div,
+        body.tg-dark #paymentModal > div,
+        body.tg-dark #submitModal > div,
+        body.tg-dark #reportQuestionModal > div,
+        body.tg-dark #registerSuccessModal > div {
+            background: #1E293B !important;
+            color: #F1F5F9 !important;
+            border-color: #334155 !important;
+        }
+        body.tg-dark h1, body.tg-dark h2, body.tg-dark h3, body.tg-dark h4,
+        body.tg-dark .section-title, body.tg-dark .kpi-title, body.tg-dark .auth-label-clean {
+            color: #F8FAFC !important;
+        }
+        body.tg-dark p, body.tg-dark .kpi-sub, body.tg-dark .policy-sub {
+            color: #CBD5E1 !important;
+        }
+        body.tg-dark input, body.tg-dark select, body.tg-dark textarea {
+            background: #0F172A !important;
+            color: #F8FAFC !important;
+            border-color: #475569 !important;
+        }
+        body.tg-dark .pb-opt-btn {
+            background: #0F172A !important;
+            color: #F1F5F9 !important;
+            border-color: #334155 !important;
+        }
+        body.tg-dark .pb-opt-btn.opt-correct {
+            background: #064E3B !important;
+            border-color: #10B981 !important;
+            color: #ECFDF5 !important;
+        }
+        body.tg-dark .pb-opt-btn.opt-wrong {
+            background: #7F1D1D !important;
+            border-color: #EF4444 !important;
+            color: #FEF2F2 !important;
+        }
+        body.tg-dark .cbt-q-header,
+        body.tg-dark .cbt-bottom-bar,
+        body.tg-dark .cbt-right-sidebar,
+        body.tg-dark .cbt-legend-grid {
+            background: #0F172A !important;
+            color: #E2E8F0 !important;
+            border-color: #334155 !important;
+        }
+        body.tg-dark .btn-outline {
+            background: #0F172A !important;
+            color: #E2E8F0 !important;
+            border-color: #475569 !important;
+        }
+    </style>
 </head>
 <body>
 
@@ -327,6 +423,7 @@
             </div>
         </nav>
         <div class="nav-actions">
+            <button id="themeToggleBtn" class="btn-lang" onclick="toggleDarkMode()" title="Switch Light / Dark Mode" style="padding:6px 10px;">🌙</button>
             <button id="langBtn" class="btn-lang" onclick="toggleLanguage()">हिंदी</button>
             <button class="btn-install" onclick="installPWA()">📲 Install App</button>
             <div id="headerAuth" style="display:flex; gap:8px;">
@@ -600,6 +697,9 @@
             <a href="javascript:void(0)" onclick="showForgotPassword()" style="color:#4F46E5; font-weight:600;">Forgot Password?</a>
             <span><span data-translate="login_new">New user?</span> <a href="javascript:void(0)" onclick="showRegister()" style="color:#4F46E5; font-weight:600;" data-translate="login_reg">Register Here</a></span>
         </div>
+        <div style="margin-top:14px; padding-top:12px; border-top:1px solid #E2E8F0; text-align:center;">
+            <a href="javascript:void(0)" onclick="openSubjectPyqHub()" style="color:#B45309; font-weight:700; font-size:13px; text-decoration:none;">📋 Read Free Subject-Wise Previous Year Questions (No Login Required) →</a>
+        </div>
     </div>
 
     <!-- CLEAN 2-STEP REGISTER SCREEN (Step 1: Email + OTP | Step 2: Candidate Details) -->
@@ -753,6 +853,14 @@
                     </div>
                     <button type="button" class="btn btn-accent" style="padding:10px 16px; font-size:13px; white-space:nowrap;">NCERT →</button>
                 </div>
+            <div class="smart-pb-banner" style="border-color:#FDE68A; background:#FFFBEB;" onclick="openSubjectPyqHub()">
+                <div style="flex:1; min-width:210px;">
+                    <span style="display:inline-block; font-size:11px; font-weight:700; color:#B45309; background:#FEF3C7; border:1px solid #FCD34D; padding:3px 9px; border-radius:6px; margin-bottom:6px;">FREE FOR ALL • MULTI-EXAM PYQs</span>
+                    <h3 style="font-size:17px; font-weight:800; color:#78350F; margin:0 0 3px;">📋 Subject-Wise Previous Year Questions</h3>
+                    <p style="font-size:13px; color:#92400E; margin:0;">Green correct options, explanations &amp; exam/year tags across Central &amp; State exams.</p>
+                </div>
+                <button type="button" class="btn" style="background:#D97706; color:#ffffff; padding:10px 16px; font-size:13px; white-space:nowrap;">Read PYQs →</button>
+            </div>
             </div>
 
             <!-- Student Refer & Earn Card on Dashboard -->
@@ -828,6 +936,7 @@
                 <div style="display:flex; gap:8px; flex-wrap:wrap;">
                     <button id="pbModeTabPractice" class="btn btn-primary" style="padding:7px 13px; font-size:12.5px;" onclick="switchPbSectionMode('practice')">⚡ Practice Bank</button>
                     <button id="pbModeTabNcert" class="btn btn-outline" style="padding:7px 13px; font-size:12.5px;" onclick="switchPbSectionMode('ncert')">📘 NCERT Base (6–12)</button>
+                    <button type="button" class="btn btn-outline" style="padding:7px 13px; font-size:12.5px; border-color:#FCD34D; color:#B45309; background:#FFFBEB;" onclick="openSubjectPyqHub()">📋 Subject-Wise PYQs</button>
                     <button id="pbBackBtn" class="btn btn-outline hide">← Back</button>
                     <button class="btn btn-outline" onclick="exitSmartPracticeBank()">Exit</button>
                 </div>
