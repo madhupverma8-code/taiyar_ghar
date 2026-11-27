@@ -1530,7 +1530,7 @@ window.exportAllDataExcel = async function (type) {
             packNumber: idx + 1,
             questionCount: Number(b.question_count || 0)
           }));
-          renderPracticeBundlesTable(true);
+          renderPracticeBundlesTable(false);
           return;
         }
       }
