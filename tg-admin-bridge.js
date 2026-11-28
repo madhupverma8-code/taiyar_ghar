@@ -6,7 +6,7 @@
     return (
       localStorage.getItem("tg_admin_key_override") ||
       cfg.ADMIN_API_KEY ||
-      "TG_ADMIN_2026_3026_SECURE"
+      ""
     );
   }
 

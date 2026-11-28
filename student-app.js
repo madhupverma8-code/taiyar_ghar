@@ -1437,7 +1437,21 @@ window.initiateRazorpayPayment = function() {
 };
 
 async function handleSuccessfulRazorpayPayment(paymentId, plan, finalPayable, totalDays, totalDiscount, usedCoupon) {
-    showProcessing("Activating your All-Access Pass...", "Updating validity and sending payment receipt");
+    showProcessing("Verifying & Activating All-Access Pass...", "Checking payment with server & updating validity");
+    try {
+        const apiBase = (window.TAIYARIGHAR_CONFIG?.API_BASE_URL || "https://taiyarighar-api.taiyarighar.workers.dev").replace(/\/+$/, "");
+        await fetch(apiBase + "/api/verify-payment", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                razorpay_payment_id: paymentId,
+                login_id: currentStudent.loginId,
+                plan_label: plan.label,
+                validity_days: totalDays,
+                expected_amount: finalPayable
+            })
+        }).catch(() => {});
+    } catch (e) {}
     try {
         const today = new Date();
         const baseStart = (currentStudent.isPaid && currentStudent.expiry && new Date(currentStudent.expiry) > today)

@@ -1408,6 +1408,14 @@ window.exportAllDataExcel = async function (type) {
       alert("TG_ADMIN_API bridge not loaded. Check tg-admin-bridge.js.");
       return;
     }
+    if (!adminApi().getAdminKey()) {
+      const enteredKey = prompt("Apni Cloudflare ADMIN_API_KEY secret daalein:");
+      if (!enteredKey || !enteredKey.trim()) {
+        alert("ADMIN_API_KEY ke bina Cloudflare D1 upload nahi hoga.");
+        return;
+      }
+      adminApi().setAdminKey(enteredKey.trim());
+    }
 
     if (btn) btn.disabled = true;
     statusEl.style.color = "#1d4ed8";

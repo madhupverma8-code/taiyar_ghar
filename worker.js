@@ -13,8 +13,8 @@ function jsonResponse(data, status = 200) {
 
 function isAuthorizedAdmin(request, env) {
   const key = request.headers.get("X-Admin-Key") || "";
-  const expected = env.ADMIN_API_KEY || "TG_ADMIN_2026_3026_SECURE";
-  return key.length > 0 && key === expected;
+  const expected = env.ADMIN_API_KEY || "";
+  return key.length > 0 && expected.length > 0 && key === expected;
 }
 
 function parseJsonSafe(str, fallback) {
@@ -528,6 +528,76 @@ export default {
         const stmts = ids.map((id) => env.DB.prepare("DELETE FROM pyq_questions WHERE pyq_id = ?").bind(String(id)));
         await env.DB.batch(stmts);
         return jsonResponse({ ok: true, deleted: ids.length });
+      }
+
+
+      // Server-side Razorpay payment verification & Pro Pass activation
+      if (path === "/api/verify-payment" && request.method === "POST") {
+        const body = await request.json();
+        const paymentId = String(body.razorpay_payment_id || "").trim();
+        const loginId = String(body.login_id || "").trim().toUpperCase();
+        const planLabel = String(body.plan_label || "12 Months Pass").trim();
+        const validityDays = Math.max(1, Number(body.validity_days || 365));
+        const expectedAmountPaise = Math.max(100, Math.round(Number(body.expected_amount || 0) * 100));
+
+        if (!paymentId || !loginId) {
+          return jsonResponse({ ok: false, error: "payment_id and login_id are required" }, 400);
+        }
+
+        // Prevent duplicate replay of same paymentId
+        const existingPay = await env.DB.prepare(
+          "SELECT id FROM content_posts WHERE post_id = ?"
+        ).bind("pay_" + paymentId).first();
+        if (existingPay) {
+          return jsonResponse({ ok: false, error: "Payment ID already processed" }, 409);
+        }
+
+        const rzpKeyId = env.RAZORPAY_KEY_ID || "";
+        const rzpKeySecret = env.RAZORPAY_KEY_SECRET || "";
+        let verifiedAmountRupees = Number(body.expected_amount || 0);
+
+        if (rzpKeyId && rzpKeySecret) {
+          const authHeader = "Basic " + btoa(`${rzpKeyId}:${rzpKeySecret}`);
+          const rzpRes = await fetch(`https://api.razorpay.com/v1/payments/${encodeURIComponent(paymentId)}`, {
+            method: "GET",
+            headers: { "Authorization": authHeader }
+          });
+          if (!rzpRes.ok) {
+            return jsonResponse({ ok: false, error: "Razorpay payment verification failed" }, 402);
+          }
+          const rzpData = await rzpRes.json();
+          const validStatus = rzpData.status === "captured" || rzpData.status === "authorized";
+          if (!validStatus || Number(rzpData.amount || 0) < expectedAmountPaise) {
+            return jsonResponse({ ok: false, error: "Payment status or amount mismatch" }, 402);
+          }
+          verifiedAmountRupees = Number(rzpData.amount || 0) / 100;
+        }
+
+        const expDate = new Date(Date.now() + validityDays * 86400000).toISOString().split("T")[0];
+        await env.DB.prepare(
+          `UPDATE students SET is_paid = 1, plan_name = ?, expiry_date = ? WHERE UPPER(login_id) = ?`
+        ).bind(planLabel, expDate, loginId).run();
+
+        await env.DB.prepare(
+          `INSERT OR REPLACE INTO content_posts (post_id, post_type, category, title_en, title_hi, body_en, body_hi, meta_json)
+           VALUES (?, 'payment', ?, ?, ?, ?, ?, ?)`
+        ).bind(
+          "pay_" + paymentId,
+          planLabel,
+          paymentId,
+          loginId,
+          String(verifiedAmountRupees),
+          expDate,
+          JSON.stringify({ loginId, paymentId, planLabel, validityDays, amount: verifiedAmountRupees, verifiedAt: new Date().toISOString() })
+        ).run();
+
+        return jsonResponse({
+          ok: true,
+          verified: true,
+          login_id: loginId,
+          expiry_date: expDate,
+          amount: verifiedAmountRupees
+        });
       }
 
       return jsonResponse({ ok: false, error: "Route not found" }, 404);
