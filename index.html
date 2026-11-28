@@ -402,9 +402,9 @@
                 </div>
             </div>
 
-            <a href="index.html?page=current-affairs" target="_blank" rel="noopener" onclick="if(!event.ctrlKey && !event.metaKey && !event.shiftKey && event.button===0){ event.preventDefault(); closeAllNavDropdowns(); showCurrentAffairs(); }" style="font-weight:600;">📰 Current Affairs</a>
-            <a href="index.html?page=updates" target="_blank" rel="noopener" onclick="if(!event.ctrlKey && !event.metaKey && !event.shiftKey && event.button===0){ event.preventDefault(); closeAllNavDropdowns(); openUpdatesHub(); }" style="font-weight:600;">📢 Jobs &amp; Updates</a>
-            <a href="index.html?page=study-notes" target="_blank" rel="noopener" onclick="if(!event.ctrlKey && !event.metaKey && !event.shiftKey && event.button===0){ event.preventDefault(); closeAllNavDropdowns(); openStudyNotesHub(); }" style="font-weight:600;">📝 Study Notes</a>
+            <a href="index.html?page=current-affairs" target="_blank" rel="noopener" onclick="if(!event.ctrlKey && !event.metaKey && !event.shiftKey && event.button===0){ event.preventDefault(); closeAllNavDropdowns(); showCurrentAffairs(); }" style="font-weight:600;" data-translate="nav_ca">📰 Current Affairs</a>
+            <a href="index.html?page=updates" target="_blank" rel="noopener" onclick="if(!event.ctrlKey && !event.metaKey && !event.shiftKey && event.button===0){ event.preventDefault(); closeAllNavDropdowns(); openUpdatesHub(); }" style="font-weight:600;" data-translate="nav_updates">📢 Jobs &amp; Updates</a>
+            <a href="index.html?page=study-notes" target="_blank" rel="noopener" onclick="if(!event.ctrlKey && !event.metaKey && !event.shiftKey && event.button===0){ event.preventDefault(); closeAllNavDropdowns(); openStudyNotesHub(); }" style="font-weight:600;" data-translate="nav_notes">📝 Study Notes</a>
 
             <div class="tg-nav-dropdown">
                 <button type="button" class="tg-drop-trigger" onclick="toggleNavDropdown(event, 'ddMore')">
@@ -461,12 +461,12 @@
         <section class="hero-banner-section">
             <div class="hero-banner-container">
                 <div class="hero-overlay-content">
-                    <span class="hero-badge">🎯 India's Trusted Exam Preparation Portal</span>
+                    <span class="hero-badge" data-translate="hero_badge">🎯 India's Trusted Exam Preparation Portal</span>
                     <h1 data-translate="hero_h1">Crack Your Dream Govt Job with Confidence.</h1>
                     <p data-translate="hero_p">All-in-one mock test platform for SSC, Railway, Police &amp; All State Exams. Latest syllabus, real-time rankings, and unlimited tests in one subscription.</p>
                     <div class="hero-cta-group">
-                        <button class="btn-hero-primary" onclick="openPaymentModal()">🚀 Get All-Access Subscription</button>
-                        <button class="btn-hero-secondary" onclick="scrollToCategories()">🌟 Try Free Mock Tests</button>
+                        <button class="btn-hero-primary" onclick="openPaymentModal()" data-translate="hero_cta_sub">🚀 Get All-Access Subscription</button>
+                        <button class="btn-hero-secondary" onclick="scrollToCategories()" data-translate="hero_cta_free">🌟 Try Free Mock Tests</button>
                     </div>
                     <div class="hero-trust-row">
                         <span>✅ Bilingual (Hindi &amp; English)</span>
@@ -514,24 +514,24 @@
             <div class="smart-pb-banner" onclick="openSmartPracticeBank('practice')">
                 <div style="flex:1; min-width:220px;">
                     <span style="display:inline-block; font-size:11px; font-weight:700; color:#4F46E5; background:#EEF2FF; border:1px solid #C7D2FE; padding:3px 9px; border-radius:6px; margin-bottom:6px;">10 LAKH+ PYQs &amp; EXPECTED Qs</span>
-                    <h2 style="font-size:18px; font-weight:800; color:#1E1B4B; margin:0 0 4px;">Unlimited Smart Practice Bank</h2>
-                    <p style="font-size:13px; color:#475569; margin:0;">Subject-wise &amp; Mix Practice with bilingual explanations &amp; timer. First 15 questions per subject free!</p>
+                    <h2 style="font-size:18px; font-weight:800; color:#1E1B4B; margin:0 0 4px;" data-translate="home_pb_title">Unlimited Smart Practice Bank</h2>
+                    <p style="font-size:13px; color:#475569; margin:0;" data-translate="home_pb_desc">Subject-wise &amp; Mix Practice with bilingual explanations &amp; timer. First 15 questions per subject free!</p>
                 </div>
                 <button type="button" class="btn btn-primary" style="padding:10px 16px; font-size:13.5px; white-space:nowrap;">Practice Now →</button>
             </div>
             <div class="smart-pb-banner" style="border-color:#A7F3D0; background:#F0FDF4;" onclick="openSmartPracticeBank('ncert')">
                 <div style="flex:1; min-width:220px;">
                     <span style="display:inline-block; font-size:11px; font-weight:700; color:#059669; background:#DCFCE7; border:1px solid #86EFAC; padding:3px 9px; border-radius:6px; margin-bottom:6px;">CLASS 6 TO 12 • CHAPTER-WISE</span>
-                    <h2 style="font-size:18px; font-weight:800; color:#064E3B; margin:0 0 4px;">📘 NCERT Base Question Bank</h2>
-                    <p style="font-size:13px; color:#065F46; margin:0;">Line-by-line NCERT Science, History, Polity, Geography &amp; Economy MCQs for SSC, Railway &amp; PCS.</p>
+                    <h2 style="font-size:18px; font-weight:800; color:#064E3B; margin:0 0 4px;" data-translate="home_ncert_title">📘 NCERT Base Question Bank</h2>
+                    <p style="font-size:13px; color:#065F46; margin:0;" data-translate="home_ncert_desc">Line-by-line NCERT Science, History, Polity, Geography &amp; Economy MCQs for SSC, Railway &amp; PCS.</p>
                 </div>
                 <button type="button" class="btn btn-accent" style="padding:10px 16px; font-size:13.5px; white-space:nowrap;">Start NCERT →</button>
             </div>
             <div class="smart-pb-banner" style="border-color:#FDE68A; background:#FFFBEB;" onclick="openSubjectPyqHub()">
                 <div style="flex:1; min-width:220px;">
                     <span style="display:inline-block; font-size:11px; font-weight:700; color:#B45309; background:#FEF3C7; border:1px solid #FCD34D; padding:3px 9px; border-radius:6px; margin-bottom:6px;">FREE WITHOUT LOGIN • MULTI-EXAM PYQs</span>
-                    <h2 style="font-size:18px; font-weight:800; color:#78350F; margin:0 0 4px;">📋 Subject-Wise Previous Year Questions</h2>
-                    <p style="font-size:13px; color:#92400E; margin:0;">Green highlighted answers, explanations &amp; exam/year tags across Central &amp; State exams.</p>
+                    <h2 style="font-size:18px; font-weight:800; color:#78350F; margin:0 0 4px;" data-translate="home_pyq_title">📋 Subject-Wise Previous Year Questions</h2>
+                    <p style="font-size:13px; color:#92400E; margin:0;" data-translate="home_pyq_desc">Green highlighted answers, explanations &amp; exam/year tags across Central &amp; State exams.</p>
                 </div>
                 <button type="button" class="btn" style="background:#D97706; color:#ffffff; padding:10px 16px; font-size:13.5px; white-space:nowrap;">Read Free PYQs →</button>
             </div>
@@ -1112,8 +1112,8 @@
     <div id="caScreen" class="hide container" style="padding:30px 5%; max-width:1050px; margin:0 auto;">
         <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:18px;">
             <div>
-                <h2 style="color:#1E1B4B; margin:0;">📰 Current Affairs Hub</h2>
-                <p style="font-size:13px; color:#64748B; margin-top:3px;">Read Complete Daily News Articles &amp; Attempt Topic-Wise CA Practice MCQs</p>
+                <h2 style="color:#1E1B4B; margin:0;" data-translate="ca_h2">📰 Current Affairs Hub</h2>
+                <p style="font-size:13px; color:#64748B; margin-top:3px;" data-translate="ca_sub">Read Complete Daily News Articles &amp; Attempt Topic-Wise CA Practice MCQs</p>
             </div>
             <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
                 <span style="background:#D1FAE5; color:#065F46; padding:6px 12px; border-radius:8px; font-weight:700;">✅ <span id="caLiveScoreCorrect">0</span></span>
@@ -1130,9 +1130,9 @@
         </div>
 
         <div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:20px;">
-            <button class="ca-tab active btn btn-primary" onclick="filterCA('Articles', this)">📖 Full CA Articles</button>
-            <button class="ca-tab btn btn-outline" onclick="filterCA('Daily', this)">📝 Daily CA Practice</button>
-            <button class="ca-tab btn btn-outline" onclick="filterCA('Monthly', this)">📅 Monthly CA Revision</button>
+            <button class="ca-tab active btn btn-primary" onclick="filterCA('Articles', this)" data-translate="ca_tab_articles">📖 Full CA Articles</button>
+            <button class="ca-tab btn btn-outline" onclick="filterCA('Daily', this)" data-translate="ca_tab_daily">📝 Daily CA Practice</button>
+            <button class="ca-tab btn btn-outline" onclick="filterCA('Monthly', this)" data-translate="ca_tab_monthly">📅 Monthly CA Revision</button>
         </div>
 
         <!-- Full Article Reader Box (Hidden until user clicks Read Full Article) -->
@@ -1153,7 +1153,7 @@
     <div id="updatesScreen" class="hide container" style="padding:30px 5%; max-width:1160px; margin:0 auto;">
         <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; margin-bottom:18px;">
             <div>
-                <h2 style="color:#1E1B4B; margin:0; font-size:23px;">📢 Govt Jobs, Admit Cards, Results &amp; Exam Syllabus</h2>
+                <h2 style="color:#1E1B4B; margin:0; font-size:23px;" data-translate="upd_h2">📢 Govt Jobs, Admit Cards, Results &amp; Exam Syllabus</h2>
                 <p style="font-size:13px; color:#64748B; margin-top:4px;">Direct Official Apply Links, Notification PDFs, Admit Cards, Results &amp; Syllabus</p>
             </div>
             <button class="btn btn-outline" onclick="goHome()">← Back to Home</button>
@@ -1200,7 +1200,7 @@
     <div id="studyNotesScreen" class="hide container" style="padding:30px 5%; max-width:1050px; margin:0 auto;">
         <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; margin-bottom:18px;">
             <div>
-                <h2 style="color:#1E1B4B; margin:0; font-size:23px;">📝 Exam Tips, Strategy &amp; Study Notes</h2>
+                <h2 style="color:#1E1B4B; margin:0; font-size:23px;" data-translate="sn_h2">📝 Exam Tips, Strategy &amp; Study Notes</h2>
                 <p style="font-size:13px; color:#64748B; margin-top:4px;">Expert Preparation Plans, Short Tricks, Important Formulas &amp; Free PDF Notes</p>
             </div>
             <button class="btn btn-outline" onclick="goHome()">← Back to Home</button>

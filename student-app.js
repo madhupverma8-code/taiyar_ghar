@@ -124,8 +124,66 @@ const defaultMainCategories = [
 ];
 
 const translations = {
-    "en": { "nav_home": "Home", "nav_exams": "All Exams", "nav_ca": "Current Affairs", "nav_login": "Login", "nav_register": "Register", "nav_dash": "Dashboard", "nav_purchase": "My Purchases", "nav_logout": "Logout", "hero_h1": "Crack Your Dream Govt Job with Confidence.", "hero_p": "All-in-one mock test platform for SSC, Railway, Police & All State Exams. Latest syllabus, real-time rankings, and unlimited tests in one subscription.", "sec_cats": "🎯 Exam Categories", "ca_h2": "📰 Current Affairs Hub", "ca_p": "Stay updated with Daily, Weekly, and Monthly Current Affairs.", "btn_explore": "Explore Now", "login_h2": "Candidate Login", "login_btn": "Login to Dashboard", "login_new": "New user?", "login_reg": "Register Here", "reg_h2": "Create Candidate Account", "reg_btn": "Complete Registration", "dash_h2": "Crack Your Dream Govt Job with Confidence.", "dash_qv": "📊 Dashboard Quick View", "qv_explore": "Explore Tests", "qv_browse": "Browse all available tests", "qv_view": "View Tests", "qv_rec": "Recommended Next", "qv_loading": "Loading...", "qv_start": "Start Now", "qv_recent": "Recent Performance", "qv_not_att": "Not Attempted Yet", "qv_take": "Take a test to see your score", "btn_back_cat": "← Back to Dashboard", "pay_unlock": "Unlock all premium mock tests & Live All-India Exams for", "pay_close": "Close" },
-    "hi": { "nav_home": "होम", "nav_exams": "सभी परीक्षाएं", "nav_ca": "करंट अफेयर्स", "nav_login": "लॉगिन", "nav_register": "रजिस्टर", "nav_dash": "डैशबोर्ड", "nav_purchase": "मेरी खरीदारी", "nav_logout": "लॉगआउट", "hero_h1": "TaiyariGhar के साथ पाएं अपनी ड्रीम गवर्नमेंट जॉब।", "hero_p": "SSC, रेलवे, पुलिस और सभी राज्य परीक्षाओं के लिए ऑल-इन-वन मॉक टेस्ट प्लेटफॉर्म। नवीनतम सिलेबस, रियल-टाइम रैंकिंग और वन सब्सक्रिप्शन में अनलिमिटेड टेस्ट।", "sec_cats": "🎯 परीक्षा श्रेणियाँ", "ca_h2": "📰 करंट अफेयर्स हब", "ca_p": "दैनिक, साप्ताहिक और मासिक करंट अफेयर्स के साथ अपडेट रहें।", "btn_explore": "अभी देखें", "login_h2": "अपने खाते में लॉगिन करें", "login_btn": "लॉगिन", "login_new": "नए उपयोगकर्ता हैं?", "login_reg": "यहाँ रजिस्टर करें", "reg_h2": "खाता बनाएँ", "reg_btn": "रजिस्ट्रेशन पूरा करें", "dash_h2": "TaiyariGhar के साथ पाएं अपनी ड्रीम गवर्नमेंट जॉब।", "dash_qv": "📊 डैशबोर्ड त्वरित दृश्य", "qv_explore": "टेस्ट खोजें", "qv_browse": "सभी उपलब्ध टेस्ट ब्राउज़ करें", "qv_view": "टेस्ट देखें", "qv_rec": "अगला सुझाव", "qv_loading": "लोड हो रहा है...", "qv_start": "अभी शुरू करें", "qv_recent": "हालिया प्रदर्शन", "qv_not_att": "अभी तक प्रयास नहीं किया", "qv_take": "अपना स्कोर देखने के लिए टेस्ट दें", "btn_back_cat": "← डैशबोर्ड पर वापस", "pay_unlock": "सभी प्रीमियम मॉक टेस्ट और लाइव ऑल-इंडिया परीक्षाएं अनलॉक करें", "pay_close": "बंद करें" }
+    "en": {
+        "nav_home": "Home", "nav_exams": "Exam Types", "nav_ca": "📰 Current Affairs",
+        "nav_updates": "📢 Jobs & Updates", "nav_notes": "📝 Study Notes", "nav_info": "ℹ️ Info",
+        "nav_login": "Login", "nav_register": "Register", "nav_dash": "Dashboard",
+        "nav_purchase": "My Purchases", "nav_logout": "Logout",
+        "hero_badge": "🎯 India's Trusted Exam Preparation Portal",
+        "hero_h1": "Crack Your Dream Govt Job with Confidence.",
+        "hero_p": "All-in-one mock test platform for SSC, Railway, Police & All State Exams. Latest syllabus, real-time rankings, and unlimited tests in one subscription.",
+        "hero_cta_sub": "🚀 Get All-Access Subscription",
+        "hero_cta_free": "🌟 Try Free Mock Tests",
+        "home_pb_title": "Unlimited Smart Practice Bank",
+        "home_pb_desc": "Subject-wise & Mix Practice with bilingual explanations & timer. First 15 questions per subject free!",
+        "home_ncert_title": "📘 NCERT Base Question Bank",
+        "home_ncert_desc": "Line-by-line NCERT Science, History, Polity, Geography & Economy MCQs for SSC, Railway & PCS.",
+        "home_pyq_title": "📋 Subject-Wise Previous Year Questions",
+        "home_pyq_desc": "Green highlighted answers, explanations & exam/year tags across Central & State exams.",
+        "sec_cats": "🎯 Exam Categories", "ca_h2": "📰 Current Affairs Hub",
+        "ca_sub": "Read Complete Daily News Articles & Attempt Topic-Wise CA Practice MCQs",
+        "ca_tab_articles": "📖 Full CA Articles", "ca_tab_daily": "📝 Daily CA Practice", "ca_tab_monthly": "📅 Monthly CA Revision",
+        "upd_h2": "📢 Govt Jobs, Admit Cards, Results & Exam Syllabus",
+        "sn_h2": "📝 Exam Tips, Strategy & Study Notes",
+        "btn_explore": "Explore Now", "login_h2": "Candidate Login", "login_btn": "Login to Dashboard",
+        "login_new": "New user?", "login_reg": "Register Here", "reg_h2": "Create Candidate Account",
+        "reg_btn": "Complete Registration", "dash_h2": "Crack Your Dream Govt Job with Confidence.",
+        "dash_qv": "📊 Dashboard Quick View", "qv_explore": "Explore Tests", "qv_browse": "Browse all available tests",
+        "qv_view": "View Tests", "qv_rec": "Recommended Next", "qv_loading": "Loading...",
+        "qv_start": "Start Now", "qv_recent": "Recent Performance", "qv_not_att": "Not Attempted Yet",
+        "qv_take": "Take a test to see your score", "btn_back_cat": "← Back to Dashboard",
+        "pay_unlock": "Unlock all premium mock tests & Live All-India Exams for", "pay_close": "Close"
+    },
+    "hi": {
+        "nav_home": "होम", "nav_exams": "परीक्षा प्रकार", "nav_ca": "📰 करंट अफेयर्स",
+        "nav_updates": "📢 जॉब्स व अपडेट्स", "nav_notes": "📝 स्टडी नोट्स", "nav_info": "ℹ️ जानकारी",
+        "nav_login": "लॉगिन", "nav_register": "रजिस्टर", "nav_dash": "डैशबोर्ड",
+        "nav_purchase": "मेरी खरीदारी", "nav_logout": "लॉगआउट",
+        "hero_badge": "🎯 भारत का भरोसेमंद सरकारी परीक्षा तैयारी पोर्टल",
+        "hero_h1": "TaiyariGhar के साथ पाएं अपनी ड्रीम गवर्नमेंट जॉब।",
+        "hero_p": "SSC, रेलवे, पुलिस और सभी राज्य परीक्षाओं के लिए ऑल-इन-वन मॉक टेस्ट प्लेटफॉर्म। नवीनतम सिलेबस, रियल-टाइम रैंकिंग और वन सब्सक्रिप्शन में अनलिमिटेड टेस्ट।",
+        "hero_cta_sub": "🚀 ऑल-एक्सेस सब्सक्रिप्शन लें",
+        "hero_cta_free": "🌟 फ्री मॉक टेस्ट दें",
+        "home_pb_title": "अनलिमिटेड स्मार्ट प्रैक्टिस बैंक",
+        "home_pb_desc": "विषय-वार व मिक्स प्रैक्टिस, हिंदी-अंग्रेजी व्याख्या और टाइमर के साथ। हर विषय के पहले 15 प्रश्न बिल्कुल फ्री!",
+        "home_ncert_title": "📘 NCERT आधारित प्रश्न बैंक (कक्षा 6–12)",
+        "home_ncert_desc": "SSC, रेलवे व PCS के लिए कक्षा 6 से 12 तक के NCERT विज्ञान, इतिहास, राजव्यवस्था व भूगोल के प्रश्न।",
+        "home_pyq_title": "📋 विषय-वार पिछले वर्षों के प्रश्न (PYQs)",
+        "home_pyq_desc": "बिना लॉगिन के फ्री पढ़ें — हरे रंग में सही उत्तर, व्याख्या और परीक्षा/वर्ष टैग के साथ।",
+        "sec_cats": "🎯 परीक्षा श्रेणियाँ", "ca_h2": "📰 करंट अफेयर्स हब",
+        "ca_sub": "दैनिक करंट अफेयर्स लेख पढ़ें और टॉपिक-वार प्रैक्टिस प्रश्न हल करें",
+        "ca_tab_articles": "📖 पूरे करंट अफेयर्स लेख", "ca_tab_daily": "📝 डेली CA प्रैक्टिस", "ca_tab_monthly": "📅 मंथली CA रिवीजन",
+        "upd_h2": "📢 सरकारी नौकरी, एडमिट कार्ड, रिजल्ट व सिलेबस",
+        "sn_h2": "📝 परीक्षा रणनीति व स्टडी नोट्स",
+        "btn_explore": "अभी देखें", "login_h2": "अभ्यर्थी लॉगिन", "login_btn": "डैशबोर्ड में लॉगिन करें",
+        "login_new": "नए उपयोगकर्ता हैं?", "login_reg": "यहाँ रजिस्टर करें", "reg_h2": "नया खाता बनाएँ",
+        "reg_btn": "रजिस्ट्रेशन पूरा करें", "dash_h2": "TaiyariGhar के साथ पाएं अपनी ड्रीम गवर्नमेंट जॉब।",
+        "dash_qv": "📊 डैशबोर्ड त्वरित दृश्य", "qv_explore": "टेस्ट खोजें", "qv_browse": "सभी उपलब्ध टेस्ट ब्राउज़ करें",
+        "qv_view": "टेस्ट देखें", "qv_rec": "अगला सुझाव", "qv_loading": "लोड हो रहा है...",
+        "qv_start": "अभी शुरू करें", "qv_recent": "हालिया प्रदर्शन", "qv_not_att": "अभी तक प्रयास नहीं किया",
+        "qv_take": "अपना स्कोर देखने के लिए टेस्ट दें", "btn_back_cat": "← डैशबोर्ड पर वापस",
+        "pay_unlock": "सभी प्रीमियम मॉक टेस्ट और लाइव ऑल-इंडिया परीक्षाएं अनलॉक करें", "pay_close": "बंद करें"
+    }
 };
 
 let currentLang = localStorage.getItem('tg_lang') || 'en';
@@ -440,7 +498,16 @@ window.toggleLanguage = function() {
         }
     }
     if(currentScreen === 'caScreen') {
-        filterCA('Articles', document.querySelector('.ca-tab.active') || document.querySelector('.ca-tab'));
+        const reader = document.getElementById('caArticleReaderBox');
+        const activeCaId = reader?.getAttribute('data-active-ca-id');
+        if (reader && !reader.classList.contains('hide') && activeCaId) {
+            openCaArticleReader(activeCaId);
+        } else {
+            const activeTab = document.querySelector('.ca-tab.active');
+            const tabType = activeTab && activeTab.innerText.includes('Daily') ? 'Daily'
+                : (activeTab && activeTab.innerText.includes('Monthly') ? 'Monthly' : 'Articles');
+            filterCA(tabType, activeTab || document.querySelector('.ca-tab'));
+        }
     }
     if(currentScreen === 'practiceBankScreen' && !document.getElementById('pbLevelArena')?.classList.contains('hide')) {
         renderCurrentPracticeQuestion();
@@ -2571,6 +2638,7 @@ window.openCaArticleReader = function(articleId) {
     const reader = document.getElementById('caArticleReaderBox');
     const content = document.getElementById('caArticleReaderContent');
     if (!reader || !content) return;
+    reader.setAttribute('data-active-ca-id', articleId);
 
     const pickedTitle = (currentLang === 'hi' && art.titleHi) ? art.titleHi : art.title;
     const pickedBody = (currentLang === 'hi' && art.contentHi) ? art.contentHi : (art.content || art.summary || '');
@@ -2661,18 +2729,23 @@ window.filterCA = function(type, btn) {
         }
         let html = `<div style="display:grid; gap:14px;">`;
         allCaArticles.forEach(art => {
-            const preview = (art.summary || art.content || '').slice(0, 190);
+            const dispTitle = (currentLang === 'hi' && art.titleHi) ? art.titleHi : art.title;
+            const rawBody = (currentLang === 'hi' && art.contentHi) ? art.contentHi : (art.content || art.summary || '');
+            const cleanPreview = rawBody.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 190);
+            const qBadge = (Array.isArray(art.questions) && art.questions.length > 0)
+                ? `<span style="background:#ECFDF5; color:#059669; font-size:11px; font-weight:700; padding:3px 8px; border-radius:6px;">📝 ${art.questions.length} Qs</span>` : '';
             html += `
                 <div style="background:#ffffff; border:1px solid #E2E8F0; border-left:4px solid #4F46E5; border-radius:12px; padding:18px 20px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:14px; box-shadow:0 2px 8px rgba(0,0,0,0.03);">
                     <div style="flex:1; min-width:250px;">
-                        <div style="display:flex; gap:8px; align-items:center; margin-bottom:6px;">
+                        <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-bottom:6px;">
                             <span style="background:#EEF2FF; color:#4F46E5; font-size:11px; font-weight:700; padding:3px 9px; border-radius:6px;">${art.category || 'Daily News'}</span>
                             ${art.date ? `<span style="font-size:12px; color:#64748B;">📅 ${art.date}</span>` : ''}
+                            ${qBadge}
                         </div>
-                        <h3 style="color:#1E1B4B; font-size:16.5px; margin:0 0 6px;">${art.title}</h3>
-                        <p style="font-size:13px; color:#475569; margin:0; line-height:1.55;">${preview}${preview.length >= 190 ? '...' : ''}</p>
+                        <h3 style="color:#1E1B4B; font-size:16.5px; margin:0 0 6px;">${dispTitle}</h3>
+                        <p style="font-size:13px; color:#475569; margin:0; line-height:1.55;">${cleanPreview}${cleanPreview.length >= 190 ? '...' : ''}</p>
                     </div>
-                    <button class="btn btn-primary" onclick="openCaArticleReader('${art.id}')">Read Full Article →</button>
+                    <button class="btn btn-primary" onclick="openCaArticleReader('${art.id}')">${currentLang === 'hi' ? 'पूरा लेख व प्रश्न पढ़ें →' : 'Read Full Article →'}</button>
                 </div>
             `;
         });
@@ -2681,10 +2754,105 @@ window.filterCA = function(type, btn) {
         return;
     }
 
-    const filtered = allCA.filter(c => (c.type || '').toLowerCase() === type.toLowerCase());
-    if(filtered.length === 0) {
-        container.innerHTML = '<div style="text-align:center; padding:35px; background:#fff; border-radius:12px; border:1px solid #E2E8F0; color:#64748B;">No practice questions available in this tab yet.</div>';
+    // Helper: parse item date and check if its month has completed (auto-shift to Monthly CA Revision)
+    const parseCaItemDate = (item) => {
+        const raw = item.date || item.createdAt || '';
+        if (!raw) return new Date();
+        const d = new Date(raw);
+        return isNaN(d.getTime()) ? new Date() : d;
+    };
+    const isPastMonthItem = (item) => {
+        const d = parseCaItemDate(item);
+        const now = new Date();
+        return (d.getFullYear() < now.getFullYear()) ||
+               (d.getFullYear() === now.getFullYear() && d.getMonth() < now.getMonth());
+    };
+    const getMonthYearLabel = (item) => {
+        const d = parseCaItemDate(item);
+        return d.toLocaleString('en-IN', { month: 'short', year: 'numeric' });
+    };
+
+    // Unified bilingual pool from BOTH attached article questions AND standalone direct CA questions
+    const unifiedCaPool = [];
+    allCaArticles.forEach(art => {
+        if (!Array.isArray(art.questions) || art.questions.length === 0) return;
+        const dispTitle = (currentLang === 'hi' && art.titleHi) ? art.titleHi : art.title;
+        const explicitMonthly = String(art.category || '').toLowerCase().includes('month');
+        const autoMonthly = explicitMonthly || isPastMonthItem(art);
+        art.questions.forEach((qItem, idx) => {
+            const qText = (currentLang === 'hi' && qItem.qHi) ? qItem.qHi : (qItem.q || qItem.qHi || '');
+            const opts = (currentLang === 'hi' && Array.isArray(qItem.optionsHi) && qItem.optionsHi.some(Boolean))
+                ? qItem.optionsHi
+                : (qItem.options || qItem.optionsHi || []);
+            const expText = (currentLang === 'hi' && qItem.expHi) ? qItem.expHi : (qItem.exp || qItem.expHi || '');
+            unifiedCaPool.push({
+                id: `${art.id}_q_${idx}`,
+                title: dispTitle,
+                date: art.date || '',
+                monthLabel: getMonthYearLabel(art),
+                isMonthly: autoMonthly,
+                link: art.pdfLink || '',
+                question: qText,
+                options: opts,
+                correctAnswer: Number(qItem.ans ?? 0),
+                explanation: expText
+            });
+        });
+    });
+
+    allCA.forEach((c, idx) => {
+        const dispTitle = (currentLang === 'hi' && c.titleHi) ? c.titleHi : (c.title || 'Current Affairs');
+        const qText = (currentLang === 'hi' && c.questionHi) ? c.questionHi : (c.question || c.questionHi || '');
+        const opts = (currentLang === 'hi' && Array.isArray(c.optionsHi) && c.optionsHi.some(Boolean))
+            ? c.optionsHi
+            : (c.options || c.optionsHi || []);
+        const expText = (currentLang === 'hi' && c.explanationHi) ? c.explanationHi : (c.explanation || c.explanationHi || '');
+        const explicitMonthly = String(c.type || '').toLowerCase().includes('month');
+        const autoMonthly = explicitMonthly || isPastMonthItem(c);
+        unifiedCaPool.push({
+            id: c.id || `direct_ca_${idx}`,
+            title: dispTitle,
+            date: c.date || '',
+            monthLabel: getMonthYearLabel(c),
+            isMonthly: autoMonthly,
+            link: c.link || '',
+            question: qText,
+            options: opts,
+            correctAnswer: Number(c.correctAnswer ?? 0),
+            explanation: expText
+        });
+    });
+
+    let filtered = unifiedCaPool.filter(item => type === 'Monthly' ? item.isMonthly : !item.isMonthly);
+    // If Daily tab has 0 current-month questions yet, show latest questions so student never sees blank screen
+    if (type === 'Daily' && filtered.length === 0 && unifiedCaPool.length > 0) {
+        filtered = unifiedCaPool.slice(0, 30);
+    }
+
+    if (filtered.length === 0) {
+        container.innerHTML = `<div style="text-align:center; padding:35px; background:#fff; border-radius:12px; border:1px solid #E2E8F0; color:#64748B;">
+            ${currentLang === 'hi' ? 'इस सेक्शन में अभी कोई अभ्यास प्रश्न उपलब्ध नहीं है।' : 'No practice questions available in this tab yet.'}
+        </div>`;
         return;
+    }
+
+    // Month-wise filter bar inside Monthly CA Revision
+    if (type === 'Monthly') {
+        const months = Array.from(new Set(filtered.map(x => x.monthLabel).filter(Boolean)));
+        window._caSelectedMonthFilter = window._caSelectedMonthFilter && months.includes(window._caSelectedMonthFilter)
+            ? window._caSelectedMonthFilter
+            : 'ALL';
+        if (months.length > 0) {
+            const pillsHtml = ['ALL', ...months].map(m => {
+                const active = window._caSelectedMonthFilter === m;
+                const lbl = m === 'ALL' ? (currentLang === 'hi' ? 'सभी महीने' : 'All Months') : m;
+                return `<button type="button" class="btn ${active ? 'btn-primary' : 'btn-outline'}" style="padding:5px 12px; font-size:12px;" onclick="window._caSelectedMonthFilter='${m}'; filterCA('Monthly', document.querySelectorAll('.ca-tab')[2]);">${lbl}</button>`;
+            }).join('');
+            container.innerHTML += `<div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:16px;">${pillsHtml}</div>`;
+        }
+        if (window._caSelectedMonthFilter !== 'ALL') {
+            filtered = filtered.filter(x => x.monthLabel === window._caSelectedMonthFilter);
+        }
     }
 
     const grouped = {};
@@ -2696,14 +2864,16 @@ window.filterCA = function(type, btn) {
     for(let title in grouped) {
         const article = grouped[title];
         let articleHtml = `<div class="ca-article"><h3 style="color:var(--primary); margin-bottom:5px;">${title}</h3><p style="font-size:13px; color:#666; margin-bottom:10px;">📅 ${article.date}</p>`;
-        if(type === 'Daily' && article.link) articleHtml += `<a href="${article.link}" target="_blank" class="btn btn-outline" style="padding:6px 12px; font-size:12px;">📄 Read Full Article / PDF</a>`;
+        if(article.link) articleHtml += `<a href="${article.link}" target="_blank" class="btn btn-outline" style="padding:6px 12px; font-size:12px;">📄 ${currentLang === 'hi' ? 'पूरा लेख / PDF पढ़ें' : 'Read Full Article / PDF'}</a>`;
         articleHtml += `</div>`;
 
         let qHtml = '';
         article.questions.forEach((q, idx) => {
+            const safeExp = (q.explanation || '').replace(/\/g, '\\').replace(/'/g, "\'").replace(/
+/g, ' ');
             qHtml += `<div class="ca-question" id="caQ_${q.id}"><p style="font-weight:600; margin-bottom:15px;">Q${idx+1}. ${q.question}</p><div class="ca-options">`;
-            q.options.forEach((opt, i) => { if(opt && opt.trim() !== "") qHtml += `<label class="ca-option" onclick="checkCAAnswer('${q.id}', ${i}, ${q.correctAnswer}, '${type}', '${(q.explanation || '').replace(/'/g, "\'")}')">${String.fromCharCode(65+i)}) ${opt}</label>`; });
-            qHtml += `</div><div class="ca-explanation" id="caExp_${q.id}"><b>Explanation:</b> ${q.explanation || 'N/A'}</div></div>`;
+            q.options.forEach((opt, i) => { if(opt && opt.trim() !== "") qHtml += `<label class="ca-option" onclick="checkCAAnswer('${q.id}', ${i}, ${q.correctAnswer}, '${type}', '${safeExp}')">${String.fromCharCode(65+i)}) ${opt}</label>`; });
+            qHtml += `</div><div class="ca-explanation" id="caExp_${q.id}"><b>${currentLang === 'hi' ? 'व्याख्या:' : 'Explanation:'}</b> ${q.explanation || 'N/A'}</div></div>`;
         });
         container.innerHTML += articleHtml + qHtml;
     }
@@ -2720,7 +2890,7 @@ window.checkCAAnswer = function(qId, selectedIndex, correctIndex, type, explanat
         if(i === selectedIndex && i !== correctIndex) opt.classList.add('wrong');
     });
 
-    if(type === 'Monthly' && explanation) document.getElementById(`caExp_${qId}`).style.display = 'block';
+    if(explanation) document.getElementById(`caExp_${qId}`).style.display = 'block';
 
     if(selectedIndex === correctIndex) {
         caCorrectCount++; caStreak = caStreak > 0 ? caStreak + 1 : 1;

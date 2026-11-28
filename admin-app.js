@@ -1860,3 +1860,215 @@ window.exportAllDataExcel = async function (type) {
     }
   };
 })();
+
+
+// =========================================================================
+// DIRECT BILINGUAL CURRENT AFFAIRS OBJECTIVE QUESTIONS (SINGLE + EXCEL BULK)
+// =========================================================================
+(function initDirectCaQuestionsAdmin() {
+  const hostTab = document.getElementById("tab-updates");
+  if (!hostTab || document.getElementById("directCaQuestionCard")) return;
+
+  const todayIso = new Date().toISOString().split("T")[0];
+  const card = document.createElement("div");
+  card.id = "directCaQuestionCard";
+  card.className = "panel-card";
+  card.innerHTML = `
+    <h3>🎯 Add Direct Current Affairs Objective Question (Bilingual EN / HI)</h3>
+    <p style="color:#64748b; margin-bottom:10px;">
+      Add standalone Current Affairs MCQs directly (single question or Excel bulk upload). Current month questions automatically appear in <strong>Daily CA Practice</strong> and auto-shift to <strong>Monthly CA Revision</strong> once the month ends!
+    </p>
+    <div class="form-row">
+      <div><label>Question Date (YYYY-MM-DD) *</label><input type="date" id="dcaDate" value="${todayIso}" /></div>
+      <div><label>Topic / Tag (Optional)</label><input type="text" id="dcaTopic" placeholder="e.g., Defence, Economy, Sports, Awards" /></div>
+      <div><label>Correct Option *</label>
+        <select id="dcaAns">
+          <option value="0">Option A</option>
+          <option value="1">Option B</option>
+          <option value="2">Option C</option>
+          <option value="3">Option D</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div><label>Question (English) *</label><input type="text" id="dcaQEn" placeholder="Enter question in English" /></div>
+      <div><label>Question (Hindi) *</label><input type="text" id="dcaQHi" placeholder="हिंदी में प्रश्न लिखें" /></div>
+    </div>
+    <div class="form-row">
+      <div><label>Option A (EN)</label><input type="text" id="dcaOaEn" /></div>
+      <div><label>Option B (EN)</label><input type="text" id="dcaObEn" /></div>
+      <div><label>Option C (EN)</label><input type="text" id="dcaOcEn" /></div>
+      <div><label>Option D (EN)</label><input type="text" id="dcaOdEn" /></div>
+    </div>
+    <div class="form-row">
+      <div><label>Option A (HI)</label><input type="text" id="dcaOaHi" /></div>
+      <div><label>Option B (HI)</label><input type="text" id="dcaObHi" /></div>
+      <div><label>Option C (HI)</label><input type="text" id="dcaOcHi" /></div>
+      <div><label>Option D (HI)</label><input type="text" id="dcaOdHi" /></div>
+    </div>
+    <div class="form-row">
+      <div><label>Explanation (English)</label><input type="text" id="dcaExpEn" placeholder="Detailed explanation in English" /></div>
+      <div><label>Explanation (Hindi)</label><input type="text" id="dcaExpHi" placeholder="हिंदी में विस्तृत व्याख्या" /></div>
+    </div>
+    <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-bottom:14px;">
+      <button type="button" class="btn btn-primary" id="btnSaveDirectCaQ" onclick="saveDirectCaQuestion()">Publish Direct CA Question</button>
+      <span id="dcaSaveMsg" style="font-weight:600;"></span>
+    </div>
+
+    <hr style="border:none; border-top:1px dashed #cbd5e1; margin:14px 0;">
+    <div class="form-row">
+      <div><label>Bulk Upload CA MCQs via Excel / CSV (.xlsx, .csv)</label><input type="file" id="dcaExcelFile" accept=".xlsx,.xls,.csv" /></div>
+      <div><label>Default Date (if Date column empty)</label><input type="date" id="dcaBulkDate" value="${todayIso}" /></div>
+    </div>
+    <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
+      <button type="button" class="btn btn-primary" id="btnBulkDirectCaQ" onclick="bulkUploadDirectCaExcel()">Bulk Upload CA Excel</button>
+      <button type="button" class="btn btn-outline" onclick="downloadSampleCaMcqTemplate()">Download CA MCQ Template (.xlsx)</button>
+      <span id="dcaBulkMsg" style="font-weight:600;"></span>
+    </div>
+  `;
+
+  // Insert right before the Published Content Manage table card if present
+  const pubTable = document.getElementById("publishedContentAdminBody");
+  const pubCard = pubTable ? pubTable.closest(".panel-card") : null;
+  if (pubCard && pubCard.parentNode === hostTab) {
+    hostTab.insertBefore(card, pubCard);
+  } else {
+    hostTab.appendChild(card);
+  }
+
+  window.downloadSampleCaMcqTemplate = function () {
+    const ws = XLSX.utils.json_to_sheet([{
+      Date: todayIso,
+      Topic: "National & Defence",
+      Question: "Which two Union Ministers represented India in the India-Japan 2+2 Ministerial Meeting?",
+      QuestionHi: "भारत-जापान 2+2 मंत्रिस्तरीय बैठक में भारत का प्रतिनिधित्व किन दो केंद्रीय मंत्रियों ने किया?",
+      OptionA: "Rajnath Singh and Dr. S. Jaishankar",
+      OptionB: "Amit Shah and Nirmala Sitharaman",
+      OptionC: "Nitin Gadkari and Piyush Goyal",
+      OptionD: "Dharmendra Pradhan and Ashwini Vaishnaw",
+      OptionAHi: "राजनाथ सिंह और डॉ. एस. जयशंकर",
+      OptionBHi: "अमित शाह और निर्मला सीतारमण",
+      OptionCHi: "नितिन गडकरी और पीयूष गोयल",
+      OptionDHi: "धर्मेंद्र प्रधान और अश्विनी वैष्णव",
+      CorrectOption: "A",
+      Explanation: "Defence Minister Rajnath Singh and External Affairs Minister Dr. S. Jaishankar co-chaired the meeting.",
+      ExplanationHi: "रक्षा मंत्री राजनाथ सिंह और विदेश मंत्री डॉ. एस. जयशंकर ने इस बैठक की सह-अध्यक्षता की।"
+    }]);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "CA_MCQs");
+    XLSX.writeFile(wb, "TaiyariGhar_CurrentAffairs_MCQ_Template.xlsx");
+  };
+
+  window.saveDirectCaQuestion = async function () {
+    const dateVal = document.getElementById("dcaDate")?.value || todayIso;
+    const topicVal = document.getElementById("dcaTopic")?.value.trim() || "Current Affairs";
+    const ansIdx = Number(document.getElementById("dcaAns")?.value || 0);
+    const qEn = document.getElementById("dcaQEn")?.value.trim() || "";
+    const qHi = document.getElementById("dcaQHi")?.value.trim() || "";
+    const optsEn = [
+      document.getElementById("dcaOaEn")?.value.trim() || "",
+      document.getElementById("dcaObEn")?.value.trim() || "",
+      document.getElementById("dcaOcEn")?.value.trim() || "",
+      document.getElementById("dcaOdEn")?.value.trim() || ""
+    ];
+    const optsHi = [
+      document.getElementById("dcaOaHi")?.value.trim() || "",
+      document.getElementById("dcaObHi")?.value.trim() || "",
+      document.getElementById("dcaOcHi")?.value.trim() || "",
+      document.getElementById("dcaOdHi")?.value.trim() || ""
+    ];
+    const expEn = document.getElementById("dcaExpEn")?.value.trim() || "";
+    const expHi = document.getElementById("dcaExpHi")?.value.trim() || "";
+    const msg = document.getElementById("dcaSaveMsg");
+
+    if (!qEn && !qHi) {
+      alert("Please enter the question in English or Hindi.");
+      return;
+    }
+    msg.style.color = "#1d4ed8";
+    msg.innerText = "Saving question...";
+    await db.collection("current_affairs").add({
+      type: "Daily",
+      title: topicVal,
+      titleHi: topicVal,
+      date: dateVal,
+      question: qEn || qHi,
+      questionHi: qHi || qEn,
+      options: optsEn.map((o, i) => o || optsHi[i] || ""),
+      optionsHi: optsHi.map((o, i) => o || optsEn[i] || ""),
+      correctAnswer: ansIdx,
+      explanation: expEn || expHi,
+      explanationHi: expHi || expEn,
+      createdAt: new Date().toISOString()
+    });
+    msg.style.color = "#166534";
+    msg.innerText = "✅ Direct CA Objective Question Published!";
+    ["dcaQEn", "dcaQHi", "dcaOaEn", "dcaObEn", "dcaOcEn", "dcaOdEn", "dcaOaHi", "dcaObHi", "dcaOcHi", "dcaOdHi", "dcaExpEn", "dcaExpHi"].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.value = "";
+    });
+  };
+
+  window.bulkUploadDirectCaExcel = async function () {
+    const fileInput = document.getElementById("dcaExcelFile");
+    const defDate = document.getElementById("dcaBulkDate")?.value || todayIso;
+    const msg = document.getElementById("dcaBulkMsg");
+    if (!fileInput || !fileInput.files.length) {
+      alert("Please select an Excel or CSV file.");
+      return;
+    }
+    msg.style.color = "#1d4ed8";
+    msg.innerText = "Uploading CA MCQs...";
+    try {
+      const data = await fileInput.files[0].arrayBuffer();
+      const wb = XLSX.read(data);
+      const rows = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]);
+      if (!rows.length) { msg.innerText = "File is empty."; return; }
+
+      const batch = db.batch();
+      let count = 0;
+      rows.forEach(r => {
+        const qEn = String(r.Question || r["Question En"] || "").trim();
+        const qHi = String(r.QuestionHi || r["Question Hi"] || "").trim();
+        if (!qEn && !qHi) return;
+        const ansChar = String(r.CorrectOption || r.Answer || "A").trim().toUpperCase();
+        const ansIdx = { A: 0, B: 1, C: 2, D: 3 }[ansChar] ?? 0;
+        const dStr = String(r.Date || defDate).trim();
+        const topic = String(r.Topic || r.Category || "Current Affairs").trim();
+        const ref = db.collection("current_affairs").doc();
+        batch.set(ref, {
+          type: "Daily",
+          title: topic,
+          titleHi: topic,
+          date: dStr,
+          question: qEn || qHi,
+          questionHi: qHi || qEn,
+          options: [
+            String(r.OptionA || r.OptionAHi || "").trim(),
+            String(r.OptionB || r.OptionBHi || "").trim(),
+            String(r.OptionC || r.OptionCHi || "").trim(),
+            String(r.OptionD || r.OptionDHi || "").trim()
+          ],
+          optionsHi: [
+            String(r.OptionAHi || r.OptionA || "").trim(),
+            String(r.OptionBHi || r.OptionB || "").trim(),
+            String(r.OptionCHi || r.OptionC || "").trim(),
+            String(r.OptionDHi || r.OptionD || "").trim()
+          ],
+          correctAnswer: ansIdx,
+          explanation: String(r.Explanation || r.ExplanationHi || "").trim(),
+          explanationHi: String(r.ExplanationHi || r.Explanation || "").trim(),
+          createdAt: new Date().toISOString()
+        });
+        count++;
+      });
+      await batch.commit();
+      msg.style.color = "#166534";
+      msg.innerText = `✅ Uploaded ${count} Bilingual Current Affairs MCQs!`;
+      fileInput.value = "";
+    } catch (err) {
+      msg.style.color = "#dc2626";
+      msg.innerText = "Error: " + err.message;
+    }
+  };
+})();
