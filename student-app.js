@@ -2869,8 +2869,7 @@ window.filterCA = function(type, btn) {
 
         let qHtml = '';
         article.questions.forEach((q, idx) => {
-            const safeExp = (q.explanation || '').replace(/\/g, '\\').replace(/'/g, "\'").replace(/
-/g, ' ');
+            const safeExp = (q.explanation || '').replace(/\\/g, '\\\\').replace(/'/g, '\\\'').replace(/\r?\n/g, ' ');
             qHtml += `<div class="ca-question" id="caQ_${q.id}"><p style="font-weight:600; margin-bottom:15px;">Q${idx+1}. ${q.question}</p><div class="ca-options">`;
             q.options.forEach((opt, i) => { if(opt && opt.trim() !== "") qHtml += `<label class="ca-option" onclick="checkCAAnswer('${q.id}', ${i}, ${q.correctAnswer}, '${type}', '${safeExp}')">${String.fromCharCode(65+i)}) ${opt}</label>`; });
             qHtml += `</div><div class="ca-explanation" id="caExp_${q.id}"><b>${currentLang === 'hi' ? 'व्याख्या:' : 'Explanation:'}</b> ${q.explanation || 'N/A'}</div></div>`;
