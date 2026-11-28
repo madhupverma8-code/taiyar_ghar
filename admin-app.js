@@ -2083,10 +2083,133 @@ window.exportAllDataExcel = async function (type) {
 
 
 // =========================================================================
-// SECURE CLOUDFLARE WORKER ADMIN LOGIN & PRICING SYNC OVERRIDE
+// SECURE CLOUDFLARE WORKER ADMIN LOGIN & FULL PRICING + COUPON MANAGER
 // =========================================================================
 (function initWorkerAdminAuthAndPricing() {
   const adminApi = () => window.TG_ADMIN_API;
+  let adminPromoCoupons = [];
+
+  function renderFullPricingManagerUI() {
+    const tab = document.getElementById("tab-settings");
+    if (!tab || document.getElementById("tgProPricingBuilder")) return;
+
+    tab.innerHTML = `
+      <div class="panel-card" id="tgProPricingBuilder">
+        <h3>12. Pro Pass Plans, Pricing &amp; Promo Coupons Manager (Cloudflare D1 Live)</h3>
+        <p style="color:#64748b; margin-bottom:14px;">Yahan se aap teeno subscription cards ke <strong>Months, Validity Days, MRP (Crossed Price), Offer Price</strong> aur <strong>Promo Coupons (₹ Discount + Extra Validity Days)</strong> poori tarah control kar sakte hain.</p>
+
+        <h4 style="color:#1e1b4b; margin:12px 0 8px;">📦 Subscription Plans Configuration</h4>
+        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(260px, 1fr)); gap:14px; margin-bottom:18px;">
+          <div style="border:1.5px solid #cbd5e1; border-radius:10px; padding:14px; background:#f8fafc;">
+            <strong style="color:#4f46e5;">Plan Card 1 (Starter)</strong>
+            <div class="form-row" style="margin-top:8px;">
+              <div><label>Months</label><input type="number" id="p1Months" value="3" /></div>
+              <div><label>Validity (Days)</label><input type="number" id="p1Days" value="90" /></div>
+            </div>
+            <div class="form-row">
+              <div><label>MRP Crossed (₹)</label><input type="number" id="p1Mrp" value="149" /></div>
+              <div><label>Offer Price (₹)</label><input type="number" id="p1Price" value="99" /></div>
+            </div>
+          </div>
+
+          <div style="border:1.5px solid #cbd5e1; border-radius:10px; padding:14px; background:#f8fafc;">
+            <strong style="color:#0f766e;">Plan Card 2 (Popular)</strong>
+            <div class="form-row" style="margin-top:8px;">
+              <div><label>Months</label><input type="number" id="p2Months" value="6" /></div>
+              <div><label>Validity (Days)</label><input type="number" id="p2Days" value="180" /></div>
+            </div>
+            <div class="form-row">
+              <div><label>MRP Crossed (₹)</label><input type="number" id="p2Mrp" value="249" /></div>
+              <div><label>Offer Price (₹)</label><input type="number" id="p2Price" value="199" /></div>
+            </div>
+          </div>
+
+          <div style="border:1.5px solid #cbd5e1; border-radius:10px; padding:14px; background:#f8fafc;">
+            <strong style="color:#b45309;">Plan Card 3 (Best Value)</strong>
+            <div class="form-row" style="margin-top:8px;">
+              <div><label>Months</label><input type="number" id="p3Months" value="12" /></div>
+              <div><label>Validity (Days)</label><input type="number" id="p3Days" value="365" /></div>
+            </div>
+            <div class="form-row">
+              <div><label>MRP Crossed (₹)</label><input type="number" id="p3Mrp" value="399" /></div>
+              <div><label>Offer Price (₹)</label><input type="number" id="p3Price" value="249" /></div>
+            </div>
+          </div>
+        </div>
+
+        <h4 style="color:#1e1b4b; margin:14px 0 8px;">🎟️ Promo Coupon Codes (₹ Discount + Extra Validity Days)</h4>
+        <div style="background:#f8fafc; border:1px solid #cbd5e1; border-radius:10px; padding:14px; margin-bottom:14px;">
+          <div class="form-row">
+            <div><label>Coupon Code *</label><input type="text" id="newCpnCode" placeholder="e.g. WELCOME80" style="text-transform:uppercase;" /></div>
+            <div><label>Discount Amount (₹) *</label><input type="number" id="newCpnDisc" placeholder="e.g. 80" value="50" /></div>
+            <div><label>Extra Validity (Days)</label><input type="number" id="newCpnDays" placeholder="e.g. 15" value="0" /></div>
+            <div><label>Min Plan Price Required (₹)</label><input type="number" id="newCpnMinPrice" placeholder="e.g. 199" value="99" /></div>
+          </div>
+          <button type="button" class="btn btn-outline" onclick="addPromoCouponRow()">+ Add Coupon Code</button>
+
+          <div style="overflow-x:auto; margin-top:12px;">
+            <table style="width:100%; border-collapse:collapse; font-size:13px;">
+              <thead>
+                <tr style="background:#e2e8f0; text-align:left;">
+                  <th style="padding:8px;">Coupon Code</th>
+                  <th style="padding:8px;">Discount (₹)</th>
+                  <th style="padding:8px;">Extra Validity</th>
+                  <th style="padding:8px;">Min Plan Price</th>
+                  <th style="padding:8px;">Action</th>
+                </tr>
+              </thead>
+              <tbody id="promoCouponsTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div><label>Support WhatsApp / Telegram Link</label><input type="text" id="setSupportLink" placeholder="https://t.me/taiyarighar" /></div>
+        </div>
+
+        <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-top:10px;">
+          <button type="button" class="btn btn-primary" onclick="savePricingSettings()">💾 Save All Plans &amp; Coupons</button>
+          <span id="setSaveMsg" style="font-weight:700;"></span>
+        </div>
+      </div>
+    `;
+  }
+
+  function renderPromoCouponsTable() {
+    const tbody = document.getElementById("promoCouponsTableBody");
+    if (!tbody) return;
+    if (!adminPromoCoupons.length) {
+      tbody.innerHTML = `<tr><td colspan="5" style="padding:10px; color:#64748b;">No active promo coupons yet. Add a coupon code above and click Save.</td></tr>`;
+      return;
+    }
+    tbody.innerHTML = adminPromoCoupons.map((c, idx) => `
+      <tr style="border-bottom:1px solid #e2e8f0; background:#ffffff;">
+        <td style="padding:8px;"><strong>${c.code}</strong></td>
+        <td style="padding:8px; color:#059669; font-weight:700;">- ₹${c.discount}</td>
+        <td style="padding:8px; color:#4f46e5; font-weight:600;">+${c.extraDays || 0} Days</td>
+        <td style="padding:8px;">₹${c.minPrice || 0}+</td>
+        <td style="padding:8px;"><button type="button" class="btn btn-danger btn-sm" onclick="removePromoCouponRow(${idx})">Remove</button></td>
+      </tr>
+    `).join("");
+  }
+
+  window.addPromoCouponRow = function () {
+    const code = (document.getElementById("newCpnCode")?.value || "").trim().toUpperCase().replace(/[^A-Z0-9_-]/g, "");
+    const discount = Math.max(0, Number(document.getElementById("newCpnDisc")?.value || 0));
+    const extraDays = Math.max(0, Number(document.getElementById("newCpnDays")?.value || 0));
+    const minPrice = Math.max(0, Number(document.getElementById("newCpnMinPrice")?.value || 0));
+    if (!code) { alert("Please enter a valid Coupon Code (e.g. WELCOME80)."); return; }
+    if (discount <= 0 && extraDays <= 0) { alert("Enter either Discount (₹) or Extra Validity Days."); return; }
+    adminPromoCoupons = adminPromoCoupons.filter(c => c.code !== code);
+    adminPromoCoupons.push({ code, discount, extraDays, minPrice });
+    document.getElementById("newCpnCode").value = "";
+    renderPromoCouponsTable();
+  };
+
+  window.removePromoCouponRow = function (idx) {
+    adminPromoCoupons.splice(idx, 1);
+    renderPromoCouponsTable();
+  };
 
   window.loginAdmin = async function () {
     const email = document.getElementById("admEmail").value.trim().toLowerCase();
@@ -2125,54 +2248,101 @@ window.exportAllDataExcel = async function (type) {
   };
 
   window.loadPricingSettings = async function () {
+    renderFullPricingManagerUI();
     try {
       if (adminApi() && typeof adminApi().getPricingSettings === "function") {
         const res = await adminApi().getPricingSettings();
         if (res && res.ok && res.settings) {
           const d = res.settings;
-          if (d.Plan3_Price) document.getElementById("setPrice1M").value = d.Plan3_Price;
-          if (d.Plan6_Price) document.getElementById("setPrice6M").value = d.Plan6_Price;
-          if (d.Plan12_Price) document.getElementById("setPrice12M").value = d.Plan12_Price;
-          if (d.globalCoupon !== undefined) document.getElementById("setGlobalCoupon").value = d.globalCoupon;
-          if (d.globalDiscount !== undefined) document.getElementById("setGlobalDiscount").value = d.globalDiscount;
+          const plans = Array.isArray(d.plans) ? d.plans : null;
+          if (plans && plans.length >= 3) {
+            document.getElementById("p1Months").value = plans[0].months || 3;
+            document.getElementById("p1Days").value = plans[0].days || 90;
+            document.getElementById("p1Mrp").value = plans[0].mrp || 149;
+            document.getElementById("p1Price").value = plans[0].price || 99;
+
+            document.getElementById("p2Months").value = plans[1].months || 6;
+            document.getElementById("p2Days").value = plans[1].days || 180;
+            document.getElementById("p2Mrp").value = plans[1].mrp || 249;
+            document.getElementById("p2Price").value = plans[1].price || 199;
+
+            document.getElementById("p3Months").value = plans[2].months || 12;
+            document.getElementById("p3Days").value = plans[2].days || 365;
+            document.getElementById("p3Mrp").value = plans[2].mrp || 399;
+            document.getElementById("p3Price").value = plans[2].price || 249;
+          } else {
+            if (d.Plan3_MRP) document.getElementById("p1Mrp").value = d.Plan3_MRP;
+            if (d.Plan3_Price) document.getElementById("p1Price").value = d.Plan3_Price;
+            if (d.Plan6_MRP) document.getElementById("p2Mrp").value = d.Plan6_MRP;
+            if (d.Plan6_Price) document.getElementById("p2Price").value = d.Plan6_Price;
+            if (d.Plan12_MRP) document.getElementById("p3Mrp").value = d.Plan12_MRP;
+            if (d.Plan12_Price) document.getElementById("p3Price").value = d.Plan12_Price;
+          }
+
+          if (Array.isArray(d.coupons)) {
+            adminPromoCoupons = d.coupons;
+          } else if (d.globalCoupon) {
+            adminPromoCoupons = [{
+              code: String(d.globalCoupon).toUpperCase(),
+              discount: Number(d.globalDiscount || 0),
+              extraDays: 0,
+              minPrice: 0
+            }];
+          }
           if (d.supportLink !== undefined) document.getElementById("setSupportLink").value = d.supportLink;
-          return;
         }
       }
     } catch (e) {
       console.warn("Load pricing error:", e);
     }
+    renderPromoCouponsTable();
   };
 
   window.savePricingSettings = async function () {
     const msg = document.getElementById("setSaveMsg");
-    if (!adminApi()) {
-      alert("TG_ADMIN_API bridge missing.");
-      return;
-    }
+    if (!adminApi()) { alert("TG_ADMIN_API bridge missing."); return; }
     if (!adminApi().getAdminKey()) {
       const k = prompt("Enter your Cloudflare ADMIN_API_KEY:");
       if (!k) return;
       adminApi().setAdminKey(k.trim());
     }
 
-    const p3 = Number(document.getElementById("setPrice1M").value) || 99;
-    const p6 = Number(document.getElementById("setPrice6M").value) || 199;
-    const p12 = Number(document.getElementById("setPrice12M").value) || 249;
+    const plans = [
+      {
+        months: Number(document.getElementById("p1Months").value) || 3,
+        days: Number(document.getElementById("p1Days").value) || 90,
+        mrp: Number(document.getElementById("p1Mrp").value) || 149,
+        price: Number(document.getElementById("p1Price").value) || 99
+      },
+      {
+        months: Number(document.getElementById("p2Months").value) || 6,
+        days: Number(document.getElementById("p2Days").value) || 180,
+        mrp: Number(document.getElementById("p2Mrp").value) || 249,
+        price: Number(document.getElementById("p2Price").value) || 199
+      },
+      {
+        months: Number(document.getElementById("p3Months").value) || 12,
+        days: Number(document.getElementById("p3Days").value) || 365,
+        mrp: Number(document.getElementById("p3Mrp").value) || 399,
+        price: Number(document.getElementById("p3Price").value) || 249
+      }
+    ];
 
     msg.style.color = "#1d4ed8";
-    msg.innerText = "Saving to Cloudflare D1...";
+    msg.innerText = "Saving Plans & Coupons to Cloudflare D1...";
 
     try {
       const resp = await adminApi().savePricingSettings({
-        Plan3_MRP: String(Math.round(p3 * 1.5)),
-        Plan3_Price: String(p3),
-        Plan6_MRP: String(Math.round(p6 * 1.4)),
-        Plan6_Price: String(p6),
-        Plan12_MRP: String(Math.round(p12 * 1.6)),
-        Plan12_Price: String(p12),
-        globalCoupon: document.getElementById("setGlobalCoupon").value.trim().toUpperCase(),
-        globalDiscount: Number(document.getElementById("setGlobalDiscount").value) || 0,
+        plans,
+        Plan3_MRP: String(plans[0].mrp),
+        Plan3_Price: String(plans[0].price),
+        Plan6_MRP: String(plans[1].mrp),
+        Plan6_Price: String(plans[1].price),
+        Plan12_MRP: String(plans[2].mrp),
+        Plan12_Price: String(plans[2].price),
+        coupons: adminPromoCoupons,
+        globalCoupon: adminPromoCoupons[0] ? adminPromoCoupons[0].code : "",
+        globalDiscount: adminPromoCoupons[0] ? adminPromoCoupons[0].discount : 0,
         supportLink: document.getElementById("setSupportLink").value.trim()
       });
 
@@ -2180,7 +2350,7 @@ window.exportAllDataExcel = async function (type) {
         throw new Error((resp && resp.error) || "Unauthorized or save failed");
       }
       msg.style.color = "#166534";
-      msg.innerText = "✅ Pricing & Settings Saved on Cloudflare D1!";
+      msg.innerText = "✅ All Plans & Coupons Saved Live on Cloudflare D1!";
     } catch (err) {
       msg.style.color = "#dc2626";
       msg.innerText = "Error: " + (err.message || err);

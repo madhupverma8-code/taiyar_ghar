@@ -56,21 +56,32 @@ export default {
         return jsonResponse({ ok: true, admin: "madhupverma8@gmail.com" });
       }
 
-      // Public GET & Admin POST for Pro Pass Pricing & Global Settings
+      // Public GET & Admin POST for Pro Pass Pricing & Global Settings (Dedicated Table)
       if (path === "/api/settings/pricing") {
+        await env.DB.prepare(
+          `CREATE TABLE IF NOT EXISTS app_settings (
+            setting_key TEXT PRIMARY KEY,
+            setting_json TEXT,
+            updated_at TEXT
+          )`
+        ).run();
+
         if (request.method === "GET") {
           const row = await env.DB.prepare(
-            "SELECT meta_json FROM content_posts WHERE post_id = 'global_pricing_settings'"
+            "SELECT setting_json FROM app_settings WHERE setting_key = 'global_pricing'"
           ).first();
-          const settings = row ? parseJsonSafe(row.meta_json, {}) : {};
+          const settings = row ? parseJsonSafe(row.setting_json, {}) : {};
           return jsonResponse({ ok: true, settings });
         }
+
         if (request.method === "POST") {
           if (!isAuthorizedAdmin(request, env)) {
             return jsonResponse({ ok: false, error: "Unauthorized admin key" }, 401);
           }
           const body = await request.json();
           const cleanSettings = {
+            plans: Array.isArray(body.plans) ? body.plans : [],
+            coupons: Array.isArray(body.coupons) ? body.coupons : [],
             Plan3_MRP: String(body.Plan3_MRP || body.price1M || "149"),
             Plan3_Price: String(body.Plan3_Price || body.price1M || "99"),
             Plan6_MRP: String(body.Plan6_MRP || body.price6M || "249"),
@@ -83,9 +94,8 @@ export default {
             updatedAt: new Date().toISOString()
           };
           await env.DB.prepare(
-            `INSERT OR REPLACE INTO content_posts
-             (post_id, post_type, category, title_en, title_hi, body_en, body_hi, meta_json)
-             VALUES ('global_pricing_settings', 'settings', 'pricing', 'Pricing', 'Pricing', '', '', ?)`
+            `INSERT OR REPLACE INTO app_settings (setting_key, setting_json, updated_at)
+             VALUES ('global_pricing', ?, datetime('now'))`
           ).bind(JSON.stringify(cleanSettings)).run();
           return jsonResponse({ ok: true, settings: cleanSettings });
         }

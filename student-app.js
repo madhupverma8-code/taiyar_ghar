@@ -5505,18 +5505,126 @@ window.backToMockTestsView = function () {
 
 
 // =========================================================================
-// LIVE PRICING SYNC FROM CLOUDFLARE WORKER D1
+// LIVE PRICING & PROMO COUPONS SYNC FROM CLOUDFLARE WORKER D1
 // =========================================================================
-(async function syncLivePricingFromWorker() {
-  try {
-    const base = (window.TAIYARIGHAR_CONFIG?.API_BASE_URL || "https://taiyarighar-api.taiyarighar.workers.dev").replace(/\/+$/, "");
-    const res = await fetch(base + "/api/settings/pricing");
-    const data = await res.json();
-    if (data && data.ok && data.settings && Object.keys(data.settings).length > 0) {
-      appSettings = { ...appSettings, ...data.settings };
-      syncSubscriptionPlansFromSettings();
-    }
-  } catch (e) {
-    console.warn("Worker pricing sync skipped:", e);
+(function initWorkerLivePricingAndCoupons() {
+  let workerPromoCoupons = [];
+
+  function applyCustomPlansToModal(plans) {
+    if (!Array.isArray(plans) || plans.length < 3) return;
+    const slotKeys = [3, 6, 12];
+    plans.slice(0, 3).forEach((p, idx) => {
+      const slot = slotKeys[idx];
+      const m = Number(p.months) || slot;
+      const d = Number(p.days) || (m * 30);
+      const mrp = Number(p.mrp) || 149;
+      const price = Number(p.price) || 99;
+      const disc = Math.max(0, mrp - price);
+
+      subscriptionPlans[slot] = {
+        months: m,
+        days: d,
+        label: `${m} Months Pass`,
+        mrp,
+        price
+      };
+
+      const card = document.getElementById(`planCard${slot}`);
+      if (card) {
+        const hEl = card.querySelector("h3, h4, .plan-title");
+        if (hEl) hEl.innerText = `${m} Months Pass`;
+        else {
+          card.querySelectorAll("div, strong").forEach(el => {
+            if (/^\d+\s*Months?\s*Pass$/i.test(el.innerText.trim())) {
+              el.innerText = `${m} Months Pass`;
+            }
+          });
+        }
+      }
+      if (document.getElementById(`planMrp${slot}`)) document.getElementById(`planMrp${slot}`).innerText = mrp;
+      if (document.getElementById(`planPrice${slot}`)) document.getElementById(`planPrice${slot}`).innerText = price;
+      if (document.getElementById(`planSave${slot}`)) document.getElementById(`planSave${slot}`).innerText = disc > 0 ? `SAVE ₹${disc}` : "OFFER";
+    });
   }
+
+  async function fetchWorkerPricingConfig() {
+    try {
+      const base = (window.TAIYARIGHAR_CONFIG?.API_BASE_URL || "https://taiyarighar-api.taiyarighar.workers.dev").replace(/\/+$/, "");
+      const res = await fetch(base + "/api/settings/pricing");
+      const data = await res.json();
+      if (data && data.ok && data.settings && Object.keys(data.settings).length > 0) {
+        appSettings = { ...appSettings, ...data.settings };
+        if (Array.isArray(data.settings.coupons)) {
+          workerPromoCoupons = data.settings.coupons;
+        } else if (data.settings.globalCoupon) {
+          workerPromoCoupons = [{
+            code: String(data.settings.globalCoupon).toUpperCase(),
+            discount: Number(data.settings.globalDiscount || 0),
+            extraDays: 0,
+            minPrice: 0
+          }];
+        }
+        syncSubscriptionPlansFromSettings();
+        if (Array.isArray(data.settings.plans)) {
+          applyCustomPlansToModal(data.settings.plans);
+        }
+      }
+    } catch (e) {
+      console.warn("Worker pricing sync skipped:", e);
+    }
+  }
+
+  const origSync = window.syncSubscriptionPlansFromSettings;
+  window.syncSubscriptionPlansFromSettings = function () {
+    if (typeof origSync === "function") origSync();
+    if (Array.isArray(appSettings.plans)) {
+      applyCustomPlansToModal(appSettings.plans);
+    }
+  };
+
+  // Override coupon validator so Admin Promo Coupons (e.g. WELCOME80) work alongside Partner & Student Referrals
+  const origApplyCoupon = window.applyStudentReferralCoupon;
+  window.applyStudentReferralCoupon = async function () {
+    const inputEl = document.getElementById("studentCouponInput");
+    const msgEl = document.getElementById("couponStatusMsg");
+    const code = (inputEl?.value || "").trim().toUpperCase();
+
+    if (code && workerPromoCoupons.length > 0) {
+      const matched = workerPromoCoupons.find(c => String(c.code || "").toUpperCase() === code);
+      if (matched) {
+        const activePlan = subscriptionPlans[selectedPlanMonths] || subscriptionPlans[12];
+        const minReq = Number(matched.minPrice || 0);
+        if (minReq > 0 && Number(activePlan.price || 0) < minReq) {
+          appliedPartnerCoupon = null;
+          selectSubscriptionPlan(selectedPlanMonths);
+          if (msgEl) {
+            msgEl.style.color = "#DC2626";
+            msgEl.innerText = `Coupon ${code} is valid on plans of ₹${minReq} or above. Please select a higher plan!`;
+          }
+          return;
+        }
+        appliedPartnerCoupon = {
+          type: "global_promo",
+          couponCode: code,
+          discountAmount: Number(matched.discount || 0),
+          extraDays: Number(matched.extraDays || 0)
+        };
+        selectSubscriptionPlan(selectedPlanMonths);
+        if (msgEl) {
+          msgEl.style.color = "#059669";
+          const parts = [];
+          if (matched.discount > 0) parts.push(`₹${matched.discount} instant discount`);
+          if (matched.extraDays > 0) parts.push(`+${matched.extraDays} extra validity days`);
+          msgEl.innerText = `🎉 Promo Coupon (${code}) Applied! You got ${parts.join(" & ")}.`;
+        }
+        return;
+      }
+    }
+
+    if (typeof origApplyCoupon === "function") {
+      return origApplyCoupon.apply(this, arguments);
+    }
+  };
+
+  fetchWorkerPricingConfig();
 })();
