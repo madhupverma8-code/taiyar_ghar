@@ -2080,3 +2080,110 @@ window.exportAllDataExcel = async function (type) {
     }
   };
 })();
+
+
+// =========================================================================
+// SECURE CLOUDFLARE WORKER ADMIN LOGIN & PRICING SYNC OVERRIDE
+// =========================================================================
+(function initWorkerAdminAuthAndPricing() {
+  const adminApi = () => window.TG_ADMIN_API;
+
+  window.loginAdmin = async function () {
+    const email = document.getElementById("admEmail").value.trim().toLowerCase();
+    const pass = document.getElementById("admPass").value.trim();
+    const err = document.getElementById("admLoginErr");
+    err.innerText = "";
+
+    if (email !== "madhupverma8@gmail.com") {
+      err.innerText = "Access Denied: Only madhupverma8@gmail.com is authorized.";
+      return;
+    }
+    if (!pass) {
+      err.innerText = "Please enter your Admin Key / Password.";
+      return;
+    }
+
+    try {
+      if (adminApi() && typeof adminApi().verifyAdminKey === "function") {
+        const check = await adminApi().verifyAdminKey(pass);
+        if (check && check.ok) {
+          adminApi().setAdminKey(pass);
+          sessionStorage.setItem("tg_admin_fs_auth", "1");
+          showAdminWorkspaceUI();
+          return;
+        }
+      }
+    } catch (wErr) {
+      console.warn("Worker verify fallback:", wErr);
+    }
+
+    try {
+      await auth.signInWithEmailAndPassword(email, pass);
+    } catch (e) {
+      err.innerText = "Invalid Admin Key / Password. Please enter your Cloudflare ADMIN_API_KEY.";
+    }
+  };
+
+  window.loadPricingSettings = async function () {
+    try {
+      if (adminApi() && typeof adminApi().getPricingSettings === "function") {
+        const res = await adminApi().getPricingSettings();
+        if (res && res.ok && res.settings) {
+          const d = res.settings;
+          if (d.Plan3_Price) document.getElementById("setPrice1M").value = d.Plan3_Price;
+          if (d.Plan6_Price) document.getElementById("setPrice6M").value = d.Plan6_Price;
+          if (d.Plan12_Price) document.getElementById("setPrice12M").value = d.Plan12_Price;
+          if (d.globalCoupon !== undefined) document.getElementById("setGlobalCoupon").value = d.globalCoupon;
+          if (d.globalDiscount !== undefined) document.getElementById("setGlobalDiscount").value = d.globalDiscount;
+          if (d.supportLink !== undefined) document.getElementById("setSupportLink").value = d.supportLink;
+          return;
+        }
+      }
+    } catch (e) {
+      console.warn("Load pricing error:", e);
+    }
+  };
+
+  window.savePricingSettings = async function () {
+    const msg = document.getElementById("setSaveMsg");
+    if (!adminApi()) {
+      alert("TG_ADMIN_API bridge missing.");
+      return;
+    }
+    if (!adminApi().getAdminKey()) {
+      const k = prompt("Enter your Cloudflare ADMIN_API_KEY:");
+      if (!k) return;
+      adminApi().setAdminKey(k.trim());
+    }
+
+    const p3 = Number(document.getElementById("setPrice1M").value) || 99;
+    const p6 = Number(document.getElementById("setPrice6M").value) || 199;
+    const p12 = Number(document.getElementById("setPrice12M").value) || 249;
+
+    msg.style.color = "#1d4ed8";
+    msg.innerText = "Saving to Cloudflare D1...";
+
+    try {
+      const resp = await adminApi().savePricingSettings({
+        Plan3_MRP: String(Math.round(p3 * 1.5)),
+        Plan3_Price: String(p3),
+        Plan6_MRP: String(Math.round(p6 * 1.4)),
+        Plan6_Price: String(p6),
+        Plan12_MRP: String(Math.round(p12 * 1.6)),
+        Plan12_Price: String(p12),
+        globalCoupon: document.getElementById("setGlobalCoupon").value.trim().toUpperCase(),
+        globalDiscount: Number(document.getElementById("setGlobalDiscount").value) || 0,
+        supportLink: document.getElementById("setSupportLink").value.trim()
+      });
+
+      if (!resp || !resp.ok) {
+        throw new Error((resp && resp.error) || "Unauthorized or save failed");
+      }
+      msg.style.color = "#166534";
+      msg.innerText = "✅ Pricing & Settings Saved on Cloudflare D1!";
+    } catch (err) {
+      msg.style.color = "#dc2626";
+      msg.innerText = "Error: " + (err.message || err);
+    }
+  };
+})();

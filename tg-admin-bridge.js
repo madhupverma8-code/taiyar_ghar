@@ -10,12 +10,12 @@
     );
   }
 
-  async function adminPost(path, body = {}) {
+  async function adminPost(path, body = {}, customKey = "") {
     const res = await fetch(BASE + path, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "X-Admin-Key": getAdminKey()
+        "X-Admin-Key": customKey || getAdminKey()
       },
       body: JSON.stringify(body)
     });
@@ -27,6 +27,12 @@
       if (key && String(key).trim()) localStorage.setItem("tg_admin_key_override", String(key).trim());
     },
     getAdminKey,
+    verifyAdminKey: (key) => adminPost("/api/admin/verify", {}, key),
+    getPricingSettings: async () => {
+      const res = await fetch(BASE + "/api/settings/pricing");
+      return res.json();
+    },
+    savePricingSettings: (payload) => adminPost("/api/settings/pricing", payload),
     bulkUploadBundle: (bundle, questions) => adminPost("/api/bundles/bulk", { bundle, questions }),
     deleteBundles: (bundleIds) => adminPost("/api/bundles/delete", { bundle_ids: bundleIds }),
     saveMockTest: (payload) => adminPost("/api/tests", payload),

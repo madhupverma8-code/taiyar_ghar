@@ -47,6 +47,50 @@ export default {
         });
       }
 
+
+      // Admin key verification (for secure Admin Panel login without Firebase Auth dependency)
+      if (path === "/api/admin/verify" && request.method === "POST") {
+        if (!isAuthorizedAdmin(request, env)) {
+          return jsonResponse({ ok: false, error: "Invalid Admin Key" }, 401);
+        }
+        return jsonResponse({ ok: true, admin: "madhupverma8@gmail.com" });
+      }
+
+      // Public GET & Admin POST for Pro Pass Pricing & Global Settings
+      if (path === "/api/settings/pricing") {
+        if (request.method === "GET") {
+          const row = await env.DB.prepare(
+            "SELECT meta_json FROM content_posts WHERE post_id = 'global_pricing_settings'"
+          ).first();
+          const settings = row ? parseJsonSafe(row.meta_json, {}) : {};
+          return jsonResponse({ ok: true, settings });
+        }
+        if (request.method === "POST") {
+          if (!isAuthorizedAdmin(request, env)) {
+            return jsonResponse({ ok: false, error: "Unauthorized admin key" }, 401);
+          }
+          const body = await request.json();
+          const cleanSettings = {
+            Plan3_MRP: String(body.Plan3_MRP || body.price1M || "149"),
+            Plan3_Price: String(body.Plan3_Price || body.price1M || "99"),
+            Plan6_MRP: String(body.Plan6_MRP || body.price6M || "249"),
+            Plan6_Price: String(body.Plan6_Price || body.price6M || "199"),
+            Plan12_MRP: String(body.Plan12_MRP || body.price12M || "399"),
+            Plan12_Price: String(body.Plan12_Price || body.price12M || "249"),
+            globalCoupon: String(body.globalCoupon || "").trim().toUpperCase(),
+            globalDiscount: Number(body.globalDiscount || 0),
+            supportLink: String(body.supportLink || "").trim(),
+            updatedAt: new Date().toISOString()
+          };
+          await env.DB.prepare(
+            `INSERT OR REPLACE INTO content_posts
+             (post_id, post_type, category, title_en, title_hi, body_en, body_hi, meta_json)
+             VALUES ('global_pricing_settings', 'settings', 'pricing', 'Pricing', 'Pricing', '', '', ?)`
+          ).bind(JSON.stringify(cleanSettings)).run();
+          return jsonResponse({ ok: true, settings: cleanSettings });
+        }
+      }
+
       // List practice & NCERT bundles
       if (path === "/api/bundles" && request.method === "GET") {
         const subject = url.searchParams.get("subject") || "";

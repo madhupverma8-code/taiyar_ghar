@@ -5502,3 +5502,21 @@ window.backToMockTestsView = function () {
         goDashboard();
     }
 };
+
+
+// =========================================================================
+// LIVE PRICING SYNC FROM CLOUDFLARE WORKER D1
+// =========================================================================
+(async function syncLivePricingFromWorker() {
+  try {
+    const base = (window.TAIYARIGHAR_CONFIG?.API_BASE_URL || "https://taiyarighar-api.taiyarighar.workers.dev").replace(/\/+$/, "");
+    const res = await fetch(base + "/api/settings/pricing");
+    const data = await res.json();
+    if (data && data.ok && data.settings && Object.keys(data.settings).length > 0) {
+      appSettings = { ...appSettings, ...data.settings };
+      syncSubscriptionPlansFromSettings();
+    }
+  } catch (e) {
+    console.warn("Worker pricing sync skipped:", e);
+  }
+})();
