@@ -350,6 +350,21 @@ window.onpopstate = function(event) {
             closeCaArticleReader();
             return;
         }
+        if (window._caSelectedArticleDate) {
+            window._caSelectedArticleDate = null;
+            filterCA('Articles', document.querySelectorAll('.ca-tab')[0], false);
+            return;
+        }
+        if (window._caSelectedDailyDate) {
+            window._caSelectedDailyDate = null;
+            filterCA('Daily', document.querySelectorAll('.ca-tab')[1], false);
+            return;
+        }
+        if (window._caSelectedMonthFolder) {
+            window._caSelectedMonthFolder = null;
+            filterCA('Monthly', document.querySelectorAll('.ca-tab')[2], false);
+            return;
+        }
     }
     if (currentScreen === 'studyNotesScreen') {
         const snBox = document.getElementById('studyNoteReaderBox');
@@ -2708,7 +2723,40 @@ window.closeCaArticleReader = function() {
     document.getElementById('caContentContainer').classList.remove('hide');
 };
 
-window.filterCA = function(type, btn) {
+window._caSelectedArticleDate = null;
+window._caSelectedDailyDate = null;
+window._caSelectedMonthFolder = null;
+
+function normalizeCaDateInfo(rawDate) {
+    const fallback = new Date();
+    let d = fallback;
+    if (rawDate) {
+        const str = String(rawDate).trim();
+        const isoMatch = str.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
+        if (isoMatch) {
+            d = new Date(Number(isoMatch[1]), Number(isoMatch[2]) - 1, Number(isoMatch[3]));
+        } else {
+            const parsed = new Date(str);
+            if (!isNaN(parsed.getTime())) d = parsed;
+        }
+    }
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    const dateKey = `${y}-${m}-${day}`;
+    const monthKey = `${y}-${m}`;
+    const fullDateLabel = d.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+    const monthYearLabel = d.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+    return { dateObj: d, dateKey, monthKey, fullDateLabel, monthYearLabel };
+}
+
+function isPastCalendarMonth(dateObj) {
+    const now = new Date();
+    return (dateObj.getFullYear() < now.getFullYear()) ||
+           (dateObj.getFullYear() === now.getFullYear() && dateObj.getMonth() < now.getMonth());
+}
+
+window.filterCA = function(type, btn, resetSelection = false) {
     document.querySelectorAll('.ca-tab').forEach(b => {
         b.classList.remove('active', 'btn-primary');
         b.classList.add('btn-outline');
@@ -2717,18 +2765,79 @@ window.filterCA = function(type, btn) {
         btn.classList.add('active', 'btn-primary');
         btn.classList.remove('btn-outline');
     }
+    if (resetSelection) {
+        if (type === 'Articles') window._caSelectedArticleDate = null;
+        if (type === 'Daily') window._caSelectedDailyDate = null;
+        if (type === 'Monthly') window._caSelectedMonthFolder = null;
+    }
     closeCaArticleReader();
 
     const container = document.getElementById('caContentContainer');
     container.innerHTML = '';
 
+    // TAB 1: FULL CA ARTICLES -> DATE-WISE CARDS -> ARTICLES OF THAT DATE
     if (type === 'Articles') {
         if (allCaArticles.length === 0) {
-            container.innerHTML = '<div style="text-align:center; padding:35px; background:#fff; border-radius:12px; border:1px solid #E2E8F0; color:#64748B;">No Current Affairs articles published yet. Check back soon!</div>';
+            container.innerHTML = `<div style="text-align:center; padding:35px; background:#fff; border-radius:12px; border:1px solid #E2E8F0; color:#64748B;">
+                ${currentLang === 'hi' ? 'अभी तक कोई करंट अफेयर्स लेख प्रकाशित नहीं हुआ है।' : 'No Current Affairs articles published yet. Check back soon!'}
+            </div>`;
             return;
         }
-        let html = `<div style="display:grid; gap:14px;">`;
+
+        const byDate = {};
         allCaArticles.forEach(art => {
+            const info = normalizeCaDateInfo(art.date || art.createdAt);
+            if (!byDate[info.dateKey]) {
+                byDate[info.dateKey] = {
+                    dateKey: info.dateKey,
+                    label: info.fullDateLabel,
+                    sortMs: info.dateObj.getTime(),
+                    items: [],
+                    qCount: 0
+                };
+            }
+            byDate[info.dateKey].items.push(art);
+            byDate[info.dateKey].qCount += Array.isArray(art.questions) ? art.questions.length : 0;
+        });
+
+        const dateGroups = Object.values(byDate).sort((a, b) => b.sortMs - a.sortMs);
+
+        if (!window._caSelectedArticleDate || !byDate[window._caSelectedArticleDate]) {
+            let cardsHtml = `<div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(230px, 1fr)); gap:14px;">`;
+            dateGroups.forEach(grp => {
+                const countTxt = currentLang === 'hi'
+                    ? `${grp.items.length} लेख • ${grp.qCount} प्रश्न`
+                    : `${grp.items.length} Article${grp.items.length > 1 ? 's' : ''} • ${grp.qCount} Qs`;
+                cardsHtml += `
+                    <div onclick="window._caSelectedArticleDate='${grp.dateKey}'; filterCA('Articles', document.querySelectorAll('.ca-tab')[0], false);"
+                         style="background:#ffffff; border:1.5px solid #CBD5E1; border-left:5px solid #4F46E5; border-radius:12px; padding:16px 18px; cursor:pointer; box-shadow:0 3px 10px rgba(15,23,42,0.04); transition:0.15s;"
+                         onmouseover="this.style.borderColor='#4F46E5'; this.style.transform='translateY(-2px)'"
+                         onmouseout="this.style.borderColor='#CBD5E1'; this.style.transform='none'">
+                        <div style="font-size:12px; font-weight:700; color:#4F46E5; margin-bottom:4px;">📅 DAILY CA</div>
+                        <div style="font-size:16.5px; font-weight:800; color:#1E1B4B; margin-bottom:6px;">${grp.label}</div>
+                        <div style="display:flex; justify-content:space-between; align-items:center; font-size:12.5px; color:#475569; font-weight:600;">
+                            <span>${countTxt}</span>
+                            <span style="color:#4F46E5;">${currentLang === 'hi' ? 'खोलें →' : 'Open →'}</span>
+                        </div>
+                    </div>
+                `;
+            });
+            cardsHtml += `</div>`;
+            container.innerHTML = cardsHtml;
+            return;
+        }
+
+        const activeGrp = byDate[window._caSelectedArticleDate];
+        let html = `
+            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:16px; background:#EEF2FF; border:1px solid #C7D2FE; padding:12px 16px; border-radius:10px;">
+                <button type="button" class="btn btn-outline" style="background:#ffffff;" onclick="window._caSelectedArticleDate=null; filterCA('Articles', document.querySelectorAll('.ca-tab')[0], false);">
+                    ${currentLang === 'hi' ? '← सभी तिथियों पर वापस जाएं' : '← Back to All Dates'}
+                </button>
+                <strong style="color:#1E1B4B; font-size:15px;">📅 ${activeGrp.label} (${activeGrp.items.length})</strong>
+            </div>
+            <div style="display:grid; gap:14px;">`;
+
+        activeGrp.items.forEach(art => {
             const dispTitle = (currentLang === 'hi' && art.titleHi) ? art.titleHi : art.title;
             const rawBody = (currentLang === 'hi' && art.contentHi) ? art.contentHi : (art.content || art.summary || '');
             const cleanPreview = rawBody.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 190);
@@ -2739,7 +2848,7 @@ window.filterCA = function(type, btn) {
                     <div style="flex:1; min-width:250px;">
                         <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-bottom:6px;">
                             <span style="background:#EEF2FF; color:#4F46E5; font-size:11px; font-weight:700; padding:3px 9px; border-radius:6px;">${art.category || 'Daily News'}</span>
-                            ${art.date ? `<span style="font-size:12px; color:#64748B;">📅 ${art.date}</span>` : ''}
+                            <span style="font-size:12px; color:#64748B;">📅 ${activeGrp.label}</span>
                             ${qBadge}
                         </div>
                         <h3 style="color:#1E1B4B; font-size:16.5px; margin:0 0 6px;">${dispTitle}</h3>
@@ -2754,31 +2863,14 @@ window.filterCA = function(type, btn) {
         return;
     }
 
-    // Helper: parse item date and check if its month has completed (auto-shift to Monthly CA Revision)
-    const parseCaItemDate = (item) => {
-        const raw = item.date || item.createdAt || '';
-        if (!raw) return new Date();
-        const d = new Date(raw);
-        return isNaN(d.getTime()) ? new Date() : d;
-    };
-    const isPastMonthItem = (item) => {
-        const d = parseCaItemDate(item);
-        const now = new Date();
-        return (d.getFullYear() < now.getFullYear()) ||
-               (d.getFullYear() === now.getFullYear() && d.getMonth() < now.getMonth());
-    };
-    const getMonthYearLabel = (item) => {
-        const d = parseCaItemDate(item);
-        return d.toLocaleString('en-IN', { month: 'short', year: 'numeric' });
-    };
-
-    // Unified bilingual pool from BOTH attached article questions AND standalone direct CA questions
+    // BUILD UNIFIED BILINGUAL MCQ POOL (Attached to Articles + Direct MCQs)
     const unifiedCaPool = [];
     allCaArticles.forEach(art => {
         if (!Array.isArray(art.questions) || art.questions.length === 0) return;
+        const info = normalizeCaDateInfo(art.date || art.createdAt);
         const dispTitle = (currentLang === 'hi' && art.titleHi) ? art.titleHi : art.title;
         const explicitMonthly = String(art.category || '').toLowerCase().includes('month');
-        const autoMonthly = explicitMonthly || isPastMonthItem(art);
+        const autoMonthly = explicitMonthly || isPastCalendarMonth(info.dateObj);
         art.questions.forEach((qItem, idx) => {
             const qText = (currentLang === 'hi' && qItem.qHi) ? qItem.qHi : (qItem.q || qItem.qHi || '');
             const opts = (currentLang === 'hi' && Array.isArray(qItem.optionsHi) && qItem.optionsHi.some(Boolean))
@@ -2788,8 +2880,11 @@ window.filterCA = function(type, btn) {
             unifiedCaPool.push({
                 id: `${art.id}_q_${idx}`,
                 title: dispTitle,
-                date: art.date || '',
-                monthLabel: getMonthYearLabel(art),
+                dateKey: info.dateKey,
+                fullDateLabel: info.fullDateLabel,
+                monthKey: info.monthKey,
+                monthYearLabel: info.monthYearLabel,
+                sortMs: info.dateObj.getTime(),
                 isMonthly: autoMonthly,
                 link: art.pdfLink || '',
                 question: qText,
@@ -2801,6 +2896,7 @@ window.filterCA = function(type, btn) {
     });
 
     allCA.forEach((c, idx) => {
+        const info = normalizeCaDateInfo(c.date || c.createdAt);
         const dispTitle = (currentLang === 'hi' && c.titleHi) ? c.titleHi : (c.title || 'Current Affairs');
         const qText = (currentLang === 'hi' && c.questionHi) ? c.questionHi : (c.question || c.questionHi || '');
         const opts = (currentLang === 'hi' && Array.isArray(c.optionsHi) && c.optionsHi.some(Boolean))
@@ -2808,12 +2904,15 @@ window.filterCA = function(type, btn) {
             : (c.options || c.optionsHi || []);
         const expText = (currentLang === 'hi' && c.explanationHi) ? c.explanationHi : (c.explanation || c.explanationHi || '');
         const explicitMonthly = String(c.type || '').toLowerCase().includes('month');
-        const autoMonthly = explicitMonthly || isPastMonthItem(c);
+        const autoMonthly = explicitMonthly || isPastCalendarMonth(info.dateObj);
         unifiedCaPool.push({
             id: c.id || `direct_ca_${idx}`,
             title: dispTitle,
-            date: c.date || '',
-            monthLabel: getMonthYearLabel(c),
+            dateKey: info.dateKey,
+            fullDateLabel: info.fullDateLabel,
+            monthKey: info.monthKey,
+            monthYearLabel: info.monthYearLabel,
+            sortMs: info.dateObj.getTime(),
             isMonthly: autoMonthly,
             link: c.link || '',
             question: qText,
@@ -2823,59 +2922,142 @@ window.filterCA = function(type, btn) {
         });
     });
 
-    let filtered = unifiedCaPool.filter(item => type === 'Monthly' ? item.isMonthly : !item.isMonthly);
-    // If Daily tab has 0 current-month questions yet, show latest questions so student never sees blank screen
-    if (type === 'Daily' && filtered.length === 0 && unifiedCaPool.length > 0) {
-        filtered = unifiedCaPool.slice(0, 30);
+    const renderMcqQuestionsList = (qList, backBtnHtml) => {
+        let out = backBtnHtml;
+        const grouped = {};
+        qList.forEach(c => {
+            const gKey = `${c.title}___${c.fullDateLabel}`;
+            if (!grouped[gKey]) grouped[gKey] = { title: c.title, date: c.fullDateLabel, link: c.link, questions: [] };
+            grouped[gKey].questions.push(c);
+        });
+
+        let globalQNum = 1;
+        for (let key in grouped) {
+            const article = grouped[key];
+            let articleHtml = `<div class="ca-article"><h3 style="color:var(--primary); margin-bottom:5px;">${article.title}</h3><p style="font-size:13px; color:#666; margin-bottom:10px;">📅 ${article.date}</p>`;
+            if (article.link) articleHtml += `<a href="${article.link}" target="_blank" class="btn btn-outline" style="padding:6px 12px; font-size:12px;">📄 ${currentLang === 'hi' ? 'पूरा लेख / PDF पढ़ें' : 'Read Full Article / PDF'}</a>`;
+            articleHtml += `</div>`;
+
+            let qHtml = '';
+            article.questions.forEach(q => {
+                const safeExp = (q.explanation || '').replace(/\\/g, '\\\\').replace(/'/g, '\\\'').replace(/\r?\n/g, ' ');
+                qHtml += `<div class="ca-question" id="caQ_${q.id}"><p style="font-weight:600; margin-bottom:15px;">Q${globalQNum++}. ${q.question}</p><div class="ca-options">`;
+                q.options.forEach((opt, i) => {
+                    if (opt && opt.trim() !== "") {
+                        qHtml += `<label class="ca-option" onclick="checkCAAnswer('${q.id}', ${i}, ${q.correctAnswer}, '${type}', '${safeExp}')">${String.fromCharCode(65 + i)}) ${opt}</label>`;
+                    }
+                });
+                qHtml += `</div><div class="ca-explanation" id="caExp_${q.id}"><b>${currentLang === 'hi' ? 'व्याख्या:' : 'Explanation:'}</b> ${q.explanation || 'N/A'}</div></div>`;
+            });
+            out += articleHtml + qHtml;
+        }
+        container.innerHTML = out;
+    };
+
+    // TAB 2: DAILY CA PRACTICE -> DATE-WISE CARDS -> MCQs OF THAT DATE
+    if (type === 'Daily') {
+        const dailyPool = unifiedCaPool.filter(item => !item.isMonthly);
+        if (dailyPool.length === 0) {
+            container.innerHTML = `<div style="text-align:center; padding:35px; background:#fff; border-radius:12px; border:1px solid #E2E8F0; color:#64748B;">
+                ${currentLang === 'hi' ? 'इस महीने के डेली करंट अफेयर्स प्रश्न जल्द ही जुड़ेंगे। पिछले महीनों के प्रश्न "Monthly CA Revision" में देखें।' : 'No Daily CA practice questions for the current month yet. Check previous months in Monthly CA Revision!'}
+            </div>`;
+            return;
+        }
+
+        const byDate = {};
+        dailyPool.forEach(q => {
+            if (!byDate[q.dateKey]) {
+                byDate[q.dateKey] = { dateKey: q.dateKey, label: q.fullDateLabel, sortMs: q.sortMs, items: [] };
+            }
+            byDate[q.dateKey].items.push(q);
+        });
+        const dateGroups = Object.values(byDate).sort((a, b) => b.sortMs - a.sortMs);
+
+        if (!window._caSelectedDailyDate || !byDate[window._caSelectedDailyDate]) {
+            let cardsHtml = `<div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(230px, 1fr)); gap:14px;">`;
+            dateGroups.forEach(grp => {
+                const countTxt = currentLang === 'hi' ? `${grp.items.length} अभ्यास प्रश्न` : `${grp.items.length} Practice MCQ${grp.items.length > 1 ? 's' : ''}`;
+                cardsHtml += `
+                    <div onclick="window._caSelectedDailyDate='${grp.dateKey}'; filterCA('Daily', document.querySelectorAll('.ca-tab')[1], false);"
+                         style="background:#ffffff; border:1.5px solid #CBD5E1; border-left:5px solid #10B981; border-radius:12px; padding:16px 18px; cursor:pointer; box-shadow:0 3px 10px rgba(15,23,42,0.04); transition:0.15s;"
+                         onmouseover="this.style.borderColor='#10B981'; this.style.transform='translateY(-2px)'"
+                         onmouseout="this.style.borderColor='#CBD5E1'; this.style.transform='none'">
+                        <div style="font-size:12px; font-weight:700; color:#059669; margin-bottom:4px;">📝 DAILY PRACTICE</div>
+                        <div style="font-size:16.5px; font-weight:800; color:#1E1B4B; margin-bottom:6px;">${grp.label}</div>
+                        <div style="display:flex; justify-content:space-between; align-items:center; font-size:12.5px; color:#475569; font-weight:600;">
+                            <span>${countTxt}</span>
+                            <span style="color:#059669;">${currentLang === 'hi' ? 'हल करें →' : 'Start →'}</span>
+                        </div>
+                    </div>
+                `;
+            });
+            cardsHtml += `</div>`;
+            container.innerHTML = cardsHtml;
+            return;
+        }
+
+        const activeGrp = byDate[window._caSelectedDailyDate];
+        const backBar = `
+            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:16px; background:#ECFDF5; border:1px solid #A7F3D0; padding:12px 16px; border-radius:10px;">
+                <button type="button" class="btn btn-outline" style="background:#ffffff;" onclick="window._caSelectedDailyDate=null; filterCA('Daily', document.querySelectorAll('.ca-tab')[1], false);">
+                    ${currentLang === 'hi' ? '← सभी तिथियों पर वापस जाएं' : '← Back to All Dates'}
+                </button>
+                <strong style="color:#065F46; font-size:15px;">📝 ${activeGrp.label} (${activeGrp.items.length} MCQs)</strong>
+            </div>`;
+        renderMcqQuestionsList(activeGrp.items, backBar);
+        return;
     }
 
-    if (filtered.length === 0) {
+    // TAB 3: MONTHLY CA REVISION -> MONTH-WISE CARDS (AUTO MONTH-END SHIFT)
+    const monthlyPool = unifiedCaPool.filter(item => item.isMonthly);
+    if (monthlyPool.length === 0) {
         container.innerHTML = `<div style="text-align:center; padding:35px; background:#fff; border-radius:12px; border:1px solid #E2E8F0; color:#64748B;">
-            ${currentLang === 'hi' ? 'इस सेक्शन में अभी कोई अभ्यास प्रश्न उपलब्ध नहीं है।' : 'No practice questions available in this tab yet.'}
+            ${currentLang === 'hi' ? 'महीना समाप्त होते ही उस महीने के सभी करंट अफेयर्स प्रश्न अपने आप यहाँ मंथली कार्ड में आ जाएंगे।' : 'All Daily CA questions automatically move into Month-wise Revision cards at the end of each month!'}
         </div>`;
         return;
     }
 
-    // Month-wise filter bar inside Monthly CA Revision
-    if (type === 'Monthly') {
-        const months = Array.from(new Set(filtered.map(x => x.monthLabel).filter(Boolean)));
-        window._caSelectedMonthFilter = window._caSelectedMonthFilter && months.includes(window._caSelectedMonthFilter)
-            ? window._caSelectedMonthFilter
-            : 'ALL';
-        if (months.length > 0) {
-            const pillsHtml = ['ALL', ...months].map(m => {
-                const active = window._caSelectedMonthFilter === m;
-                const lbl = m === 'ALL' ? (currentLang === 'hi' ? 'सभी महीने' : 'All Months') : m;
-                return `<button type="button" class="btn ${active ? 'btn-primary' : 'btn-outline'}" style="padding:5px 12px; font-size:12px;" onclick="window._caSelectedMonthFilter='${m}'; filterCA('Monthly', document.querySelectorAll('.ca-tab')[2]);">${lbl}</button>`;
-            }).join('');
-            container.innerHTML += `<div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:16px;">${pillsHtml}</div>`;
+    const byMonth = {};
+    monthlyPool.forEach(q => {
+        if (!byMonth[q.monthKey]) {
+            byMonth[q.monthKey] = { monthKey: q.monthKey, label: q.monthYearLabel, sortMs: q.sortMs, items: [] };
         }
-        if (window._caSelectedMonthFilter !== 'ALL') {
-            filtered = filtered.filter(x => x.monthLabel === window._caSelectedMonthFilter);
-        }
-    }
-
-    const grouped = {};
-    filtered.forEach(c => {
-        if(!grouped[c.title]) grouped[c.title] = { date: c.date, link: c.link, questions: [] };
-        grouped[c.title].questions.push(c);
+        byMonth[q.monthKey].items.push(q);
     });
+    const monthGroups = Object.values(byMonth).sort((a, b) => b.sortMs - a.sortMs);
 
-    for(let title in grouped) {
-        const article = grouped[title];
-        let articleHtml = `<div class="ca-article"><h3 style="color:var(--primary); margin-bottom:5px;">${title}</h3><p style="font-size:13px; color:#666; margin-bottom:10px;">📅 ${article.date}</p>`;
-        if(article.link) articleHtml += `<a href="${article.link}" target="_blank" class="btn btn-outline" style="padding:6px 12px; font-size:12px;">📄 ${currentLang === 'hi' ? 'पूरा लेख / PDF पढ़ें' : 'Read Full Article / PDF'}</a>`;
-        articleHtml += `</div>`;
-
-        let qHtml = '';
-        article.questions.forEach((q, idx) => {
-            const safeExp = (q.explanation || '').replace(/\\/g, '\\\\').replace(/'/g, '\\\'').replace(/\r?\n/g, ' ');
-            qHtml += `<div class="ca-question" id="caQ_${q.id}"><p style="font-weight:600; margin-bottom:15px;">Q${idx+1}. ${q.question}</p><div class="ca-options">`;
-            q.options.forEach((opt, i) => { if(opt && opt.trim() !== "") qHtml += `<label class="ca-option" onclick="checkCAAnswer('${q.id}', ${i}, ${q.correctAnswer}, '${type}', '${safeExp}')">${String.fromCharCode(65+i)}) ${opt}</label>`; });
-            qHtml += `</div><div class="ca-explanation" id="caExp_${q.id}"><b>${currentLang === 'hi' ? 'व्याख्या:' : 'Explanation:'}</b> ${q.explanation || 'N/A'}</div></div>`;
+    if (!window._caSelectedMonthFolder || !byMonth[window._caSelectedMonthFolder]) {
+        let cardsHtml = `<div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(240px, 1fr)); gap:14px;">`;
+        monthGroups.forEach(grp => {
+            const countTxt = currentLang === 'hi' ? `${grp.items.length} कुल प्रश्न` : `${grp.items.length} Total MCQ${grp.items.length > 1 ? 's' : ''}`;
+            cardsHtml += `
+                <div onclick="window._caSelectedMonthFolder='${grp.monthKey}'; filterCA('Monthly', document.querySelectorAll('.ca-tab')[2], false);"
+                     style="background:#ffffff; border:1.5px solid #CBD5E1; border-left:5px solid #D97706; border-radius:12px; padding:18px 20px; cursor:pointer; box-shadow:0 3px 10px rgba(15,23,42,0.04); transition:0.15s;"
+                     onmouseover="this.style.borderColor='#D97706'; this.style.transform='translateY(-2px)'"
+                     onmouseout="this.style.borderColor='#CBD5E1'; this.style.transform='none'">
+                    <div style="font-size:12px; font-weight:700; color:#B45309; margin-bottom:4px;">📆 MONTHLY REVISION</div>
+                    <div style="font-size:18px; font-weight:800; color:#1E1B4B; margin-bottom:6px;">${grp.label}</div>
+                    <div style="display:flex; justify-content:space-between; align-items:center; font-size:12.5px; color:#475569; font-weight:600;">
+                        <span>${countTxt}</span>
+                        <span style="color:#B45309;">${currentLang === 'hi' ? 'रिवीजन करें →' : 'Revise →'}</span>
+                    </div>
+                </div>
+            `;
         });
-        container.innerHTML += articleHtml + qHtml;
+        cardsHtml += `</div>`;
+        container.innerHTML = cardsHtml;
+        return;
     }
+
+    const activeMonth = byMonth[window._caSelectedMonthFolder];
+    const monthBackBar = `
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:16px; background:#FFFBEB; border:1px solid #FDE68A; padding:12px 16px; border-radius:10px;">
+            <button type="button" class="btn btn-outline" style="background:#ffffff;" onclick="window._caSelectedMonthFolder=null; filterCA('Monthly', document.querySelectorAll('.ca-tab')[2], false);">
+                ${currentLang === 'hi' ? '← सभी महीनों पर वापस जाएं' : '← Back to All Months'}
+            </button>
+            <strong style="color:#92400E; font-size:15px;">📆 ${activeMonth.label} (${activeMonth.items.length} MCQs)</strong>
+        </div>`;
+    renderMcqQuestionsList(activeMonth.items, monthBackBar);
 };
 
 window.checkCAAnswer = function(qId, selectedIndex, correctIndex, type, explanation) {
